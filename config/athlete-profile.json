@@ -1,0 +1,70 @@
+{
+  "name": "Khalil",
+  "age": 23,
+  "occupation": "Desk job (sedentary)",
+  "category": "Hybrid Athlete (Running 10K–21K + Home Gym ST)",
+  "targets": {
+    "goals": ["Konsistensi tanpa cedera", "Koreksi postur", "Ketahanan lari efisien"],
+    "raceTargets": ["Sub-30m 5K", "Sub-1h 10K", "Sub-3h Half Marathon"]
+  },
+  "conditions": [
+    "Anterior Pelvic Tilt / Hiperlordosis (Spine-Friendly Protocol)",
+    "Riwayat Shin Splints (Prehab rutin)",
+    "Overpronation / Crossover Gait (Stabilitas Gluteus Medius, Cadence 175–180 SPM)",
+    "Jeda latihan beban berat 24–48 jam sebelum MCU/tes darah"
+  ],
+  "equipment": [
+    "Dumbbell Modular (Plat 4x1.25kg, 4x1.5kg, 4x2.0kg)",
+    "Barbell Mode (Connecting Bar + Hip Pad)",
+    "Resistance Band (Light/Medium)",
+    "Pull-up Bar",
+    "Dinding & Kursi/Step Box"
+  ],
+  "runZones": {
+    "easy": { "pace": "8:00–8:50/km", "maxHr": 160, "rpe": "3–4" },
+    "tempo": { "pace": "6:15–6:30/km", "hr": "160–180", "rpe": "6–7" },
+    "miniInterval": { "pace": "5:15–5:35/km", "rpe": "7–8" },
+    "norwegian4x4": { "pace": "5:50/km" }
+  },
+  "movementLibrary": {
+    "upperPush": [
+      { "name": "Floor Press", "weight": "10–20 kg/tangan" },
+      { "name": "Seated Overhead Press", "weight": "5 kg/tangan" },
+      { "name": "Seated Lateral Raise", "weight": "1.25–3 kg/tangan" },
+      { "name": "Overhead Triceps Extension", "weight": "5 kg" },
+      { "name": "High-Incline Push-Up", "weight": "Bodyweight" }
+    ],
+    "upperPull": [
+      { "name": "Dead Hang", "weight": "Bodyweight" },
+      { "name": "Negative Pull-Up", "weight": "Bodyweight", "available": false },
+      { "name": "DB Farmer's Hold", "weight": "10–16 kg/tangan" },
+      { "name": "Seated DB Scapular Retraction", "weight": "2.5–5 kg/tangan" },
+      { "name": "Supported Single-Arm Row", "weight": "5–7.5 kg/tangan" },
+      { "name": "DB Floor Pullover", "weight": "5–7.5 kg" },
+      { "name": "Seated Bent-Over DB Face Pull", "weight": "1.25–1.5 kg" },
+      { "name": "Reverse Wrist Curl", "weight": "1.25–1.5 kg" }
+    ],
+    "lower": [
+      { "name": "Barbell Sumo Deadlift / Hip Thrust", "weight": "14–20 kg" },
+      { "name": "Barbell Squat", "weight": "10–16 kg" },
+      { "name": "DB RDL Wall-Tap Method", "weight": "8–10 kg" },
+      { "name": "Reverse Lunge", "weight": "3–5 kg/tangan" },
+      { "name": "Glute Bridge", "weight": "Bodyweight" }
+    ],
+    "stabilityAndCore": [
+      { "name": "Lateral Band Walk", "weight": "Light/Medium Band" },
+      { "name": "Dead Bug", "weight": "Bodyweight" },
+      { "name": "Clamshell", "weight": "Light Band" }
+    ],
+    "prehab": [
+      { "name": "Tibialis Wall Raise", "weight": "Bodyweight" },
+      { "name": "Eccentric Calf Raise", "weight": "Bodyweight" }
+    ],
+    "warmupAndCooldown": [
+      "Kneeling Hip Flexor Stretch",
+      "Cat-Cow",
+      "Band Pull-Apart",
+      "Calf Stretch"
+    ]
+  }
+}
