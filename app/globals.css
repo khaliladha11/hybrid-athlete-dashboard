@@ -10,6 +10,8 @@
   --color-accent-700: oklch(50.8% 0.118 165.6);
   --color-accent-900: oklch(37.8% 0.077 168.9);
   --color-accent-950: oklch(26.2% 0.051 172.6);
+  /* Ease-out yang lebih tegas dari bawaan; dipakai semua gerak UI. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 :root {
@@ -18,10 +20,82 @@
 
 html {
   -webkit-tap-highlight-color: transparent;
+  /* Cegah iOS membesarkan font sendiri saat landscape. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   @apply bg-zinc-50 text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100;
+}
+
+@layer base {
+  /* Tap langsung diproses (tanpa menunggu kemungkinan double-tap zoom). */
+  button,
+  a,
+  summary,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
+  /* Label kontrol bukan konten: long-press tidak boleh memilih teksnya. */
+  button,
+  summary,
+  [role="radio"],
+  [role="tab"],
+  nav a {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+@layer components {
+  /* Umpan balik tekan: respons saat jari mendarat, bukan saat diangkat. */
+  .pressable {
+    transition-property: transform, color, background-color, box-shadow;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-out);
+  }
+  .pressable:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  /* Konten yang baru di-render (hasil generate, label tombol) memudar masuk
+     alih-alih meloncat. Tanpa gerak posisi, jadi aman untuk reduced motion. */
+  .swap-in {
+    transition:
+      opacity 200ms var(--ease-out),
+      filter 200ms var(--ease-out);
+    @starting-style {
+      opacity: 0.4;
+      filter: blur(2px);
+    }
+  }
+
+  /* Isi <details> muncul halus saat dibuka. */
+  details[open] > .details-body {
+    animation: details-in 200ms var(--ease-out);
+  }
+}
+
+@keyframes details-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Kurangi gerak, bukan hilangkan umpan balik: tanpa scale/translate, fade tetap. */
+  .pressable:active:not(:disabled) {
+    transform: none;
+  }
+  @keyframes details-in {
+    from {
+      opacity: 0;
+    }
+  }
 }
 
 /* Padding horizontal 1rem, diperlebar otomatis di perangkat dengan notch samping. */

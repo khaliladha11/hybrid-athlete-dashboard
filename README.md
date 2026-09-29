@@ -56,6 +56,7 @@ Semua data profil ada di [`config/athlete-profile.json`](config/athlete-profile.
 - Gerakan dengan `"available": false` tercatat di library tapi **tidak** diresepkan. Contohnya `Negative Pull-Up`: ubah jadi `true` kalau sudah mampu, dan gerakan itu otomatis masuk di awal sesi Upper Pull setelah Dead Hang.
 - Batas beban ditulis sebagai teks (`"10–20 kg/tangan"`, `"5 kg"`, `"Bodyweight"`, `"Light/Medium Band"`) dan di-parse otomatis. Beban yang diresepkan tidak pernah melebihi batas atas.
 - Zona lari di profil ditampilkan apa adanya di halaman Profil. Generator memakai acuan yang lebih konservatif untuk HR: Easy **< 140**, Tempo **160–170**.
+- `training.blockStart` (tanggal Senin, `YYYY-MM-DD`) dan `training.blockWeeks` (default 4) mengatur blok periodisasi. Ubah `blockStart` untuk memulai blok baru, misalnya setelah libur atau cedera.
 
 ## Aturan generator
 
@@ -63,12 +64,12 @@ Semua data profil ada di [`config/athlete-profile.json`](config/athlete-profile.
 
 | Level | Isi |
 | --- | --- |
-| Easy | Continuous Z2 atau run-walk 4'/1', HR < 140 |
-| Moderate | Pemanasan Z2 → blok tempo 6:15–6:30/km, HR 160–170, RPE 6–7 → pendinginan |
-| High 30' | Mini interval 5:15–5:35/km, RPE 7–8, repetisi disesuaikan agar muat |
-| High 45'/60' | Norwegian 4×4 @ 5:50/km, recovery jog 3' |
+| Easy | Continuous Z2, run-walk 4'/1', atau Z2 + cadence drill. Semua HR < 140 |
+| Moderate | Tempo 6:15–6:30/km, HR 160–170, RPE 6–7: continuous, tempo terputus, cruise interval (jeda 1'), atau progression run (Z2 → tempo) |
+| High 30' | Mini interval 5:15–5:35/km, RPE 7–8: 1'/1', 2'/2', 3'/2', atau 30"/30", repetisi disesuaikan agar muat |
+| High 45'/60' | Norwegian 4×4 @ 5:50/km (recovery jog 3') atau 15/15 (set 20×15"/15", jog 3' antar set) |
 
-Setiap workout lari menyertakan pengingat cadence 175–180 SPM dan cue "rel kereta".
+Setiap workout lari menyertakan pengingat cadence 175–180 SPM dan cue "rel kereta". Jika ada data cadence 14 hari terakhir di bawah 175 SPM, generator memberi target personal +5% (maksimal 180).
 
 **ST** (`lib/generator/strength.ts`):
 - RPE Easy 5 / Moderate 6 / High 7, dan tidak pernah lebih dari 7.
@@ -76,6 +77,14 @@ Setiap workout lari menyertakan pengingat cadence 175–180 SPM dan cue "rel ker
 - Upper Pull selalu diawali progresi pull-up (Dead Hang).
 - Durasi menentukan jumlah gerakan dan set. Estimasi waktu dijaga ±2 menit dari target.
 - Pola axial loading berat tanpa tumpuan (conventional deadlift, back squat, dll.) diblokir oleh validator.
+
+**Periodisasi & variasi** (`lib/generator/block.ts`):
+- **Blok 4 minggu:** 3 minggu normal lalu 1 minggu deload, dihitung dari `training.blockStart`.
+- **Gerakan utama (★)** adalah gerakan multi-joint yang dikunci selama satu blok, supaya progres bisa diukur. Gerakan ini berganti otomatis saat blok baru dimulai.
+- **Aksesori dan skema rep** (Volume 12–15, Standar 10–12, Tegangan 8–10) berputar setiap kali **Generate ulang** ditekan. Skema dibatasi per level: Easy tanpa Tegangan, High tanpa Volume.
+- **Minggu deload:** RPE turun satu tingkat (minimal 5), beban turun satu tingkat, dan set gerakan utama dikurangi untuk Moderate/High. Lari mendapat catatan untuk menurunkan intensitas.
+
+Dasar ilmiah: Bompa & Buzzichelli (periodisasi), NSCA *Essentials* (multi-joint sebagai fondasi), Kassiano dkk. 2022 (variasi sistematis, bukan acak), Moesgaard dkk. 2022 (undulating periodization), Daniels (kategori pace), Helgerud dkk. 2007 (4×4 & 15/15), Heiderscheit dkk. 2011 (cadence +5–10%).
 
 Pembuat pola dan validator/sanitizer dipisah: `validate.ts` membuang gerakan yang tidak terdaftar, meng-clamp RPE dan beban, lalu memvalidasi aturan. Tombol **Generate ulang** memakai seed acak baru. Seed yang sama selalu menghasilkan workout yang sama.
 
@@ -86,8 +95,9 @@ npm test
 ```
 
 Vitest menjalankan:
-- `__tests__/generator.test.ts`: akurasi durasi (±2 menit), RPE ≤ 7, batas beban, prehab wajib, whitelist gerakan, dan seluruh kombinasi input (9 lari + 36 ST) × 25 seed.
+- `__tests__/generator.test.ts`: akurasi durasi (±2 menit), RPE ≤ 7, batas beban, prehab wajib, whitelist gerakan, dan seluruh kombinasi input (9 lari + 36 ST) × 25 seed × 3 kondisi blok (normal, deload, blok berikutnya).
 - `__tests__/data.test.ts`: tanggal WIB & minggu Senin–Minggu, normalisasi field null/cadence, ringkasan 7 hari, readiness.
+- `__tests__/periodization.test.ts`: posisi blok & deload, gerakan utama tetap dalam satu blok dan selalu multi-joint, rotasi skema rep, jumlah pola lari, dan target cadence personal.
 
 Pemeriksaan tambahan:
 

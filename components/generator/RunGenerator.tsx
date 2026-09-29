@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { CopyButton } from "@/components/ui/CopyButton";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Segmented } from "@/components/ui/Segmented";
 import {
   DIFFICULTIES,
@@ -9,16 +8,18 @@ import {
   DURATIONS,
   PHASE_LABEL,
   generateRunWorkout,
-  randomSeed,
+  hasVariations,
+  nextDistinctSeed,
   runToHuaweiSets,
   runToText,
   type Difficulty,
   type Duration,
   type RunStep,
 } from "@/lib/generator";
+import type { BlockContext } from "@/lib/generator/block";
 import type { Readiness } from "@/lib/readiness";
 import { ReadinessBanner } from "./ReadinessBanner";
-import { GeneratorActions, OutputShell } from "./shared";
+import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
 
 type Intensity = "recovery" | "easy" | "tempo" | "hard";
 
@@ -36,14 +37,38 @@ const INTENSITY_STYLE: Record<Intensity, { bar: string; dot: string; label: stri
   hard: { bar: "bg-rose-500", dot: "bg-rose-500", label: "Interval" },
 };
 
-export function RunGenerator({ readiness, initialSeed }: { readiness: Readiness | null; initialSeed: number }) {
+export function RunGenerator({
+  readiness,
+  block,
+  cadenceSpm,
+  initialSeed,
+}: {
+  readiness: Readiness | null;
+  block: BlockContext;
+  cadenceSpm?: number;
+  initialSeed: number;
+}) {
   const [duration, setDuration] = useState<Duration>(45);
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const [seed, setSeed] = useState(initialSeed);
   const [view, setView] = useState<"list" | "huawei">("list");
 
-  const workout = useMemo(() => generateRunWorkout({ duration, difficulty, seed }), [duration, difficulty, seed]);
+  const workout = useMemo(
+    () => generateRunWorkout({ duration, difficulty, seed, block, cadenceSpm }),
+    [duration, difficulty, seed, block, cadenceSpm],
+  );
   const text = useMemo(() => (view === "list" ? runToText(workout) : runToHuaweiSets(workout)), [workout, view]);
+  const outputRef = useRef<HTMLElement>(null);
+
+  const render = useCallback(
+    (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm })),
+    [duration, difficulty, block, cadenceSpm],
+  );
+  const canRegenerate = useMemo(() => hasVariations(render), [render]);
+  const regenerate = () => {
+    setSeed(nextDistinctSeed(render, seed));
+    revealIfScrolledPast(outputRef.current);
+  };
 
   // Timeline: semua langkah setelah repetisi dibuka.
   const timeline = workout.blocks.flatMap((b) => Array.from({ length: b.repeat }, () => b.steps).flat());
@@ -63,7 +88,7 @@ export function RunGenerator({ readiness, initialSeed }: { readiness: Readiness 
 
       <ReadinessBanner readiness={readiness} difficulty={difficulty} onLower={setDifficulty} />
 
-      <OutputShell title={workout.title} subtitle={`Total ${duration} menit · seed #${seed}`}>
+      <OutputShell ref={outputRef} swapKey={`${duration}-${difficulty}-${seed}`} title={workout.title} subtitle={`Total ${duration} menit · seed #${seed}`}>
         <div className="flex h-3 w-full overflow-hidden rounded-full" aria-hidden>
           {timeline.map((s, i) => (
             <div
@@ -97,7 +122,7 @@ export function RunGenerator({ readiness, initialSeed }: { readiness: Readiness 
               type="button"
               aria-selected={view === v}
               onClick={() => setView(v)}
-              className={`rounded-lg py-1.5 font-medium ${view === v ? "bg-white shadow-sm dark:bg-zinc-950" : "text-zinc-600 dark:text-zinc-400"}`}
+              className={`pressable min-h-9 rounded-lg py-1.5 font-medium ${view === v ? "bg-white shadow-sm dark:bg-zinc-950" : "text-zinc-600 dark:text-zinc-400"}`}
             >
               {l}
             </button>
@@ -158,20 +183,13 @@ export function RunGenerator({ readiness, initialSeed }: { readiness: Readiness 
         </ul>
       </OutputShell>
 
-      <GeneratorActions>
-        <CopyButton
-          text={text}
-          label={view === "list" ? "Copy teks" : "Copy Set Huawei"}
-          className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-        />
-        <button
-          type="button"
-          onClick={() => setSeed(randomSeed())}
-          className="rounded-xl bg-accent-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-700"
-        >
-          ↻ Generate ulang
-        </button>
-      </GeneratorActions>
+      <GeneratorActions
+        copyText={text}
+        copyLabel={view === "list" ? "Copy teks" : "Copy Set Huawei"}
+        onRegenerate={regenerate}
+        canRegenerate={canRegenerate}
+        regenerateClassName="bg-accent-600 hover:bg-accent-700"
+      />
     </div>
   );
 }

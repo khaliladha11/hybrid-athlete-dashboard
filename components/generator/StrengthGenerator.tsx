@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { CopyButton } from "@/components/ui/CopyButton";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Segmented } from "@/components/ui/Segmented";
 import {
   DIFFICULTIES,
@@ -14,28 +13,52 @@ import {
   formatLoad,
   formatVolume,
   generateStrengthWorkout,
-  randomSeed,
+  hasVariations,
+  nextDistinctSeed,
   strengthToText,
   type Difficulty,
   type Duration,
   type StrengthType,
 } from "@/lib/generator";
+import type { BlockContext } from "@/lib/generator/block";
 import type { Readiness } from "@/lib/readiness";
 import { ReadinessBanner } from "./ReadinessBanner";
-import { GeneratorActions, OutputShell } from "./shared";
+import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
 
 function restLabel(sec: number) {
   return sec >= 60 ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}` : `${sec} dtk`;
 }
 
-export function StrengthGenerator({ readiness, initialSeed }: { readiness: Readiness | null; initialSeed: number }) {
+export function StrengthGenerator({
+  readiness,
+  block,
+  initialSeed,
+}: {
+  readiness: Readiness | null;
+  block: BlockContext;
+  initialSeed: number;
+}) {
   const [type, setType] = useState<StrengthType>("fullBody");
   const [duration, setDuration] = useState<Duration>(45);
   const [difficulty, setDifficulty] = useState<Difficulty>("moderate");
   const [seed, setSeed] = useState(initialSeed);
 
-  const workout = useMemo(() => generateStrengthWorkout({ type, duration, difficulty, seed }), [type, duration, difficulty, seed]);
+  const workout = useMemo(
+    () => generateStrengthWorkout({ type, duration, difficulty, seed, block }),
+    [type, duration, difficulty, seed, block],
+  );
   const text = useMemo(() => strengthToText(workout), [workout]);
+  const outputRef = useRef<HTMLElement>(null);
+
+  const render = useCallback(
+    (s: number) => strengthToText(generateStrengthWorkout({ type, duration, difficulty, seed: s, block })),
+    [type, duration, difficulty, block],
+  );
+  const canRegenerate = useMemo(() => hasVariations(render), [render]);
+  const regenerate = () => {
+    setSeed(nextDistinctSeed(render, seed));
+    revealIfScrolledPast(outputRef.current);
+  };
   const est = Math.round(estimateStrengthMinutes(workout));
 
   return (
@@ -61,7 +84,7 @@ export function StrengthGenerator({ readiness, initialSeed }: { readiness: Readi
 
       <ReadinessBanner readiness={readiness} difficulty={difficulty} onLower={setDifficulty} />
 
-      <OutputShell title={workout.title} subtitle={`Estimasi ±${est} menit · RPE maks 7 · seed #${seed}`}>
+      <OutputShell ref={outputRef} swapKey={`${type}-${duration}-${difficulty}-${seed}`} title={workout.title} subtitle={`Estimasi ±${est} menit · Skema ${workout.scheme} · RPE ${workout.items.find((i) => i.phase === "main")?.rpe ?? "-"} · seed #${seed}`}>
         {(["warmup", "main", "cooldown"] as const).map((phase) => {
           const items = workout.items.filter((i) => i.phase === phase);
           if (!items.length) return null;
@@ -78,7 +101,14 @@ export function StrengthGenerator({ readiness, initialSeed }: { readiness: Readi
                         </span>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-baseline justify-between gap-2">
-                            <p className="text-sm font-medium">{it.movement}</p>
+                            <p className="text-sm font-medium">
+                              {it.anchor && (
+                                <span className="mr-1 text-amber-500" title="Gerakan utama blok ini" aria-label="Gerakan utama blok ini">
+                                  ★
+                                </span>
+                              )}
+                              {it.movement}
+                            </p>
                             <span className="tabular shrink-0 text-sm font-semibold">{formatVolume(it)}</span>
                           </div>
                           <p className="tabular text-xs text-zinc-600 dark:text-zinc-400">
@@ -114,20 +144,13 @@ export function StrengthGenerator({ readiness, initialSeed }: { readiness: Readi
         </ul>
       </OutputShell>
 
-      <GeneratorActions>
-        <CopyButton
-          text={text}
-          label="Copy teks"
-          className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-        />
-        <button
-          type="button"
-          onClick={() => setSeed(randomSeed())}
-          className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
-        >
-          ↻ Generate ulang
-        </button>
-      </GeneratorActions>
+      <GeneratorActions
+        copyText={text}
+        copyLabel="Copy teks"
+        onRegenerate={regenerate}
+        canRegenerate={canRegenerate}
+        regenerateClassName="bg-violet-600 hover:bg-violet-700"
+      />
     </div>
   );
 }

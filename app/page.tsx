@@ -28,13 +28,13 @@ export default async function ProfilePage() {
       <div className="grid grid-cols-2 gap-2">
         <Link
           href="/run"
-          className="rounded-2xl bg-accent-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accent-700"
+          className="pressable rounded-2xl bg-accent-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accent-700"
         >
           Generate lari →
         </Link>
         <Link
           href="/strength"
-          className="rounded-2xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+          className="pressable rounded-2xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
         >
           Generate ST →
         </Link>

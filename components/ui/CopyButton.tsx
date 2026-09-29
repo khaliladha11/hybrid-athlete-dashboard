@@ -41,13 +41,15 @@ export function CopyButton({ text, label = "Copy", className = "" }: { text: str
     <button
       type="button"
       onClick={async () => setState((await copyText(text)) ? "ok" : "fail")}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${className}`}
+      className={`pressable inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold ${className}`}
       aria-live="polite"
     >
+      <span key={state} className="swap-in inline-flex items-center gap-1.5">
       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         {state === "ok" ? <path d="M5 12l5 5L20 7" /> : <path d="M9 9h10v10H9zM5 15V5h10" />}
       </svg>
       {state === "ok" ? "Tersalin" : state === "fail" ? "Gagal menyalin" : label}
+      </span>
     </button>
   );
 }

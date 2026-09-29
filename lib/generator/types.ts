@@ -75,6 +75,8 @@ export interface StrengthItem {
   restSec: number;
   rpe?: number;
   cue?: string;
+  /** Gerakan utama blok: tetap sama selama satu blok periodisasi. */
+  anchor?: boolean;
 }
 
 export interface StrengthWorkout {
@@ -84,6 +86,9 @@ export interface StrengthWorkout {
   duration: Duration;
   difficulty: Difficulty;
   seed: number;
+  /** Skema repetisi sesi ini (undulating per sesi). */
+  scheme: string;
+  deload: boolean;
   items: StrengthItem[];
   notes: string[];
 }

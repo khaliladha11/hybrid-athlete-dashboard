@@ -78,3 +78,11 @@ export const CATEGORY_LABEL: Record<ActivityCategory, string> = {
   ride: "Sepeda",
   other: "Lainnya",
 };
+
+/** Cadence lari rata-rata (tertimbang durasi) dalam `days` hari terakhir. */
+export function averageRunCadence(activities: Activity[], today: string, days = 14): number | undefined {
+  const from = addDays(today, -(days - 1));
+  const runs = activities.filter((a) => a.category === "run" && a.cadenceSpm && a.movingTimeSec && inRange(a, from, today));
+  const sec = runs.reduce((s, a) => s + a.movingTimeSec!, 0);
+  return sec ? runs.reduce((s, a) => s + a.cadenceSpm! * a.movingTimeSec!, 0) / sec : undefined;
+}

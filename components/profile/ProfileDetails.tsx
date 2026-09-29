@@ -120,14 +120,14 @@ export function EquipmentLibraryCard({ profile }: { profile: AthleteProfile }) {
       </ul>
       <div className="mt-3 divide-y divide-zinc-100 dark:divide-zinc-800">
         {cats.map((cat) => (
-          <details key={cat} className="group py-2">
-            <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium">
+          <details key={cat} className="group">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-medium">
               {CATEGORY_LABEL[cat]}
-              <span className="text-xs text-zinc-400 transition-transform group-open:rotate-90" aria-hidden>
+              <span className="text-xs text-zinc-400 transition-transform duration-200 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
                 ›
               </span>
             </summary>
-            <ul className="mt-2 space-y-1">
+            <ul className="details-body space-y-1 pb-3">
               {(lib[cat] ?? []).map((m) => (
                 <li key={m.name} className="flex justify-between gap-3 text-xs">
                   <span className={m.available === false ? "text-zinc-400 line-through" : ""}>{m.name}</span>
@@ -139,14 +139,14 @@ export function EquipmentLibraryCard({ profile }: { profile: AthleteProfile }) {
             </ul>
           </details>
         ))}
-        <details className="group py-2">
-          <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium">
+        <details className="group">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-medium">
             {CATEGORY_LABEL.warmupAndCooldown}
-            <span className="text-xs text-zinc-400 transition-transform group-open:rotate-90" aria-hidden>
+            <span className="text-xs text-zinc-400 transition-transform duration-200 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
               ›
             </span>
           </summary>
-          <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">{lib.warmupAndCooldown.join(" · ")}</p>
+          <p className="details-body pb-3 text-xs text-zinc-600 dark:text-zinc-400">{lib.warmupAndCooldown.join(" · ")}</p>
         </details>
       </div>
     </Card>

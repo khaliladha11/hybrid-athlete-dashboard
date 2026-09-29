@@ -43,7 +43,7 @@ export function ReadinessBanner({
           <button
             type="button"
             onClick={() => onLower(lowerDifficulty(difficulty))}
-            className="shrink-0 rounded-lg bg-amber-500/20 px-2.5 py-1 text-xs font-semibold text-amber-900 hover:bg-amber-500/30 dark:text-amber-200"
+            className="pressable relative shrink-0 rounded-lg bg-amber-500/20 px-2.5 py-1 text-xs font-semibold text-amber-900 after:absolute after:-inset-2.5 after:content-[''] hover:bg-amber-500/30 dark:text-amber-200"
           >
             → {DIFFICULTY_LABEL[lowerDifficulty(difficulty)]}
           </button>
@@ -51,11 +51,11 @@ export function ReadinessBanner({
       </div>
       {compact ? (
         <details className="group">
-          <summary className="mt-1 cursor-pointer list-none text-xs text-amber-800/80 dark:text-amber-300/80">
+          <summary className="cursor-pointer list-none py-1.5 text-xs text-amber-800/80 dark:text-amber-300/80">
             {canLower ? "Saran: turun satu level." : "Level Easy sudah tepat."}{" "}
             <span className="underline group-open:hidden">Lihat {readiness.reasons.length} alasan</span>
           </summary>
-          {reasons}
+          <div className="details-body">{reasons}</div>
         </details>
       ) : (
         <>

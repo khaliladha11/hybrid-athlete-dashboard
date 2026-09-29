@@ -20,6 +20,10 @@
     "Pull-up Bar",
     "Dinding & Kursi/Step Box"
   ],
+  "training": {
+    "blockStart": "2026-09-28",
+    "blockWeeks": 4
+  },
   "runZones": {
     "easy": { "pace": "8:00–8:50/km", "maxHr": 160, "rpe": "3–4" },
     "tempo": { "pace": "6:15–6:30/km", "hr": "160–180", "rpe": "6–7" },

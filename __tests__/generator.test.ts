@@ -4,11 +4,15 @@ import {
   DIFFICULTIES,
   DURATIONS,
   STRENGTH_TYPES,
+  blockContext,
+  strengthRpe,
   MAX_STRENGTH_RPE,
   REQUIRED_PREHAB,
   estimateStrengthMinutes,
   generateRunWorkout,
   generateStrengthWorkout,
+  hasVariations,
+  nextDistinctSeed,
   isBannedMovement,
   runToHuaweiSets,
   runToText,
@@ -40,8 +44,18 @@ const libraryByName = new Map<string, Movement>(
   [lib.upperPush, lib.upperPull, lib.lower, lib.stabilityAndCore, lib.prehab].flat().map((m) => [m.name, m as Movement]),
 );
 
-const allStrength = strengthCombos.flatMap((c) => SEEDS.map((seed) => generateStrengthWorkout({ ...c, seed })));
-const allRun = runCombos.flatMap((c) => SEEDS.map((seed) => generateRunWorkout({ ...c, seed })));
+/** Blok 1 minggu 1, blok 1 minggu 4 (deload), blok 2 minggu 1. */
+const BLOCK_START = "2026-09-28";
+const BLOCKS = [
+  blockContext("2026-09-28", BLOCK_START),
+  blockContext("2026-10-19", BLOCK_START),
+  blockContext("2026-10-26", BLOCK_START),
+];
+
+const allStrength = strengthCombos.flatMap((c) =>
+  BLOCKS.flatMap((block) => SEEDS.map((seed) => generateStrengthWorkout({ ...c, seed, block }))),
+);
+const allRun = runCombos.flatMap((c) => BLOCKS.flatMap((block) => SEEDS.map((seed) => generateRunWorkout({ ...c, seed, block }))));
 
 describe("6. Semua kombinasi input menghasilkan output valid", () => {
   it("lari: 3 durasi × 3 kesulitan = 9 kombinasi", () => {
@@ -51,7 +65,9 @@ describe("6. Semua kombinasi input menghasilkan output valid", () => {
         const w = generateRunWorkout({ ...c, seed });
         expect(validateRun(w), `${c.duration}/${c.difficulty}/seed ${seed}`).toEqual([]);
         expect(runToText(w).length).toBeGreaterThan(0);
-        expect(runToHuaweiSets(w)).toMatch(/Set 1: /);
+        const huawei = runToHuaweiSets(w);
+        expect(huawei).toMatch(/^Warm-up \[/);
+        expect(huawei).toMatch(/Cool-down \[/);
       }
     }
   });
@@ -104,10 +120,12 @@ describe("2. RPE ST tidak pernah > 7", () => {
     }
   });
 
-  it("RPE sesuai level: Easy 5, Moderate 6, High 7", () => {
+  it("RPE sesuai level: Easy 5, Moderate 6, High 7 (deload turun 1, minimal 5)", () => {
     const expected = { easy: 5, moderate: 6, high: 7 } as const;
     for (const w of allStrength) {
-      for (const it of w.items.filter((i) => i.phase === "main")) expect(it.rpe).toBe(expected[w.difficulty]);
+      const want = w.deload ? Math.max(5, expected[w.difficulty] - 1) : expected[w.difficulty];
+      expect(strengthRpe(w.difficulty, w.deload)).toBe(want);
+      for (const it of w.items.filter((i) => i.phase === "main")) expect(it.rpe).toBe(want);
     }
   });
 
@@ -230,16 +248,59 @@ describe("Aturan tambahan", () => {
     }
   });
 
-  it("lari High: 45/60 = Norwegian 4×4, 30 = mini interval", () => {
+  it("lari High: 45/60 = Norwegian 4×4 atau 15/15, 30 = mini interval", () => {
+    const seen = new Set<string>();
     for (const w of allRun.filter((x) => x.difficulty === "high")) {
       const main = w.blocks.find((b) => b.phase === "main")!;
       if (w.duration === 30) {
         expect(main.steps[0].pace).toBe("5:15–5:35/km");
-      } else {
-        expect(main.repeat).toBe(4);
+      } else if (main.repeat === 4) {
+        seen.add("4x4");
         expect(main.steps.map((s) => s.durationMin)).toEqual([4, 3]);
         expect(main.steps[0].pace).toBe("5:50/km");
+      } else {
+        seen.add("15/15");
+        expect(main.repeat).toBe(20);
+        expect(main.steps.map((s) => s.durationMin)).toEqual([0.25, 0.25]);
+        const sets = w.blocks.filter((b) => b.title.startsWith("15/15 Set")).length;
+        expect(sets).toBe(w.duration === 45 ? 2 : 3);
       }
     }
+    expect(seen).toEqual(new Set(["4x4", "15/15"]));
+  });
+});
+
+describe("Generate ulang selalu memberi hasil berbeda", () => {
+  const runRender = (duration: (typeof DURATIONS)[number], difficulty: (typeof DIFFICULTIES)[number]) => (seed: number) =>
+    runToText(generateRunWorkout({ duration, difficulty, seed }));
+
+  it("render yang selalu sama terdeteksi tanpa variasi", () => {
+    expect(hasVariations(() => "pola tetap")).toBe(false);
+  });
+
+  it("semua kombinasi lari kini punya variasi", () => {
+    for (const { duration, difficulty } of runCombos) {
+      expect(hasVariations(runRender(duration, difficulty)), `${duration}/${difficulty}`).toBe(true);
+    }
+  });
+
+  it("kombinasi lain punya variasi, dan seed berikutnya selalu beda hasilnya", () => {
+    for (const { duration, difficulty } of runCombos) {
+      const render = runRender(duration, difficulty);
+      if (!hasVariations(render)) continue;
+      for (const seed of SEEDS.slice(0, 5)) {
+        const next = nextDistinctSeed(render, seed);
+        expect(render(next), `${duration}/${difficulty}`).not.toBe(render(seed));
+      }
+    }
+    for (const c of strengthCombos) {
+      const render = (seed: number) => strengthToText(generateStrengthWorkout({ ...c, seed }));
+      expect(hasVariations(render), `${c.type}/${c.duration}/${c.difficulty}`).toBe(true);
+      expect(render(nextDistinctSeed(render, 1))).not.toBe(render(1));
+    }
+  });
+
+  it("tanpa variasi → seed tidak berubah", () => {
+    expect(nextDistinctSeed(() => "pola tetap", 123)).toBe(123);
   });
 });

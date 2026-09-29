@@ -26,6 +26,8 @@ export interface AthleteProfile {
   targets?: { goals?: string[]; raceTargets?: string[] };
   conditions?: string[];
   equipment?: string[];
+  /** Blok periodisasi: `blockWeeks` minggu, minggu terakhir = deload. */
+  training?: { blockStart?: string; blockWeeks?: number };
   runZones?: Record<string, Record<string, string | number>>;
   movementLibrary: MovementLibrary;
 }

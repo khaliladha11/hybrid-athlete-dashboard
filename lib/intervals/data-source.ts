@@ -3,7 +3,10 @@ import { addDays, todayWib } from "@/lib/date";
 import { mockActivities, mockActivityDetail, mockWellness } from "@/lib/mock-data";
 import { getIntervalsConfig, intervalsGet } from "./client";
 import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness } from "./normalize";
+import { blockContext, type BlockContext } from "@/lib/generator/block";
+import { profile } from "@/lib/profile";
 import { assessReadiness, type Readiness } from "@/lib/readiness";
+import { averageRunCadence } from "./summary";
 import type { Activity, ActivityDetail, FetchResult, Wellness } from "./types";
 
 /** Demo Mode aktif bila INTERVALS_API_KEY kosong. */
@@ -53,9 +56,22 @@ export async function getActivityDetail(id: string): Promise<FetchResult<Activit
     : { ok: false, error: { code: "UNKNOWN", title: "Format data tidak dikenali", message: "Respons intervals.icu tidak sesuai format yang diharapkan." } };
 }
 
-/** Readiness untuk halaman generator; null bila data tidak bisa diambil. */
-export async function getReadiness(today = todayWib()): Promise<Readiness | null> {
+export interface TrainingContext {
+  readiness: Readiness | null;
+  /** Cadence lari rata-rata 14 hari (SPM total), jika ada data. */
+  cadenceSpm?: number;
+  block: BlockContext;
+}
+
+/** Konteks untuk halaman generator: readiness, cadence personal, dan posisi blok. */
+export async function getTrainingContext(today = todayWib()): Promise<TrainingContext> {
+  const block = blockContext(today, profile.training?.blockStart, profile.training?.blockWeeks);
   const [acts, well] = await Promise.all([getActivities(15, today), getWellness(8, today)]);
-  if (!acts.ok && !well.ok) return null;
-  return assessReadiness(well.ok ? well.data : [], acts.ok ? acts.data : [], today);
+  if (!acts.ok && !well.ok) return { readiness: null, block };
+  const activities = acts.ok ? acts.data : [];
+  return {
+    readiness: assessReadiness(well.ok ? well.data : [], activities, today),
+    cadenceSpm: averageRunCadence(activities, today, 14),
+    block,
+  };
 }

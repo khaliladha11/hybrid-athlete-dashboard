@@ -54,3 +54,20 @@ export function estimateStrengthMinutes(w: Pick<StrengthWorkout, "items">): numb
   return sec / 60;
 }
 
+
+/**
+ * Gerakan multi-joint yang layak jadi gerakan utama blok (NSCA: multi-joint
+ * didahulukan dan jadi fondasi program). Isolasi tetap dipakai sebagai aksesori.
+ */
+export const COMPOUND_MOVEMENTS = [
+  "Floor Press",
+  "Seated Overhead Press",
+  "High-Incline Push-Up",
+  "Supported Single-Arm Row",
+  "DB Floor Pullover",
+  "Barbell Sumo Deadlift / Hip Thrust",
+  "Barbell Squat",
+  "DB RDL Wall-Tap Method",
+  "Reverse Lunge",
+  "Glute Bridge",
+];

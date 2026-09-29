@@ -58,7 +58,9 @@ export function runToHuaweiSets(w: RunWorkout): string {
       return `${kind} [${formatMinutes(s.durationMin)}${meta}]`;
     };
     if (b.phase === "main") {
-      lines.push(`Set ${++setNo}: ${b.steps.map(stepStr).join(" & ")} × ${b.repeat}`);
+      // Langkah tunggal tanpa pengulangan (jog antar set, aerobic flush) bukan "Set".
+      if (b.repeat === 1 && b.steps.length === 1) lines.push(stepStr(b.steps[0]));
+      else lines.push(`Set ${++setNo}: ${b.steps.map(stepStr).join(" & ")} × ${b.repeat}`);
       continue;
     }
     const min = b.repeat * b.steps.reduce((sum, st) => sum + st.durationMin, 0);
@@ -78,7 +80,7 @@ export function strengthToText(w: StrengthWorkout): string {
     for (const it of items) {
       if (phase === "main") {
         const rest = it.sets > 1 ? `, rest ${formatSec(it.restSec)}` : "";
-        lines.push(`- ${it.movement}: ${formatVolume(it)} @ ${formatLoad(it.load)}, RPE ${it.rpe}${rest}`);
+        lines.push(`- ${it.anchor ? "★ " : ""}${it.movement}: ${formatVolume(it)} @ ${formatLoad(it.load)}, RPE ${it.rpe}${rest}`);
       } else {
         lines.push(`- ${it.movement} ${formatVolume(it)}`);
       }
