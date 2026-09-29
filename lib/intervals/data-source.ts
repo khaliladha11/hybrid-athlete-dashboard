@@ -5,6 +5,7 @@ import { getIntervalsConfig, intervalsGet } from "./client";
 import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness } from "./normalize";
 import { blockContext, type BlockContext } from "@/lib/generator/block";
 import { profile } from "@/lib/profile";
+import { readinessAdvice, weeklyAdvice, type Advice } from "@/lib/coach";
 import { assessReadiness, type Readiness } from "@/lib/readiness";
 import { averageRunCadence } from "./summary";
 import type { Activity, ActivityDetail, FetchResult, Wellness } from "./types";
@@ -58,6 +59,8 @@ export async function getActivityDetail(id: string): Promise<FetchResult<Activit
 
 export interface TrainingContext {
   readiness: Readiness | null;
+  /** Saran gabungan: readiness + konteks mingguan (80/20, progresi km, concurrent). */
+  advice: Advice[];
   /** Cadence lari rata-rata 14 hari (SPM total), jika ada data. */
   cadenceSpm?: number;
   block: BlockContext;
@@ -67,10 +70,12 @@ export interface TrainingContext {
 export async function getTrainingContext(today = todayWib()): Promise<TrainingContext> {
   const block = blockContext(today, profile.training?.blockStart, profile.training?.blockWeeks);
   const [acts, well] = await Promise.all([getActivities(15, today), getWellness(8, today)]);
-  if (!acts.ok && !well.ok) return { readiness: null, block };
+  if (!acts.ok && !well.ok) return { readiness: null, advice: [], block };
   const activities = acts.ok ? acts.data : [];
+  const readiness = assessReadiness(well.ok ? well.data : [], activities, today);
   return {
-    readiness: assessReadiness(well.ok ? well.data : [], activities, today),
+    readiness,
+    advice: [...readinessAdvice(readiness), ...weeklyAdvice(activities, today)],
     cadenceSpm: averageRunCadence(activities, today, 14),
     block,
   };

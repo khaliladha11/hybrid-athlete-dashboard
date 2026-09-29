@@ -18,7 +18,7 @@ export default async function StrengthPage() {
         </div>
         <BlockBadge block={ctx.block} />
       </header>
-      <StrengthGenerator readiness={ctx.readiness} block={ctx.block} initialSeed={randomSeed()} />
+      <StrengthGenerator advice={ctx.advice} block={ctx.block} initialSeed={randomSeed()} />
     </div>
   );
 }

@@ -5,7 +5,7 @@ Dashboard profil atlet yang tersambung ke [intervals.icu](https://intervals.icu)
 - **Profil**: data diri, target, kondisi cedera, alat, zona lari, ringkasan 7 hari, 10 aktivitas terakhir, dan kartu wellness (HRV, resting HR, CTL/ATL).
 - **Generator Lari**: 30/45/60 menit × Easy/Moderate/High, lengkap dengan pace, HR, RPE, format "Set" ala Huawei Health.
 - **Generator ST**: Full Body/Upper Push/Upper Pull/Lower dengan Spine-Friendly Protocol, RPE maks 7, prehab wajib.
-- **Readiness Advisory**: saran turun satu level bila HRV turun, resting HR naik, atau kemarin ada long run/sesi berat.
+- **Saran hari ini**: gabungan readiness (HRV, resting HR, sesi kemarin) dan konteks mingguan (80/20, kenaikan km, jarak ST kaki ↔ lari berat), dengan tombol untuk langsung menerapkan saran.
 - **Demo Mode** otomatis jika `INTERVALS_API_KEY` kosong.
 - **PWA**: bisa di-install ke layar utama HP dan berjalan full-screen (lihat [Install di HP](#install-di-hp-add-to-home-screen)).
 
@@ -84,7 +84,19 @@ Setiap workout lari menyertakan pengingat cadence 175–180 SPM dan cue "rel ker
 - **Aksesori dan skema rep** (Volume 12–15, Standar 10–12, Tegangan 8–10) berputar setiap kali **Generate ulang** ditekan. Skema dibatasi per level: Easy tanpa Tegangan, High tanpa Volume.
 - **Minggu deload:** RPE turun satu tingkat (minimal 5), beban turun satu tingkat, dan set gerakan utama dikurangi untuk Moderate/High. Lari mendapat catatan untuk menurunkan intensitas.
 
-Dasar ilmiah: Bompa & Buzzichelli (periodisasi), NSCA *Essentials* (multi-joint sebagai fondasi), Kassiano dkk. 2022 (variasi sistematis, bukan acak), Moesgaard dkk. 2022 (undulating periodization), Daniels (kategori pace), Helgerud dkk. 2007 (4×4 & 15/15), Heiderscheit dkk. 2011 (cadence +5–10%).
+**Saran hari ini** (`lib/coach.ts`). Semuanya non-blokir. Tombolnya hanya menurunkan pilihan, tidak pernah menaikkan.
+
+| Aturan | Pemicu | Saran |
+| --- | --- | --- |
+| Readiness | HRV < 85% rata-rata 7 hari, resting HR ≥ +5 bpm, atau long run/sesi berat kemarin | Turun satu level (sekali, tidak berantai) |
+| 80/20 | ≥ 2 lari berat dalam 7 hari (HR ≥ 155, nama tempo/interval, atau pace ≤ 6:30 tanpa HR) | Lari: Easy |
+| Progresi jarak | km 7 hari naik > 30% dari 7 hari sebelumnya (basis ≥ 5 km) | Lari: 30', plus sisa km aman |
+| Setelah ST kaki | ST dengan nama Lower/Full/Leg/Squat… kemarin atau hari ini | Lari: maksimal Moderate |
+| Setelah lari berat | Lari berat atau long run (≥ 12 km) kemarin atau hari ini | ST: Upper Pull/Push |
+
+Kartu "7 hari terakhir" di Profil juga menampilkan distribusi easy/berat (garis acuan 80%) dan perubahan km dibanding minggu sebelumnya.
+
+Dasar ilmiah: Seiler (distribusi intensitas 80/20), Nielsen dkk. 2014 (kenaikan > 30% dan shin splints), Wilson dkk. 2012 (concurrent training), Bompa & Buzzichelli (periodisasi), NSCA *Essentials* (multi-joint sebagai fondasi), Kassiano dkk. 2022 (variasi sistematis, bukan acak), Moesgaard dkk. 2022 (undulating periodization), Daniels (kategori pace), Helgerud dkk. 2007 (4×4 & 15/15), Heiderscheit dkk. 2011 (cadence +5–10%).
 
 Pembuat pola dan validator/sanitizer dipisah: `validate.ts` membuang gerakan yang tidak terdaftar, meng-clamp RPE dan beban, lalu memvalidasi aturan. Tombol **Generate ulang** memakai seed acak baru. Seed yang sama selalu menghasilkan workout yang sama.
 
@@ -97,6 +109,7 @@ npm test
 Vitest menjalankan:
 - `__tests__/generator.test.ts`: akurasi durasi (±2 menit), RPE ≤ 7, batas beban, prehab wajib, whitelist gerakan, dan seluruh kombinasi input (9 lari + 36 ST) × 25 seed × 3 kondisi blok (normal, deload, blok berikutnya).
 - `__tests__/data.test.ts`: tanggal WIB & minggu Senin–Minggu, normalisasi field null/cadence, ringkasan 7 hari, readiness.
+- `__tests__/coach.test.ts`: klasifikasi lari berat/ST kaki, aturan 80/20, progresi km > 30%, concurrent training, dan penggabungan saran tanpa penurunan berantai.
 - `__tests__/periodization.test.ts`: posisi blok & deload, gerakan utama tetap dalam satu blok dan selalu multi-joint, rotasi skema rep, jumlah pola lari, dan target cadence personal.
 
 Pemeriksaan tambahan:

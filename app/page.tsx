@@ -3,10 +3,11 @@ import { ActivityList } from "@/components/profile/ActivityList";
 import { ConditionsCard, EquipmentLibraryCard, ProfileHeader, RunZonesCard, TargetsCard } from "@/components/profile/ProfileDetails";
 import { WeeklySummary } from "@/components/profile/WeeklySummary";
 import { WellnessCard } from "@/components/profile/WellnessCard";
-import { ReadinessBanner } from "@/components/generator/ReadinessBanner";
+import { CoachCard } from "@/components/generator/CoachCard";
 import { todayWib } from "@/lib/date";
 import { getActivities, getWellness } from "@/lib/intervals/data-source";
 import { profile } from "@/lib/profile";
+import { readinessAdvice, weeklyAdvice } from "@/lib/coach";
 import { assessReadiness } from "@/lib/readiness";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,7 @@ export default async function ProfilePage() {
     <div className="space-y-3">
       <ProfileHeader profile={profile} />
 
-      <ReadinessBanner readiness={readiness} />
+      <CoachCard advice={[...readinessAdvice(readiness), ...(activities.ok ? weeklyAdvice(activities.data, today) : [])]} />
 
       <div className="grid grid-cols-2 gap-2">
         <Link

@@ -17,8 +17,8 @@ import {
   type RunStep,
 } from "@/lib/generator";
 import type { BlockContext } from "@/lib/generator/block";
-import type { Readiness } from "@/lib/readiness";
-import { ReadinessBanner } from "./ReadinessBanner";
+import type { Advice } from "@/lib/coach";
+import { CoachCard } from "./CoachCard";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
 
 type Intensity = "recovery" | "easy" | "tempo" | "hard";
@@ -38,12 +38,12 @@ const INTENSITY_STYLE: Record<Intensity, { bar: string; dot: string; label: stri
 };
 
 export function RunGenerator({
-  readiness,
+  advice,
   block,
   cadenceSpm,
   initialSeed,
 }: {
-  readiness: Readiness | null;
+  advice: Advice[];
   block: BlockContext;
   cadenceSpm?: number;
   initialSeed: number;
@@ -86,7 +86,15 @@ export function RunGenerator({
         />
       </div>
 
-      <ReadinessBanner readiness={readiness} difficulty={difficulty} onLower={setDifficulty} />
+      <CoachCard
+        advice={advice}
+        target="run"
+        current={{ difficulty, duration }}
+        onApply={(s) => {
+          if (s.difficulty) setDifficulty(s.difficulty);
+          if (s.duration) setDuration(s.duration);
+        }}
+      />
 
       <OutputShell ref={outputRef} swapKey={`${duration}-${difficulty}-${seed}`} title={workout.title} subtitle={`Total ${duration} menit · seed #${seed}`}>
         <div className="flex h-3 w-full overflow-hidden rounded-full" aria-hidden>

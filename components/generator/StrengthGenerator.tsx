@@ -21,8 +21,8 @@ import {
   type StrengthType,
 } from "@/lib/generator";
 import type { BlockContext } from "@/lib/generator/block";
-import type { Readiness } from "@/lib/readiness";
-import { ReadinessBanner } from "./ReadinessBanner";
+import type { Advice } from "@/lib/coach";
+import { CoachCard } from "./CoachCard";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
 
 function restLabel(sec: number) {
@@ -30,11 +30,11 @@ function restLabel(sec: number) {
 }
 
 export function StrengthGenerator({
-  readiness,
+  advice,
   block,
   initialSeed,
 }: {
-  readiness: Readiness | null;
+  advice: Advice[];
   block: BlockContext;
   initialSeed: number;
 }) {
@@ -82,7 +82,15 @@ export function StrengthGenerator({
         </div>
       </div>
 
-      <ReadinessBanner readiness={readiness} difficulty={difficulty} onLower={setDifficulty} />
+      <CoachCard
+        advice={advice}
+        target="strength"
+        current={{ difficulty, duration, type }}
+        onApply={(s) => {
+          if (s.difficulty) setDifficulty(s.difficulty);
+          if (s.type) setType(s.type);
+        }}
+      />
 
       <OutputShell ref={outputRef} swapKey={`${type}-${duration}-${difficulty}-${seed}`} title={workout.title} subtitle={`Estimasi ±${est} menit · Skema ${workout.scheme} · RPE ${workout.items.find((i) => i.phase === "main")?.rpe ?? "-"} · seed #${seed}`}>
         {(["warmup", "main", "cooldown"] as const).map((phase) => {

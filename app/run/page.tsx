@@ -18,7 +18,7 @@ export default async function RunPage() {
         </div>
         <BlockBadge block={ctx.block} />
       </header>
-      <RunGenerator readiness={ctx.readiness} block={ctx.block} cadenceSpm={ctx.cadenceSpm} initialSeed={randomSeed()} />
+      <RunGenerator advice={ctx.advice} block={ctx.block} cadenceSpm={ctx.cadenceSpm} initialSeed={randomSeed()} />
     </div>
   );
 }
