@@ -22,8 +22,16 @@ import {
 } from "@/lib/generator";
 import type { BlockContext } from "@/lib/generator/block";
 import type { Advice } from "@/lib/coach";
+import { profile, type Movement } from "@/lib/profile";
+import { applyProgression } from "@/lib/progression";
+import { useTrainingLog } from "@/lib/training-log";
 import { CoachCard } from "./CoachCard";
+import { LogForm } from "./LogForm";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
+
+const MOVEMENTS = new Map<string, Movement>(
+  (["upperPush", "upperPull", "lower", "stabilityAndCore", "prehab"] as const).flatMap((c) => profile.movementLibrary[c] ?? []).map((m) => [m.name, m]),
+);
 
 function restLabel(sec: number) {
   return sec >= 60 ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}` : `${sec} dtk`;
@@ -43,10 +51,16 @@ export function StrengthGenerator({
   const [difficulty, setDifficulty] = useState<Difficulty>("moderate");
   const [seed, setSeed] = useState(initialSeed);
 
-  const workout = useMemo(
+  const [logging, setLogging] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const log = useTrainingLog();
+
+  const generated = useMemo(
     () => generateStrengthWorkout({ type, duration, difficulty, seed, block }),
     [type, duration, difficulty, seed, block],
   );
+  // Beban gerakan ★ disesuaikan dengan riwayat sesi (tetap dalam batas library).
+  const workout = useMemo(() => applyProgression(generated, MOVEMENTS, log), [generated, log]);
   const text = useMemo(() => strengthToText(workout), [workout]);
   const outputRef = useRef<HTMLElement>(null);
 
@@ -123,6 +137,9 @@ export function StrengthGenerator({
                             {formatLoad(it.load)} · RPE {it.rpe}
                             {it.sets > 1 && ` · rest ${restLabel(it.restSec)}`}
                           </p>
+                          {it.progression && (
+                            <p className="mt-0.5 text-xs font-medium text-violet-700 dark:text-violet-300">{it.progression}</p>
+                          )}
                           {it.cue && <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-500">{it.cue}</p>}
                         </div>
                       </div>
@@ -141,6 +158,31 @@ export function StrengthGenerator({
             </div>
           );
         })}
+
+        {logging ? (
+          <LogForm
+            workout={workout}
+            block={block}
+            onDone={() => setLogging(false)}
+            onSaved={() => {
+              setLogging(false);
+              setSaved(true);
+            }}
+          />
+        ) : (
+          workout.items.some((i) => i.anchor) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSaved(false);
+                setLogging(true);
+              }}
+              className="pressable mt-4 min-h-11 w-full rounded-xl border border-dashed border-violet-300 text-sm font-semibold text-violet-700 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-300 dark:hover:bg-violet-950/40"
+            >
+              {saved ? "✓ Tersimpan — catat lagi?" : "Catat sesi (gerakan ★)"}
+            </button>
+          )
+        )}
 
         <ul className="mt-4 space-y-1.5 rounded-xl bg-violet-50 p-3 text-xs text-violet-950 dark:bg-violet-950/40 dark:text-violet-100">
           {workout.notes.map((n) => (

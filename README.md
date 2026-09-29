@@ -7,6 +7,7 @@ Dashboard profil atlet yang tersambung ke [intervals.icu](https://intervals.icu)
 - **Generator ST**: Full Body/Upper Push/Upper Pull/Lower dengan Spine-Friendly Protocol, RPE maks 7, prehab wajib.
 - **Saran hari ini**: gabungan readiness (HRV, resting HR, sesi kemarin) dan konteks mingguan (80/20, kenaikan km, jarak ST kaki ↔ lari berat), dengan tombol untuk langsung menerapkan saran.
 - **Demo Mode** otomatis jika `INTERVALS_API_KEY` kosong.
+- **Log & progresi beban**: catat gerakan utama ★ setelah sesi ST. Beban sesi berikutnya disesuaikan otomatis (tersimpan di perangkat, dengan ekspor/impor JSON).
 - **PWA**: bisa di-install ke layar utama HP dan berjalan full-screen (lihat [Install di HP](#install-di-hp-add-to-home-screen)).
 
 ## Menjalankan
@@ -84,6 +85,15 @@ Setiap workout lari menyertakan pengingat cadence 175–180 SPM dan cue "rel ker
 - **Aksesori dan skema rep** (Volume 12–15, Standar 10–12, Tegangan 8–10) berputar setiap kali **Generate ulang** ditekan. Skema dibatasi per level: Easy tanpa Tegangan, High tanpa Volume.
 - **Minggu deload:** RPE turun satu tingkat (minimal 5), beban turun satu tingkat, dan set gerakan utama dikurangi untuk Moderate/High. Lari mendapat catatan untuk menurunkan intensitas.
 
+**Progresi beban** (`lib/progression.ts`, halaman **Log**):
+- Setelah sesi ST, tekan **Catat sesi** untuk mengisi beban, rep set terakhir (atau detik untuk Dead Hang/Farmer's Hold), dan RPE gerakan ★.
+- **Naik satu langkah** bila 2 sesi berturut-turut mencapai batas atas rep dengan RPE ≤ target ("2-for-2", NSCA). Langkahnya 1 kg untuk rentang ≥ 10 kg, 0,5 kg untuk ≥ 3 kg, dan 0,25 kg untuk rentang di bawahnya.
+- **Tahan** bila RPE sedikit di atas target. **Turun** bila RPE lebih dari target + 1.
+- Beban **tidak pernah melewati** batas movement library. Setelah mentok di batas, progresi dilanjutkan lewat tempo.
+- Gerakan tahan naik 5 detik (maksimal 60). Gerakan band naik ke band berikutnya.
+- Minggu deload: progresi ditunda, dan sesi deload tidak dipakai sebagai basis.
+- Data disimpan di **localStorage perangkat ini** dan tidak dikirim ke server. Lakukan **Ekspor JSON** berkala di halaman Log sebagai cadangan, dan **Impor JSON** untuk memulihkan atau memindahkan ke HP lain.
+
 **Saran hari ini** (`lib/coach.ts`). Semuanya non-blokir. Tombolnya hanya menurunkan pilihan, tidak pernah menaikkan.
 
 | Aturan | Pemicu | Saran |
@@ -109,6 +119,7 @@ npm test
 Vitest menjalankan:
 - `__tests__/generator.test.ts`: akurasi durasi (±2 menit), RPE ≤ 7, batas beban, prehab wajib, whitelist gerakan, dan seluruh kombinasi input (9 lari + 36 ST) × 25 seed × 3 kondisi blok (normal, deload, blok berikutnya).
 - `__tests__/data.test.ts`: tanggal WIB & minggu Senin–Minggu, normalisasi field null/cadence, ringkasan 7 hari, readiness.
+- `__tests__/progression.test.ts`: aturan 2-for-2, tahan/turun berdasarkan RPE, batas library, deload, gerakan tahan & band, penerapan ke workout (tetap lolos validator), dan validasi data impor.
 - `__tests__/coach.test.ts`: klasifikasi lari berat/ST kaki, aturan 80/20, progresi km > 30%, concurrent training, dan penggabungan saran tanpa penurunan berantai.
 - `__tests__/periodization.test.ts`: posisi blok & deload, gerakan utama tetap dalam satu blok dan selalu multi-joint, rotasi skema rep, jumlah pola lari, dan target cadence personal.
 

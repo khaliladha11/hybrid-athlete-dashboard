@@ -77,6 +77,8 @@ export interface StrengthItem {
   cue?: string;
   /** Gerakan utama blok: tetap sama selama satu blok periodisasi. */
   anchor?: boolean;
+  /** Catatan progresi dari riwayat sesi (mis. "↑ naik dari 16 kg"). */
+  progression?: string;
 }
 
 export interface StrengthWorkout {
