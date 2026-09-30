@@ -124,7 +124,7 @@ export function LogView() {
             </ul>
           </Card>
 
-          <Card title="Riwayat" className="!px-0 !pb-1">
+          <Card title="Riwayat" flush className="!pb-1">
             {dates.map((d) => (
               <section key={d} className="border-t border-zinc-100 first-of-type:border-0 dark:border-zinc-800">
                 <p className="px-4 pt-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{formatDateId(d)}</p>

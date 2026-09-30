@@ -3,16 +3,21 @@ export function Card({
   action,
   children,
   className = "",
+  flush = false,
 }: {
   title?: React.ReactNode;
   action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  /** Isi (mis. list) menempel ke tepi kiri/kanan kartu; judul tetap ber-padding. */
+  flush?: boolean;
 }) {
   return (
-    <section className={`rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 ${className}`}>
+    <section
+      className={`rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 ${flush ? "py-4" : "p-4"} ${className}`}
+    >
       {(title || action) && (
-        <header className="mb-3 flex items-center justify-between gap-2">
+        <header className={`mb-3 flex items-center justify-between gap-2 ${flush ? "px-4" : ""}`}>
           {title && <h2 className="text-sm font-semibold tracking-tight">{title}</h2>}
           {action}
         </header>

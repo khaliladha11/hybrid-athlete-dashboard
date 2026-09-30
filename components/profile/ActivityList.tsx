@@ -23,7 +23,7 @@ export function ActivityList({ result }: { result: FetchResult<Activity[]> }) {
   }
   const list = result.data.slice(0, 10);
   return (
-    <Card title="10 aktivitas terakhir" className="!px-0 !pb-1">
+    <Card title="10 aktivitas terakhir" flush className="!pb-1">
       {list.length === 0 ? (
         <p className="px-4 pb-3 text-sm text-zinc-500">Belum ada aktivitas dalam 30 hari terakhir.</p>
       ) : (

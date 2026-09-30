@@ -36,7 +36,7 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
               <Stat label="Load" value={res.data.trainingLoad ? Math.round(res.data.trainingLoad) : "—"} muted={!res.data.trainingLoad} />
             </div>
           </Card>
-          <Card title="Interval / lap" className="!px-0">
+          <Card title="Interval / lap" flush>
             {res.data.intervals.length === 0 ? (
               <p className="px-4 text-sm text-zinc-500">Tidak ada data interval untuk aktivitas ini.</p>
             ) : (
