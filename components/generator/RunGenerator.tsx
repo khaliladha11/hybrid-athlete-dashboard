@@ -2,6 +2,10 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Segmented } from "@/components/ui/Segmented";
+import { Switch } from "@/components/ui/Switch";
+import { INTENSITY_TONE } from "@/components/ui/tones";
+import { blockLabel } from "@/lib/generator/block";
+import { useBlockEnabled } from "@/lib/preferences";
 import {
   DIFFICULTIES,
   DIFFICULTY_LABEL,
@@ -32,9 +36,9 @@ function intensityOf(s: RunStep): Intensity {
 
 const INTENSITY_STYLE: Record<Intensity, { bar: string; dot: string; label: string }> = {
   recovery: { bar: "bg-subtle-strong", dot: "bg-faint", label: "Jalan/jog" },
-  easy: { bar: "bg-info", dot: "bg-info", label: "Z2" },
-  tempo: { bar: "bg-brand/55", dot: "bg-brand/55", label: "Tempo" },
-  hard: { bar: "bg-brand", dot: "bg-brand", label: "Interval" },
+  easy: { bar: "bg-success", dot: "bg-success", label: "Easy / Z2" },
+  tempo: { bar: "bg-warning", dot: "bg-warning", label: "Moderate / Tempo" },
+  hard: { bar: "bg-danger", dot: "bg-danger", label: "High / Interval" },
 };
 
 export function RunGenerator({
@@ -52,17 +56,19 @@ export function RunGenerator({
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const [seed, setSeed] = useState(initialSeed);
   const [view, setView] = useState<"list" | "huawei">("list");
+  const [blockEnabled, setBlockEnabled] = useBlockEnabled();
+  const free = !blockEnabled;
 
   const workout = useMemo(
-    () => generateRunWorkout({ duration, difficulty, seed, block, cadenceSpm }),
-    [duration, difficulty, seed, block, cadenceSpm],
+    () => generateRunWorkout({ duration, difficulty, seed, block, cadenceSpm, free }),
+    [duration, difficulty, seed, block, cadenceSpm, free],
   );
   const text = useMemo(() => (view === "list" ? runToText(workout) : runToHuaweiSets(workout)), [workout, view]);
   const outputRef = useRef<HTMLElement>(null);
 
   const render = useCallback(
-    (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm })),
-    [duration, difficulty, block, cadenceSpm],
+    (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm, free })),
+    [duration, difficulty, block, cadenceSpm, free],
   );
   const canRegenerate = useMemo(() => hasVariations(render), [render]);
   const regenerate = () => {
@@ -76,14 +82,27 @@ export function RunGenerator({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4 rounded-sm border border-line bg-surface p-4 shadow-card">
+      <div className="space-y-4 rounded-card border border-line bg-surface p-4 shadow-card">
         <Segmented label="Durasi" value={duration} onChange={setDuration} options={DURATIONS.map((d) => ({ value: d, label: `${d}'` }))} />
         <Segmented
           label="Kesulitan"
           value={difficulty}
           onChange={setDifficulty}
           options={DIFFICULTIES.map((d) => ({ value: d, label: DIFFICULTY_LABEL[d] }))}
+          tones={INTENSITY_TONE}
         />
+        <div className="border-t border-line pt-4">
+          <Switch
+            checked={blockEnabled}
+            onChange={setBlockEnabled}
+            label="Program blok mingguan"
+            description={
+              blockEnabled
+                ? `${blockLabel(block)} — deload & gerakan utama mengikuti blok.`
+                : "Mode bebas: latihan tanpa jadwal blok atau deload."
+            }
+          />
+        </div>
       </div>
 
       <CoachCard
@@ -96,8 +115,8 @@ export function RunGenerator({
         }}
       />
 
-      <OutputShell ref={outputRef} swapKey={`${duration}-${difficulty}-${seed}`} title={workout.title} subtitle={`Total ${duration} menit · seed #${seed}`}>
-        <div className="flex h-2.5 w-full overflow-hidden rounded-sm" aria-hidden>
+      <OutputShell ref={outputRef} swapKey={`${duration}-${difficulty}-${seed}-${free}`} tag={{ label: DIFFICULTY_LABEL[difficulty], tone: INTENSITY_TONE[difficulty] }} title={workout.title} subtitle={`Total ${duration} menit · seed #${seed}`}>
+        <div className="flex h-2.5 w-full overflow-hidden rounded-full" aria-hidden>
           {timeline.map((s, i) => (
             <div
               key={i}
@@ -149,14 +168,14 @@ export function RunGenerator({
                     </p>
                     <span className="tabular text-[13px] text-muted">{blockMin}&apos;</span>
                   </div>
-                  <div className={`mt-2 rounded-sm ${b.repeat > 1 ? "border border-dashed border-line-strong p-2" : ""}`}>
+                  <div className={`mt-2 rounded-inner ${b.repeat > 1 ? "border border-dashed border-line-strong p-2" : ""}`}>
                     {b.repeat > 1 && <p className="mb-1.5 px-1 text-[13px] font-semibold text-brand-ink">Ulangi {b.repeat}×</p>}
                     <ul className="space-y-1.5">
                       {b.steps.map((s, si) => {
                         const it = intensityOf(s);
                         return (
-                          <li key={si} className="flex gap-3 rounded-sm bg-subtle px-3 py-2.5">
-                            <span className={`w-1 shrink-0 self-stretch rounded-sm ${INTENSITY_STYLE[it].dot}`} aria-hidden />
+                          <li key={si} className="flex gap-3 rounded-inner bg-subtle px-3 py-2.5">
+                            <span className={`w-1 shrink-0 self-stretch rounded-full ${INTENSITY_STYLE[it].dot}`} aria-hidden />
                             <div className="min-w-0 flex-1">
                               <div className="flex items-baseline justify-between gap-2">
                                 <p className="text-body font-semibold">{s.label}</p>
@@ -178,10 +197,10 @@ export function RunGenerator({
             })}
           </ol>
         ) : (
-          <pre className="tabular mt-4 overflow-x-auto rounded-sm bg-subtle p-3 text-[13px] leading-relaxed whitespace-pre-wrap">{text}</pre>
+          <pre className="tabular mt-4 overflow-x-auto rounded-inner bg-subtle p-3 text-[13px] leading-relaxed whitespace-pre-wrap">{text}</pre>
         )}
 
-        <ul className="mt-4 space-y-1.5 rounded-sm bg-info-soft p-3 text-[13px] text-ink">
+        <ul className="mt-4 space-y-1.5 rounded-inner bg-info-soft p-3 text-[13px] text-ink">
           {workout.notes.map((n) => (
             <li key={n} className="flex gap-2">
               <span aria-hidden className="text-info">›</span>

@@ -2,9 +2,14 @@
 
 /*
  * Design system: putih bersih, oranye energik sebagai warna utama, biru untuk
- * informasi, border nyaris tak terlihat, radius 4px, motion 150ms ease.
- * Semua warna lewat token semantik → dark mode cukup mengganti nilai token.
+ * informasi, hijau/kuning/merah untuk status & intensitas, sudut membulat,
+ * motion 150ms ease. Semua warna lewat token semantik → tema cukup mengganti nilai token.
+ *
+ * Tema: default mengikuti sistem. Pilihan manual disimpan di localStorage dan
+ * dipasang sebagai <html data-theme="light|dark"> sebelum halaman dirender.
  */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme inline {
   --font-sans: "Boathouse", "Segoe UI", "Helvetica Neue", -apple-system, system-ui, BlinkMacSystemFont, Roboto, Arial,
     sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -27,8 +32,20 @@
   --color-info-soft: var(--info-soft);
   --color-inverse: var(--inverse);
   --color-on-inverse: var(--on-inverse);
+  --color-success: var(--success);
+  --color-success-ink: var(--success-ink);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-ink: var(--warning-ink);
+  --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
+  --color-danger-ink: var(--danger-ink);
   --color-danger-soft: var(--danger-soft);
+
+  /* Radius: kartu 16px, kontrol (tombol/input/pilihan) 12px, elemen dalam kartu 12px. */
+  --radius-card: 1rem;
+  --radius-control: 0.75rem;
+  --radius-inner: 0.75rem;
 
   /* Skala tipografi: body 15px, heading 16px/600, line-height rapat. */
   --text-body: 0.9375rem;
@@ -39,9 +56,8 @@
   --ease-out: ease;
 }
 
-:root {
-  color-scheme: light dark;
-
+:root,
+:root[data-theme="light"] {
   --bg: #ffffff;
   --surface: #ffffff;
   --subtle: #f7f7f5;
@@ -61,13 +77,56 @@
   --info-soft: #eaf2fd;
   --inverse: #000000;
   --on-inverse: #ffffff;
-  --danger: #c62828;
+  /* Status & intensitas: fill untuk bar/titik, ink untuk teks (≥ 4.5:1), soft untuk latar. */
+  --success: #16a34a;
+  --success-ink: #15803d;
+  --success-soft: #e8f7ee;
+  --warning: #eab308;
+  --warning-ink: #a16207;
+  --warning-soft: #fdf6d8;
+  --danger: #dc2626;
+  --danger-ink: #b91c1c;
   --danger-soft: #fdecec;
   --shadow-card-value: 0px 20px 20px 0px rgba(13, 13, 18, 0.1);
+  color-scheme: light;
+}
+
+/* Dark: dipilih manual, atau mengikuti sistem bila belum ada pilihan. */
+:root[data-theme="dark"] {
+  --bg: #0f0f0e;
+  --surface: #1a1a19;
+  --subtle: #232321;
+  --subtle-strong: #2c2c2a;
+  --line: #2c2c2a;
+  --line-strong: #4a4945;
+  --ink: #ffffff;
+  --muted: #c4c2bc;
+  --faint: #9a9892;
+  --brand: #fc5200;
+  --brand-hover: #ff6a1f;
+  --brand-soft: #3a1d0d;
+  --brand-ink: #ff8a4c;
+  --on-brand: #ffffff;
+  --info: #5aa2ff;
+  --info-soft: #0f2440;
+  --inverse: #ffffff;
+  --on-inverse: #000000;
+  /* Versi gelap: lebih terang & sedikit desaturasi supaya tidak menyilaukan. */
+  --success: #4ade80;
+  --success-ink: #6ee7a0;
+  --success-soft: #10291a;
+  --warning: #facc15;
+  --warning-ink: #fcd34d;
+  --warning-soft: #2e2608;
+  --danger: #f87171;
+  --danger-ink: #fca5a5;
+  --danger-soft: #331414;
+  --shadow-card-value: 0px 20px 20px 0px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --bg: #0f0f0e;
     --surface: #1a1a19;
     --subtle: #232321;
@@ -86,10 +145,19 @@
     --info-soft: #0f2440;
     --inverse: #ffffff;
     --on-inverse: #000000;
-    --danger: #ff6b6b;
-    --danger-soft: #3a1515;
+    /* Versi gelap: lebih terang & sedikit desaturasi supaya tidak menyilaukan. */
+    --success: #4ade80;
+    --success-ink: #6ee7a0;
+    --success-soft: #10291a;
+    --warning: #facc15;
+    --warning-ink: #fcd34d;
+    --warning-soft: #2e2608;
+    --danger: #f87171;
+    --danger-ink: #fca5a5;
+    --danger-soft: #331414;
     --shadow-card-value: 0px 20px 20px 0px rgba(0, 0, 0, 0.35);
-  }
+    color-scheme: dark;
+}
 }
 
 html {

@@ -70,21 +70,25 @@ function IntensityAndTrend({ activities, today }: { activities: Activity[]; toda
       <div>
         <div className="flex items-baseline justify-between text-[13px]">
           <span className="text-muted">Intensitas lari (acuan 80/20)</span>
-          <span className={`tabular font-semibold ${tooHard ? "text-brand-ink" : "text-ink"}`}>
-            {easy} easy · {w.hardRuns7} berat
+          <span className="tabular font-semibold">
+            <span className="text-success-ink">{easy} easy</span> · <span className="text-danger-ink">{w.hardRuns7} berat</span>
           </span>
         </div>
-        <div className="relative mt-1.5 flex h-2 overflow-hidden rounded-sm bg-brand" aria-hidden>
-          <div className="bg-info" style={{ width: `${easyPct}%` }} />
+        <div className="relative mt-1.5 flex h-2 overflow-hidden rounded-full bg-danger" aria-hidden>
+          <div className="bg-success" style={{ width: `${easyPct}%` }} />
           <div className="absolute inset-y-0 left-[80%] w-px bg-ink/50" />
         </div>
+        <p className={`mt-1 text-[12px] font-semibold ${tooHard ? "text-danger-ink" : "text-success-ink"}`}>
+          {tooHard ? "✕ Terlalu banyak sesi berat — sesi berikutnya Easy" : "✓ Distribusi aman"}
+        </p>
       </div>
       {w.kmChange !== undefined && (
         <div className="flex items-baseline justify-between text-[13px]">
           <span className="text-muted">Jarak vs 7 hari sebelumnya ({w.runKmPrev7.toFixed(1)} km)</span>
-          <span className={`tabular font-semibold ${tooFast ? "text-brand-ink" : "text-ink"}`}>
+          <span className={`tabular font-semibold ${tooFast ? "text-danger-ink" : "text-success-ink"}`}>
+            {tooFast ? "✕ " : "✓ "}
             {w.kmChange >= 0 ? "+" : ""}
-            {Math.round(w.kmChange * 100)}%{tooFast ? " ⚠︎" : ""}
+            {Math.round(w.kmChange * 100)}%
           </span>
         </div>
       )}

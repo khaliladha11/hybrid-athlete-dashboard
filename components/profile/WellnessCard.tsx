@@ -39,8 +39,8 @@ export function WellnessCard({ result, today }: { result: FetchResult<Wellness[]
     <Card
       title="Wellness"
       action={
-        <span className={`text-[13px] ${isToday ? "text-muted" : "font-semibold text-brand-ink"}`}>
-          {isToday ? "Hari ini" : `Terakhir ${formatDateId(latest.date)}`}
+        <span className={`text-[13px] font-semibold ${isToday ? "text-success-ink" : "text-danger-ink"}`}>
+          {isToday ? "✓ Data hari ini" : `✕ Terakhir ${formatDateId(latest.date)}`}
         </span>
       }
     >
@@ -58,7 +58,7 @@ export function WellnessCard({ result, today }: { result: FetchResult<Wellness[]
         />
       </div>
       {missing > 0 && (
-        <p className="mt-3 rounded-sm bg-subtle px-3 py-2 text-[13px] text-muted">
+        <p className="mt-3 rounded-inner bg-subtle px-3 py-2 text-[13px] text-muted">
           {missing} metrik kosong (—). Biasanya karena jam belum sinkron atau tidak dipakai saat tidur.
         </p>
       )}

@@ -169,3 +169,42 @@ describe("ST: gerakan utama selalu multi-joint (NSCA)", () => {
         }
   });
 });
+
+describe("mode bebas (program blok dimatikan)", () => {
+  const deloadWeek = blockContext("2026-10-19", START);
+
+  it("tanpa deload walau tanggal jatuh di minggu deload", () => {
+    for (const type of STRENGTH_TYPES) {
+      const w = generateStrengthWorkout({ type, duration: 45, difficulty: "high", seed: 3, block: deloadWeek, free: true });
+      expect(w.deload).toBe(false);
+      expect(w.items.filter((i) => i.phase === "main").every((i) => i.rpe === 7)).toBe(true);
+      expect(w.notes.join(" ")).toMatch(/Mode bebas/);
+    }
+    const run = generateRunWorkout({ duration: 45, difficulty: "high", seed: 1, block: deloadWeek, free: true });
+    expect(run.notes.join(" ")).not.toMatch(/deload/i);
+  });
+
+  it("gerakan utama ★ berganti antar seed (tidak dikunci blok), tetap ada & multi-joint", async () => {
+    const { COMPOUND_MOVEMENTS } = await import("@/lib/generator/meta");
+    const allowed = new Set([...COMPOUND_MOVEMENTS, "Dead Hang", "Negative Pull-Up"]);
+    const sets = new Set(
+      SEEDS.map((seed) => {
+        const w = generateStrengthWorkout({ type: "lower", duration: 45, difficulty: "moderate", seed, free: true });
+        const a = anchors(w);
+        expect(a.length).toBeGreaterThan(0);
+        for (const n of a) expect(allowed.has(n)).toBe(true);
+        return a.join("|");
+      }),
+    );
+    expect(sets.size).toBeGreaterThan(1);
+  });
+
+  it("semua kombinasi tetap valid di mode bebas", () => {
+    for (const type of STRENGTH_TYPES)
+      for (const duration of DURATIONS)
+        for (const difficulty of DIFFICULTIES)
+          for (const seed of SEEDS.slice(0, 8)) {
+            expect(() => generateStrengthWorkout({ type, duration, difficulty, seed, free: true })).not.toThrow();
+          }
+  });
+});

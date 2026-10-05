@@ -13,23 +13,31 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
 <table>
   <tr>
     <td><img src="docs/screenshots/01-profile.jpg" width="220" alt="Profil atlet dan saran hari ini"></td>
-    <td><img src="docs/screenshots/04-run-workout.jpg" width="220" alt="Workout lari hasil generator"></td>
-    <td><img src="docs/screenshots/05-strength-workout.jpg" width="220" alt="Workout strength dengan progresi beban"></td>
+    <td><img src="docs/screenshots/03-run-generator.jpg" width="220" alt="Generator lari dengan warna kesulitan dan toggle blok"></td>
+    <td><img src="docs/screenshots/04-run-workout.jpg" width="220" alt="Workout lari dengan bar intensitas"></td>
   </tr>
   <tr>
     <td align="center"><sub>Profil &amp; saran hari ini</sub></td>
-    <td align="center"><sub>Generator lari</sub></td>
-    <td align="center"><sub>Generator ST + progresi beban</sub></td>
+    <td align="center"><sub>Generator lari: kesulitan berwarna &amp; toggle blok</sub></td>
+    <td align="center"><sub>Workout lari (hijau/kuning/merah)</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/02-weekly-summary.jpg" width="220" alt="Ringkasan 7 hari dengan distribusi 80/20"></td>
-    <td><img src="docs/screenshots/06-log.jpg" width="220" alt="Log latihan dan tren beban"></td>
-    <td><img src="docs/screenshots/07-dark-mode.jpg" width="220" alt="Tampilan dark mode"></td>
+    <td><img src="docs/screenshots/08-program.jpg" width="220" alt="Program target Half Marathon"></td>
+    <td><img src="docs/screenshots/05-strength-workout.jpg" width="220" alt="Workout strength dengan progresi beban"></td>
+    <td><img src="docs/screenshots/06-log.jpg" width="220" alt="Log latihan dengan status target"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Program target (5K–FM)</sub></td>
+    <td align="center"><sub>Generator ST + progresi beban</sub></td>
+    <td align="center"><sub>Log latihan (✓/✕ target)</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/02-weekly-summary.jpg" width="220" alt="Ringkasan 7 hari dengan status 80/20"></td>
+    <td><img src="docs/screenshots/07-dark-mode.jpg" width="220" alt="Dark mode dengan mode bebas"></td>
   </tr>
   <tr>
     <td align="center"><sub>Ringkasan 7 hari (80/20, tren km)</sub></td>
-    <td align="center"><sub>Log latihan</sub></td>
-    <td align="center"><sub>Dark mode</sub></td>
+    <td align="center"><sub>Dark mode + mode bebas</sub></td>
   </tr>
 </table>
 
@@ -56,12 +64,14 @@ Semua aturan ini dikodekan sebagai **modul TypeScript murni yang diuji**, bukan 
 | **Data intervals.icu** | Ringkasan 7 hari (km, pace, HR, long run, load), 10 aktivitas terakhir, detail interval per aktivitas, serta wellness (HRV, resting HR, tidur, CTL/ATL/Form). |
 | **Generator lari** | 30/45/60 menit × Easy/Moderate/High dengan 13 pola: Z2, run-walk, cadence drill, tempo, cruise interval, progression run, mini interval, Norwegian 4×4, dan 15/15. Target pace/HR/RPE diambil dari profil, dan durasinya selalu tepat. |
 | **Generator ST** | Full Body / Upper Push / Upper Pull / Lower. Hanya memakai gerakan dari library, RPE ≤ 7, prehab dan stabilitas panggul wajib, serta memblokir beban axial berat. |
-| **Periodisasi** | Blok 4 minggu (3 normal + 1 deload). Gerakan utama ★ dikunci per blok, sedangkan aksesori dan skema rep berputar. |
+| **Periodisasi** | Blok 4 minggu (3 normal + 1 deload). Gerakan utama ★ dikunci per blok, sedangkan aksesori dan skema rep berputar. Bisa **dimatikan** (toggle) untuk latihan bebas tanpa jadwal blok. |
+| **Program target** | Program mingguan menuju **PB 5K, PB 10K, Half Marathon, atau Full Marathon**: fase Base → Build → Peak → Taper, long run naik ≤ 10%/minggu dengan cutback, race pace dari target waktu, dan jadwal ST yang tidak bentrok. |
 | **Saran hari ini** | Menggabungkan readiness (HRV, resting HR, sesi kemarin), distribusi 80/20, kenaikan km mingguan, dan jarak antara ST kaki dan lari berat. Sarannya bisa diterapkan dengan satu tap. |
 | **Progresi beban** | Catat sesi, lalu beban berikutnya disesuaikan otomatis (aturan "2-for-2" NSCA) tanpa pernah melewati batas library. |
 | **Salin cepat** | Teks ringkas untuk Strava/catatan HP, plus format "Set" untuk Huawei Health. |
 | **Demo Mode** | Tanpa API key, aplikasi tetap berjalan penuh memakai data dummy. |
-| **PWA & design system** | Bisa di-install ke HP dan full-screen. Token warna/tipografi terpusat (oranye `#fc5200`, biru info `#0060d0`, radius 4px, motion 150ms), plus dark mode, aman untuk notch, dan umpan balik sentuhan ala aplikasi native. |
+| **PWA & design system** | Bisa di-install ke HP dan full-screen. Token warna/tipografi terpusat (oranye `#fc5200` sebagai warna utama, sudut membulat, motion 150ms), dengan **toggle tema terang/gelap** yang tersimpan di perangkat. |
+| **Sistem warna** | Intensitas: **Easy = hijau, Moderate = kuning, High = merah**. Status: **aktif/tercapai = hijau, nonaktif/belum = merah**. Kontras dijaga di tema terang maupun gelap. |
 
 Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](docs/TRAINING-LOGIC.md)**.
 
@@ -74,6 +84,7 @@ Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](docs/TRAININ
 | **0.3** Konteks mingguan | ✅ Selesai | Aturan 80/20, peringatan kenaikan km > 30%, jarak concurrent training, kartu "Saran hari ini" dengan tombol aksi |
 | **0.4** Progresi beban | ✅ Selesai | Log sesi di perangkat, progresi otomatis 2-for-2, halaman Log, ekspor/impor JSON |
 | **0.5** Redesign UI | ✅ Selesai | Design system baru: token semantik, oranye sebagai warna utama, kartu ber-shadow, tipografi sistem, kontras teks AA, dark mode dari token yang sama |
+| **0.6** Fleksibilitas & program target | ✅ Selesai | Toggle tema terang/gelap, sudut membulat, warna intensitas & status, toggle blok mingguan (mode bebas), modul Program Target 5K/10K/HM/FM |
 | Berikutnya | 💡 Ide | Sinkron log antar perangkat (database), mode offline (service worker), grafik tren CTL/ATL, rencana mingguan otomatis |
 
 Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
@@ -82,7 +93,7 @@ Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 
 - **Next.js 16** (App Router, Server Components) + **React 19** + **TypeScript**
 - **Tailwind CSS 4** dengan token semantik di [`app/globals.css`](app/globals.css). Dark mode mengikuti pengaturan sistem.
-- **Vitest**: 5 file test, 80+ test yang mencakup seluruh kombinasi input generator
+- **Vitest**: 6 file test, 95+ test yang mencakup seluruh kombinasi input generator dan program target
 - **intervals.icu REST API**, dipanggil hanya dari server
 - Tanpa database. Profil disimpan di JSON, log sesi di localStorage perangkat.
 - Deploy di **Vercel**
@@ -155,13 +166,15 @@ Install PWA butuh HTTPS, jadi URL Vercel bisa langsung dipakai. Setelah ada depl
 ## Struktur project
 
 ```
-app/                     halaman: Profil, /run, /strength, /log, /activity/[id]
+app/                     halaman: Profil, /run, /program, /strength, /log, /activity/[id]
 components/              UI: profile/, generator/, log/, ui/
 config/athlete-profile.json
 lib/
   generator/             modul murni: run, strength, block (periodisasi), validate, format, rng
   intervals/             client (server-only), normalize, summary, data-source
   coach.ts               saran mingguan (80/20, progresi km, concurrent)
+  program.ts             program target 5K / 10K / HM / FM
+  preferences.ts         tema & toggle blok (localStorage)
   progression.ts         aturan progresi beban 2-for-2
   training-log.ts        penyimpanan log di perangkat
   readiness.ts           sinyal kesiapan dari wellness

@@ -50,6 +50,8 @@ export interface RunInput {
   seed: number;
   /** Konteks blok periodisasi (minggu deload menambah catatan). */
   block?: BlockContext;
+  /** Mode bebas (program blok dimatikan): tidak ada penyesuaian minggu deload. */
+  free?: boolean;
   /** Cadence rata-rata lari terakhir (SPM total) untuk target personal. */
   cadenceSpm?: number;
 }
@@ -90,7 +92,8 @@ const MINI_PATTERNS = [
 ];
 
 export function generateRunWorkout(input: RunInput, p: AthleteProfile = profile): RunWorkout {
-  const { duration, difficulty, seed, block: blockCtx = DEFAULT_BLOCK } = input;
+  const { duration, difficulty, seed } = input;
+  const blockCtx = input.free ? DEFAULT_BLOCK : (input.block ?? DEFAULT_BLOCK);
   const rng = createRng(seed);
   const t = runTargets(p);
   const cadence = cadenceTarget(input.cadenceSpm);

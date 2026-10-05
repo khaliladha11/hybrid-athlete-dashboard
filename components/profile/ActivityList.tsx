@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { formatDateId, formatTimeOfDay } from "@/lib/date";
 import { CATEGORY_LABEL, formatDuration, formatPace } from "@/lib/intervals/summary";
+import { isHardRun } from "@/lib/coach";
 import type { Activity, ActivityCategory, FetchResult } from "@/lib/intervals/types";
 
 export const CATEGORY_DOT: Record<ActivityCategory, string> = {
@@ -45,7 +46,11 @@ export function ActivityList({ result }: { result: FetchResult<Activity[]> }) {
                   href={`/activity/${encodeURIComponent(a.id)}`}
                   className="flex items-start gap-3 px-4 py-3 hover:bg-subtle"
                 >
-                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${CATEGORY_DOT[a.category]}`} aria-hidden />
+                  <span
+                    className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${a.category === "run" ? (isHardRun(a) ? "bg-danger" : "bg-success") : CATEGORY_DOT[a.category]}`}
+                    title={a.category === "run" ? (isHardRun(a) ? "Lari berat" : "Lari easy") : CATEGORY_LABEL[a.category]}
+                    aria-hidden
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
                       <p className="truncate text-body font-semibold">{a.name}</p>

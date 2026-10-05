@@ -3,12 +3,14 @@
 import type { Ref } from "react";
 import { BUTTON } from "@/components/ui/Card";
 import { CopyButton } from "@/components/ui/CopyButton";
+import { pillClasses, type Tone } from "@/components/ui/tones";
 
 export function OutputShell({
   title,
   subtitle,
   swapKey,
   ref,
+  tag,
   children,
 }: {
   title: string;
@@ -16,16 +18,21 @@ export function OutputShell({
   /** Berubah setiap hasil generate berubah → konten memudar masuk (lihat .swap-in). */
   swapKey: string;
   ref?: Ref<HTMLElement>;
+  /** Pill berwarna di samping judul, mis. tingkat kesulitan. */
+  tag?: { label: string; tone: Tone };
   children: React.ReactNode;
 }) {
   return (
     <section
       ref={ref}
-      className="scroll-mt-4 rounded-sm border border-line bg-surface p-4 shadow-card"
+      className="scroll-mt-4 rounded-card border border-line bg-surface p-4 shadow-card"
       aria-live="polite"
     >
       <div key={swapKey} className="swap-in">
-        <h2 className="text-lg leading-snug font-semibold">{title}</h2>
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-lg leading-snug font-semibold">{title}</h2>
+          {tag && <span className={`mt-0.5 shrink-0 ${pillClasses(tag.tone)}`}>{tag.label}</span>}
+        </div>
         {subtitle && <p className="tabular mt-0.5 mb-4 text-[13px] text-muted">{subtitle}</p>}
         {children}
       </div>
@@ -47,7 +54,7 @@ export function GeneratorActions({
 }) {
   return (
     <div
-      className="sticky z-10 rounded-sm border border-line bg-surface/95 p-2 shadow-card backdrop-blur"
+      className="sticky z-10 rounded-card border border-line bg-surface/95 p-2 shadow-card backdrop-blur"
       style={{ bottom: "calc(4.25rem + env(safe-area-inset-bottom, 0px))" }}
     >
       <div className="grid grid-cols-2 gap-2">
@@ -60,7 +67,7 @@ export function GeneratorActions({
           type="button"
           onClick={onRegenerate}
           disabled={!canRegenerate}
-          className={`pressable inline-flex min-h-11 items-center justify-center rounded-sm px-3 text-body font-semibold whitespace-nowrap disabled:cursor-not-allowed ${BUTTON.primary}`}
+          className={`pressable inline-flex min-h-11 items-center justify-center rounded-control px-3 text-body font-semibold whitespace-nowrap disabled:cursor-not-allowed ${BUTTON.primary}`}
         >
           {canRegenerate ? "↻ Variasi lain" : "Pola baku"}
         </button>

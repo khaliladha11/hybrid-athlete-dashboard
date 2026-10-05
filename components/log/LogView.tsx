@@ -20,7 +20,7 @@ function ConfirmButton({ label, confirmLabel, onConfirm }: { label: string; conf
       type="button"
       onClick={() => (armed ? onConfirm() : setArmed(true))}
       onBlur={() => setArmed(false)}
-      className={`pressable min-h-9 shrink-0 rounded-sm px-3 text-[13px] font-semibold ${
+      className={`pressable min-h-9 shrink-0 rounded-control px-3 text-[13px] font-semibold ${
         armed ? "bg-danger text-surface" : "text-muted hover:bg-subtle hover:text-ink"
       }`}
     >
@@ -139,6 +139,9 @@ export function LogView() {
                             {valueLabel(e)} · RPE {e.rpe}
                             <span className="text-faint"> (target {e.targetRpe})</span>
                             {e.deload && <span className="text-info"> · deload</span>}
+                          </p>
+                          <p className={`text-[12px] font-semibold ${e.value >= e.target.hi && e.rpe <= e.targetRpe ? "text-success-ink" : "text-danger-ink"}`}>
+                            {e.value >= e.target.hi && e.rpe <= e.targetRpe ? "✓ Target tuntas" : "✕ Belum tuntas"}
                           </p>
                         </div>
                         <ConfirmButton label="Hapus" confirmLabel="Yakin?" onConfirm={() => trainingLog.remove(e.id)} />

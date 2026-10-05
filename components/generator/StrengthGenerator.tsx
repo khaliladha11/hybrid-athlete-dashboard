@@ -3,6 +3,10 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BUTTON } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
+import { Switch } from "@/components/ui/Switch";
+import { INTENSITY_TONE } from "@/components/ui/tones";
+import { blockLabel } from "@/lib/generator/block";
+import { useBlockEnabled } from "@/lib/preferences";
 import {
   DIFFICULTIES,
   DIFFICULTY_LABEL,
@@ -53,12 +57,14 @@ export function StrengthGenerator({
   const [seed, setSeed] = useState(initialSeed);
 
   const [logging, setLogging] = useState(false);
+  const [blockEnabled, setBlockEnabled] = useBlockEnabled();
+  const free = !blockEnabled;
   const [saved, setSaved] = useState(false);
   const log = useTrainingLog();
 
   const generated = useMemo(
-    () => generateStrengthWorkout({ type, duration, difficulty, seed, block }),
-    [type, duration, difficulty, seed, block],
+    () => generateStrengthWorkout({ type, duration, difficulty, seed, block, free }),
+    [type, duration, difficulty, seed, block, free],
   );
   // Beban gerakan ★ disesuaikan dengan riwayat sesi (tetap dalam batas library).
   const workout = useMemo(() => applyProgression(generated, MOVEMENTS, log), [generated, log]);
@@ -66,8 +72,8 @@ export function StrengthGenerator({
   const outputRef = useRef<HTMLElement>(null);
 
   const render = useCallback(
-    (s: number) => strengthToText(generateStrengthWorkout({ type, duration, difficulty, seed: s, block })),
-    [type, duration, difficulty, block],
+    (s: number) => strengthToText(generateStrengthWorkout({ type, duration, difficulty, seed: s, block, free })),
+    [type, duration, difficulty, block, free],
   );
   const canRegenerate = useMemo(() => hasVariations(render), [render]);
   const regenerate = () => {
@@ -78,7 +84,7 @@ export function StrengthGenerator({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4 rounded-sm border border-line bg-surface p-4 shadow-card">
+      <div className="space-y-4 rounded-card border border-line bg-surface p-4 shadow-card">
         <Segmented
           label="Tipe"
           wrap
@@ -93,6 +99,19 @@ export function StrengthGenerator({
             value={difficulty}
             onChange={setDifficulty}
             options={DIFFICULTIES.map((d) => ({ value: d, label: DIFFICULTY_LABEL[d] }))}
+            tones={INTENSITY_TONE}
+          />
+        </div>
+        <div className="border-t border-line pt-4">
+          <Switch
+            checked={blockEnabled}
+            onChange={setBlockEnabled}
+            label="Program blok mingguan"
+            description={
+              blockEnabled
+                ? `${blockLabel(block)} — gerakan ★ dikunci per blok, ada minggu deload.`
+                : "Mode bebas: gerakan ★ dipilih per sesi, tanpa deload. Log tetap tercatat."
+            }
           />
         </div>
       </div>
@@ -107,7 +126,7 @@ export function StrengthGenerator({
         }}
       />
 
-      <OutputShell ref={outputRef} swapKey={`${type}-${duration}-${difficulty}-${seed}`} title={workout.title} subtitle={`Estimasi ±${est} menit · Skema ${workout.scheme} · RPE ${workout.items.find((i) => i.phase === "main")?.rpe ?? "-"} · seed #${seed}`}>
+      <OutputShell ref={outputRef} swapKey={`${type}-${duration}-${difficulty}-${seed}-${free}`} tag={{ label: DIFFICULTY_LABEL[difficulty], tone: INTENSITY_TONE[difficulty] }} title={workout.title} subtitle={`Estimasi ±${est} menit · Skema ${workout.scheme} · RPE ${workout.items.find((i) => i.phase === "main")?.rpe ?? "-"} · seed #${seed}`}>
         {(["warmup", "main", "cooldown"] as const).map((phase) => {
           const items = workout.items.filter((i) => i.phase === phase);
           if (!items.length) return null;
@@ -117,9 +136,9 @@ export function StrengthGenerator({
               {phase === "main" ? (
                 <ol className="space-y-2">
                   {items.map((it, i) => (
-                    <li key={it.movement} className={`rounded-sm bg-subtle px-3 py-3 ${it.anchor ? "border-l-[3px] border-brand" : ""}`}>
+                    <li key={it.movement} className={`rounded-inner bg-subtle px-3 py-3 ${it.anchor ? "border-l-[3px] border-brand" : ""}`}>
                       <div className="flex items-start gap-3">
-                        <span className={`tabular mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-sm text-[12px] font-semibold ${it.anchor ? "bg-brand text-on-brand" : "bg-subtle-strong text-ink"}`}>
+                        <span className={`tabular mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg text-[12px] font-semibold ${it.anchor ? "bg-brand text-on-brand" : "bg-subtle-strong text-ink"}`}>
                           {i + 1}
                         </span>
                         <div className="min-w-0 flex-1">
@@ -185,7 +204,7 @@ export function StrengthGenerator({
           )
         )}
 
-        <ul className="mt-4 space-y-1.5 rounded-sm bg-info-soft p-3 text-[13px] text-ink">
+        <ul className="mt-4 space-y-1.5 rounded-inner bg-info-soft p-3 text-[13px] text-ink">
           {workout.notes.map((n) => (
             <li key={n} className="flex gap-2">
               <span aria-hidden className="text-info">›</span>

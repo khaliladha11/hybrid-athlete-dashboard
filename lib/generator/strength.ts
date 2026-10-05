@@ -133,6 +133,11 @@ export interface StrengthInput {
   seed: number;
   /** Konteks blok periodisasi: menentukan gerakan utama & minggu deload. */
   block?: BlockContext;
+  /**
+   * Mode bebas (program blok dimatikan): tanpa deload, dan gerakan utama ★ dipilih
+   * per sesi — bukan dikunci per blok. ★ tetap dicatat untuk progresi beban.
+   */
+  free?: boolean;
 }
 
 /** Seed deterministik per blok × tipe → gerakan utama sama selama satu blok. */
@@ -146,9 +151,10 @@ interface FitConfig {
 }
 
 export function generateStrengthWorkout(input: StrengthInput, p: AthleteProfile = profile): StrengthWorkout {
-  const { type, duration, difficulty, seed, block = DEFAULT_BLOCK } = input;
+  const { type, duration, difficulty, seed, free = false } = input;
+  const block = free ? DEFAULT_BLOCK : (input.block ?? DEFAULT_BLOCK);
   const rng = createRng(seed);
-  const anchorRng = createRng(anchorSeed(block, type));
+  const anchorRng = free ? rng : createRng(anchorSeed(block, type));
   const lib = p.movementLibrary;
   const deload = block.deload;
   const rpe = strengthRpe(difficulty, deload);
@@ -256,7 +262,9 @@ export function generateStrengthWorkout(input: StrengthInput, p: AthleteProfile 
   const notes = [
     `Intensitas RPE ${rpe} — sisakan ${10 - rpe} repetisi di "tangki". Jangan sampai gagal (failure).`,
     `Skema ${scheme.label} (${scheme.reps} rep) — skema berputar antar sesi supaya stimulus bervariasi.`,
-    `${blockLabel(block)}: gerakan bertanda ★ tetap sama sampai blok berganti; sisanya berganti tiap generate.`,
+    free
+      ? "Mode bebas: tanpa blok mingguan & deload. Gerakan ★ = gerakan utama sesi ini (tetap dicatat untuk progresi)."
+      : `${blockLabel(block)}: gerakan bertanda ★ tetap sama sampai blok berganti; sisanya berganti tiap generate.`,
     "Spine-Friendly: tanpa beban axial berat tanpa tumpuan. Rib cage turun, core aktif di setiap gerakan.",
     "Jeda latihan beban berat 24–48 jam sebelum MCU/tes darah.",
   ];

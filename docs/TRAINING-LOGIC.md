@@ -8,7 +8,8 @@ Dokumen ini menjelaskan **semua aturan** yang dipakai generator dan sistem saran
 - [4. Periodisasi & variasi](#4-periodisasi--variasi)
 - [5. Saran hari ini](#5-saran-hari-ini)
 - [6. Progresi beban](#6-progresi-beban)
-- [7. Referensi](#7-referensi)
+- [7. Program target (5K / 10K / HM / FM)](#7-program-target-5k--10k--hm--fm)
+- [8. Referensi](#8-referensi)
 
 ---
 
@@ -111,7 +112,29 @@ Setelah sesi ST, atlet mencatat **beban, rep set terakhir (atau detik), dan RPE*
 
 Rekomendasi diterapkan ke workout lalu **tetap di-clamp ke rentang library**, sehingga aturan beban maksimal tidak pernah bisa dilanggar. Data log disimpan di localStorage perangkat dan bisa diekspor/diimpor sebagai JSON.
 
-## 7. Referensi
+## 7. Program target (5K / 10K / HM / FM)
+
+Kode: [`lib/program.ts`](../lib/program.ts). Halaman **Program**.
+
+| Target | Lama | Taper | Long run puncak | Quality fase Peak |
+| --- | --- | --- | --- | --- |
+| PB 5K | 8 minggu | 1 minggu | 10 km | Interval 5×800 m @ pace mini interval |
+| PB 10K | 10 minggu | 1 minggu | 14 km | Interval 4×1 km @ pace mini interval |
+| Half Marathon | 12 minggu | 2 minggu | 18 km | Race pace 3×2 km |
+| Full Marathon | 16 minggu | 3 minggu | 30 km | Norwegian 4×4 + long run dengan 3 km terakhir di race pace |
+
+- **Fase:** Base (fartlek ringan) → Build (tempo) → Peak (spesifik lomba) → Taper (strides, volume turun). Minggu terakhir adalah minggu lomba dengan sesi sharpener.
+- **Long run:** naik ≤ 10% **dan** ≤ 2 km per minggu. Setiap minggu ke-4 ada cutback ±75% tanpa sesi berat. Long run awal diambil dari long run terjauh 30 hari terakhir di intervals.icu (maksimal 75% puncak).
+- **Pace:** zona easy/tempo/interval dari profil, sedangkan race pace = target waktu ÷ jarak. Target default diambil dari `targets.raceTargets` di profil (Sub-30m 5K, Sub-1h 10K, Sub-3h HM).
+- **Jadwal:** Selasa quality, Kamis easy, (Jumat recovery bila 4×/minggu), Minggu long run. ST di Senin (Lower/Full) & Rabu (Upper), tidak sehari sebelum quality atau long run.
+- **Peringatan (non-blokir):**
+  - FM dengan long run terjauh < 12 km.
+  - Target pace jauh lebih cepat dari zona tempo.
+  - Long run puncak > 55% volume mingguan pada 3 lari/minggu (sarankan 4×).
+
+**Mode bebas:** program blok mingguan (bagian 4) bisa dimatikan lewat toggle. Saat mati, tidak ada minggu deload, dan gerakan utama ★ dipilih per sesi (tetap multi-joint dan tetap dicatat untuk progresi beban).
+
+## 8. Referensi
 
 Buku:
 - Bompa, T. O. & Buzzichelli, C. A. — *Periodization: Theory and Methodology of Training* (ed. 6). Human Kinetics. Dasar struktur blok dan deload.

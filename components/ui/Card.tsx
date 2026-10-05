@@ -17,7 +17,7 @@ export function Card({
   flush?: boolean;
 }) {
   return (
-    <section className={`rounded-sm border border-line bg-surface shadow-card ${flush ? "py-4" : "p-4"} ${className}`}>
+    <section className={`rounded-card border border-line bg-surface shadow-card ${flush ? "py-4" : "p-4"} ${className}`}>
       {(title || action) && (
         <header className={`mb-3 flex items-center justify-between gap-2 ${flush ? "px-4" : ""}`}>
           {title && <h2 className="text-base font-semibold">{title}</h2>}
@@ -51,7 +51,7 @@ export function Chip({ children, tone = "neutral" }: { children: React.ReactNode
 
 /** Tombol standar design system: primary (oranye), secondary (garis), inverse (hitam). */
 export const BUTTON = {
-  base: "pressable inline-flex min-h-11 items-center justify-center gap-1.5 rounded-sm px-4 text-base font-semibold disabled:cursor-not-allowed",
+  base: "pressable inline-flex min-h-11 items-center justify-center gap-1.5 rounded-control px-4 text-base font-semibold disabled:cursor-not-allowed",
   primary: "bg-brand text-on-brand hover:bg-brand-hover disabled:bg-subtle-strong disabled:text-faint",
   secondary: "border border-line-strong bg-surface text-ink hover:bg-subtle",
   inverse: "bg-inverse text-on-inverse hover:opacity-90",

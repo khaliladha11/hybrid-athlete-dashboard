@@ -2,6 +2,23 @@
 
 Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/).
 
+## [0.6.0] — 2026-10-05 · Fleksibilitas & program target
+
+### Ditambahkan
+- **Toggle tema Terang/Gelap** di bilah atas, plus pilihan Sistem/Terang/Gelap di kartu Pengaturan (Profil). Pilihan disimpan di `localStorage` dan dipasang sebelum render (tanpa kedipan).
+- **Sistem warna intensitas & status:** Easy = hijau, Moderate = kuning, High = merah. Aktif/tercapai = hijau, nonaktif/belum = merah. Dipakai di pilihan kesulitan, bar intensitas, pill kesulitan, distribusi 80/20, tren km, kesegaran data wellness, titik aktivitas, status target di Log, dan switch.
+- **Toggle Program blok mingguan** (generator lari, ST, dan Pengaturan). Saat mati, aplikasi masuk **mode bebas**: tanpa deload, dan gerakan ★ dipilih per sesi. Log & progresi tetap jalan.
+- **Modul Program Target** (halaman & tab baru) untuk PB 5K, PB 10K, Half Marathon, dan Full Marathon: fase Base/Build/Peak/Taper, long run aman (≤ 10% & ≤ 2 km/minggu, cutback tiap minggu ke-4), race pace dari target waktu, jadwal ST, peringatan, dan salin rencana minggu ini.
+- Komponen `Switch` dan modul warna `tones.ts`. Test baru untuk mode bebas & program target (96 test).
+
+### Diubah
+- Sudut lebih membulat: kartu 16px, tombol/input/pilihan 12px.
+- Bilah atas (logo + tombol tema). Navigasi bawah jadi 5 tab (Profil, Lari, Program, Strength, Log).
+- Zona Z2 di generator lari kini hijau (sebelumnya biru), selaras dengan warna intensitas.
+
+### Diperbaiki
+- Judul "Saran hari ini" tidak lagi terlipat saat ada dua tombol aksi.
+
 ## [0.5.0] — 2026-10-05 · Redesign UI
 
 ### Diubah
@@ -70,7 +87,8 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.5.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/46f0c13...main
+[0.6.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/9a668ef...main
+[0.5.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/9a668ef
 [0.4.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/51d79e4
 [0.3.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/49d0aed
 [0.2.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/286515d

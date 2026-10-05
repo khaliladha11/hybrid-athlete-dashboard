@@ -78,7 +78,7 @@ Keterbatasannya, log hanya ada di satu perangkat. Jalur upgrade-nya adalah datab
 
 ## Design system
 
-Semua gaya visual memakai **token semantik** di [`app/globals.css`](../app/globals.css), bukan warna Tailwind mentah. Komponen menulis `bg-surface`, `text-muted`, atau `bg-brand`. Nilai token diganti di `@media (prefers-color-scheme: dark)`, sehingga tidak ada class `dark:` di komponen.
+Semua gaya visual memakai **token semantik** di [`app/globals.css`](../app/globals.css), bukan warna Tailwind mentah. Komponen menulis `bg-surface`, `text-muted`, atau `bg-brand`. Tema gelap dipakai bila pengguna memilihnya lewat toggle (`<html data-theme="dark">`, disimpan di `localStorage`), atau mengikuti sistem bila belum ada pilihan. Script kecil di `<head>` memasang tema sebelum render supaya tidak berkedip. Komponen tidak memakai class `dark:`, karena cukup nilai token yang berganti.
 
 | Token | Light | Dipakai untuk |
 | --- | --- | --- |
@@ -88,9 +88,10 @@ Semua gaya visual memakai **token semantik** di [`app/globals.css`](../app/globa
 | `info` | `#0060d0` | Informasi, link, Z2, catatan workout |
 | `ink` / `muted` / `faint` | `#000` / `#43423f` / `#6d6c68` | Teks utama / sekunder / meta |
 | `line` | `#f2f2f0` | Border kartu & pemisah |
+| `success` / `warning` / `danger` | `#16a34a` / `#eab308` / `#dc2626` | Intensitas Easy / Moderate / High, status aktif (hijau) / nonaktif (merah). Varian `-ink` untuk teks (kontras ≥ 4.5:1), `-soft` untuk latar |
 | `shadow-card` | `0 20px 20px rgba(13,13,18,.1)` | Kartu |
 
-Aturan lainnya: radius 4px (`rounded-sm`), motion 150ms `ease`, body 15px, heading 16px/600, area sentuh minimal 44px, dan outline fokus oranye 2px. Gaya tombol standar ada di `BUTTON` (`components/ui/Card.tsx`): primary, secondary, dan inverse.
+Aturan lainnya: radius kartu 16px (`rounded-card`), tombol/input/pilihan 12px (`rounded-control`), baris di dalam kartu 12px (`rounded-inner`), motion 150ms `ease`, body 15px, heading 16px/600, area sentuh minimal 44px, dan outline fokus oranye 2px. Gaya tombol standar ada di `BUTTON` (`components/ui/Card.tsx`): primary, secondary, dan inverse. Pemetaan warna intensitas & status ada di satu tempat: `components/ui/tones.ts`.
 
 ## Testing
 

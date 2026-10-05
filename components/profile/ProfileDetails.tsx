@@ -77,7 +77,7 @@ export function ConditionsCard({ profile }: { profile: AthleteProfile }) {
         {conditions.map((c) => {
           const [head, ...rest] = c.split("(");
           return (
-            <li key={c} className="rounded-sm border-l-2 border-brand bg-brand-soft py-1.5 pr-2 pl-3 text-body">
+            <li key={c} className="rounded-inner border-l-2 border-brand bg-brand-soft py-1.5 pr-2 pl-3 text-body">
               <span className="font-semibold">{head.trim()}</span>
               {rest.length > 0 && <span className="block text-[13px] text-muted">{rest.join("(").replace(/\)$/, "")}</span>}
             </li>
@@ -132,7 +132,7 @@ export function EquipmentLibraryCard({ profile }: { profile: AthleteProfile }) {
                 <li key={m.name} className="flex justify-between gap-3 text-[13px]">
                   <span className={m.available === false ? "text-faint line-through" : ""}>{m.name}</span>
                   <span className="tabular shrink-0 text-muted">
-                    {m.available === false ? "belum aktif" : m.weight}
+                    {m.available === false ? <span className="font-semibold text-danger-ink">✕ belum aktif</span> : m.weight}
                   </span>
                 </li>
               ))}

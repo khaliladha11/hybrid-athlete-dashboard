@@ -3,6 +3,7 @@ import { BUTTON } from "@/components/ui/Card";
 import { ActivityList } from "@/components/profile/ActivityList";
 import { ConditionsCard, EquipmentLibraryCard, ProfileHeader, RunZonesCard, TargetsCard } from "@/components/profile/ProfileDetails";
 import { WeeklySummary } from "@/components/profile/WeeklySummary";
+import { SettingsCard } from "@/components/profile/SettingsCard";
 import { WellnessCard } from "@/components/profile/WellnessCard";
 import { CoachCard } from "@/components/generator/CoachCard";
 import { todayWib } from "@/lib/date";
@@ -49,6 +50,7 @@ export default async function ProfilePage() {
       <ConditionsCard profile={profile} />
       <RunZonesCard profile={profile} />
       <EquipmentLibraryCard profile={profile} />
+      <SettingsCard />
     </div>
   );
 }

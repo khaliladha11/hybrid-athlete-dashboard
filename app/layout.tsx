@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { AppBar } from "@/components/ui/AppBar";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { isDemoMode } from "@/lib/intervals/data-source";
+import { THEME_BOOT_SCRIPT } from "@/lib/preference-keys";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -37,13 +39,18 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id">
+    // data-theme dipasang oleh script boot sebelum hydrate → abaikan perbedaan atribut.
+    <html lang="id" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
       <body className="min-h-dvh pt-[env(safe-area-inset-top)]">
         {/* iOS standalone + black-translucent: konten tembus ke bawah status bar.
             Strip gelap ini menjaga jam/baterai (teks putih) tetap terbaca di light mode. */}
         <div aria-hidden className="fixed inset-x-0 top-0 z-30 h-[env(safe-area-inset-top)] bg-black" />
         {isDemoMode() && <DemoBanner />}
-        <main className="safe-x mx-auto w-full max-w-xl pt-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">{children}</main>
+        <AppBar />
+        <main className="safe-x mx-auto w-full max-w-xl pt-3 pb-[calc(7rem+env(safe-area-inset-bottom))]">{children}</main>
         <BottomNav />
       </body>
     </html>

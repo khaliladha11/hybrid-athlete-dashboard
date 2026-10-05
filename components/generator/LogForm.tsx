@@ -94,7 +94,7 @@ export function LogForm({
         e.preventDefault();
         save();
       }}
-      className="swap-in mt-4 space-y-4 rounded-sm border border-line-strong p-4"
+      className="swap-in mt-4 space-y-4 rounded-card border border-line-strong p-4"
     >
       <div>
         <h3 className="text-base font-semibold">Catat sesi — gerakan utama ★</h3>
@@ -116,7 +116,7 @@ export function LogForm({
                     enterKeyHint="next"
                     value={r.load}
                     onChange={(e) => update(i, { load: e.target.value })}
-                    className="mt-1 block min-h-11 w-full rounded-sm border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
+                    className="mt-1 block min-h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
                   />
                 </label>
               )}
@@ -126,7 +126,7 @@ export function LogForm({
                   <select
                     value={r.band}
                     onChange={(e) => update(i, { band: e.target.value })}
-                    className="mt-1 block min-h-11 w-full rounded-sm border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
+                    className="mt-1 block min-h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
                   >
                     {spec.options.map((o) => (
                       <option key={o}>{o}</option>
@@ -142,7 +142,7 @@ export function LogForm({
                   enterKeyHint="done"
                   value={r.value}
                   onChange={(e) => update(i, { value: e.target.value })}
-                  className="mt-1 block min-h-11 w-full rounded-sm border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
+                  className="mt-1 block min-h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
                 />
               </label>
             </div>
@@ -155,7 +155,7 @@ export function LogForm({
                   role="radio"
                   aria-checked={r.rpe === v}
                   onClick={() => update(i, { rpe: v })}
-                  className={`pressable tabular min-h-10 flex-1 rounded-sm border text-body ${
+                  className={`pressable tabular min-h-10 flex-1 rounded-control border text-body ${
                     r.rpe === v ? "border-brand bg-brand font-semibold text-on-brand" : "border-line-strong bg-surface text-muted"
                   }`}
                 >

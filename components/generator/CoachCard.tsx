@@ -36,12 +36,12 @@ export function CoachCard({
   ];
 
   return (
-    <aside role="note" className="rounded-sm border border-line border-l-[3px] border-l-brand bg-surface p-4 shadow-card">
+    <aside role="note" className="rounded-card border border-line border-l-[3px] border-l-brand bg-surface p-4 shadow-card">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-brand" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M12 3 2.5 20h19L12 3Zm0 6v5m0 3h.01" />
         </svg>
-        <h2 className="flex-1 text-base font-semibold">Saran hari ini</h2>
+        <h2 className="flex-1 shrink-0 text-base font-semibold whitespace-nowrap">Saran hari ini</h2>
         {onApply &&
           actions.map((a) => (
             <button
@@ -51,7 +51,7 @@ export function CoachCard({
                 if (a.apply.difficulty) setAppliedLevel(a.apply.difficulty);
                 onApply(a.apply);
               }}
-              className="pressable relative min-h-8 shrink-0 rounded-sm bg-brand px-3 text-[13px] font-semibold text-on-brand after:absolute after:-inset-1.5 after:content-[''] hover:bg-brand-hover"
+              className="pressable relative min-h-8 shrink-0 rounded-control bg-brand px-3 text-[13px] font-semibold text-on-brand after:absolute after:-inset-1.5 after:content-[''] hover:bg-brand-hover"
             >
               → {a.label}
             </button>
