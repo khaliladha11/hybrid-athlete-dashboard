@@ -15,7 +15,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navigasi utama"
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90"
+      className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="mx-auto grid max-w-xl grid-cols-4">
@@ -26,11 +26,13 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`pressable flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium ${
-                  active ? "text-accent-600 dark:text-accent-400" : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                className={`pressable relative flex flex-col items-center gap-0.5 py-2.5 text-[12px] ${
+                  active ? "font-semibold text-brand-ink" : "text-muted hover:text-ink"
                 }`}
               >
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                {/* Indikator aktif: garis oranye di tepi atas. */}
+                <span aria-hidden className={`absolute inset-x-5 top-0 h-[3px] rounded-b-sm ${active ? "bg-brand" : "bg-transparent"}`} />
+                <svg viewBox="0 0 24 24" className={`h-6 w-6 ${active ? "text-brand" : ""}`} fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d={item.icon} />
                 </svg>
                 {item.label}

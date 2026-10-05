@@ -1,21 +1,95 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --color-accent-50: oklch(97.9% 0.021 166.1);
-  --color-accent-100: oklch(95% 0.052 163.1);
-  --color-accent-400: oklch(76.5% 0.177 163.2);
-  --color-accent-500: oklch(69.6% 0.17 162.5);
-  --color-accent-600: oklch(59.6% 0.145 163.2);
-  --color-accent-700: oklch(50.8% 0.118 165.6);
-  --color-accent-900: oklch(37.8% 0.077 168.9);
-  --color-accent-950: oklch(26.2% 0.051 172.6);
-  /* Ease-out yang lebih tegas dari bawaan; dipakai semua gerak UI. */
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+/*
+ * Design system: putih bersih, oranye energik sebagai warna utama, biru untuk
+ * informasi, border nyaris tak terlihat, radius 4px, motion 150ms ease.
+ * Semua warna lewat token semantik → dark mode cukup mengganti nilai token.
+ */
+@theme inline {
+  --font-sans: "Boathouse", "Segoe UI", "Helvetica Neue", -apple-system, system-ui, BlinkMacSystemFont, Roboto, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-subtle: var(--subtle);
+  --color-subtle-strong: var(--subtle-strong);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-on-brand: var(--on-brand);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-inverse: var(--inverse);
+  --color-on-inverse: var(--on-inverse);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  /* Skala tipografi: body 15px, heading 16px/600, line-height rapat. */
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.33;
+  --text-base--line-height: 1.3;
+
+  --shadow-card: var(--shadow-card-value);
+  --ease-out: ease;
 }
 
 :root {
   color-scheme: light dark;
+
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --subtle: #f7f7f5;
+  --subtle-strong: #f2f2f0;
+  --line: #f2f2f0;
+  --line-strong: #c9c8c3;
+  --ink: #000000;
+  --muted: #43423f;
+  --faint: #6d6c68;
+  --brand: #fc5200;
+  --brand-hover: #e04800;
+  --brand-soft: #fff1e8;
+  /* Oranye untuk TEKS di atas putih: #fc5200 hanya ±3.3:1, ini ±5.3:1. */
+  --brand-ink: #c23f00;
+  --on-brand: #ffffff;
+  --info: #0060d0;
+  --info-soft: #eaf2fd;
+  --inverse: #000000;
+  --on-inverse: #ffffff;
+  --danger: #c62828;
+  --danger-soft: #fdecec;
+  --shadow-card-value: 0px 20px 20px 0px rgba(13, 13, 18, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f0f0e;
+    --surface: #1a1a19;
+    --subtle: #232321;
+    --subtle-strong: #2c2c2a;
+    --line: #2c2c2a;
+    --line-strong: #4a4945;
+    --ink: #ffffff;
+    --muted: #c4c2bc;
+    --faint: #9a9892;
+    --brand: #fc5200;
+    --brand-hover: #ff6a1f;
+    --brand-soft: #3a1d0d;
+    --brand-ink: #ff8a4c;
+    --on-brand: #ffffff;
+    --info: #5aa2ff;
+    --info-soft: #0f2440;
+    --inverse: #ffffff;
+    --on-inverse: #000000;
+    --danger: #ff6b6b;
+    --danger-soft: #3a1515;
+    --shadow-card-value: 0px 20px 20px 0px rgba(0, 0, 0, 0.35);
+  }
 }
 
 html {
@@ -26,7 +100,7 @@ html {
 }
 
 body {
-  @apply bg-zinc-50 text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100;
+  @apply bg-bg font-sans text-body text-ink antialiased;
 }
 
 @layer base {
@@ -48,25 +122,37 @@ body {
     -webkit-user-select: none;
     -webkit-touch-callout: none;
   }
+
+  /* Fokus keyboard: outline oranye 2px, offset 2px. */
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-weight: 600;
+    line-height: 1.3;
+  }
 }
 
 @layer components {
   /* Umpan balik tekan: respons saat jari mendarat, bukan saat diangkat. */
   .pressable {
-    transition-property: transform, color, background-color, box-shadow;
+    transition-property: transform, color, background-color, border-color, box-shadow, opacity;
     transition-duration: 150ms;
-    transition-timing-function: var(--ease-out);
+    transition-timing-function: ease;
   }
   .pressable:active:not(:disabled) {
     transform: scale(0.97);
   }
 
-  /* Konten yang baru di-render (hasil generate, label tombol) memudar masuk
-     alih-alih meloncat. Tanpa gerak posisi, jadi aman untuk reduced motion. */
+  /* Konten yang baru di-render (hasil generate, label tombol) memudar masuk. */
   .swap-in {
     transition:
-      opacity 200ms var(--ease-out),
-      filter 200ms var(--ease-out);
+      opacity 150ms ease,
+      filter 150ms ease;
     @starting-style {
       opacity: 0.4;
       filter: blur(2px);
@@ -75,7 +161,12 @@ body {
 
   /* Isi <details> muncul halus saat dibuka. */
   details[open] > .details-body {
-    animation: details-in 200ms var(--ease-out);
+    animation: details-in 150ms ease;
+  }
+
+  /* Label kecil huruf kapital (judul grup, label statistik). */
+  .eyebrow {
+    @apply text-[12px] font-semibold uppercase tracking-wide text-muted;
   }
 }
 
@@ -87,18 +178,22 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Kurangi gerak, bukan hilangkan umpan balik: tanpa scale/translate, fade tetap. */
+  /* Kurangi gerak: tanpa scale/translate, perubahan state instan. */
   .pressable:active:not(:disabled) {
     transform: none;
   }
+  .pressable,
+  .swap-in {
+    transition-duration: 0ms;
+  }
   @keyframes details-in {
     from {
-      opacity: 0;
+      opacity: 1;
     }
   }
 }
 
-/* Padding horizontal 1rem, diperlebar otomatis di perangkat dengan notch samping. */
+/* Padding horizontal 16px, diperlebar otomatis di perangkat dengan notch samping. */
 .safe-x {
   padding-left: max(1rem, env(safe-area-inset-left));
   padding-right: max(1rem, env(safe-area-inset-right));

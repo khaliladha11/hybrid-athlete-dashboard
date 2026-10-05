@@ -20,7 +20,7 @@ export function WeeklySummary({ result, today }: { result: FetchResult<Activity[
     <Card
       title="7 hari terakhir"
       action={
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+        <span className="text-[13px] text-muted">
           {formatDateId(s.from)} – {formatDateId(s.to)}
         </span>
       }
@@ -40,7 +40,7 @@ export function WeeklySummary({ result, today }: { result: FetchResult<Activity[
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         {sessions.length === 0 ? (
-          <span className="text-xs text-zinc-500">Belum ada aktivitas.</span>
+          <span className="text-[13px] text-muted">Belum ada aktivitas.</span>
         ) : (
           sessions.map(([cat, n]) => (
             <Chip key={cat} tone={cat === "run" ? "accent" : "neutral"}>
@@ -50,8 +50,8 @@ export function WeeklySummary({ result, today }: { result: FetchResult<Activity[
         )}
       </div>
       <IntensityAndTrend activities={result.data} today={today} />
-      <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-        Minggu ini (Sen–Min): <span className="tabular font-medium text-zinc-700 dark:text-zinc-300">{s.calendarWeek.runKm.toFixed(1)} km</span> lari
+      <p className="mt-2 text-[13px] text-muted">
+        Minggu ini (Sen–Min): <span className="tabular font-medium text-ink">{s.calendarWeek.runKm.toFixed(1)} km</span> lari
       </p>
     </Card>
   );
@@ -66,23 +66,23 @@ function IntensityAndTrend({ activities, today }: { activities: Activity[]; toda
   const tooHard = w.hardRuns7 >= MAX_HARD_RUNS_7D;
   const tooFast = w.kmChange !== undefined && w.kmChange > KM_INCREASE_LIMIT;
   return (
-    <div className="mt-3 space-y-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+    <div className="mt-4 space-y-3 border-t border-line pt-4">
       <div>
-        <div className="flex items-baseline justify-between text-xs">
-          <span className="text-zinc-500 dark:text-zinc-400">Intensitas lari (acuan 80/20)</span>
-          <span className={`tabular font-medium ${tooHard ? "text-amber-600 dark:text-amber-400" : ""}`}>
+        <div className="flex items-baseline justify-between text-[13px]">
+          <span className="text-muted">Intensitas lari (acuan 80/20)</span>
+          <span className={`tabular font-semibold ${tooHard ? "text-brand-ink" : "text-ink"}`}>
             {easy} easy · {w.hardRuns7} berat
           </span>
         </div>
-        <div className="relative mt-1 flex h-1.5 overflow-hidden rounded-full bg-rose-400/80" aria-hidden>
-          <div className="bg-accent-500" style={{ width: `${easyPct}%` }} />
-          <div className="absolute inset-y-0 left-[80%] w-px bg-zinc-900/50 dark:bg-white/60" />
+        <div className="relative mt-1.5 flex h-2 overflow-hidden rounded-sm bg-brand" aria-hidden>
+          <div className="bg-info" style={{ width: `${easyPct}%` }} />
+          <div className="absolute inset-y-0 left-[80%] w-px bg-ink/50" />
         </div>
       </div>
       {w.kmChange !== undefined && (
-        <div className="flex items-baseline justify-between text-xs">
-          <span className="text-zinc-500 dark:text-zinc-400">Jarak vs 7 hari sebelumnya ({w.runKmPrev7.toFixed(1)} km)</span>
-          <span className={`tabular font-semibold ${tooFast ? "text-amber-600 dark:text-amber-400" : "text-zinc-700 dark:text-zinc-300"}`}>
+        <div className="flex items-baseline justify-between text-[13px]">
+          <span className="text-muted">Jarak vs 7 hari sebelumnya ({w.runKmPrev7.toFixed(1)} km)</span>
+          <span className={`tabular font-semibold ${tooFast ? "text-brand-ink" : "text-ink"}`}>
             {w.kmChange >= 0 ? "+" : ""}
             {Math.round(w.kmChange * 100)}%{tooFast ? " ⚠︎" : ""}
           </span>

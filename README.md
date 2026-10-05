@@ -2,7 +2,7 @@
 
 Dashboard pelatih pribadi untuk **hybrid athlete** (lari 10K–21K + strength training di rumah). Aplikasi ini membaca data latihan dan wellness dari [intervals.icu](https://intervals.icu), lalu membuat program **lari** dan **strength training (ST)** yang menyesuaikan diri dengan profil, kondisi cedera, dan kesiapan tubuh atlet hari itu.
 
-Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dipakai seperti aplikasi native.
+Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dipakai seperti aplikasi native. Tampilannya mengikuti design system bergaya aplikasi olahraga: putih bersih, oranye energik, dan kontras tinggi supaya tetap terbaca di bawah matahari.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)
@@ -12,9 +12,9 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
 
 <table>
   <tr>
-    <td><img src="docs/screenshots/01-profile.png" width="220" alt="Profil atlet dan saran hari ini"></td>
-    <td><img src="docs/screenshots/04-run-workout.png" width="220" alt="Workout lari hasil generator"></td>
-    <td><img src="docs/screenshots/05-strength-workout.png" width="220" alt="Workout strength dengan progresi beban"></td>
+    <td><img src="docs/screenshots/01-profile.jpg" width="220" alt="Profil atlet dan saran hari ini"></td>
+    <td><img src="docs/screenshots/04-run-workout.jpg" width="220" alt="Workout lari hasil generator"></td>
+    <td><img src="docs/screenshots/05-strength-workout.jpg" width="220" alt="Workout strength dengan progresi beban"></td>
   </tr>
   <tr>
     <td align="center"><sub>Profil &amp; saran hari ini</sub></td>
@@ -22,14 +22,14 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
     <td align="center"><sub>Generator ST + progresi beban</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/02-weekly-summary.png" width="220" alt="Ringkasan 7 hari dengan distribusi 80/20"></td>
-    <td><img src="docs/screenshots/06-log.png" width="220" alt="Log latihan dan tren beban"></td>
-    <td><img src="docs/screenshots/07-profile-light.png" width="220" alt="Tampilan light mode"></td>
+    <td><img src="docs/screenshots/02-weekly-summary.jpg" width="220" alt="Ringkasan 7 hari dengan distribusi 80/20"></td>
+    <td><img src="docs/screenshots/06-log.jpg" width="220" alt="Log latihan dan tren beban"></td>
+    <td><img src="docs/screenshots/07-dark-mode.jpg" width="220" alt="Tampilan dark mode"></td>
   </tr>
   <tr>
     <td align="center"><sub>Ringkasan 7 hari (80/20, tren km)</sub></td>
     <td align="center"><sub>Log latihan</sub></td>
-    <td align="center"><sub>Light mode</sub></td>
+    <td align="center"><sub>Dark mode</sub></td>
   </tr>
 </table>
 
@@ -61,7 +61,7 @@ Semua aturan ini dikodekan sebagai **modul TypeScript murni yang diuji**, bukan 
 | **Progresi beban** | Catat sesi, lalu beban berikutnya disesuaikan otomatis (aturan "2-for-2" NSCA) tanpa pernah melewati batas library. |
 | **Salin cepat** | Teks ringkas untuk Strava/catatan HP, plus format "Set" untuk Huawei Health. |
 | **Demo Mode** | Tanpa API key, aplikasi tetap berjalan penuh memakai data dummy. |
-| **PWA** | Bisa di-install ke HP, full-screen, aman untuk notch/safe area, dark mode, dan umpan balik sentuhan ala aplikasi native. |
+| **PWA & design system** | Bisa di-install ke HP dan full-screen. Token warna/tipografi terpusat (oranye `#fc5200`, biru info `#0060d0`, radius 4px, motion 150ms), plus dark mode, aman untuk notch, dan umpan balik sentuhan ala aplikasi native. |
 
 Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](docs/TRAINING-LOGIC.md)**.
 
@@ -73,6 +73,7 @@ Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](docs/TRAININ
 | **0.2** Variasi terstruktur | ✅ Selesai | Periodisasi blok 4 minggu + deload, gerakan utama ★ per blok, rotasi skema rep, perpustakaan pola lari, target cadence personal, polesan UI mobile-native |
 | **0.3** Konteks mingguan | ✅ Selesai | Aturan 80/20, peringatan kenaikan km > 30%, jarak concurrent training, kartu "Saran hari ini" dengan tombol aksi |
 | **0.4** Progresi beban | ✅ Selesai | Log sesi di perangkat, progresi otomatis 2-for-2, halaman Log, ekspor/impor JSON |
+| **0.5** Redesign UI | ✅ Selesai | Design system baru: token semantik, oranye sebagai warna utama, kartu ber-shadow, tipografi sistem, kontras teks AA, dark mode dari token yang sama |
 | Berikutnya | 💡 Ide | Sinkron log antar perangkat (database), mode offline (service worker), grafik tren CTL/ATL, rencana mingguan otomatis |
 
 Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
@@ -80,7 +81,7 @@ Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 ## Tech stack
 
 - **Next.js 16** (App Router, Server Components) + **React 19** + **TypeScript**
-- **Tailwind CSS 4**, dark mode mengikuti sistem
+- **Tailwind CSS 4** dengan token semantik di [`app/globals.css`](app/globals.css). Dark mode mengikuti pengaturan sistem.
 - **Vitest**: 5 file test, 80+ test yang mencakup seluruh kombinasi input generator
 - **intervals.icu REST API**, dipanggil hanya dari server
 - Tanpa database. Profil disimpan di JSON, log sesi di localStorage perangkat.

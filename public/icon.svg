@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#09090b"/>
+  <rect width="512" height="512" fill="#fc5200"/>
   <!-- Dumbbell berbentuk "H" (Hybrid) — di dalam safe zone maskable (80% tengah) -->
-  <g fill="#10b981" transform="translate(0 -20)">
+  <g fill="#ffffff" transform="translate(0 -20)">
     <rect x="120" y="150" width="52" height="176" rx="14"/>
     <rect x="176" y="186" width="30" height="104" rx="10"/>
     <rect x="340" y="150" width="52" height="176" rx="14"/>
@@ -9,7 +9,7 @@
     <rect x="206" y="224" width="100" height="28" rx="6"/>
   </g>
   <!-- Garis kecepatan (lari) -->
-  <g stroke="#6ee7b7" stroke-width="16" stroke-linecap="round">
+  <g stroke="#ffffff" stroke-opacity="0.75" stroke-width="16" stroke-linecap="round">
     <line x1="120" y1="366" x2="330" y2="366"/>
     <line x1="182" y1="400" x2="392" y2="400"/>
   </g>

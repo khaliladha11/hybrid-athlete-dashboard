@@ -1,6 +1,7 @@
 "use client";
 
 import type { Ref } from "react";
+import { BUTTON } from "@/components/ui/Card";
 import { CopyButton } from "@/components/ui/CopyButton";
 
 export function OutputShell({
@@ -20,12 +21,12 @@ export function OutputShell({
   return (
     <section
       ref={ref}
-      className="scroll-mt-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+      className="scroll-mt-4 rounded-sm border border-line bg-surface p-4 shadow-card"
       aria-live="polite"
     >
       <div key={swapKey} className="swap-in">
-        <h2 className="text-base font-semibold tracking-tight">{title}</h2>
-        {subtitle && <p className="tabular mb-3 text-xs text-zinc-500 dark:text-zinc-400">{subtitle}</p>}
+        <h2 className="text-lg leading-snug font-semibold">{title}</h2>
+        {subtitle && <p className="tabular mt-0.5 mb-4 text-[13px] text-muted">{subtitle}</p>}
         {children}
       </div>
     </section>
@@ -38,36 +39,34 @@ export function GeneratorActions({
   copyLabel,
   onRegenerate,
   canRegenerate,
-  regenerateClassName,
 }: {
   copyText: string;
   copyLabel: string;
   onRegenerate: () => void;
   canRegenerate: boolean;
-  regenerateClassName: string;
 }) {
   return (
     <div
-      className="sticky z-10 rounded-2xl border border-zinc-200 bg-white/90 p-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/90"
+      className="sticky z-10 rounded-sm border border-line bg-surface/95 p-2 shadow-card backdrop-blur"
       style={{ bottom: "calc(4.25rem + env(safe-area-inset-bottom, 0px))" }}
     >
       <div className="grid grid-cols-2 gap-2">
         <CopyButton
           text={copyText}
           label={copyLabel}
-          className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+          className={`${BUTTON.secondary} whitespace-nowrap px-3 text-body`}
         />
         <button
           type="button"
           onClick={onRegenerate}
           disabled={!canRegenerate}
-          className={`pressable min-h-11 rounded-xl px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-500 ${regenerateClassName}`}
+          className={`pressable inline-flex min-h-11 items-center justify-center rounded-sm px-3 text-body font-semibold whitespace-nowrap disabled:cursor-not-allowed ${BUTTON.primary}`}
         >
-          {canRegenerate ? "↻ Generate ulang" : "Pola baku"}
+          {canRegenerate ? "↻ Variasi lain" : "Pola baku"}
         </button>
       </div>
       {!canRegenerate && (
-        <p className="px-1 pt-1.5 text-center text-[11px] text-zinc-500 dark:text-zinc-400">
+        <p className="px-1 pt-2 text-center text-[12px] text-muted">
           Kombinasi ini hanya punya satu pola. Ganti durasi/kesulitan untuk variasi lain.
         </p>
       )}

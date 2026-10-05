@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Card } from "@/components/ui/Card";
+import { BUTTON, Card } from "@/components/ui/Card";
 import { formatDateId, todayWib } from "@/lib/date";
 import { historyFor, type LogEntry } from "@/lib/progression";
 import { trainingLog, useTrainingLog } from "@/lib/training-log";
@@ -20,8 +20,8 @@ function ConfirmButton({ label, confirmLabel, onConfirm }: { label: string; conf
       type="button"
       onClick={() => (armed ? onConfirm() : setArmed(true))}
       onBlur={() => setArmed(false)}
-      className={`pressable min-h-9 shrink-0 rounded-lg px-2.5 text-xs font-semibold ${
-        armed ? "bg-red-600 text-white" : "text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+      className={`pressable min-h-9 shrink-0 rounded-sm px-3 text-[13px] font-semibold ${
+        armed ? "bg-danger text-surface" : "text-muted hover:bg-subtle hover:text-ink"
       }`}
     >
       {armed ? confirmLabel : label}
@@ -59,9 +59,9 @@ export function LogView() {
   };
 
   return (
-    <div className="space-y-3">
-      <Card title="Cadangan" action={<span className="text-[11px] text-zinc-500">tersimpan di perangkat ini</span>}>
-        <p className="text-xs text-zinc-600 dark:text-zinc-400">
+    <div className="space-y-4">
+      <Card title="Cadangan" action={<span className="text-[12px] text-faint">tersimpan di perangkat ini</span>}>
+        <p className="text-[13px] text-muted">
           Riwayat hanya ada di HP/browser ini. Ekspor berkala supaya tidak hilang saat data aplikasi dihapus atau ganti HP.
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2">
@@ -69,14 +69,14 @@ export function LogView() {
             type="button"
             onClick={exportFile}
             disabled={!entries.length}
-            className="pressable min-h-11 rounded-xl bg-zinc-900 text-sm font-semibold text-white disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900"
+            className={`${BUTTON.base} ${BUTTON.inverse} disabled:opacity-40`}
           >
             Ekspor JSON
           </button>
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="pressable min-h-11 rounded-xl bg-zinc-100 text-sm font-semibold dark:bg-zinc-800"
+            className={`${BUTTON.base} ${BUTTON.secondary}`}
           >
             Impor JSON
           </button>
@@ -92,7 +92,7 @@ export function LogView() {
           />
         </div>
         {status && (
-          <p role="status" className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+          <p role="status" className="mt-2 text-[13px] text-muted">
             {status}
           </p>
         )}
@@ -100,7 +100,7 @@ export function LogView() {
 
       {!entries.length ? (
         <Card>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="text-body text-muted">
             Belum ada sesi tercatat. Setelah latihan ST, tekan <strong>Catat sesi</strong> di bawah hasil generator untuk mencatat
             gerakan ★ — generator akan menyesuaikan beban berikutnya.
           </p>
@@ -108,15 +108,15 @@ export function LogView() {
       ) : (
         <>
           <Card title="Tren gerakan utama">
-            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <ul className="divide-y divide-line">
               {movements.map((m) => {
                 const h = historyFor(entries, m).slice(0, 5).reverse();
                 return (
-                  <li key={m} className="py-2 first:pt-0 last:pb-0">
-                    <p className="text-sm font-medium">{m}</p>
-                    <p className="tabular text-xs text-zinc-600 dark:text-zinc-400">
+                  <li key={m} className="py-3 first:pt-0 last:pb-0">
+                    <p className="text-body font-semibold">{m}</p>
+                    <p className="tabular text-[13px] text-muted">
                       {h.map((e) => (e.load !== undefined ? `${e.load}` : e.valueUnit === "sec" ? `${e.value}s` : e.band ?? `${e.value}`)).join(" → ")}
-                      <span className="text-zinc-400"> · {h.length} sesi terakhir</span>
+                      <span className="text-faint"> · {h.length} sesi terakhir</span>
                     </p>
                   </li>
                 );
@@ -126,19 +126,19 @@ export function LogView() {
 
           <Card title="Riwayat" flush className="!pb-1">
             {dates.map((d) => (
-              <section key={d} className="border-t border-zinc-100 first-of-type:border-0 dark:border-zinc-800">
-                <p className="px-4 pt-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{formatDateId(d)}</p>
+              <section key={d} className="border-t border-line first-of-type:border-0">
+                <p className="eyebrow px-4 pt-3">{formatDateId(d)}</p>
                 <ul>
                   {byDate
                     .filter((e) => e.date === d)
                     .map((e) => (
-                      <li key={e.id} className="flex items-center gap-3 px-4 py-1.5">
+                      <li key={e.id} className="flex items-center gap-3 px-4 py-2">
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm">{e.movement}</p>
-                          <p className="tabular text-xs text-zinc-500 dark:text-zinc-400">
+                          <p className="truncate text-body font-semibold">{e.movement}</p>
+                          <p className="tabular text-[13px] text-muted">
                             {valueLabel(e)} · RPE {e.rpe}
-                            <span className="text-zinc-400"> (target {e.targetRpe})</span>
-                            {e.deload && <span className="text-sky-600 dark:text-sky-400"> · deload</span>}
+                            <span className="text-faint"> (target {e.targetRpe})</span>
+                            {e.deload && <span className="text-info"> · deload</span>}
                           </p>
                         </div>
                         <ConfirmButton label="Hapus" confirmLabel="Yakin?" onConfirm={() => trainingLog.remove(e.id)} />

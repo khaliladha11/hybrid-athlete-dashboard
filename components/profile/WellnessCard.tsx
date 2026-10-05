@@ -25,7 +25,7 @@ export function WellnessCard({ result, today }: { result: FetchResult<Wellness[]
   if (!latest) {
     return (
       <Card title="Wellness">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="text-body text-muted">
           Belum ada data wellness 7 hari terakhir. Pastikan HRV/resting HR tersinkron ke intervals.icu.
         </p>
       </Card>
@@ -39,7 +39,7 @@ export function WellnessCard({ result, today }: { result: FetchResult<Wellness[]
     <Card
       title="Wellness"
       action={
-        <span className={`text-xs ${isToday ? "text-zinc-500 dark:text-zinc-400" : "text-amber-600 dark:text-amber-400"}`}>
+        <span className={`text-[13px] ${isToday ? "text-muted" : "font-semibold text-brand-ink"}`}>
           {isToday ? "Hari ini" : `Terakhir ${formatDateId(latest.date)}`}
         </span>
       }
@@ -58,7 +58,7 @@ export function WellnessCard({ result, today }: { result: FetchResult<Wellness[]
         />
       </div>
       {missing > 0 && (
-        <p className="mt-3 rounded-lg bg-zinc-100 px-3 py-2 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+        <p className="mt-3 rounded-sm bg-subtle px-3 py-2 text-[13px] text-muted">
           {missing} metrik kosong (—). Biasanya karena jam belum sinkron atau tidak dipakai saat tidur.
         </p>
       )}

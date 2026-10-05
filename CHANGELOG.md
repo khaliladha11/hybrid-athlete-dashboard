@@ -2,6 +2,21 @@
 
 Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/).
 
+## [0.5.0] — 2026-10-05 · Redesign UI
+
+### Diubah
+- **Design system baru** di seluruh aplikasi, bergaya aplikasi olahraga: latar putih bersih, oranye `#fc5200` sebagai warna utama (CTA, navigasi aktif, gerakan ★), biru `#0060d0` untuk informasi, border `#f2f2f0`, radius 4px, bayangan kartu, dan motion 150ms `ease`.
+- Semua warna kini lewat **token semantik** (`bg`, `surface`, `ink`, `muted`, `brand`, `info`, …) di `app/globals.css`. Dark mode cukup mengganti nilai token.
+- Tipografi memakai font sistem (Segoe UI / Helvetica Neue / system-ui): body 15px, heading 16px/600, angka statistik besar.
+- Pilihan segmented, tab Daftar/Set Huawei, navigasi bawah (indikator oranye), badge blok (segmen per minggu), dan kartu "Saran hari ini" dirancang ulang.
+- Tombol "Generate ulang" → **"Variasi lain"**, supaya muat satu baris di layar 375px.
+- Ikon PWA dan warna tema manifest berganti ke oranye.
+
+### Aksesibilitas
+- Teks oranye di atas putih memakai `#c23f00` (kontras ±5.3:1), karena `#fc5200` hanya ±3.3:1. Oranye asli tetap dipakai untuk tombol dan indikator.
+- Outline fokus keyboard oranye 2px. Mode `prefers-reduced-motion` mematikan animasi.
+- Teks meta dinaikkan dari 11–12px ke 13px.
+
 ## [0.4.0] — 2026-09-29 · Progresi beban
 
 ### Ditambahkan
@@ -55,6 +70,7 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
+[0.5.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/46f0c13...main
 [0.4.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/51d79e4
 [0.3.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/49d0aed
 [0.2.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/286515d

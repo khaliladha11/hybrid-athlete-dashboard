@@ -5,10 +5,10 @@ export const metadata: Metadata = { title: "Log Latihan · Hybrid Athlete" };
 
 export default function LogPage() {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">Log Latihan</h1>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">Riwayat gerakan utama ★ — dasar progresi beban otomatis.</p>
+        <h1 className="text-[22px] leading-tight font-semibold">Log Latihan</h1>
+        <p className="mt-0.5 text-[13px] text-muted">Riwayat gerakan utama ★ — dasar progresi beban otomatis.</p>
       </header>
       <LogView />
     </div>

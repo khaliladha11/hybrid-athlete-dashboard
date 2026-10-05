@@ -41,7 +41,7 @@ export function CopyButton({ text, label = "Copy", className = "" }: { text: str
     <button
       type="button"
       onClick={async () => setState((await copyText(text)) ? "ok" : "fail")}
-      className={`pressable inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold ${className}`}
+      className={`pressable inline-flex min-h-11 items-center justify-center rounded-sm font-semibold ${className}`}
       aria-live="polite"
     >
       <span key={state} className="swap-in inline-flex items-center gap-1.5">

@@ -76,6 +76,22 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 
 Keterbatasannya, log hanya ada di satu perangkat. Jalur upgrade-nya adalah database (misalnya Upstash Redis lewat Vercel) dengan proteksi PIN/secret, karena aplikasi belum punya login.
 
+## Design system
+
+Semua gaya visual memakai **token semantik** di [`app/globals.css`](../app/globals.css), bukan warna Tailwind mentah. Komponen menulis `bg-surface`, `text-muted`, atau `bg-brand`. Nilai token diganti di `@media (prefers-color-scheme: dark)`, sehingga tidak ada class `dark:` di komponen.
+
+| Token | Light | Dipakai untuk |
+| --- | --- | --- |
+| `brand` | `#fc5200` | CTA utama, navigasi aktif, gerakan ★, intensitas tinggi |
+| `brand-ink` | `#c23f00` | Teks oranye di atas putih (kontras AA) |
+| `brand-soft` | `#fff1e8` | Pilihan aktif, banner demo |
+| `info` | `#0060d0` | Informasi, link, Z2, catatan workout |
+| `ink` / `muted` / `faint` | `#000` / `#43423f` / `#6d6c68` | Teks utama / sekunder / meta |
+| `line` | `#f2f2f0` | Border kartu & pemisah |
+| `shadow-card` | `0 20px 20px rgba(13,13,18,.1)` | Kartu |
+
+Aturan lainnya: radius 4px (`rounded-sm`), motion 150ms `ease`, body 15px, heading 16px/600, area sentuh minimal 44px, dan outline fokus oranye 2px. Gaya tombol standar ada di `BUTTON` (`components/ui/Card.tsx`): primary, secondary, dan inverse.
+
 ## Testing
 
 ```bash

@@ -2,6 +2,10 @@
 
 import { useId } from "react";
 
+/**
+ * Pilihan tunggal. Opsi aktif ditandai oranye (garis + teks + tint) supaya jelas
+ * di layar terang di luar ruangan, tanpa membanjiri layar dengan blok oranye.
+ */
 export function Segmented<T extends string | number>({
   label,
   value,
@@ -19,13 +23,13 @@ export function Segmented<T extends string | number>({
   const id = useId();
   return (
     <fieldset>
-      <legend id={id} className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <legend id={id} className="eyebrow mb-2">
         {label}
       </legend>
       <div
         role="radiogroup"
         aria-labelledby={id}
-        className={`grid gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800/80 ${wrap ? "grid-cols-2 min-[480px]:grid-cols-4" : ""}`}
+        className={`grid gap-2 ${wrap ? "grid-cols-2 min-[480px]:grid-cols-4" : ""}`}
         style={wrap ? undefined : { gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
       >
         {options.map((o) => {
@@ -37,10 +41,10 @@ export function Segmented<T extends string | number>({
               role="radio"
               aria-checked={active}
               onClick={() => onChange(o.value)}
-              className={`pressable min-h-11 whitespace-nowrap rounded-lg px-2 text-sm font-medium ${
+              className={`pressable min-h-11 whitespace-nowrap rounded-sm border px-2 text-body ${
                 active
-                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-950 dark:text-white"
-                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                  ? "border-brand bg-brand-soft font-semibold text-brand-ink"
+                  : "border-line-strong bg-surface text-muted hover:text-ink"
               }`}
             >
               {o.label}

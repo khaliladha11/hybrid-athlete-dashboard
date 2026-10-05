@@ -15,7 +15,7 @@ export function hasVariations(render: (seed: number) => string): boolean {
 
 /**
  * Cari seed baru yang menghasilkan workout BERBEDA dari yang sedang tampil,
- * supaya tombol "Generate ulang" tidak pernah terlihat diam.
+ * supaya tombol "Variasi lain" tidak pernah terlihat diam.
  * Mengembalikan seed saat ini bila tidak ditemukan variasi.
  */
 export function nextDistinctSeed(render: (seed: number) => string, currentSeed: number, tries = 32): number {

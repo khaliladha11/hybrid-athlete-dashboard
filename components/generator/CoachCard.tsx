@@ -36,15 +36,12 @@ export function CoachCard({
   ];
 
   return (
-    <aside
-      role="note"
-      className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3 text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100"
-    >
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-        <span aria-hidden className="text-base leading-none">
-          ⚠︎
-        </span>
-        <p className="flex-1 text-sm font-semibold">Saran hari ini</p>
+    <aside role="note" className="rounded-sm border border-line border-l-[3px] border-l-brand bg-surface p-4 shadow-card">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+        <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-brand" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M12 3 2.5 20h19L12 3Zm0 6v5m0 3h.01" />
+        </svg>
+        <h2 className="flex-1 text-base font-semibold">Saran hari ini</h2>
         {onApply &&
           actions.map((a) => (
             <button
@@ -54,21 +51,21 @@ export function CoachCard({
                 if (a.apply.difficulty) setAppliedLevel(a.apply.difficulty);
                 onApply(a.apply);
               }}
-              className="pressable relative shrink-0 rounded-lg bg-amber-500/20 px-2.5 py-1 text-xs font-semibold text-amber-900 after:absolute after:-inset-2 after:content-[''] hover:bg-amber-500/30 dark:text-amber-200"
+              className="pressable relative min-h-8 shrink-0 rounded-sm bg-brand px-3 text-[13px] font-semibold text-on-brand after:absolute after:-inset-1.5 after:content-[''] hover:bg-brand-hover"
             >
               → {a.label}
             </button>
           ))}
       </div>
-      <ul className="mt-1.5 space-y-1 text-xs leading-snug text-amber-900/90 dark:text-amber-200/90">
+      <ul className="mt-3 space-y-2 text-[14px] leading-snug text-ink">
         {relevant.map((a) => (
-          <li key={a.id + a.message} className="flex gap-1.5">
-            <span aria-hidden>•</span>
+          <li key={a.id + a.message} className="flex gap-2">
+            <span aria-hidden className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
             <span>{a.message}</span>
           </li>
         ))}
       </ul>
-      <p className="mt-1.5 text-[11px] text-amber-900/60 dark:text-amber-200/60">Hanya saran — kamu tetap bebas memilih.</p>
+      <p className="mt-3 text-[12px] text-faint">Hanya saran — kamu tetap bebas memilih.</p>
     </aside>
   );
 }

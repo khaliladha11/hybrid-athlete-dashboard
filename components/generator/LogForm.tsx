@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BUTTON } from "@/components/ui/Card";
 import { todayWib } from "@/lib/date";
 import type { BlockContext } from "@/lib/generator/block";
 import type { StrengthItem, StrengthWorkout } from "@/lib/generator/types";
@@ -93,21 +94,21 @@ export function LogForm({
         e.preventDefault();
         save();
       }}
-      className="swap-in mt-4 space-y-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700"
+      className="swap-in mt-4 space-y-4 rounded-sm border border-line-strong p-4"
     >
       <div>
-        <p className="text-sm font-semibold">Catat sesi — gerakan utama ★</p>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">Isi set terakhir. Disimpan di perangkat ini saja.</p>
+        <h3 className="text-base font-semibold">Catat sesi — gerakan utama ★</h3>
+        <p className="text-[13px] text-muted">Isi set terakhir. Disimpan di perangkat ini saja.</p>
       </div>
       {rows.map((r, i) => {
         const spec = parseWeight(findMovement(r.item.movement)?.weight ?? "");
         const sec = !!r.item.durationSec;
         return (
-          <fieldset key={r.item.movement} className="space-y-2 border-t border-zinc-100 pt-3 first-of-type:border-0 first-of-type:pt-0 dark:border-zinc-800">
-            <legend className="text-sm font-medium">{r.item.movement}</legend>
+          <fieldset key={r.item.movement} className="space-y-2 border-t border-line pt-4 first-of-type:border-0 first-of-type:pt-0">
+            <legend className="mb-2 text-body font-semibold">{r.item.movement}</legend>
             <div className="grid grid-cols-2 gap-2">
               {r.item.load.kind === "load" && spec.kind === "load" && (
-                <label className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                <label className="text-[12px] text-muted">
                   Beban (kg{spec.perHand ? "/tangan" : ""})
                   <input
                     type="text"
@@ -115,17 +116,17 @@ export function LogForm({
                     enterKeyHint="next"
                     value={r.load}
                     onChange={(e) => update(i, { load: e.target.value })}
-                    className="mt-0.5 block min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 text-base text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="mt-1 block min-h-11 w-full rounded-sm border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
                   />
                 </label>
               )}
               {r.item.load.kind === "band" && spec.kind === "band" && (
-                <label className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                <label className="text-[12px] text-muted">
                   Band
                   <select
                     value={r.band}
                     onChange={(e) => update(i, { band: e.target.value })}
-                    className="mt-0.5 block min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 text-base text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="mt-1 block min-h-11 w-full rounded-sm border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
                   >
                     {spec.options.map((o) => (
                       <option key={o}>{o}</option>
@@ -133,7 +134,7 @@ export function LogForm({
                   </select>
                 </label>
               )}
-              <label className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              <label className="text-[12px] text-muted">
                 {sec ? "Detik tercapai" : "Rep set terakhir"}
                 <input
                   type="text"
@@ -141,12 +142,12 @@ export function LogForm({
                   enterKeyHint="done"
                   value={r.value}
                   onChange={(e) => update(i, { value: e.target.value })}
-                  className="mt-0.5 block min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 text-base text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                  className="mt-1 block min-h-11 w-full rounded-sm border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
                 />
               </label>
             </div>
             <div role="radiogroup" aria-label={`RPE ${r.item.movement}`} className="flex items-center gap-1">
-              <span className="mr-1 text-[11px] text-zinc-500 dark:text-zinc-400">RPE</span>
+              <span className="mr-1 text-[12px] text-muted">RPE</span>
               {RPE_OPTIONS.map((v) => (
                 <button
                   key={v}
@@ -154,10 +155,8 @@ export function LogForm({
                   role="radio"
                   aria-checked={r.rpe === v}
                   onClick={() => update(i, { rpe: v })}
-                  className={`pressable tabular min-h-9 flex-1 rounded-lg text-sm font-medium ${
-                    r.rpe === v
-                      ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                      : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                  className={`pressable tabular min-h-10 flex-1 rounded-sm border text-body ${
+                    r.rpe === v ? "border-brand bg-brand font-semibold text-on-brand" : "border-line-strong bg-surface text-muted"
                   }`}
                 >
                   {v}
@@ -168,15 +167,15 @@ export function LogForm({
         );
       })}
       {error && (
-        <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+        <p role="alert" className="text-[13px] text-danger">
           {error}
         </p>
       )}
       <div className="grid grid-cols-2 gap-2">
-        <button type="button" onClick={onDone} className="pressable min-h-11 rounded-xl bg-zinc-100 text-sm font-semibold dark:bg-zinc-800">
+        <button type="button" onClick={onDone} className={`${BUTTON.base} ${BUTTON.secondary}`}>
           Batal
         </button>
-        <button type="submit" className="pressable min-h-11 rounded-xl bg-violet-600 text-sm font-semibold text-white hover:bg-violet-700">
+        <button type="submit" className={`${BUTTON.base} ${BUTTON.primary}`}>
           Simpan
         </button>
       </div>

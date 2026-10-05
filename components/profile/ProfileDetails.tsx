@@ -28,13 +28,13 @@ export function ProfileHeader({ profile }: { profile: AthleteProfile }) {
     .toUpperCase();
   return (
     <header className="flex items-center gap-3">
-      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent-600 text-lg font-semibold text-white">{initials}</div>
+      <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-brand text-xl font-semibold text-on-brand">{initials}</div>
       <div className="min-w-0">
-        <h1 className="truncate text-xl font-semibold tracking-tight">{profile.name}</h1>
-        <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+        <h1 className="truncate text-[22px] leading-tight font-semibold">{profile.name}</h1>
+        <p className="truncate text-[13px] text-muted">
           {[profile.age ? `${profile.age} th` : null, profile.occupation].filter(Boolean).join(" · ")}
         </p>
-        {profile.category && <p className="truncate text-xs font-medium text-accent-700 dark:text-accent-400">{profile.category}</p>}
+        {profile.category && <p className="truncate text-[13px] font-medium text-brand-ink">{profile.category}</p>}
       </div>
     </header>
   );
@@ -53,10 +53,10 @@ export function TargetsCard({ profile }: { profile: AthleteProfile }) {
         ))}
       </div>
       {goals.length > 0 && (
-        <ul className="mt-3 space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
+        <ul className="mt-3 space-y-1 text-body text-ink">
           {goals.map((g) => (
             <li key={g} className="flex gap-2">
-              <span className="text-accent-600 dark:text-accent-400" aria-hidden>
+              <span className="text-brand-ink" aria-hidden>
                 ✓
               </span>
               {g}
@@ -77,9 +77,9 @@ export function ConditionsCard({ profile }: { profile: AthleteProfile }) {
         {conditions.map((c) => {
           const [head, ...rest] = c.split("(");
           return (
-            <li key={c} className="rounded-lg border-l-2 border-amber-400 bg-amber-50/60 py-1.5 pr-2 pl-3 text-sm dark:bg-amber-950/30">
-              <span className="font-medium">{head.trim()}</span>
-              {rest.length > 0 && <span className="block text-xs text-zinc-600 dark:text-zinc-400">{rest.join("(").replace(/\)$/, "")}</span>}
+            <li key={c} className="rounded-sm border-l-2 border-brand bg-brand-soft py-1.5 pr-2 pl-3 text-body">
+              <span className="font-semibold">{head.trim()}</span>
+              {rest.length > 0 && <span className="block text-[13px] text-muted">{rest.join("(").replace(/\)$/, "")}</span>}
             </li>
           );
         })}
@@ -91,12 +91,12 @@ export function ConditionsCard({ profile }: { profile: AthleteProfile }) {
 export function RunZonesCard({ profile }: { profile: AthleteProfile }) {
   const zones = Object.entries(profile.runZones ?? {});
   return (
-    <Card title="Zona lari" action={<span className="text-[11px] text-zinc-500">dari athlete-profile.json</span>}>
-      <dl className="divide-y divide-zinc-100 dark:divide-zinc-800">
+    <Card title="Zona lari" action={<span className="text-[12px] text-muted">dari athlete-profile.json</span>}>
+      <dl className="divide-y divide-line">
         {zones.map(([key, z]) => (
           <div key={key} className="flex items-start justify-between gap-3 py-2 first:pt-0 last:pb-0">
-            <dt className="text-sm font-medium">{ZONE_LABEL[key] ?? key}</dt>
-            <dd className="tabular text-right text-xs text-zinc-600 dark:text-zinc-400">
+            <dt className="text-body font-semibold">{ZONE_LABEL[key] ?? key}</dt>
+            <dd className="tabular text-right text-[13px] text-muted">
               {Object.entries(z)
                 .map(([f, v]) => `${FIELD_LABEL[f] ?? f} ${v}`)
                 .join(" · ")}
@@ -118,20 +118,20 @@ export function EquipmentLibraryCard({ profile }: { profile: AthleteProfile }) {
           <Chip key={e}>{e}</Chip>
         ))}
       </ul>
-      <div className="mt-3 divide-y divide-zinc-100 dark:divide-zinc-800">
+      <div className="mt-3 divide-y divide-line">
         {cats.map((cat) => (
           <details key={cat} className="group">
-            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-medium">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-body font-semibold">
               {CATEGORY_LABEL[cat]}
-              <span className="text-xs text-zinc-400 transition-transform duration-200 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+              <span className="text-[13px] text-faint transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
                 ›
               </span>
             </summary>
             <ul className="details-body space-y-1 pb-3">
               {(lib[cat] ?? []).map((m) => (
-                <li key={m.name} className="flex justify-between gap-3 text-xs">
-                  <span className={m.available === false ? "text-zinc-400 line-through" : ""}>{m.name}</span>
-                  <span className="tabular shrink-0 text-zinc-500 dark:text-zinc-400">
+                <li key={m.name} className="flex justify-between gap-3 text-[13px]">
+                  <span className={m.available === false ? "text-faint line-through" : ""}>{m.name}</span>
+                  <span className="tabular shrink-0 text-muted">
                     {m.available === false ? "belum aktif" : m.weight}
                   </span>
                 </li>
@@ -140,13 +140,13 @@ export function EquipmentLibraryCard({ profile }: { profile: AthleteProfile }) {
           </details>
         ))}
         <details className="group">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-medium">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-body font-semibold">
             {CATEGORY_LABEL.warmupAndCooldown}
-            <span className="text-xs text-zinc-400 transition-transform duration-200 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+            <span className="text-[13px] text-faint transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
               ›
             </span>
           </summary>
-          <p className="details-body pb-3 text-xs text-zinc-600 dark:text-zinc-400">{lib.warmupAndCooldown.join(" · ")}</p>
+          <p className="details-body pb-3 text-[13px] text-muted">{lib.warmupAndCooldown.join(" · ")}</p>
         </details>
       </div>
     </Card>

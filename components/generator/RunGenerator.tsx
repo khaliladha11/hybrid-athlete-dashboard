@@ -31,10 +31,10 @@ function intensityOf(s: RunStep): Intensity {
 }
 
 const INTENSITY_STYLE: Record<Intensity, { bar: string; dot: string; label: string }> = {
-  recovery: { bar: "bg-zinc-300 dark:bg-zinc-700", dot: "bg-zinc-400", label: "Jalan/jog" },
-  easy: { bar: "bg-accent-400 dark:bg-accent-600", dot: "bg-accent-500", label: "Z2" },
-  tempo: { bar: "bg-amber-400", dot: "bg-amber-400", label: "Tempo" },
-  hard: { bar: "bg-rose-500", dot: "bg-rose-500", label: "Interval" },
+  recovery: { bar: "bg-subtle-strong", dot: "bg-faint", label: "Jalan/jog" },
+  easy: { bar: "bg-info", dot: "bg-info", label: "Z2" },
+  tempo: { bar: "bg-brand/55", dot: "bg-brand/55", label: "Tempo" },
+  hard: { bar: "bg-brand", dot: "bg-brand", label: "Interval" },
 };
 
 export function RunGenerator({
@@ -75,8 +75,8 @@ export function RunGenerator({
   const used = new Set(timeline.map(intensityOf));
 
   return (
-    <div className="space-y-3">
-      <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="space-y-4">
+      <div className="space-y-4 rounded-sm border border-line bg-surface p-4 shadow-card">
         <Segmented label="Durasi" value={duration} onChange={setDuration} options={DURATIONS.map((d) => ({ value: d, label: `${d}'` }))} />
         <Segmented
           label="Kesulitan"
@@ -97,16 +97,16 @@ export function RunGenerator({
       />
 
       <OutputShell ref={outputRef} swapKey={`${duration}-${difficulty}-${seed}`} title={workout.title} subtitle={`Total ${duration} menit · seed #${seed}`}>
-        <div className="flex h-3 w-full overflow-hidden rounded-full" aria-hidden>
+        <div className="flex h-2.5 w-full overflow-hidden rounded-sm" aria-hidden>
           {timeline.map((s, i) => (
             <div
               key={i}
-              className={`${INTENSITY_STYLE[intensityOf(s)].bar} border-r border-white last:border-r-0 dark:border-zinc-900`}
+              className={`${INTENSITY_STYLE[intensityOf(s)].bar} border-r border-surface last:border-r-0`}
               style={{ width: `${(s.durationMin / duration) * 100}%` }}
             />
           ))}
         </div>
-        <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted">
           {(Object.keys(INTENSITY_STYLE) as Intensity[])
             .filter((k) => used.has(k))
             .map((k) => (
@@ -117,7 +117,7 @@ export function RunGenerator({
             ))}
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-1 rounded-xl bg-zinc-100 p-1 text-sm dark:bg-zinc-800/80" role="tablist">
+        <div className="mt-4 grid grid-cols-2 border-b border-line text-body" role="tablist">
           {(
             [
               ["list", "Daftar"],
@@ -130,7 +130,7 @@ export function RunGenerator({
               type="button"
               aria-selected={view === v}
               onClick={() => setView(v)}
-              className={`pressable min-h-9 rounded-lg py-1.5 font-medium ${view === v ? "bg-white shadow-sm dark:bg-zinc-950" : "text-zinc-600 dark:text-zinc-400"}`}
+              className={`pressable -mb-px min-h-11 border-b-2 ${view === v ? "border-brand font-semibold text-ink" : "border-transparent text-muted hover:text-ink"}`}
             >
               {l}
             </button>
@@ -138,31 +138,31 @@ export function RunGenerator({
         </div>
 
         {view === "list" ? (
-          <ol className="mt-3 space-y-3">
+          <ol className="mt-4 space-y-4">
             {workout.blocks.map((b, bi) => {
               const blockMin = b.repeat * b.steps.reduce((s, st) => s + st.durationMin, 0);
               return (
                 <li key={bi}>
                   <div className="flex items-baseline justify-between">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    <p className="eyebrow">
                       {b.title.startsWith(PHASE_LABEL[b.phase]) ? b.title : `${PHASE_LABEL[b.phase]} · ${b.title}`}
                     </p>
-                    <span className="tabular text-xs text-zinc-500">{blockMin}&apos;</span>
+                    <span className="tabular text-[13px] text-muted">{blockMin}&apos;</span>
                   </div>
-                  <div className={`mt-1 rounded-xl ${b.repeat > 1 ? "border border-dashed border-zinc-300 p-2 dark:border-zinc-700" : ""}`}>
-                    {b.repeat > 1 && <p className="mb-1 px-1 text-xs font-semibold text-zinc-700 dark:text-zinc-300">Ulangi {b.repeat}×</p>}
+                  <div className={`mt-2 rounded-sm ${b.repeat > 1 ? "border border-dashed border-line-strong p-2" : ""}`}>
+                    {b.repeat > 1 && <p className="mb-1.5 px-1 text-[13px] font-semibold text-brand-ink">Ulangi {b.repeat}×</p>}
                     <ul className="space-y-1.5">
                       {b.steps.map((s, si) => {
                         const it = intensityOf(s);
                         return (
-                          <li key={si} className="flex gap-2.5 rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-800/60">
-                            <span className={`mt-1 h-3 w-1 shrink-0 rounded-full ${INTENSITY_STYLE[it].dot}`} aria-hidden />
+                          <li key={si} className="flex gap-3 rounded-sm bg-subtle px-3 py-2.5">
+                            <span className={`w-1 shrink-0 self-stretch rounded-sm ${INTENSITY_STYLE[it].dot}`} aria-hidden />
                             <div className="min-w-0 flex-1">
                               <div className="flex items-baseline justify-between gap-2">
-                                <p className="text-sm font-medium">{s.label}</p>
-                                <span className="tabular shrink-0 text-sm font-semibold">{s.durationMin}&apos;</span>
+                                <p className="text-body font-semibold">{s.label}</p>
+                                <span className="tabular shrink-0 text-base font-semibold">{s.durationMin}&apos;</span>
                               </div>
-                              <p className="tabular text-xs text-zinc-600 dark:text-zinc-400">
+                              <p className="tabular text-[13px] text-muted">
                                 {[s.pace && s.pace !== "santai" ? s.pace : null, s.hr ? `HR ${s.hr}` : null, s.rpe ? `RPE ${s.rpe}` : null]
                                   .filter(Boolean)
                                   .join(" · ")}
@@ -178,13 +178,13 @@ export function RunGenerator({
             })}
           </ol>
         ) : (
-          <pre className="tabular mt-3 overflow-x-auto rounded-xl bg-zinc-50 p-3 text-xs leading-relaxed whitespace-pre-wrap dark:bg-zinc-800/60">{text}</pre>
+          <pre className="tabular mt-4 overflow-x-auto rounded-sm bg-subtle p-3 text-[13px] leading-relaxed whitespace-pre-wrap">{text}</pre>
         )}
 
-        <ul className="mt-4 space-y-1.5 rounded-xl bg-accent-50 p-3 text-xs text-accent-900 dark:bg-accent-950/60 dark:text-accent-100">
+        <ul className="mt-4 space-y-1.5 rounded-sm bg-info-soft p-3 text-[13px] text-ink">
           {workout.notes.map((n) => (
             <li key={n} className="flex gap-2">
-              <span aria-hidden>›</span>
+              <span aria-hidden className="text-info">›</span>
               {n}
             </li>
           ))}
@@ -193,10 +193,9 @@ export function RunGenerator({
 
       <GeneratorActions
         copyText={text}
-        copyLabel={view === "list" ? "Copy teks" : "Copy Set Huawei"}
+        copyLabel={view === "list" ? "Copy teks" : "Copy Huawei"}
         onRegenerate={regenerate}
         canRegenerate={canRegenerate}
-        regenerateClassName="bg-accent-600 hover:bg-accent-700"
       />
     </div>
   );

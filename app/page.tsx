@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BUTTON } from "@/components/ui/Card";
 import { ActivityList } from "@/components/profile/ActivityList";
 import { ConditionsCard, EquipmentLibraryCard, ProfileHeader, RunZonesCard, TargetsCard } from "@/components/profile/ProfileDetails";
 import { WeeklySummary } from "@/components/profile/WeeklySummary";
@@ -21,7 +22,7 @@ export default async function ProfilePage() {
       : null;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <ProfileHeader profile={profile} />
 
       <CoachCard advice={[...readinessAdvice(readiness), ...(activities.ok ? weeklyAdvice(activities.data, today) : [])]} />
@@ -29,13 +30,13 @@ export default async function ProfilePage() {
       <div className="grid grid-cols-2 gap-2">
         <Link
           href="/run"
-          className="pressable rounded-2xl bg-accent-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accent-700"
+          className={`${BUTTON.base} ${BUTTON.primary} min-h-12`}
         >
           Generate lari →
         </Link>
         <Link
           href="/strength"
-          className="pressable rounded-2xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+          className={`${BUTTON.base} ${BUTTON.secondary} min-h-12`}
         >
           Generate ST →
         </Link>

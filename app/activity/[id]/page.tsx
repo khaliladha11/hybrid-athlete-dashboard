@@ -12,8 +12,8 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
   const res = await getActivityDetail(decodeURIComponent(id));
 
   return (
-    <div className="space-y-3">
-      <Link href="/" className="inline-block text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+    <div className="space-y-4">
+      <Link href="/" className="inline-block text-body text-muted hover:text-ink">
         ← Profil
       </Link>
       {!res.ok ? (
@@ -21,10 +21,10 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
       ) : (
         <>
           <header>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-0.5 text-[13px] text-muted">
               {CATEGORY_LABEL[res.data.category]} · {formatDateId(res.data.date)} {formatTimeOfDay(res.data.startLocal)}
             </p>
-            <h1 className="text-xl font-semibold tracking-tight">{res.data.name}</h1>
+            <h1 className="text-[22px] leading-tight font-semibold">{res.data.name}</h1>
           </header>
           <Card>
             <div className="grid grid-cols-3 gap-x-3 gap-y-4">
@@ -38,13 +38,13 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
           </Card>
           <Card title="Interval / lap" flush>
             {res.data.intervals.length === 0 ? (
-              <p className="px-4 text-sm text-zinc-500">Tidak ada data interval untuk aktivitas ini.</p>
+              <p className="px-4 text-body text-muted">Tidak ada data interval untuk aktivitas ini.</p>
             ) : (
-              <ul className="divide-y divide-zinc-100 text-sm dark:divide-zinc-800">
+              <ul className="divide-y divide-line text-body">
                 {res.data.intervals.map((iv, i) => (
                   <li key={i} className="tabular flex items-baseline justify-between gap-3 px-4 py-2">
                     <span className="font-medium">{iv.label}</span>
-                    <span className="text-right text-xs text-zinc-600 dark:text-zinc-400">
+                    <span className="text-right text-[13px] text-muted">
                       {[
                         formatDuration(iv.movingTimeSec),
                         iv.avgPaceSecPerKm ? formatPace(iv.avgPaceSecPerKm) : null,

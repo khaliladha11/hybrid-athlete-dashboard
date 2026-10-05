@@ -10,11 +10,11 @@ export const metadata: Metadata = { title: "Generator Lari · Hybrid Athlete" };
 export default async function RunPage() {
   const ctx = await getTrainingContext();
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Generator Lari</h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">Pilih durasi & kesulitan — workout lengkap dengan pace, HR, dan RPE.</p>
+          <h1 className="text-[22px] leading-tight font-semibold">Generator Lari</h1>
+          <p className="mt-0.5 text-[13px] text-muted">Pilih durasi & kesulitan — workout lengkap dengan pace, HR, dan RPE.</p>
         </div>
         <BlockBadge block={ctx.block} />
       </header>

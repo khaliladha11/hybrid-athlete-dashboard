@@ -6,11 +6,11 @@ import { CATEGORY_LABEL, formatDuration, formatPace } from "@/lib/intervals/summ
 import type { Activity, ActivityCategory, FetchResult } from "@/lib/intervals/types";
 
 export const CATEGORY_DOT: Record<ActivityCategory, string> = {
-  run: "bg-accent-500",
-  walk: "bg-sky-500",
-  strength: "bg-violet-500",
-  ride: "bg-orange-500",
-  other: "bg-zinc-400",
+  run: "bg-brand",
+  walk: "bg-faint",
+  strength: "bg-info",
+  ride: "bg-brand/50",
+  other: "bg-faint",
 };
 
 export function ActivityList({ result }: { result: FetchResult<Activity[]> }) {
@@ -25,9 +25,9 @@ export function ActivityList({ result }: { result: FetchResult<Activity[]> }) {
   return (
     <Card title="10 aktivitas terakhir" flush className="!pb-1">
       {list.length === 0 ? (
-        <p className="px-4 pb-3 text-sm text-zinc-500">Belum ada aktivitas dalam 30 hari terakhir.</p>
+        <p className="px-4 pb-3 text-body text-muted">Belum ada aktivitas dalam 30 hari terakhir.</p>
       ) : (
-        <ul className="-mt-1 divide-y divide-zinc-100 dark:divide-zinc-800">
+        <ul className="-mt-1 divide-y divide-line">
           {list.map((a) => {
             const meta = [
               a.distanceKm ? `${a.distanceKm.toFixed(2)} km` : null,
@@ -43,21 +43,21 @@ export function ActivityList({ result }: { result: FetchResult<Activity[]> }) {
               <li key={a.id}>
                 <Link
                   href={`/activity/${encodeURIComponent(a.id)}`}
-                  className="flex items-start gap-3 px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                  className="flex items-start gap-3 px-4 py-3 hover:bg-subtle"
                 >
                   <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${CATEGORY_DOT[a.category]}`} aria-hidden />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className="truncate text-sm font-medium">{a.name}</p>
-                      <span className="shrink-0 text-[11px] text-zinc-500 dark:text-zinc-400">
+                      <p className="truncate text-body font-semibold">{a.name}</p>
+                      <span className="shrink-0 text-[12px] text-muted">
                         {formatDateId(a.date)} {formatTimeOfDay(a.startLocal)}
                       </span>
                     </div>
-                    <p className="tabular truncate text-xs text-zinc-600 dark:text-zinc-400">
-                      <span className="text-zinc-400 dark:text-zinc-500">{CATEGORY_LABEL[a.category]} · </span>
+                    <p className="tabular truncate text-[13px] text-muted">
+                      <span className="text-faint">{CATEGORY_LABEL[a.category]} · </span>
                       {meta.join(" · ")}
                     </p>
-                    {extra.length > 0 && <p className="tabular truncate text-xs text-zinc-400 dark:text-zinc-500">{extra.join(" · ")}</p>}
+                    {extra.length > 0 && <p className="tabular truncate text-[13px] text-faint">{extra.join(" · ")}</p>}
                   </div>
                 </Link>
               </li>

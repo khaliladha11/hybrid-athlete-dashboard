@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import { BUTTON } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
 import {
   DIFFICULTIES,
@@ -76,8 +77,8 @@ export function StrengthGenerator({
   const est = Math.round(estimateStrengthMinutes(workout));
 
   return (
-    <div className="space-y-3">
-      <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="space-y-4">
+      <div className="space-y-4 rounded-sm border border-line bg-surface p-4 shadow-card">
         <Segmented
           label="Tipe"
           wrap
@@ -111,46 +112,46 @@ export function StrengthGenerator({
           const items = workout.items.filter((i) => i.phase === phase);
           if (!items.length) return null;
           return (
-            <div key={phase} className="mt-3 first:mt-0">
-              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{PHASE_LABEL[phase]}</p>
+            <div key={phase} className="mt-4 first:mt-0">
+              <p className="eyebrow mb-2">{PHASE_LABEL[phase]}</p>
               {phase === "main" ? (
-                <ol className="space-y-1.5">
+                <ol className="space-y-2">
                   {items.map((it, i) => (
-                    <li key={it.movement} className="rounded-xl bg-zinc-50 px-3 py-2.5 dark:bg-zinc-800/60">
-                      <div className="flex items-start gap-2.5">
-                        <span className="tabular mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md bg-zinc-200 text-[11px] font-semibold text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200">
+                    <li key={it.movement} className={`rounded-sm bg-subtle px-3 py-3 ${it.anchor ? "border-l-[3px] border-brand" : ""}`}>
+                      <div className="flex items-start gap-3">
+                        <span className={`tabular mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-sm text-[12px] font-semibold ${it.anchor ? "bg-brand text-on-brand" : "bg-subtle-strong text-ink"}`}>
                           {i + 1}
                         </span>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-baseline justify-between gap-2">
-                            <p className="text-sm font-medium">
+                            <p className="text-body font-semibold">
                               {it.anchor && (
-                                <span className="mr-1 text-amber-500" title="Gerakan utama blok ini" aria-label="Gerakan utama blok ini">
+                                <span className="mr-1 text-brand" title="Gerakan utama blok ini" aria-label="Gerakan utama blok ini">
                                   ★
                                 </span>
                               )}
                               {it.movement}
                             </p>
-                            <span className="tabular shrink-0 text-sm font-semibold">{formatVolume(it)}</span>
+                            <span className="tabular shrink-0 text-base font-semibold">{formatVolume(it)}</span>
                           </div>
-                          <p className="tabular text-xs text-zinc-600 dark:text-zinc-400">
+                          <p className="tabular text-[13px] text-muted">
                             {formatLoad(it.load)} · RPE {it.rpe}
                             {it.sets > 1 && ` · rest ${restLabel(it.restSec)}`}
                           </p>
                           {it.progression && (
-                            <p className="mt-0.5 text-xs font-medium text-violet-700 dark:text-violet-300">{it.progression}</p>
+                            <p className="mt-1 text-[13px] font-semibold text-brand-ink">{it.progression}</p>
                           )}
-                          {it.cue && <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-500">{it.cue}</p>}
+                          {it.cue && <p className="mt-1 text-[13px] text-faint">{it.cue}</p>}
                         </div>
                       </div>
                     </li>
                   ))}
                 </ol>
               ) : (
-                <ul className="flex flex-wrap gap-1.5">
+                <ul className="flex flex-wrap gap-2">
                   {items.map((it) => (
-                    <li key={it.movement} className="rounded-lg bg-zinc-100 px-2.5 py-1 text-xs dark:bg-zinc-800">
-                      {it.movement} <span className="tabular text-zinc-500">{formatVolume(it)}</span>
+                    <li key={it.movement} className="rounded-full bg-subtle-strong px-3 py-1 text-[13px]">
+                      {it.movement} <span className="tabular text-muted">{formatVolume(it)}</span>
                     </li>
                   ))}
                 </ul>
@@ -177,17 +178,17 @@ export function StrengthGenerator({
                 setSaved(false);
                 setLogging(true);
               }}
-              className="pressable mt-4 min-h-11 w-full rounded-xl border border-dashed border-violet-300 text-sm font-semibold text-violet-700 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-300 dark:hover:bg-violet-950/40"
+              className={`${BUTTON.base} ${BUTTON.secondary} mt-4 w-full`}
             >
               {saved ? "✓ Tersimpan — catat lagi?" : "Catat sesi (gerakan ★)"}
             </button>
           )
         )}
 
-        <ul className="mt-4 space-y-1.5 rounded-xl bg-violet-50 p-3 text-xs text-violet-950 dark:bg-violet-950/40 dark:text-violet-100">
+        <ul className="mt-4 space-y-1.5 rounded-sm bg-info-soft p-3 text-[13px] text-ink">
           {workout.notes.map((n) => (
             <li key={n} className="flex gap-2">
-              <span aria-hidden>›</span>
+              <span aria-hidden className="text-info">›</span>
               {n}
             </li>
           ))}
@@ -199,7 +200,6 @@ export function StrengthGenerator({
         copyLabel="Copy teks"
         onRegenerate={regenerate}
         canRegenerate={canRegenerate}
-        regenerateClassName="bg-violet-600 hover:bg-violet-700"
       />
     </div>
   );

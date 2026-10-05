@@ -74,9 +74,9 @@ Kode: [`lib/generator/block.ts`](../lib/generator/block.ts).
 
 **Variasi sistematis, bukan acak:**
 - **Gerakan utama ★** (multi-joint) **dikunci selama satu blok** supaya progres terukur, dan berganti otomatis saat blok baru dimulai.
-- **Aksesori** berputar setiap kali **Generate ulang** ditekan.
+- **Aksesori** berputar setiap kali **Variasi lain** ditekan.
 - **Skema rep** berputar antar sesi (undulating): Volume 12–15, Standar 10–12, Tegangan 8–10. Easy tidak memakai Tegangan, dan High tidak memakai Volume.
-- Tombol **Generate ulang** selalu menghasilkan workout yang berbeda dari yang sedang tampil.
+- Tombol **Variasi lain** selalu menghasilkan workout yang berbeda dari yang sedang tampil.
 
 ## 5. Saran hari ini
 

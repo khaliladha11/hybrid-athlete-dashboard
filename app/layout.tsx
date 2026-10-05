@@ -1,11 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { isDemoMode } from "@/lib/intervals/data-source";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "Hybrid Athlete Dashboard",
@@ -33,18 +30,18 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f0f0e" },
   ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={inter.variable}>
+    <html lang="id">
       <body className="min-h-dvh pt-[env(safe-area-inset-top)]">
         {/* iOS standalone + black-translucent: konten tembus ke bawah status bar.
             Strip gelap ini menjaga jam/baterai (teks putih) tetap terbaca di light mode. */}
-        <div aria-hidden className="fixed inset-x-0 top-0 z-30 h-[env(safe-area-inset-top)] bg-zinc-950" />
+        <div aria-hidden className="fixed inset-x-0 top-0 z-30 h-[env(safe-area-inset-top)] bg-black" />
         {isDemoMode() && <DemoBanner />}
         <main className="safe-x mx-auto w-full max-w-xl pt-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">{children}</main>
         <BottomNav />
