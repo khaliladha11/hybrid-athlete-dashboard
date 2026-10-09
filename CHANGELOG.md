@@ -2,6 +2,13 @@
 
 Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/).
 
+## [0.7.0] — 2026-10-09 · Profil lebih ringkas
+
+### Diubah
+- **Kalender aktivitas bulanan** menggantikan daftar "10 aktivitas terakhir": ikon per jenis aktivitas (lari easy hijau, lari berat merah, lainnya netral), badge jumlah bila lebih dari satu aktivitas sehari, status per minggu (✓ hijau aktif / ✕ merah kosong), total aktivitas & km lari bulan itu, navigasi bulan lalu ↔ bulan ini. Ketuk tanggal untuk melihat daftar aktivitas hari itu.
+- **Saran hari ini** jadi baris ringkas (judul + rekomendasi singkat); ketuk untuk dropdown penjelasan & rekomendasi lengkap.
+- **Kondisi & batasan** jadi dropdown per poin.
+
 ## [0.6.0] — 2026-10-05 · Fleksibilitas & program target
 
 ### Ditambahkan

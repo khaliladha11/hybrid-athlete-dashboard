@@ -32,6 +32,8 @@ export type AdviceTarget = "run" | "strength";
 export interface Advice {
   id: "readiness" | "polarized" | "volume" | "after-leg-st" | "after-hard-run";
   targets: AdviceTarget[];
+  /** Ringkasan pendek untuk tampilan ringkas (judul baris). */
+  title: string;
   message: string;
   /** Turunkan kesulitan relatif terhadap pilihan saat ini. */
   lowerBy?: 1;
@@ -97,6 +99,7 @@ export function weeklyAdvice(activities: Activity[], today: string): Advice[] {
     out.push({
       id: "polarized",
       targets: ["run"],
+      title: `${s.hardRuns7} lari berat dalam 7 hari`,
       message: `Sudah ${s.hardRuns7} sesi lari berat dalam 7 hari (${pct}% dari ${s.runs7} sesi). Prinsip 80/20: sesi berikutnya sebaiknya Easy.`,
       maxDifficulty: "easy",
     });
@@ -107,6 +110,7 @@ export function weeklyAdvice(activities: Activity[], today: string): Advice[] {
     out.push({
       id: "volume",
       targets: ["run"],
+      title: `Jarak lari naik ${Math.round(s.kmChange * 100)}%`,
       message:
         `Jarak lari 7 hari ${s.runKm7.toFixed(1)} km, naik ${Math.round(s.kmChange * 100)}% dari minggu sebelumnya (${s.runKmPrev7.toFixed(1)} km). ` +
         `Kenaikan > 30% dikaitkan dengan shin splints — ` +
@@ -124,6 +128,7 @@ export function weeklyAdvice(activities: Activity[], today: string): Advice[] {
     out.push({
       id: "after-leg-st",
       targets: ["run"],
+      title: `${when(legSt)} ST kaki`,
       message: `${when(legSt)} ada ST kaki (${legSt.name}) — hindari interval berat dulu supaya adaptasi kekuatan & pemulihan kaki tidak terganggu.`,
       maxDifficulty: "moderate",
     });
@@ -134,6 +139,7 @@ export function weeklyAdvice(activities: Activity[], today: string): Advice[] {
     out.push({
       id: "after-hard-run",
       targets: ["strength"],
+      title: `${when(hardOrLong)} ${isLongRun(hardOrLong) ? "long run" : "lari berat"}`,
       message: `${when(hardOrLong)} ${isLongRun(hardOrLong) ? "long run" : "lari berat"} (${hardOrLong.name}) — kalau ST hari ini, prioritaskan Upper Push/Pull agar kaki pulih.`,
       preferTypes: ["upperPull", "upperPush"],
     });
@@ -144,7 +150,17 @@ export function weeklyAdvice(activities: Activity[], today: string): Advice[] {
 
 export function readinessAdvice(r: Readiness | null): Advice[] {
   if (!r?.caution) return [];
-  return r.reasons.map((message) => ({ id: "readiness", targets: ["run", "strength"], message, lowerBy: 1 }) satisfies Advice);
+  return r.reasons.map(
+    (message) => ({ id: "readiness", targets: ["run", "strength"], title: readinessTitle(message), message, lowerBy: 1 }) satisfies Advice,
+  );
+}
+
+function readinessTitle(reason: string): string {
+  if (/^HRV/i.test(reason)) return "HRV di bawah rata-rata";
+  if (/^Resting HR/i.test(reason)) return "Resting HR naik";
+  if (/^Kemarin long run/i.test(reason)) return "Kemarin long run";
+  if (/^Kemarin sesi berat/i.test(reason)) return "Kemarin sesi berat";
+  return "Readiness rendah";
 }
 
 export interface Suggestion {

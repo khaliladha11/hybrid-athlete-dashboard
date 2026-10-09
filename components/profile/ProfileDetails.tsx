@@ -72,14 +72,34 @@ export function ConditionsCard({ profile }: { profile: AthleteProfile }) {
   const conditions = profile.conditions ?? [];
   if (!conditions.length) return null;
   return (
-    <Card title="Kondisi & batasan">
-      <ul className="space-y-2">
+    <Card title="Kondisi & batasan" action={<span className="text-[12px] text-faint">{conditions.length} poin</span>}>
+      <ul className="divide-y divide-line">
         {conditions.map((c) => {
           const [head, ...rest] = c.split("(");
+          const detail = rest.join("(").replace(/\)$/, "").trim();
+          if (!detail)
+            return (
+              <li key={c} className="flex min-h-11 items-center gap-2 py-2 text-body font-semibold">
+                <span aria-hidden className="h-2 w-2 shrink-0 rounded-full bg-brand" />
+                {head.trim()}
+              </li>
+            );
           return (
-            <li key={c} className="rounded-inner border-l-2 border-brand bg-brand-soft py-1.5 pr-2 pl-3 text-body">
-              <span className="font-semibold">{head.trim()}</span>
-              {rest.length > 0 && <span className="block text-[13px] text-muted">{rest.join("(").replace(/\)$/, "")}</span>}
+            <li key={c}>
+              <details className="group">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-body font-semibold">
+                  <span aria-hidden className="h-2 w-2 shrink-0 rounded-full bg-brand" />
+                  <span className="min-w-0 flex-1">{head.trim()}</span>
+                  <span className="text-[13px] text-faint transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+                    ›
+                  </span>
+                </summary>
+                <div className="details-body pb-3 pl-4">
+                  <p className="rounded-inner border-l-2 border-brand bg-brand-soft py-1.5 pr-2 pl-3 text-[13px] text-ink">
+                    {detail}
+                  </p>
+                </div>
+              </details>
             </li>
           );
         })}

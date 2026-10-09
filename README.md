@@ -61,7 +61,7 @@ Semua aturan ini dikodekan sebagai **modul TypeScript murni yang diuji**, bukan 
 | Area | Yang bisa dilakukan |
 | --- | --- |
 | **Profil** | Data diri, target lomba, kondisi cedera, alat, zona lari, dan movement library. Semuanya dari satu file JSON. |
-| **Data intervals.icu** | Ringkasan 7 hari (km, pace, HR, long run, load), 10 aktivitas terakhir, detail interval per aktivitas, serta wellness (HRV, resting HR, tidur, CTL/ATL/Form). |
+| **Data intervals.icu** | Ringkasan 7 hari (km, pace, HR, long run, load), kalender aktivitas bulanan (ketuk tanggal untuk detail), detail interval per aktivitas, serta wellness (HRV, resting HR, tidur, CTL/ATL/Form). |
 | **Generator lari** | 30/45/60 menit × Easy/Moderate/High dengan 13 pola: Z2, run-walk, cadence drill, tempo, cruise interval, progression run, mini interval, Norwegian 4×4, dan 15/15. Target pace/HR/RPE diambil dari profil, dan durasinya selalu tepat. |
 | **Generator ST** | Full Body / Upper Push / Upper Pull / Lower. Hanya memakai gerakan dari library, RPE ≤ 7, prehab dan stabilitas panggul wajib, serta memblokir beban axial berat. |
 | **Periodisasi** | Blok 4 minggu (3 normal + 1 deload). Gerakan utama ★ dikunci per blok, sedangkan aksesori dan skema rep berputar. Bisa **dimatikan** (toggle) untuk latihan bebas tanpa jadwal blok. |

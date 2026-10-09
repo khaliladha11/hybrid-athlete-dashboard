@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { BUTTON } from "@/components/ui/Card";
-import { ActivityList } from "@/components/profile/ActivityList";
+import { ActivityCalendar } from "@/components/profile/ActivityCalendar";
+import { Card } from "@/components/ui/Card";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { ConditionsCard, EquipmentLibraryCard, ProfileHeader, RunZonesCard, TargetsCard } from "@/components/profile/ProfileDetails";
 import { WeeklySummary } from "@/components/profile/WeeklySummary";
 import { SettingsCard } from "@/components/profile/SettingsCard";
@@ -16,7 +18,12 @@ export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
   const today = todayWib();
-  const [activities, wellness] = await Promise.all([getActivities(30, today), getWellness(8, today)]);
+  // Kalender butuh bulan ini + bulan lalu; kartu lain memfilter tanggal sendiri.
+  const prevMonth = new Date(`${today.slice(0, 7)}-01T00:00:00Z`);
+  prevMonth.setUTCMonth(prevMonth.getUTCMonth() - 1);
+  const oldest = prevMonth.toISOString().slice(0, 10);
+  const days = Math.round((Date.parse(`${today}T00:00:00Z`) - prevMonth.getTime()) / 86_400_000) + 1;
+  const [activities, wellness] = await Promise.all([getActivities(Math.max(days, 30), today), getWellness(8, today)]);
   const readiness =
     activities.ok || wellness.ok
       ? assessReadiness(wellness.ok ? wellness.data : [], activities.ok ? activities.data : [], today)
@@ -45,7 +52,13 @@ export default async function ProfilePage() {
 
       <WellnessCard result={wellness} today={today} />
       <WeeklySummary result={activities} today={today} />
-      <ActivityList result={activities} />
+      {activities.ok ? (
+        <ActivityCalendar activities={activities.data} today={today} oldest={oldest} />
+      ) : (
+        <Card title="Kalender aktivitas">
+          <ErrorState error={activities.error} compact />
+        </Card>
+      )}
       <TargetsCard profile={profile} />
       <ConditionsCard profile={profile} />
       <RunZonesCard profile={profile} />

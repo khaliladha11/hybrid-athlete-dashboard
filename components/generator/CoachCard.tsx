@@ -57,15 +57,53 @@ export function CoachCard({
             </button>
           ))}
       </div>
-      <ul className="mt-3 space-y-2 text-[14px] leading-snug text-ink">
-        {relevant.map((a) => (
-          <li key={a.id + a.message} className="flex gap-2">
-            <span aria-hidden className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
-            <span>{a.message}</span>
-          </li>
-        ))}
+      <ul className="mt-2 -mx-1 divide-y divide-line">
+        {relevant.map((a) => {
+          const recs = recommendations(a);
+          return (
+            <li key={a.id + a.message}>
+              <details className="group">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-inner px-1 hover:bg-subtle">
+                  <span aria-hidden className="h-2 w-2 shrink-0 rounded-full bg-brand" />
+                  <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-ink">{a.title}</span>
+                  {recs[0] && <span className="shrink-0 truncate text-[12px] font-semibold text-brand-ink">{recs[0].short}</span>}
+                  <span className="text-[13px] text-faint transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+                    ›
+                  </span>
+                </summary>
+                <div className="details-body space-y-2 px-1 pb-3 pl-5 text-[14px] leading-snug">
+                  <p className="text-muted">{a.message}</p>
+                  {recs.length > 0 && (
+                    <ul className="space-y-1">
+                      {recs.map((r) => (
+                        <li key={r.text} className="flex gap-2 text-ink">
+                          <span aria-hidden className="font-semibold text-brand-ink">→</span>
+                          {r.text}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </details>
+            </li>
+          );
+        })}
       </ul>
-      <p className="mt-3 text-[12px] text-faint">Hanya saran — kamu tetap bebas memilih.</p>
+      <p className="mt-1 text-[12px] text-faint">Ketuk untuk detail · hanya saran, kamu tetap bebas memilih.</p>
     </aside>
   );
+}
+
+/** Rekomendasi konkret dari batasan pada saran (untuk isi dropdown). */
+function recommendations(a: Advice): { short: string; text: string }[] {
+  const out: { short: string; text: string }[] = [];
+  if (a.lowerBy) out.push({ short: "Turun 1 level", text: "Turunkan intensitas satu level dari rencana (High → Moderate, Moderate → Easy)." });
+  if (a.maxDifficulty)
+    out.push({ short: `Maks. ${DIFFICULTY_LABEL[a.maxDifficulty]}`, text: `Lari maksimal ${DIFFICULTY_LABEL[a.maxDifficulty]} untuk sesi berikutnya.` });
+  if (a.maxDuration) out.push({ short: `Maks. ${a.maxDuration}'`, text: `Batasi durasi lari ${a.maxDuration} menit.` });
+  if (a.preferTypes?.length) {
+    const types = a.preferTypes.map((t) => STRENGTH_TYPE_LABEL[t]).join(" / ");
+    out.push({ short: types, text: `Untuk strength, pilih ${types}.` });
+  }
+  return out;
 }

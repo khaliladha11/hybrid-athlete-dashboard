@@ -137,7 +137,7 @@ describe("saran relatif tidak berantai", () => {
   it("ignoreLowerBy: setelah diterapkan, readiness tidak menurunkan lagi; batas absolut tetap berlaku", () => {
     const r = readinessAdvice({ caution: true, reasons: ["HRV turun"], hasData: true });
     expect(suggestFor(r, "run", { difficulty: "moderate", duration: 45 }, { ignoreLowerBy: true })).toEqual({});
-    const withPolarized: Advice[] = [...r, { id: "polarized", targets: ["run"], message: "", maxDifficulty: "easy" }];
+    const withPolarized: Advice[] = [...r, { id: "polarized", targets: ["run"], title: "", message: "", maxDifficulty: "easy" }];
     expect(suggestFor(withPolarized, "run", { difficulty: "moderate", duration: 45 }, { ignoreLowerBy: true }).difficulty).toBe("easy");
   });
 });
