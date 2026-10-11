@@ -9,6 +9,9 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 - **Saran hari ini** jadi baris ringkas (judul + rekomendasi singkat); ketuk untuk dropdown penjelasan & rekomendasi lengkap.
 - **Kondisi & batasan** jadi dropdown per poin.
 
+### Dokumentasi
+- **[docs/PRD.md](docs/PRD.md)**: status fitur, keterbatasan, dan roadmap pengembangan.
+
 ## [0.6.0] — 2026-10-05 · Fleksibilitas & program target
 
 ### Ditambahkan
@@ -94,7 +97,8 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.6.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/9a668ef...main
+[0.7.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/6e6762f
+[0.6.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/afe6f63
 [0.5.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/9a668ef
 [0.4.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/51d79e4
 [0.3.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/49d0aed
