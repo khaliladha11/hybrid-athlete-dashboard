@@ -2,6 +2,13 @@
 
 Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/).
 
+## [0.8.1] — 2026-10-11 · Polesan navigasi
+
+### Diubah
+- **Generator Lari:** "Saran hari ini" pindah ke paling atas dan jadi satu baris ringkas (mis. "Saran: Easy · 30'"), dengan tombol **Gunakan** yang mengisi durasi & kesulitan, dan link **Lihat detail** ke kartu saran lengkap di Profil. Bila pilihan sudah sesuai, tampil "✓ Sesuai saran".
+- **Setting:** nav bagian jadi sticky; tap chip → smooth scroll ke kartu (judul tidak tertutup nav), lalu kartu tujuan menyala sekali (garis oranye + tint tipis, memudar ±1,2 detik). Chip aktif mengikuti bagian yang sedang terlihat saat scroll manual (scroll spy) dan otomatis tergeser agar terlihat.
+- `prefers-reduced-motion`: lompat langsung tanpa animasi scroll, highlight statis singkat tanpa fade.
+
 ## [0.8.0] — 2026-10-11 · Halaman Setting
 
 ### Ditambahkan

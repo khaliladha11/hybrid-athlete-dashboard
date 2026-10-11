@@ -241,9 +241,29 @@ body {
     animation: details-in 150ms ease;
   }
 
+  /* Penanda tujuan setelah lompat dari nav Setting: garis aksen + tint tipis, lalu memudar sekali. */
+  .section-flash {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-card);
+    border: 2px solid var(--brand);
+    background: color-mix(in srgb, var(--brand) 8%, transparent);
+    pointer-events: none;
+    animation: section-flash 1.2s ease-out forwards;
+  }
+
   /* Label kecil huruf kapital (judul grup, label statistik). */
   .eyebrow {
     @apply text-[12px] font-semibold uppercase tracking-wide text-muted;
+  }
+}
+
+@keyframes section-flash-static {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 
@@ -254,8 +274,23 @@ body {
   }
 }
 
+@keyframes section-flash {
+  0%,
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* Kurangi gerak: tanpa scale/translate, perubahan state instan. */
+  /* Highlight statis: tampil penuh lalu hilang sekaligus, tanpa fade. */
+  .section-flash {
+    animation-timing-function: steps(1, end);
+    animation-name: section-flash-static;
+  }
   .pressable:active:not(:disabled) {
     transform: none;
   }

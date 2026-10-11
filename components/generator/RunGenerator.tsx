@@ -23,7 +23,7 @@ import {
 import type { BlockContext } from "@/lib/generator/block";
 import type { Advice } from "@/lib/coach";
 import { useResolvedProfile } from "@/lib/settings-store";
-import { CoachCard } from "./CoachCard";
+import { CoachStrip } from "./CoachStrip";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
 
 type Intensity = "recovery" | "easy" | "tempo" | "hard";
@@ -85,6 +85,15 @@ export function RunGenerator({
 
   return (
     <div className="space-y-4">
+      <CoachStrip
+        advice={advice}
+        target="run"
+        current={{ difficulty, duration }}
+        onApply={(s) => {
+          if (s.difficulty) setDifficulty(s.difficulty);
+          if (s.duration) setDuration(s.duration);
+        }}
+      />
       <div className="space-y-4 rounded-card border border-line bg-surface p-4 shadow-card">
         <Segmented label="Durasi" value={duration} onChange={setDuration} options={DURATIONS.map((d) => ({ value: d, label: `${d}'` }))} />
         <Segmented
@@ -108,15 +117,6 @@ export function RunGenerator({
         </div>
       </div>
 
-      <CoachCard
-        advice={advice}
-        target="run"
-        current={{ difficulty, duration }}
-        onApply={(s) => {
-          if (s.difficulty) setDifficulty(s.difficulty);
-          if (s.duration) setDuration(s.duration);
-        }}
-      />
 
       <OutputShell ref={outputRef} swapKey={`${duration}-${difficulty}-${seed}-${free}`} tag={{ label: DIFFICULTY_LABEL[difficulty], tone: INTENSITY_TONE[difficulty] }} title={workout.title} subtitle={`Total ${duration} menit · seed #${seed}`}>
         <div className="flex h-2.5 w-full overflow-hidden rounded-full" aria-hidden>

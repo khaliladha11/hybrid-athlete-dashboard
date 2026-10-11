@@ -5,7 +5,7 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.8.0 (2026-10-11) |
+| **Versi saat ini** | 0.8.1 (2026-10-11) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Live** | https://hybrid-athlete-dashboard.vercel.app |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
@@ -103,6 +103,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Concurrent training (setelah ST kaki / lari berat) | ✅ | |
 | Tampilan ringkas + dropdown rekomendasi | ✅ | 0.7 |
 | Tombol terapkan saran satu tap (di generator) | ✅ | Anti turun berantai |
+| Saran ringkas satu baris di atas Generator Lari + link ke detail di Profil | ✅ | 0.8.1. Generator Strength masih kartu lengkap |
 | Check-in subjektif harian (nyeri shin, pegal, mood, tidur) | ⬜ | Lihat roadmap |
 | Ambang personal (HR berat, HRV) dari data atlet | ⬜ | Sekarang konstanta tetap |
 
@@ -181,6 +182,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Alat: dumbbell, barbell, plat, band, pull-up bar, kursi, alat lain | ✅ | Daftar beban yang bisa dirakit tampil langsung |
 | Pilihan movement library + alasan bila tidak tersedia | ✅ | Gerakan wajib kondisi dikunci |
 | Tema & blok mingguan, Data & cadangan | ✅ | |
+| Nav bagian sticky: smooth scroll, highlight kartu tujuan, scroll spy | ✅ | 0.8.1, menghormati reduced motion |
 | Zona HR & RPE bisa diubah | ⬜ | Sekarang hanya pace |
 | Edit nama, target lomba, tanggal mulai blok | ⬜ | |
 
@@ -273,6 +275,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.6 | 2026-10-05 | Tema terang/gelap, sistem warna, mode bebas, Program target |
 | 0.7 | 2026-10-09 | Kalender aktivitas, saran ringkas, kondisi dropdown |
 | 0.8 | 2026-10-11 | Halaman Setting: kondisi berbasis riset, zona VDOT, alat & beban, movement library; Log → Strength & Setting |
+| 0.8.1 | 2026-10-11 | Saran ringkas di Generator Lari; navigasi Setting (smooth scroll, highlight, scroll spy) |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 
