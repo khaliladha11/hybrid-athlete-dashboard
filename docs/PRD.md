@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.7.0 (2026-10-09) |
+| **Versi saat ini** | 0.8.0 (2026-10-11) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Live** | https://hybrid-athlete-dashboard.vercel.app |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 6 file test, 96 unit test lolos · build produksi lolos |
+| **Kualitas** | 7 file test, 123 unit test lolos · build produksi lolos |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -48,7 +48,8 @@
 | Masalah | Jawaban di aplikasi |
 | --- | --- |
 | Program generik tidak memperhitungkan anterior pelvic tilt, shin splints, dan overpronation | Aturan cedera dikodekan sebagai modul TypeScript yang diuji (Spine-Friendly, prehab wajib, stabilitas panggul, target cadence) |
-| Alat terbatas (dumbbell modular, band, pull-up bar) | Generator hanya memakai movement library & batas beban yang ada |
+| Alat terbatas (dumbbell modular, band, pull-up bar) | Generator hanya memakai gerakan yang bisa dilakukan dengan alat yang ada, dan beban yang bisa dirakit dari plat |
+| Kondisi tubuh berubah (cedera baru, sembuh) | Kondisi diaktifkan/nonaktifkan di Setting dari katalog berbasis riset |
 | Bingung menyeimbangkan lari dan ST | Aturan concurrent training dan saran harian |
 | Mudah terlalu semangat (km naik drastis, terlalu banyak sesi berat) | Peringatan 80/20 dan kenaikan km > 30% |
 | Latihan monoton | Periodisasi blok 4 minggu, rotasi pola, tombol "Variasi lain" |
@@ -63,14 +64,19 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 - Error ditampilkan sebagai pesan singkat, **tanpa stack trace atau API key**.
 - Aplikasi tetap jalan penuh tanpa API key (**Demo Mode**).
 
-**Latihan**
-- ST hanya memakai gerakan dari movement library, dengan beban dalam batas library.
-- **Spine-Friendly Protocol:** tidak ada beban axial berat tanpa tumpuan.
+**Latihan — aturan umum (selalu berlaku, tidak bisa dimatikan)**
+- ST hanya memakai gerakan dari movement library yang dipilih di Setting.
 - **RPE ≤ 7** untuk semua set.
-- Sesi Lower/Full wajib berisi **prehab** (shin) dan **stabilitas panggul** (gluteus medius).
-- Pull-up memakai jalur progresi (band → negative) sebelum pull-up penuh.
-- Long run program naik ≤ 10% dan ≤ 2 km per minggu.
+- Beban tidak melebihi batas library, dan (bila alat sudah diisi) selalu bisa dirakit dari plat yang dimiliki.
+- Upper Pull diawali progresi pull-up (Dead Hang → Negative) selama gerakannya tersedia.
+- Long run program naik ≤ 10% dan ≤ 2 km per minggu; peringatan kenaikan km > 30%; distribusi 80/20.
 - Saran **tidak memblokir**: atlet tetap bebas memilih.
+
+**Latihan — aturan kondisi (ikut toggle di Setting)** · keputusan 2026-10-11
+- Spine-Friendly Protocol, prehab shin, stabilitas panggul, cue cadence/rel kereta, dan larangan gerakan tertentu **hanya berlaku bila kondisi terkait aktif**.
+- Kondisi hanya dari **katalog** dengan sumber kredibel (guideline, consensus, studi). Kondisi baru di katalog wajib menyertakan sumber dan test.
+- Kondisi teks bebas hanya menjadi catatan; tidak pernah mengubah generator.
+- Kondisi tidak pernah menambah gerakan di luar library; hanya mewajibkan, melarang, atau memberi catatan.
 
 ## 4. Status fitur per modul
 
@@ -79,12 +85,12 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Fitur | Status | Catatan |
 | --- | --- | --- |
 | Header profil (nama, usia, gaya hidup, fokus) | ✅ | Dari `config/athlete-profile.json` |
-| Target lomba, kondisi & batasan (dropdown), zona lari, alat & movement library | ✅ | Kondisi jadi dropdown per poin di 0.7 |
+| Target lomba | ✅ | Kondisi, zona, alat & movement library pindah ke Setting (0.8) |
 | Wellness hari ini (HRV, resting HR, tidur, CTL/ATL/Form) | ✅ | Status ✓ data hari ini / ✕ data lama |
 | Ringkasan 7 hari (km, pace, HR, long run, load, sesi) | ✅ | Plus distribusi 80/20 & tren km |
 | Kalender aktivitas bulanan + detail per tanggal | 🟡 | Hanya bulan ini & bulan lalu (data yang diambil 2 bulan) |
 | Detail aktivitas per interval / per km | ✅ | `/activity/[id]` |
-| Edit profil dari dalam aplikasi | ⬜ | Masih edit JSON + redeploy |
+| Edit profil dari dalam aplikasi | 🟡 | Kondisi, zona, alat, gerakan ✅ di Setting. Nama, target, dan tanggal blok masih di JSON |
 | Grafik tren (CTL/ATL/Form, km mingguan, pace, cadence) | ⬜ | Lihat roadmap |
 
 ### 4.2 Saran hari ini (coach)
@@ -106,8 +112,9 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | --- | --- | --- |
 | 30/45/60 menit × Easy/Moderate/High | ✅ | Durasi selalu tepat |
 | 13 pola (Z2, run-walk, cadence drill, tempo, cruise, progression, mini interval, Norwegian 4×4, 15/15, …) | ✅ | |
-| Target pace/HR/RPE dari zona profil, target cadence personal | ✅ | Cadence dari rata-rata 14 hari, maks 180 |
-| Variasi lain (seed berbeda), salin teks & format Set Huawei | ✅ | |
+| Target pace dari zona di Setting, target cadence personal | ✅ | Cadence dari rata-rata 14 hari, maks 180 |
+| Cue & catatan mengikuti kondisi aktif (cadence, rel kereta, Achilles tanpa 15/15, dll.) | ✅ | 0.8 |
+| Variasi lain (seed berbeda), tombol **Copy Set** (format Huawei) | ✅ | Tampilan tab Set Huawei disembunyikan sementara (0.8) |
 | Mengikuti blok mingguan / mode bebas | ✅ | |
 | Mengirim workout ke kalender intervals.icu / jam | ⬜ | Lihat roadmap |
 
@@ -119,6 +126,9 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Validator & sanitizer aturan wajib | ✅ | Diuji untuk semua kombinasi |
 | Gerakan utama ★ per blok, skema rep berputar, deload | ✅ | |
 | Mode bebas (tanpa blok) | ✅ | 0.6 |
+| Gerakan wajib/terlarang mengikuti kondisi aktif | ✅ | 0.8 |
+| Hanya gerakan yang dipilih & alatnya tersedia; beban dari kombinasi plat | ✅ | 0.8 |
+| Gerakan baru di movement library | ⬜ | Sesi pengembangan berikutnya |
 | Video/gambar teknik gerakan | ⬜ | |
 | Timer istirahat antar set | ⬜ | |
 
@@ -141,7 +151,9 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | --- | --- | --- |
 | Catat beban/rep/detik/RPE untuk gerakan ★ | ✅ | |
 | Progresi 2-for-2 (beban, detik tahan, band) | ✅ | Tidak melewati batas library |
-| Halaman Log: tren per gerakan, riwayat, hapus, ekspor/impor JSON | ✅ | |
+| Riwayat & tren per gerakan (halaman Strength), hapus per entri | ✅ | Pindah dari halaman Log (0.8) |
+| Ekspor/impor JSON (log + Setting + program + preferensi) | ✅ | Setting › Data & cadangan (0.8) |
+| Progresi ke beban berikutnya yang bisa dirakit | ✅ | 0.8 |
 | Sinkron antar perangkat | ⬜ | Masih `localStorage` |
 | Milestone pull-up (band → negative → penuh) | ⬜ | |
 
@@ -153,10 +165,24 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Design system (token semantik, oranye utama, sudut membulat) | ✅ | |
 | Tema Sistem/Terang/Gelap tersimpan | ✅ | |
 | Sistem warna intensitas (hijau/kuning/merah) & status (hijau/merah) | ✅ | |
-| Navigasi 5 tab (Profil, Lari, Program, Strength, Log) | ✅ | |
+| Navigasi 5 tab (Profil, Lari, Program, Strength, Setting) | ✅ | Log → Setting di 0.8; `/log` diarahkan ke Strength |
+| Efek hover (bayangan tipis) di semua tombol | ✅ | Hanya perangkat dengan pointer |
 | Mode offline (service worker) | ⬜ | Tanpa internet aplikasi tidak terbuka |
 | Login / proteksi akses | ⬜ | **Prioritas**, lihat §6 |
 | Notifikasi / pengingat latihan | ⬜ | |
+
+### 4.8 Setting (0.8)
+
+| Fitur | Status | Catatan |
+| --- | --- | --- |
+| Katalog 10 kondisi & batasan, toggle aktif/nonaktif, sumber per kondisi | ✅ | APT, shin splints, overpronation, MCU, punggung bawah, PFP, ITBS, Achilles, plantar fasciitis, bahu |
+| Catatan kondisi teks bebas | ✅ | Tampil di workout, tidak mengubah generator |
+| Zona pace Easy/Tempo/Interval/4×4: manual atau VDOT Daniels dari hasil lomba | ✅ | Default dari JSON, reset per zona |
+| Alat: dumbbell, barbell, plat, band, pull-up bar, kursi, alat lain | ✅ | Daftar beban yang bisa dirakit tampil langsung |
+| Pilihan movement library + alasan bila tidak tersedia | ✅ | Gerakan wajib kondisi dikunci |
+| Tema & blok mingguan, Data & cadangan | ✅ | |
+| Zona HR & RPE bisa diubah | ⬜ | Sekarang hanya pace |
+| Edit nama, target lomba, tanggal mulai blok | ⬜ | |
 
 ## 5. Persyaratan non-fungsional
 
@@ -177,14 +203,15 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 Diurutkan dari yang paling berdampak.
 
 1. **Belum ada login.** Siapa pun yang tahu URL Vercel bisa melihat data intervals.icu pemilik. Mitigasi cepat: aktifkan *Vercel → Settings → Deployment Protection*.
-2. **Data di perangkat saja.** Log ST, setelan program, tema, dan toggle blok ada di `localStorage`. Hilang bila data browser dihapus, dan tidak sinkron antara HP dan laptop. Cadangan: ekspor JSON manual.
-3. **Profil statis.** Mengubah zona, alat, atau tanggal mulai blok perlu edit JSON dan redeploy.
-4. **Program & generator belum terhubung.** Sesi di Program tidak bisa langsung dibuka di generator, dan aktivitas aktual belum dicocokkan dengan rencana.
-5. **Ambang tetap.** HR lari berat (155), penurunan HRV (15%), dan kenaikan resting HR (5 bpm) belum dipersonalisasi.
-6. **Kalender terbatas 2 bulan.** Hanya bulan ini dan bulan lalu yang diambil dari intervals.icu.
-7. **Belum offline.** Belum ada service worker.
-8. **Pengujian UI manual.** Belum ada test komponen/e2e maupun CI GitHub Actions.
-9. **Screenshot dokumentasi** perlu diperbarui untuk tampilan Profil 0.7 (kalender & saran ringkas).
+2. **Data di perangkat saja.** Setting, log ST, program, tema, dan toggle blok ada di `localStorage`. Hilang bila data browser dihapus, dan tidak sinkron antara HP dan laptop. Cadangan: ekspor JSON manual (kini mencakup semuanya). Makin penting sejak 0.8 karena Setting menyimpan lebih banyak data.
+3. **Profil sebagian statis.** Nama, target lomba, dan tanggal mulai blok masih di JSON. Bagian yang dirender server (mis. header Profil) memakai nilai default, bukan Setting perangkat.
+4. **Movement library belum bisa ditambah.** Alat baru (mis. kettlebell) baru dicatat; gerakannya menyusul. Kondisi di luar katalog hanya catatan.
+5. **Program & generator belum terhubung.** Sesi di Program tidak bisa langsung dibuka di generator, dan aktivitas aktual belum dicocokkan dengan rencana.
+6. **Ambang tetap.** HR lari berat (155), penurunan HRV (15%), dan kenaikan resting HR (5 bpm) belum dipersonalisasi.
+7. **Kalender terbatas 2 bulan.** Hanya bulan ini dan bulan lalu yang diambil dari intervals.icu.
+8. **Belum offline.** Belum ada service worker.
+9. **Pengujian UI manual.** Belum ada test komponen/e2e maupun CI GitHub Actions.
+10. **Screenshot dokumentasi** perlu diperbarui untuk Profil 0.7 dan halaman Setting 0.8.
 
 ## 7. Roadmap & saran pengembangan
 
@@ -195,10 +222,13 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 
 | Usulan versi | Isi | Alasan |
 | --- | --- | --- |
-| **0.8 Aman & tersinkron** | Proteksi akses (PIN/passcode) + sinkron data ke database | Menutup dua keterbatasan terbesar sebelum fitur bertambah |
-| **0.9 Program hidup** | Program ↔ generator, kepatuhan rencana vs aktual di kalender, prediksi waktu lomba | Program target jadi benar-benar dipakai harian |
-| **0.10 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
-| **1.0 Siap pakai penuh** | Offline, edit profil di aplikasi, kirim workout ke intervals.icu, CI + test e2e | Stabil dan mandiri tanpa edit kode |
+| **0.9 Library & alat** | Gerakan baru untuk alat yang dimiliki (sesi berikutnya sesuai rencana), dengan pemetaan alat & sumber | Variasi ST bertambah sesuai alat |
+| **0.10 Aman & tersinkron** | Proteksi akses (PIN/passcode) + sinkron data ke database | Setting & log kini berharga; jangan hilang atau terbuka |
+| **0.11 Program hidup** | Program ↔ generator, kepatuhan rencana vs aktual di kalender, prediksi waktu lomba | Program target jadi benar-benar dipakai harian |
+| **0.12 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
+| **1.0 Siap pakai penuh** | Offline, edit target & tanggal blok di aplikasi, kirim workout ke intervals.icu, CI + test e2e | Stabil dan mandiri tanpa edit kode |
+
+> Catatan urutan (2026-10-11): "Edit profil di aplikasi" dimajukan ke 0.8 atas permintaan pemilik, disimpan di perangkat dulu. Proteksi akses & sinkron database bergeser ke 0.10.
 
 ### Backlog lengkap
 
@@ -207,13 +237,15 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P0 | **Proteksi akses** (passcode di middleware atau Vercel Authentication) | S | Data kesehatan tidak terbuka untuk umum |
 | P0 | **Sinkron data** (Upstash Redis / Supabase) untuk log, program, preferensi | M | Data aman dan sama di semua perangkat |
 | P0 | **CI GitHub Actions** (typecheck, test, build tiap push) | S | Mencegah rilis rusak |
+| P1 | **Gerakan baru** di movement library untuk alat yang dimiliki (+ pemetaan alat, META, sumber) | M | Variasi ST lebih kaya |
 | P1 | **Program → generator**: tombol "Kerjakan sesi hari ini" yang mengisi generator lari | S | Satu tap dari rencana ke workout |
 | P1 | **Kepatuhan program**: tandai sesi rencana ✓/✕ dari aktivitas intervals.icu, tampil di kalender | M | Tahu apakah masih di jalur |
 | P1 | **Prediksi waktu lomba** (rumus Riegel dari lari terbaik terbaru) untuk mengecek target | S | Target realistis |
 | P1 | **Check-in harian**: nyeri shin (0–10), pegal, kualitas tidur, mood → ikut ke saran | S | Sinyal dini shin splints yang tidak terlihat di HRV |
 | P1 | **Grafik tren** CTL/ATL/Form & km mingguan | M | Melihat kebugaran dan kelelahan jangka panjang |
 | P2 | **Kirim workout ke kalender intervals.icu** (lalu ke jam yang terhubung) | M | Workout langsung muncul di jam |
-| P2 | **Edit profil di aplikasi** (zona, alat, tanggal blok, target) | M | Tanpa edit JSON |
+| P2 | **Edit sisa profil di aplikasi** (target lomba, tanggal mulai blok, zona HR/RPE) | S | Tanpa edit JSON sama sekali |
+| P3 | Tampilkan kembali tab **Set Huawei** (pratinjau format set) | S | Disembunyikan sementara di 0.8 |
 | P2 | **Ambang personal** (HR berat dari zona/LTHR, baseline HRV 30 hari) | S | Saran lebih akurat |
 | P2 | **Mode offline** (service worker, cache workout terakhir) | M | Tetap bisa dibuka di gym tanpa sinyal |
 | P2 | **Timer sesi ST** (istirahat antar set, hitung mundur tahan) | M | Tidak perlu aplikasi timer lain |
@@ -240,6 +272,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.5 | 2026-10-05 | Redesign design system |
 | 0.6 | 2026-10-05 | Tema terang/gelap, sistem warna, mode bebas, Program target |
 | 0.7 | 2026-10-09 | Kalender aktivitas, saran ringkas, kondisi dropdown |
+| 0.8 | 2026-10-11 | Halaman Setting: kondisi berbasis riset, zona VDOT, alat & beban, movement library; Log → Strength & Setting |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 

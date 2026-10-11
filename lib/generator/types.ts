@@ -91,6 +91,8 @@ export interface StrengthWorkout {
   /** Skema repetisi sesi ini (undulating per sesi). */
   scheme: string;
   deload: boolean;
+  /** Gerakan aktif tidak cukup untuk mengisi durasi → sesi lebih pendek dari pilihan. */
+  limited?: boolean;
   items: StrengthItem[];
   notes: string[];
 }

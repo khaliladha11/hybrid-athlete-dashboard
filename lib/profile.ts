@@ -1,10 +1,17 @@
 import rawProfile from "@/config/athlete-profile.json";
+import { defaultSettings, resolveProfile, type ResolvedProfile } from "./athlete-settings";
+import { parseWeight, type WeightSpec } from "./weights";
+
+export { parseWeight, type WeightSpec };
+export type { ResolvedProfile };
 
 export interface Movement {
   name: string;
   weight: string;
   /** false = tercatat di library tapi belum dipakai generator (mis. belum mampu). Default true. */
   available?: boolean;
+  /** Beban (kg) yang bisa dirakit dari alat, sudah dalam rentang library. Tidak ada = pakai rentang library. */
+  loads?: number[];
 }
 
 export type MovementCategory =
@@ -24,43 +31,21 @@ export interface AthleteProfile {
   occupation?: string;
   category?: string;
   targets?: { goals?: string[]; raceTargets?: string[] };
+  /** Id kondisi aktif dari katalog `lib/conditions.ts`. */
   conditions?: string[];
-  equipment?: string[];
+  /** Alat (lihat `Equipment` di `lib/equipment.ts`). */
+  equipment?: unknown;
   /** Blok periodisasi: `blockWeeks` minggu, minggu terakhir = deload. */
   training?: { blockStart?: string; blockWeeks?: number };
   runZones?: Record<string, Record<string, string | number>>;
   movementLibrary: MovementLibrary;
 }
 
-export const profile: AthleteProfile = rawProfile as AthleteProfile;
+/** Profil mentah dari JSON = nilai default halaman Setting. */
+export const baseProfile: AthleteProfile = rawProfile as AthleteProfile;
 
-/** Batas beban hasil parsing string "weight" di movement library. */
-export type WeightSpec =
-  | { kind: "load"; min: number; max: number; unit: "kg"; perHand: boolean }
-  | { kind: "bodyweight" }
-  | { kind: "band"; options: string[] };
-
-export function parseWeight(weight: string): WeightSpec {
-  const w = weight.trim();
-  if (/band/i.test(w)) {
-    const options = w
-      .replace(/band/i, "")
-      .split("/")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    return { kind: "band", options: options.length ? options : ["Light"] };
-  }
-  const nums = w.match(/\d+(?:[.,]\d+)?/g);
-  if (!nums || /bodyweight/i.test(w)) return { kind: "bodyweight" };
-  const values = nums.map((n) => Number(n.replace(",", ".")));
-  return {
-    kind: "load",
-    min: Math.min(...values),
-    max: Math.max(...values),
-    unit: "kg",
-    perHand: /tangan/i.test(w),
-  };
-}
+/** Profil efektif dengan pengaturan default (dipakai server & sebelum pengaturan perangkat terbaca). */
+export const profile: ResolvedProfile = resolveProfile(baseProfile, defaultSettings(baseProfile));
 
 /** Semua gerakan resmi (termasuk warm-up/cool-down) — dipakai untuk whitelist. */
 export function allMovementNames(lib: MovementLibrary = profile.movementLibrary): Set<string> {

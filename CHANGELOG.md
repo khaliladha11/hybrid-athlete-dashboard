@@ -2,6 +2,31 @@
 
 Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/).
 
+## [0.8.0] — 2026-10-11 · Halaman Setting
+
+### Ditambahkan
+- **Halaman Setting** (menggantikan tab Log) — semua pengaturan profil atlet di satu tempat, tersimpan di perangkat:
+  - **Kondisi & batasan** dari katalog 10 kondisi berbasis riset (APT, shin splints, overpronation, jeda MCU, nyeri punggung bawah, nyeri lutut depan/PFP, ITBS, Achilles, plantar fasciitis, nyeri bahu). Setiap kondisi punya aturan generator & daftar sumber (guideline/consensus/studi, DOI terverifikasi). Bisa diaktifkan/nonaktifkan; catatan teks bebas tampil di workout.
+  - **Zona lari** per jenis (Easy, Tempo, Interval, Norwegian 4×4): ubah manual, atau hitung dari hasil lomba dengan **rumus VDOT Daniels & Gilbert**.
+  - **Alat**: dumbbell (berat handle & jumlah), barbell mode, plat (berat × jumlah), band Light/Medium/Heavy, pull-up bar, kursi/bench, alat lain. Daftar beban yang bisa dirakit tampil langsung.
+  - **Movement library**: centang gerakan yang boleh dipakai; alasan tampil bila gerakan tidak tersedia (butuh alat, beban tidak bisa dirakit, dihindari kondisi). Gerakan wajib kondisi dikunci.
+  - **Tampilan & program** (tema, blok mingguan) dan **Data & cadangan** (ekspor/impor JSON v2: log + Setting + program + preferensi; file lama tetap bisa diimpor).
+- Generator ST hanya meresepkan beban yang bisa dirakit dari plat; progresi beban naik/turun ke beban berikutnya yang bisa dirakit.
+- Sesi ditandai "lebih pendek" (bukan error) bila gerakan aktif tidak cukup untuk durasi yang dipilih.
+- 27 test baru (`settings.test.ts`), total 123.
+
+### Diubah
+- Aturan khusus kondisi (Spine-Friendly, prehab shin, stabilitas panggul, cue cadence/rel kereta) kini **mengikuti kondisi aktif**. Aturan umum (RPE ≤ 7, beban ≤ library & alat, long run ≤ 10%, 80/20) tetap selalu berlaku.
+- Kondisi APT kini mewajibkan Dead Bug (anti-ekstensi) di Lower/Full Body.
+- Riwayat log pindah ke halaman Strength (bagian **Riwayat latihan**); `/log` diarahkan ke sana.
+- Kartu Kondisi, Zona lari, Alat & movement library, dan Pengaturan dipindah dari Profil ke Setting.
+- Generator lari: tab "Set Huawei" disembunyikan; tombol salin menjadi **Copy Set**.
+- Bayangan tipis saat hover di semua tombol (hanya perangkat dengan pointer).
+- Format `conditions` & `equipment` di `athlete-profile.json` jadi terstruktur.
+
+### Diperbaiki
+- Teks "Moderate" di pilihan kesulitan halaman Strength tidak lagi keluar dari tombol.
+
 ## [0.7.0] — 2026-10-09 · Profil lebih ringkas
 
 ### Diubah
@@ -97,6 +122,7 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
+[0.8.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/d64e590...main
 [0.7.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/6e6762f
 [0.6.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/afe6f63
 [0.5.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/9a668ef

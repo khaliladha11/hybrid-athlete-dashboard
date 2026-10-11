@@ -22,6 +22,7 @@ import {
 } from "@/lib/generator";
 import type { BlockContext } from "@/lib/generator/block";
 import type { Advice } from "@/lib/coach";
+import { useResolvedProfile } from "@/lib/settings-store";
 import { CoachCard } from "./CoachCard";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
 
@@ -55,20 +56,22 @@ export function RunGenerator({
   const [duration, setDuration] = useState<Duration>(45);
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const [seed, setSeed] = useState(initialSeed);
-  const [view, setView] = useState<"list" | "huawei">("list");
   const [blockEnabled, setBlockEnabled] = useBlockEnabled();
   const free = !blockEnabled;
 
+  const p = useResolvedProfile();
+
   const workout = useMemo(
-    () => generateRunWorkout({ duration, difficulty, seed, block, cadenceSpm, free }),
-    [duration, difficulty, seed, block, cadenceSpm, free],
+    () => generateRunWorkout({ duration, difficulty, seed, block, cadenceSpm, free }, p),
+    [duration, difficulty, seed, block, cadenceSpm, free, p],
   );
-  const text = useMemo(() => (view === "list" ? runToText(workout) : runToHuaweiSets(workout)), [workout, view]);
+  // Tampilan Set Huawei disembunyikan sementara; tombol "Copy Set" tetap menyalin format set-nya.
+  const setText = useMemo(() => runToHuaweiSets(workout), [workout]);
   const outputRef = useRef<HTMLElement>(null);
 
   const render = useCallback(
-    (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm, free })),
-    [duration, difficulty, block, cadenceSpm, free],
+    (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm, free }, p)),
+    [duration, difficulty, block, cadenceSpm, free, p],
   );
   const canRegenerate = useMemo(() => hasVariations(render), [render]);
   const regenerate = () => {
@@ -136,28 +139,7 @@ export function RunGenerator({
             ))}
         </div>
 
-        <div className="mt-4 grid grid-cols-2 border-b border-line text-body" role="tablist">
-          {(
-            [
-              ["list", "Daftar"],
-              ["huawei", "Set Huawei"],
-            ] as const
-          ).map(([v, l]) => (
-            <button
-              key={v}
-              role="tab"
-              type="button"
-              aria-selected={view === v}
-              onClick={() => setView(v)}
-              className={`pressable -mb-px min-h-11 border-b-2 ${view === v ? "border-brand font-semibold text-ink" : "border-transparent text-muted hover:text-ink"}`}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
-
-        {view === "list" ? (
-          <ol className="mt-4 space-y-4">
+        <ol className="mt-4 space-y-4">
             {workout.blocks.map((b, bi) => {
               const blockMin = b.repeat * b.steps.reduce((s, st) => s + st.durationMin, 0);
               return (
@@ -196,9 +178,6 @@ export function RunGenerator({
               );
             })}
           </ol>
-        ) : (
-          <pre className="tabular mt-4 overflow-x-auto rounded-inner bg-subtle p-3 text-[13px] leading-relaxed whitespace-pre-wrap">{text}</pre>
-        )}
 
         <ul className="mt-4 space-y-1.5 rounded-inner bg-info-soft p-3 text-[13px] text-ink">
           {workout.notes.map((n) => (
@@ -211,8 +190,8 @@ export function RunGenerator({
       </OutputShell>
 
       <GeneratorActions
-        copyText={text}
-        copyLabel={view === "list" ? "Copy teks" : "Copy Huawei"}
+        copyText={setText}
+        copyLabel="Copy Set"
         onRegenerate={regenerate}
         canRegenerate={canRegenerate}
       />

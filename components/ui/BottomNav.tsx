@@ -8,7 +8,7 @@ const ITEMS = [
   { href: "/run", label: "Lari", icon: "M13 4a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0M9.5 21l2-6 3 2v4m-7-9 3-3 3 1 2 3 3 1" },
   { href: "/program", label: "Program", icon: "M5 21V4m0 0h12l-2.5 4L17 12H5" },
   { href: "/strength", label: "Strength", icon: "M3 10v4m3-6v8m0-4h12m0-4v8m3-6v4" },
-  { href: "/log", label: "Log", icon: "M9 5h10M9 12h10M9 19h10M4.5 5h.01M4.5 12h.01M4.5 19h.01" },
+  { href: "/setting", label: "Setting", icon: "M4 6h9m4 0h3M4 12h3m4 0h9M4 18h11m4 0h1M15 4v4M9 10v4M17 16v4" },
 ];
 
 export function BottomNav() {

@@ -49,12 +49,13 @@ export function Segmented<T extends string | number>({
               role="radio"
               aria-checked={active}
               onClick={() => onChange(o.value)}
-              className={`pressable min-h-11 whitespace-nowrap rounded-control border px-2 text-body ${
+              className={`pressable inline-flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-control border px-1.5 text-body whitespace-nowrap ${
                 active ? activeClass : "border-line-strong bg-surface text-muted hover:text-ink"
               }`}
             >
-              {tone && <span aria-hidden className={`mr-1.5 inline-block h-2 w-2 rounded-full align-middle ${TONES[tone].fill}`} />}
-              {o.label}
+              {tone && <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${TONES[tone].fill}`} />}
+              {/* Label terpotong (…) di layar sangat sempit, tidak pernah keluar dari tombol. */}
+              <span className="truncate">{o.label}</span>
             </button>
           );
         })}

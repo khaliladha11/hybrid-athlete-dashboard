@@ -84,11 +84,15 @@ export function recommend(movement: Movement, entries: LogEntry[], opts: { deloa
 
   if (spec.kind === "load" && last.load !== undefined) {
     const step = loadStep(spec);
-    // Beban terakhir dipakai apa adanya (hanya di-clamp); hasil baru dibulatkan ke 0.25 kg.
+    // Beban terakhir dipakai apa adanya (hanya di-clamp); hasil baru dibulatkan ke 0.25 kg,
+    // atau — bila alat sudah diisi — ke beban terdekat yang bisa dirakit.
     const clamp = (v: number) => Math.min(spec.max, Math.max(spec.min, round(v, 0.25)));
     const from = Math.min(spec.max, Math.max(spec.min, last.load));
+    const loads = movement.loads?.length ? movement.loads : undefined;
+    const stepDown = () => (loads ? ([...loads].reverse().find((v) => v < from) ?? from) : clamp(from - step));
+    const stepUp = () => (loads ? (loads.find((v) => v > from) ?? from) : clamp(from + step));
     if (last.rpe > last.targetRpe + 1) {
-      const load = clamp(from - step);
+      const load = stepDown();
       return { kind: "load", action: load < from ? "decrease" : "hold", load, from, reason: `RPE terakhir ${last.rpe} (target ${last.targetRpe}) — turunkan dulu.` };
     }
     if (last.rpe > last.targetRpe) {
@@ -98,7 +102,10 @@ export function recommend(movement: Movement, entries: LogEntry[], opts: { deloa
       if (from >= spec.max) {
         return { kind: "load", action: "hold", load: from, from, reason: `Sudah di batas library (${spec.max} kg) — progresi lewat tempo lebih lambat, bukan beban.` };
       }
-      const load = clamp(from + step);
+      const load = stepUp();
+      if (load <= from) {
+        return { kind: "load", action: "hold", load: from, from, reason: "Sudah beban terberat yang bisa dirakit dari alat — progresi lewat tempo lebih lambat atau tambah rep." };
+      }
       return { kind: "load", action: "increase", load, from, reason: `2 sesi berturut di batas atas rep dengan RPE ≤ ${last.targetRpe} — naik ${load - from} kg.` };
     }
     return {
@@ -149,7 +156,9 @@ export function applyProgression(
         if (it.load.kind !== "load") return it;
         const spec = parseWeight(m.weight);
         if (spec.kind !== "load") return it;
-        const v = Math.min(spec.max, Math.max(spec.min, rec.load));
+        const clamped = Math.min(spec.max, Math.max(spec.min, rec.load));
+        // Alat sudah diisi → beban yang diresepkan harus bisa dirakit.
+        const v = m.loads?.length ? m.loads.reduce((b, x) => (Math.abs(x - clamped) < Math.abs(b - clamped) ? x : b), m.loads[0]) : clamped;
         return { ...it, load: { ...it.load, min: v, max: v }, progression: `${ARROW[rec.action]} ${rec.reason}` };
       }
       case "band":

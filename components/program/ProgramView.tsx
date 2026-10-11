@@ -9,6 +9,7 @@ import { addDays, formatDateId, startOfWeekMonday } from "@/lib/date";
 import { DIFFICULTY_LABEL } from "@/lib/generator/types";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import { useStoredString } from "@/lib/preferences";
+import { useResolvedProfile } from "@/lib/settings-store";
 import {
   PHASE_LABEL,
   RACES,
@@ -68,15 +69,16 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
   const settings = useMemo(() => parseSettings(raw, today), [raw, today]);
   const save = (patch: Partial<Settings>) => setRaw(JSON.stringify({ ...settings, ...patch }));
 
+  const p = useResolvedProfile();
   const goalSec = parseGoal(settings.goal);
   // Tanggal mulai selalu dinormalkan ke Senin.
   const startDate = startOfWeekMonday(settings.startDate);
   const program = useMemo(
     () =>
       goalSec
-        ? buildProgram({ race: settings.race, goalSec, startDate, runsPerWeek: settings.runsPerWeek, currentLongRunKm })
+        ? buildProgram({ race: settings.race, goalSec, startDate, runsPerWeek: settings.runsPerWeek, currentLongRunKm }, p)
         : null,
-    [settings.race, goalSec, startDate, settings.runsPerWeek, currentLongRunKm],
+    [settings.race, goalSec, startDate, settings.runsPerWeek, currentLongRunKm, p],
   );
   const current = program ? currentWeekIndex(program, today) : 0;
   const currentWeek = program?.weeks.find((w) => w.index === current);

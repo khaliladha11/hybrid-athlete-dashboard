@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BUTTON } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
@@ -24,19 +25,32 @@ import {
   type Difficulty,
   type Duration,
   type StrengthType,
+  type StrengthWorkout,
 } from "@/lib/generator";
 import type { BlockContext } from "@/lib/generator/block";
 import type { Advice } from "@/lib/coach";
-import { profile, type Movement } from "@/lib/profile";
+import type { Movement, ResolvedProfile } from "@/lib/profile";
+import { useResolvedProfile } from "@/lib/settings-store";
 import { applyProgression } from "@/lib/progression";
 import { useTrainingLog } from "@/lib/training-log";
 import { CoachCard } from "./CoachCard";
 import { LogForm } from "./LogForm";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
 
-const MOVEMENTS = new Map<string, Movement>(
-  (["upperPush", "upperPull", "lower", "stabilityAndCore", "prehab"] as const).flatMap((c) => profile.movementLibrary[c] ?? []).map((m) => [m.name, m]),
-);
+function movementMap(p: ResolvedProfile) {
+  return new Map<string, Movement>(
+    (["upperPush", "upperPull", "lower", "stabilityAndCore", "prehab"] as const).flatMap((c) => p.movementLibrary[c] ?? []).map((m) => [m.name, m]),
+  );
+}
+
+/** Generator melempar error bila gerakan aktif terlalu sedikit untuk durasi ini: tampilkan pesan, bukan crash. */
+function tryGenerate(fn: () => StrengthWorkout): StrengthWorkout | null {
+  try {
+    return fn();
+  } catch {
+    return null;
+  }
+}
 
 function restLabel(sec: number) {
   return sec >= 60 ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}` : `${sec} dtk`;
@@ -61,26 +75,31 @@ export function StrengthGenerator({
   const free = !blockEnabled;
   const [saved, setSaved] = useState(false);
   const log = useTrainingLog();
+  const p = useResolvedProfile();
+  const movements = useMemo(() => movementMap(p), [p]);
 
   const generated = useMemo(
-    () => generateStrengthWorkout({ type, duration, difficulty, seed, block, free }),
-    [type, duration, difficulty, seed, block, free],
+    () => tryGenerate(() => generateStrengthWorkout({ type, duration, difficulty, seed, block, free }, p)),
+    [type, duration, difficulty, seed, block, free, p],
   );
-  // Beban gerakan ★ disesuaikan dengan riwayat sesi (tetap dalam batas library).
-  const workout = useMemo(() => applyProgression(generated, MOVEMENTS, log), [generated, log]);
-  const text = useMemo(() => strengthToText(workout), [workout]);
+  // Beban gerakan ★ disesuaikan dengan riwayat sesi (tetap dalam batas library & alat).
+  const workout = useMemo(() => generated && applyProgression(generated, movements, log), [generated, movements, log]);
+  const text = useMemo(() => (workout ? strengthToText(workout) : ""), [workout]);
   const outputRef = useRef<HTMLElement>(null);
 
   const render = useCallback(
-    (s: number) => strengthToText(generateStrengthWorkout({ type, duration, difficulty, seed: s, block, free })),
-    [type, duration, difficulty, block, free],
+    (s: number) => {
+      const w = tryGenerate(() => generateStrengthWorkout({ type, duration, difficulty, seed: s, block, free }, p));
+      return w ? strengthToText(w) : "";
+    },
+    [type, duration, difficulty, block, free, p],
   );
   const canRegenerate = useMemo(() => hasVariations(render), [render]);
   const regenerate = () => {
     setSeed(nextDistinctSeed(render, seed));
     revealIfScrolledPast(outputRef.current);
   };
-  const est = Math.round(estimateStrengthMinutes(workout));
+  const est = workout ? Math.round(estimateStrengthMinutes(workout)) : 0;
 
   return (
     <div className="space-y-4">
@@ -92,7 +111,7 @@ export function StrengthGenerator({
           onChange={setType}
           options={STRENGTH_TYPES.map((t) => ({ value: t, label: STRENGTH_TYPE_LABEL[t] }))}
         />
-        <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+        <div className="space-y-4">
           <Segmented label="Durasi" value={duration} onChange={setDuration} options={DURATIONS.map((d) => ({ value: d, label: `${d}'` }))} />
           <Segmented
             label="Kesulitan"
@@ -126,6 +145,19 @@ export function StrengthGenerator({
         }}
       />
 
+      {!workout ? (
+        <div role="alert" className="rounded-card border border-danger bg-danger-soft p-4 text-body text-ink">
+          <p className="font-semibold text-danger-ink">✕ Gerakan aktif belum cukup untuk {STRENGTH_TYPE_LABEL[type]} {duration}&apos;.</p>
+          <p className="mt-1 text-[14px]">
+            Aktifkan lebih banyak gerakan atau alat di{" "}
+            <Link href="/setting#gerakan" className="font-semibold underline">
+              Setting › Movement library
+            </Link>
+            , atau pilih durasi lebih pendek.
+          </p>
+        </div>
+      ) : (
+      <>
       <OutputShell ref={outputRef} swapKey={`${type}-${duration}-${difficulty}-${seed}-${free}`} tag={{ label: DIFFICULTY_LABEL[difficulty], tone: INTENSITY_TONE[difficulty] }} title={workout.title} subtitle={`Estimasi ±${est} menit · Skema ${workout.scheme} · RPE ${workout.items.find((i) => i.phase === "main")?.rpe ?? "-"} · seed #${seed}`}>
         {(["warmup", "main", "cooldown"] as const).map((phase) => {
           const items = workout.items.filter((i) => i.phase === phase);
@@ -183,6 +215,7 @@ export function StrengthGenerator({
           <LogForm
             workout={workout}
             block={block}
+            library={p.movementLibrary}
             onDone={() => setLogging(false)}
             onSaved={() => {
               setLogging(false);
@@ -220,6 +253,8 @@ export function StrengthGenerator({
         onRegenerate={regenerate}
         canRegenerate={canRegenerate}
       />
+      </>
+      )}
     </div>
   );
 }

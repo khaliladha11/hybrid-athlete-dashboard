@@ -1,4 +1,5 @@
-import { parseWeight, profile, type AthleteProfile, type Movement, type MovementCategory } from "@/lib/profile";
+import { parseWeight, profile, type Movement, type MovementCategory, type ResolvedProfile } from "@/lib/profile";
+import type { ActiveRules } from "@/lib/conditions";
 import { blockLabel, DEFAULT_BLOCK, type BlockContext } from "./block";
 import { createRng, type Rng } from "./rng";
 import {
@@ -12,8 +13,8 @@ import {
   type StrengthType,
   type StrengthWorkout,
 } from "./types";
-import { COMPOUND_MOVEMENTS, itemSeconds, META, STABILITY_HIP } from "./meta";
-import { assertValidStrength, sanitizeStrength } from "./validate";
+import { COMPOUND_MOVEMENTS, estimateStrengthMinutes, itemSeconds, META, STABILITY_HIP } from "./meta";
+import { assertValidStrength, DURATION_TOLERANCE_MIN, sanitizeStrength } from "./validate";
 
 export const STRENGTH_RPE: Record<Difficulty, number> = { easy: 5, moderate: 6, high: 7 };
 /** Minggu deload: RPE turun satu (tidak di bawah 5). */
@@ -61,14 +62,24 @@ type Slot =
  * Slot `anchor` = gerakan utama yang dikunci selama satu blok (variasi sistematis,
  * bukan acak — Kassiano dkk. 2022). Slot lain berputar tiap generate.
  */
-function planSlots(type: StrengthType, duration: Duration, rng: Rng): Slot[] {
+function planSlots(
+  type: StrengthType,
+  duration: Duration,
+  rng: Rng,
+  rules: Pick<ActiveRules, "hipStability" | "requiredLower">,
+  prehabNames: Set<string>,
+): Slot[] {
   const extra = duration === 30 ? 0 : duration === 45 ? 1 : 2;
-  const hipStability: Slot = { kind: "pool", category: "stabilityAndCore", role: "accessory", include: STABILITY_HIP };
-  const prehab: Slot[] = [
-    { kind: "fixed", name: "Tibialis Wall Raise", role: "accessory" },
-    { kind: "fixed", name: "Eccentric Calf Raise", role: "accessory" },
-  ];
-  const deadBug: Slot = { kind: "fixed", name: "Dead Bug", role: "accessory" };
+  // Stabilitas panggul (gluteus medius) bila kondisi aktif mewajibkan; selain itu aktivasi core/stabilitas umum.
+  const stability: Slot = rules.hipStability
+    ? { kind: "pool", category: "stabilityAndCore", role: "accessory", include: STABILITY_HIP }
+    : { kind: "pool", category: "stabilityAndCore", role: "accessory" };
+  // Gerakan wajib dari kondisi aktif: core di tengah, prehab di akhir sesi.
+  const fixed = (name: string): Slot => ({ kind: "fixed", name, role: "accessory" });
+  const requiredCore = rules.requiredLower.filter((n) => !prehabNames.has(n)).map(fixed);
+  const requiredPrehab = rules.requiredLower.filter((n) => prehabNames.has(n)).map(fixed);
+  const deadBug = fixed("Dead Bug");
+  const lowerCore = requiredCore.length ? requiredCore : duration === 60 ? [deadBug] : [];
   const pool = (category: MovementCategory, n: number, anchors = 0): Slot[] =>
     Array.from(
       { length: n },
@@ -77,7 +88,7 @@ function planSlots(type: StrengthType, duration: Duration, rng: Rng): Slot[] {
 
   switch (type) {
     case "lower":
-      return [hipStability, ...pool("lower", 2 + extra, 2), ...(duration === 60 ? [deadBug] : []), ...prehab];
+      return [stability, ...pool("lower", 2 + extra, 2), ...lowerCore, ...requiredPrehab];
     case "fullBody": {
       const upperExtra =
         extra === 0
@@ -86,14 +97,14 @@ function planSlots(type: StrengthType, duration: Duration, rng: Rng): Slot[] {
             ? pool(rng.pick(["upperPush", "upperPull"] as const), 1)
             : [...pool("upperPush", 1), ...pool("upperPull", 1)];
       return [
-        hipStability,
+        stability,
         ...pool("lower", 1, 1),
         ...(extra > 0 ? pool("lower", 1) : []),
         ...pool("upperPush", 1, 1),
         ...pool("upperPull", 1, 1),
         ...upperExtra,
-        ...(duration === 60 ? [deadBug] : []),
-        ...prehab,
+        ...lowerCore,
+        ...requiredPrehab,
       ];
     }
     case "upperPush":
@@ -109,7 +120,11 @@ function planSlots(type: StrengthType, duration: Duration, rng: Rng): Slot[] {
   }
 }
 
-export function prescribeLoad(weight: string, difficulty: Difficulty): LoadPrescription {
+/**
+ * Rentang beban sesuai level dari rentang library. Bila `loads` (beban yang bisa
+ * dirakit dari alat) ada, hasil dipilih dari daftar itu.
+ */
+export function prescribeLoad(weight: string, difficulty: Difficulty, loads?: number[]): LoadPrescription {
   const spec = parseWeight(weight);
   if (spec.kind === "bodyweight") return spec;
   if (spec.kind === "band") {
@@ -117,13 +132,22 @@ export function prescribeLoad(weight: string, difficulty: Difficulty): LoadPresc
     return { kind: "band", band };
   }
   const span = spec.max - spec.min;
-  if (span === 0) return { ...spec };
+  if (span === 0) return snapToLoads({ ...spec }, loads);
   const step = span >= 2 ? 0.5 : 0.25;
   const [lo, hi] = difficulty === "easy" ? [0, 1 / 3] : difficulty === "moderate" ? [1 / 3, 2 / 3] : [2 / 3, 1];
   const clamp = (v: number) => Math.min(spec.max, Math.max(spec.min, v));
   const min = clamp(Math.floor((spec.min + span * lo) / step) * step);
   const max = clamp(Math.ceil((spec.min + span * hi) / step) * step);
-  return { ...spec, min, max: Math.max(min, max) };
+  return snapToLoads({ ...spec, min, max: Math.max(min, max) }, loads);
+}
+
+function snapToLoads<T extends { min: number; max: number }>(range: T, loads?: number[]): T {
+  if (!loads?.length) return range;
+  const inRange = loads.filter((v) => v >= range.min - 1e-9 && v <= range.max + 1e-9);
+  if (inRange.length) return { ...range, min: inRange[0], max: inRange[inRange.length - 1] };
+  const mid = (range.min + range.max) / 2;
+  const v = loads.reduce((best, x) => (Math.abs(x - mid) < Math.abs(best - mid) ? x : best), loads[0]);
+  return { ...range, min: v, max: v };
 }
 
 export interface StrengthInput {
@@ -150,12 +174,13 @@ interface FitConfig {
   maxSets: number;
 }
 
-export function generateStrengthWorkout(input: StrengthInput, p: AthleteProfile = profile): StrengthWorkout {
+export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile = profile): StrengthWorkout {
   const { type, duration, difficulty, seed, free = false } = input;
   const block = free ? DEFAULT_BLOCK : (input.block ?? DEFAULT_BLOCK);
   const rng = createRng(seed);
   const anchorRng = free ? rng : createRng(anchorSeed(block, type));
   const lib = p.movementLibrary;
+  const rules = p.rules;
   const deload = block.deload;
   const rpe = strengthRpe(difficulty, deload);
   const loadLevel = deload ? LOWER_LEVEL[difficulty] : difficulty;
@@ -200,7 +225,7 @@ export function generateStrengthWorkout(input: StrengthInput, p: AthleteProfile 
       sets: role === "accessory" ? 2 : baseSets,
       reps,
       durationSec: meta.holdSec?.[difficulty],
-      load: prescribeLoad(m.weight, loadLevel),
+      load: prescribeLoad(m.weight, loadLevel, m.loads),
       restSec: role === "accessory" ? ACCESSORY_REST_SEC : cfg.mainRest,
       rpe,
       cue: meta.cue,
@@ -210,7 +235,8 @@ export function generateStrengthWorkout(input: StrengthInput, p: AthleteProfile 
     return item;
   };
 
-  for (const slot of planSlots(type, duration, rng)) {
+  const prehabNames = new Set((lib.prehab ?? []).map((m) => m.name));
+  for (const slot of planSlots(type, duration, rng, rules, prehabNames)) {
     const m =
       slot.kind === "fixed"
         ? byName(slot.name)
@@ -226,7 +252,6 @@ export function generateStrengthWorkout(input: StrengthInput, p: AthleteProfile 
   const fillers = deload
     ? [...FILLER_CATEGORIES[type].filter((f) => f.role === "accessory"), ...FILLER_CATEGORIES[type].filter((f) => f.role === "main")]
     : FILLER_CATEGORIES[type];
-  const prehabNames = new Set((lib.prehab ?? []).map((m) => m.name));
   while (budgetSec - totalSeconds(main) > 90) {
     let next: { m: Movement; role: ItemRole } | undefined;
     for (const f of fillers) {
@@ -244,6 +269,10 @@ export function generateStrengthWorkout(input: StrengthInput, p: AthleteProfile 
     resetRest(main, accessories, cfg);
     fitSetsToBudget(main, accessories, budgetSec, cfg);
   }
+
+  // Gerakan aktif habis tapi waktu masih sisa (library dipersempit di Setting):
+  // perpanjang istirahat gerakan utama sampai +60 detik sebelum menyerah.
+  if (budgetSec - totalSeconds(main) > 90) extendRest(main, accessories, budgetSec, cfg.mainRest + 60);
 
   const wc = lib.warmupAndCooldown ?? [];
   const has = (n: string) => wc.includes(n);
@@ -265,13 +294,13 @@ export function generateStrengthWorkout(input: StrengthInput, p: AthleteProfile 
     free
       ? "Mode bebas: tanpa blok mingguan & deload. Gerakan ★ = gerakan utama sesi ini (tetap dicatat untuk progresi)."
       : `${blockLabel(block)}: gerakan bertanda ★ tetap sama sampai blok berganti; sisanya berganti tiap generate.`,
-    "Spine-Friendly: tanpa beban axial berat tanpa tumpuan. Rib cage turun, core aktif di setiap gerakan.",
-    "Jeda latihan beban berat 24–48 jam sebelum MCU/tes darah.",
+    ...rules.strengthNotes,
+    ...p.customConditions.map((c) => `Catatan kondisimu: ${c}`),
   ];
   if (deload) notes.splice(1, 0, "Minggu deload: set dan beban diturunkan satu tingkat — pulihkan, jangan kejar angka.");
   if (type === "upperPull") notes.unshift("Progresi pull-up dikerjakan paling awal selagi grip masih segar.");
   if (type === "upperPull" && !main.some((i) => i.movement === "Negative Pull-Up")) {
-    notes.push('Negative Pull-Up belum aktif — fokus Dead Hang dulu. Ubah "available" jadi true di profil saat siap.');
+    notes.push("Negative Pull-Up belum aktif — fokus Dead Hang dulu. Aktifkan di Setting › Movement library saat siap.");
   }
 
   const workout: StrengthWorkout = {
@@ -291,8 +320,17 @@ export function generateStrengthWorkout(input: StrengthInput, p: AthleteProfile 
     notes,
   };
 
-  const clean = sanitizeStrength(workout, lib);
-  assertValidStrength(clean, lib);
+  // Masih jauh di bawah target → jujur: tandai sesi lebih pendek, jangan isi dengan volume berlebih.
+  const est = estimateStrengthMinutes(workout);
+  if (est < duration - DURATION_TOLERANCE_MIN) {
+    workout.limited = true;
+    workout.notes.unshift(
+      `Gerakan aktif terbatas: sesi ini ±${Math.round(est)} menit. Aktifkan lebih banyak gerakan/alat di Setting untuk sesi ${duration}' penuh.`,
+    );
+  }
+
+  const clean = sanitizeStrength(workout, lib, rules);
+  assertValidStrength(clean, lib, rules);
   return clean;
 }
 
@@ -310,14 +348,32 @@ const FILLER_CATEGORIES: Record<StrengthType, { category: MovementCategory; role
   lower: [
     { category: "lower", role: "main" },
     { category: "stabilityAndCore", role: "accessory" },
+    { category: "prehab", role: "accessory" },
   ],
   fullBody: [
     { category: "lower", role: "main" },
     { category: "upperPull", role: "main" },
     { category: "upperPush", role: "main" },
     { category: "stabilityAndCore", role: "accessory" },
+    { category: "prehab", role: "accessory" },
   ],
 };
+
+/** Tambah istirahat gerakan utama per 15 detik sampai batas `maxRest` atau budget terisi. */
+function extendRest(items: StrengthItem[], accessories: Set<StrengthItem>, budgetSec: number, maxRest: number) {
+  const mains = items.filter((i) => !accessories.has(i) && i.sets > 1);
+  let changed = true;
+  while (changed && budgetSec - totalSeconds(items) >= 60) {
+    changed = false;
+    for (const it of mains) {
+      if (budgetSec - totalSeconds(items) < (it.sets - 1) * 15) break;
+      if (it.restSec < maxRest) {
+        it.restSec += 15;
+        changed = true;
+      }
+    }
+  }
+}
 
 function totalSeconds(items: StrengthItem[]): number {
   return items.reduce((s, it) => s + itemSeconds(it), 0);
@@ -336,10 +392,12 @@ function fitSetsToBudget(items: StrengthItem[], accessories: Set<StrengthItem>, 
   const order = [...items.filter((i) => !accessories.has(i)), ...items.filter((i) => accessories.has(i))];
   const cap = (it: StrengthItem) => (accessories.has(it) ? 3 : cfg.maxSets);
 
-  // Kurangi dulu kalau kelebihan.
+  // Kurangi dulu kalau kelebihan. Bila semua sudah minimal, aksesori boleh tinggal 1 set
+  // (gerakan wajib dari kondisi aktif tetap ada, volumenya yang dipangkas).
   let guard = 0;
   while (total() > budgetSec + 60 && guard++ < 50) {
-    const candidate = [...order].reverse().find((it) => it.sets > MIN_SETS);
+    const candidate =
+      [...order].reverse().find((it) => it.sets > MIN_SETS) ?? [...order].reverse().find((it) => accessories.has(it) && it.sets > 1);
     if (!candidate) break;
     candidate.sets--;
   }

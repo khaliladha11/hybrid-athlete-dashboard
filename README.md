@@ -29,7 +29,7 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
   <tr>
     <td align="center"><sub>Program target (5K–FM)</sub></td>
     <td align="center"><sub>Generator ST + progresi beban</sub></td>
-    <td align="center"><sub>Log latihan (✓/✕ target)</sub></td>
+    <td align="center"><sub>Riwayat latihan (✓/✕ target)</sub></td>
   </tr>
   <tr>
     <td><img src="docs/screenshots/02-weekly-summary.jpg" width="220" alt="Ringkasan 7 hari dengan status 80/20"></td>
@@ -60,15 +60,16 @@ Semua aturan ini dikodekan sebagai **modul TypeScript murni yang diuji**, bukan 
 
 | Area | Yang bisa dilakukan |
 | --- | --- |
-| **Profil** | Data diri, target lomba, kondisi cedera, alat, zona lari, dan movement library. Semuanya dari satu file JSON. |
+| **Profil** | Data diri, target lomba, saran hari ini, wellness, ringkasan 7 hari, dan kalender aktivitas. |
+| **Setting** | Kondisi & batasan dari **katalog berbasis riset** (10 kondisi, masing-masing dengan sumber) yang langsung mengubah generator; zona pace per jenis latihan (manual atau dihitung **VDOT Daniels** dari hasil lomba); alat (dumbbell, plat, barbell, band, pull-up bar); pilihan gerakan movement library; tema; dan cadangan data. |
 | **Data intervals.icu** | Ringkasan 7 hari (km, pace, HR, long run, load), kalender aktivitas bulanan (ketuk tanggal untuk detail), detail interval per aktivitas, serta wellness (HRV, resting HR, tidur, CTL/ATL/Form). |
-| **Generator lari** | 30/45/60 menit × Easy/Moderate/High dengan 13 pola: Z2, run-walk, cadence drill, tempo, cruise interval, progression run, mini interval, Norwegian 4×4, dan 15/15. Target pace/HR/RPE diambil dari profil, dan durasinya selalu tepat. |
-| **Generator ST** | Full Body / Upper Push / Upper Pull / Lower. Hanya memakai gerakan dari library, RPE ≤ 7, prehab dan stabilitas panggul wajib, serta memblokir beban axial berat. |
+| **Generator lari** | 30/45/60 menit × Easy/Moderate/High dengan 13 pola: Z2, run-walk, cadence drill, tempo, cruise interval, progression run, mini interval, Norwegian 4×4, dan 15/15. Target pace dari zona di Setting, cue & catatan dari kondisi aktif, dan durasinya selalu tepat. |
+| **Generator ST** | Full Body / Upper Push / Upper Pull / Lower. Hanya gerakan yang dipilih & bisa dilakukan dengan alat yang ada, RPE ≤ 7, beban yang benar-benar bisa dirakit dari plat, plus gerakan wajib/terlarang sesuai kondisi aktif (prehab shin, stabilitas panggul, Spine-Friendly, dll.). |
 | **Periodisasi** | Blok 4 minggu (3 normal + 1 deload). Gerakan utama ★ dikunci per blok, sedangkan aksesori dan skema rep berputar. Bisa **dimatikan** (toggle) untuk latihan bebas tanpa jadwal blok. |
 | **Program target** | Program mingguan menuju **PB 5K, PB 10K, Half Marathon, atau Full Marathon**: fase Base → Build → Peak → Taper, long run naik ≤ 10%/minggu dengan cutback, race pace dari target waktu, dan jadwal ST yang tidak bentrok. |
 | **Saran hari ini** | Menggabungkan readiness (HRV, resting HR, sesi kemarin), distribusi 80/20, kenaikan km mingguan, dan jarak antara ST kaki dan lari berat. Sarannya bisa diterapkan dengan satu tap. |
-| **Progresi beban** | Catat sesi, lalu beban berikutnya disesuaikan otomatis (aturan "2-for-2" NSCA) tanpa pernah melewati batas library. |
-| **Salin cepat** | Teks ringkas untuk Strava/catatan HP, plus format "Set" untuk Huawei Health. |
+| **Progresi beban** | Catat sesi, lalu beban berikutnya disesuaikan otomatis (aturan "2-for-2" NSCA) ke beban berikutnya yang bisa dirakit, tanpa pernah melewati batas library. Riwayatnya ada di halaman Strength. |
+| **Salin cepat** | Workout ST sebagai teks ringkas; workout lari lewat tombol **Copy Set** (format "Set" Huawei Health). |
 | **Demo Mode** | Tanpa API key, aplikasi tetap berjalan penuh memakai data dummy. |
 | **PWA & design system** | Bisa di-install ke HP dan full-screen. Token warna/tipografi terpusat (oranye `#fc5200` sebagai warna utama, sudut membulat, motion 150ms), dengan **toggle tema terang/gelap** yang tersimpan di perangkat. |
 | **Sistem warna** | Intensitas: **Easy = hijau, Moderate = kuning, High = merah**. Status: **aktif/tercapai = hijau, nonaktif/belum = merah**. Kontras dijaga di tema terang maupun gelap. |
@@ -86,6 +87,7 @@ Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](docs/TRAININ
 | **0.5** Redesign UI | ✅ Selesai | Design system baru: token semantik, oranye sebagai warna utama, kartu ber-shadow, tipografi sistem, kontras teks AA, dark mode dari token yang sama |
 | **0.6** Fleksibilitas & program target | ✅ Selesai | Toggle tema terang/gelap, sudut membulat, warna intensitas & status, toggle blok mingguan (mode bebas), modul Program Target 5K/10K/HM/FM |
 | **0.7** Profil lebih ringkas | ✅ Selesai | Kalender aktivitas bulanan (ketuk tanggal untuk detail), saran hari ini ringkas dengan dropdown, kondisi & batasan dropdown |
+| **0.8** Halaman Setting | ✅ Selesai | Tab Log → Setting: katalog kondisi berbasis riset yang mengubah generator, zona pace (VDOT Daniels), alat & beban yang bisa dirakit, pilihan movement library, cadangan data. Riwayat log pindah ke Strength |
 | Berikutnya | 💡 Rencana | Proteksi akses + sinkron data, program terhubung ke generator, grafik tren, mode offline. Lihat [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
 
 Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
@@ -94,9 +96,9 @@ Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 
 - **Next.js 16** (App Router, Server Components) + **React 19** + **TypeScript**
 - **Tailwind CSS 4** dengan token semantik di [`app/globals.css`](app/globals.css). Dark mode mengikuti pengaturan sistem.
-- **Vitest**: 6 file test, 95+ test yang mencakup seluruh kombinasi input generator dan program target
+- **Vitest**: 7 file test, 120+ test yang mencakup seluruh kombinasi input generator, program target, dan efek setiap kondisi/alat di Setting
 - **intervals.icu REST API**, dipanggil hanya dari server
-- Tanpa database. Profil disimpan di JSON, log sesi di localStorage perangkat.
+- Tanpa database. Profil default disimpan di JSON; Setting, log sesi, dan program di localStorage perangkat (bisa diekspor/impor).
 - Deploy di **Vercel**
 
 Arsitektur dan alur data dijelaskan di **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
@@ -130,12 +132,14 @@ API key hanya dibaca di server (`import "server-only"`) dan tidak pernah dikirim
 
 ### Sesuaikan dengan atlet lain
 
-Semua data atlet ada di [`config/athlete-profile.json`](config/athlete-profile.json):
+Kondisi, zona lari, alat, dan pilihan gerakan bisa diubah langsung di halaman **Setting** (tersimpan di perangkat). Nilai default-nya ada di [`config/athlete-profile.json`](config/athlete-profile.json):
 
-- **`movementLibrary`**: whitelist gerakan dan batas beban (`"10–20 kg/tangan"`, `"Bodyweight"`, `"Light/Medium Band"`). Gerakan dengan `"available": false` dicatat tapi belum diresepkan.
-- **`runZones`**: pace dan zona lari.
+- **`movementLibrary`**: whitelist gerakan dan batas beban (`"10–20 kg/tangan"`, `"Bodyweight"`, `"Light/Medium Band"`). Gerakan dengan `"available": false` belum dipilih secara default (bisa dicentang di Setting).
+- **`conditions`**: id kondisi aktif dari katalog [`lib/conditions.ts`](lib/conditions.ts), mis. `["apt", "shin", "overpronation", "mcu"]`.
+- **`equipment`**: dumbbell (berat handle, jumlah), barbell (berat batang), plat (`kg` × `count`), band, pull-up bar, kursi/bench.
+- **`runZones`**: pace default per zona.
 - **`training.blockStart`**: tanggal Senin awal blok periodisasi. Ubah tanggal ini untuk memulai blok baru.
-- **`conditions`, `equipment`, `targets`**: ditampilkan di profil.
+- **`targets`**: ditampilkan di profil dan dipakai sebagai target default Program.
 
 ## Perintah
 
@@ -167,13 +171,17 @@ Install PWA butuh HTTPS, jadi URL Vercel bisa langsung dipakai. Setelah ada depl
 ## Struktur project
 
 ```
-app/                     halaman: Profil, /run, /program, /strength, /log, /activity/[id]
-components/              UI: profile/, generator/, log/, ui/
+app/                     halaman: Profil, /run, /program, /strength, /setting, /activity/[id]
+components/              UI: profile/, generator/, program/, settings/, log/, ui/
 config/athlete-profile.json
 lib/
   generator/             modul murni: run, strength, block (periodisasi), validate, format, rng
   intervals/             client (server-only), normalize, summary, data-source
   coach.ts               saran mingguan (80/20, progresi km, concurrent)
+  conditions.ts          katalog kondisi berbasis riset → aturan generator
+  run-zones.ts           rumus VDOT Daniels & pace
+  equipment.ts           kebutuhan alat per gerakan, beban yang bisa dirakit
+  athlete-settings.ts    pengaturan Setting → profil efektif
   program.ts             program target 5K / 10K / HM / FM
   preferences.ts         tema & toggle blok (localStorage)
   progression.ts         aturan progresi beban 2-for-2

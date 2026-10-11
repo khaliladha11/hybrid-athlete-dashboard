@@ -20,14 +20,17 @@ flowchart LR
     GEN["lib/generator/*<br/>(modul murni)"]
     VAL["validate.ts<br/>sanitizer + validator"]
     PROG["lib/progression.ts"]
-    LOG[("localStorage<br/>log sesi")]
+    LOG[("localStorage<br/>log sesi · Setting")]
+    SET["lib/athlete-settings.ts<br/>profil efektif"]
+    SET --> GEN
     UI["Komponen React"]
     GEN --> VAL --> PROG --> UI
     LOG --> PROG
     UI -- Catat sesi --> LOG
   end
 
-  PROFILE["config/athlete-profile.json"] --> GEN
+  PROFILE["config/athlete-profile.json<br/>(default)"] --> SET
+  LOG --> SET
   PROFILE --> CTX
   CTX -- props, tanpa API key --> UI
 ```
@@ -65,6 +68,11 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/generator/format.ts` | Teks salin & format Set Huawei | Client |
 | `lib/progression.ts` | Aturan 2-for-2, penerapan ke workout | Client |
 | `lib/training-log.ts` | Penyimpanan log (localStorage) + ekspor/impor | Client |
+| `lib/conditions.ts` | Katalog kondisi berbasis riset → aturan generator | Server & client |
+| `lib/run-zones.ts` | Rumus VDOT Daniels, parser & format pace | Client |
+| `lib/equipment.ts` | Kebutuhan alat per gerakan, beban yang bisa dirakit dari plat | Server & client |
+| `lib/athlete-settings.ts` | Pengaturan Setting + `resolveProfile()` → profil efektif (JSON default + pengaturan perangkat) | Server & client |
+| `lib/settings-store.ts` | Hook `useAthleteSettings` / `useResolvedProfile` (localStorage) | Client |
 
 ## Penyimpanan
 
@@ -73,8 +81,9 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | Profil atlet | `config/athlete-profile.json` di repo | Mudah diedit, ikut versi git |
 | Data latihan & wellness | intervals.icu (dibaca, tidak disimpan) | Satu sumber kebenaran |
 | Log sesi ST | `localStorage` perangkat | Tanpa setup/biaya. Data kesehatan tidak keluar dari HP. Cadangan lewat ekspor JSON |
+| Setting (kondisi, zona, alat, gerakan), program target, tema | `localStorage` perangkat | JSON profil jadi default; pengaturan perangkat menimpa. Ikut ekspor/impor JSON (format v2) |
 
-Keterbatasannya, log hanya ada di satu perangkat. Jalur upgrade-nya adalah database (misalnya Upstash Redis lewat Vercel) dengan proteksi PIN/secret, karena aplikasi belum punya login.
+Keterbatasannya, log dan Setting hanya ada di satu perangkat, dan halaman yang dirender server (Profil) memakai profil default. Jalur upgrade-nya adalah database (misalnya Upstash Redis lewat Vercel) dengan proteksi PIN/secret, karena aplikasi belum punya login.
 
 ## Design system
 
@@ -106,5 +115,7 @@ npm test
 | `coach.test.ts` | Klasifikasi lari berat / ST kaki, 80/20, progresi km, concurrent, dan penggabungan saran tanpa penurunan berantai. |
 | `progression.test.ts` | Aturan 2-for-2, tahan/turun, batas library, deload, gerakan tahan & band, validasi data impor. |
 | `data.test.ts` | Tanggal WIB, normalisasi field null & cadence, ringkasan 7 hari, readiness. |
+| `program.test.ts` | Program target: fase, long run ≤ 10%/2 km, cutback, taper, peringatan. |
+| `settings.test.ts` | Setiap kondisi mengubah generator sesuai aturannya, kombinasi semua kondisi tetap valid, beban selalu bisa dirakit dari alat, gerakan tidak dipilih tidak pernah muncul, rumus VDOT vs tabel Daniels, parser pengaturan tahan data rusak. |
 
 Generator diuji secara menyeluruh (setiap kombinasi × banyak seed), bukan hanya dengan beberapa contoh. Bug yang ditemukan saat pengembangan, seperti deload yang gagal memenuhi durasi atau beban yang terbulatkan salah, selalu disertai test baru.

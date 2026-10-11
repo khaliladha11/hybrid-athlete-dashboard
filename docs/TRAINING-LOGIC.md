@@ -10,19 +10,27 @@ Dokumen ini menjelaskan **semua aturan** yang dipakai generator dan sistem saran
 - [6. Progresi beban](#6-progresi-beban)
 - [7. Program target (5K / 10K / HM / FM)](#7-program-target-5k--10k--hm--fm)
 - [8. Referensi](#8-referensi)
+- [9. Setting: kondisi, zona, alat & gerakan](#9-setting-kondisi-zona-alat--gerakan)
 
 ---
 
-## 1. Aturan dasar (profil atlet)
+## 1. Aturan dasar & kondisi atlet
 
-Semua angka berasal dari [`config/athlete-profile.json`](../config/athlete-profile.json).
+Default berasal dari [`config/athlete-profile.json`](../config/athlete-profile.json). Kondisi, zona lari, alat, dan pilihan gerakan bisa diubah di halaman **Setting** (disimpan di perangkat) — lihat [bagian 9](#9-setting-kondisi-zona-alat--gerakan).
 
-| Kondisi atlet | Konsekuensi di generator |
+**Aturan umum — selalu berlaku, apa pun kondisinya:**
+- Hanya gerakan dari **movement library** yang dipilih di Setting.
+- **RPE ≤ 7** di semua set.
+- Beban tidak pernah melebihi batas library, dan (bila berat handle/batang sudah diisi) selalu bisa dirakit dari plat yang ada.
+- Long run program naik ≤ 10% dan ≤ 2 km per minggu; peringatan bila km mingguan naik > 30%; distribusi 80/20.
+
+**Aturan kondisi — aktif hanya bila kondisinya dinyalakan** (katalog lengkap & sumbernya di [bagian 9](#9-setting-kondisi-zona-alat--gerakan)):
+
+| Kondisi default atlet | Konsekuensi di generator |
 | --- | --- |
-| Anterior pelvic tilt / hiperlordosis | **Spine-Friendly Protocol**: pola axial loading berat tanpa tumpuan (conventional deadlift, back squat, front squat, good morning, dll.) diblokir. Cue "rib cage turun, core aktif" di setiap sesi. |
-| Riwayat shin splints | **Tibialis Wall Raise + Eccentric Calf Raise wajib** di setiap sesi Lower & Full Body. Peringatan bila km mingguan naik > 30%. |
+| Anterior pelvic tilt / hiperlordosis | **Spine-Friendly Protocol**: pola axial loading berat tanpa tumpuan (conventional deadlift, back squat, front squat, good morning, dll.) diblokir. **Dead Bug** (anti-ekstensi) wajib di Lower & Full Body. |
+| Riwayat shin splints | **Tibialis Wall Raise + Eccentric Calf Raise wajib** di setiap sesi Lower & Full Body. Pengingat cadence & tanda bahaya nyeri tulang kering di lari. |
 | Overpronation / crossover gait | Minimal satu gerakan **stabilitas panggul** (Lateral Band Walk / Clamshell) di Lower & Full Body. Pengingat cadence 175–180 SPM dan cue "rel kereta" di setiap workout lari. |
-| Home gym terbatas | Hanya gerakan dari **movement library**. Beban tidak pernah melebihi batas atas library. |
 | Jeda sebelum MCU | Catatan jeda 24–48 jam dari latihan beban berat sebelum tes darah. |
 
 **Zona HR:** zona di profil (Easy maks 160, Tempo 160–180) ditampilkan apa adanya. Generator memakai acuan yang lebih konservatif: **Easy < 140**, **Tempo 160–170**.
@@ -52,9 +60,9 @@ Kode: [`lib/generator/strength.ts`](../lib/generator/strength.ts). Validator: [`
 | --- | --- |
 | Intensitas | Easy RPE 5 · Moderate RPE 6 · High RPE 7. **RPE tidak pernah > 7.** |
 | Beban | Easy = sepertiga bawah rentang library, Moderate = tengah, High = sepertiga atas. Tidak pernah melebihi batas atas. |
-| Lower & Full Body | Wajib Tibialis Wall Raise + Eccentric Calf Raise + stabilitas panggul. |
+| Lower & Full Body | Gerakan wajib dari kondisi aktif (default: Tibialis Wall Raise + Eccentric Calf Raise + Dead Bug + stabilitas panggul). |
 | Upper Pull | Selalu diawali progresi pull-up (Dead Hang, lalu Negative Pull-Up jika sudah diaktifkan) selagi grip masih segar. |
-| Durasi | Jumlah gerakan dan set diatur supaya estimasi waktu ±2 menit dari target. Waktu yang tersisa diisi gerakan stabilitas/prehab. |
+| Durasi | Jumlah gerakan dan set diatur supaya estimasi waktu ±2 menit dari target. Waktu yang tersisa diisi gerakan stabilitas/prehab. Bila gerakan wajib membuat sesi terlalu padat, aksesori boleh tinggal 1 set. Bila gerakan aktif di Setting terlalu sedikit untuk mengisi durasi, sesi ditandai **lebih pendek** (tidak diisi volume berlebih). |
 | Urutan | Pemanasan (mobilitas) → aktivasi panggul → gerakan utama → aksesori → prehab → pendinginan. |
 
 **Pembuat pola dan validator dipisah.** Setelah pola dibuat, sanitizer membuang gerakan yang tidak terdaftar atau terlarang, lalu meng-clamp RPE dan beban. Validator kemudian memeriksa semua aturan di atas. Bila ada pelanggaran, generator melempar error, dan test akan gagal.
@@ -152,3 +160,70 @@ Studi:
 - Moesgaard dkk. (2022). Effects of periodization on strength and muscle hypertrophy in volume-equated resistance training programs. *Sports Medicine* ([PubMed](https://pubmed.ncbi.nlm.nih.gov/35044672/)). Dasar rotasi skema rep (undulating).
 - Zourdos dkk. (2016). Novel resistance training–specific RPE scale measuring repetitions in reserve. *JSCR* ([PubMed](https://pubmed.ncbi.nlm.nih.gov/26049792/)). RPE 7 = sisakan 3 repetisi.
 - Lauersen dkk. (2014). The effectiveness of exercise interventions to prevent sports injuries. *Br J Sports Med* ([PubMed](https://pubmed.ncbi.nlm.nih.gov/24100287/)). Latihan kekuatan menurunkan risiko cedera, sehingga prehab dijadikan wajib.
+
+## 9. Setting: kondisi, zona, alat & gerakan
+
+Kode: [`lib/conditions.ts`](../lib/conditions.ts), [`lib/run-zones.ts`](../lib/run-zones.ts), [`lib/equipment.ts`](../lib/equipment.ts), [`lib/athlete-settings.ts`](../lib/athlete-settings.ts). Halaman **Setting**.
+
+### Katalog kondisi & batasan
+
+Kondisi dipilih dari katalog (bukan teks bebas), supaya setiap kondisi punya aturan yang jelas dan teruji. Catatan teks bebas tetap bisa ditambahkan, tapi hanya tampil di catatan workout.
+
+| Kondisi | Aturan ST | Aturan lari | Sumber |
+| --- | --- | --- | --- |
+| Anterior pelvic tilt / hiperlordosis | Spine-Friendly; Dead Bug wajib (Lower/Full) | — | McGill, *Low Back Disorders* (2016); NSCA Essentials (2016) |
+| Shin splints (MTSS) | Tibialis Wall Raise + Eccentric Calf Raise wajib | Cue cadence; stop bila nyeri tulang kering | Winters 2013 (Sports Med); Nielsen 2014 (JOSPT); Heiderscheit 2011 (MSSE) |
+| Overpronation / crossover gait | Stabilitas panggul wajib | Cue cadence + "rel kereta" | Willy & Davis 2011 (JOSPT); Meardon 2012 (Sports Biomech) |
+| Jeda sebelum MCU | Catatan jeda 24–48 jam | — | Pettersson 2008 (Br J Clin Pharmacol) |
+| Nyeri punggung bawah | Spine-Friendly; tanpa Barbell Squat; Dead Bug wajib | — | NICE NG59 (2016); Hayden 2021 (Cochrane) |
+| Nyeri lutut depan (PFP) | Stabilitas panggul wajib; pantau nyeri ≤ 3/10 | Cue cadence; kurangi turunan | Willy 2019 (JOSPT CPG); Crossley 2016 (BJSM) |
+| IT Band Syndrome | Stabilitas panggul wajib | Cue cadence + anti-crossover; hindari turunan panjang | Fredericson 2000 (Clin J Sport Med); Meardon 2012 |
+| Tendinopati Achilles | Eccentric Calf Raise wajib | High 45/60 selalu 4×4 (tanpa sprint 15/15); nyeri ≤ 5/10 | Alfredson 1998 (AJSM); Silbernagel 2007 (AJSM) |
+| Plantar fasciitis | Eccentric Calf Raise wajib | Catatan nyeri pagi & peregangan betis | Martin 2014 (JOSPT CPG); Rathleff 2015 (Scand J Med Sci Sports) |
+| Nyeri bahu (subacromial) | Tanpa Seated Overhead Press, Overhead Triceps Extension, DB Floor Pullover | — | Diercks 2014 (Acta Orthop); Littlewood 2012 (Physiotherapy) |
+
+Gerakan yang diwajibkan kondisi aktif dikunci terpilih di Movement library. Bila gerakan wajib tidak tersedia (mis. tidak punya band), Setting menampilkan peringatan dan validator hanya menagih aturan yang bisa dipenuhi.
+
+### Zona lari (VDOT Daniels)
+
+Pace bisa diisi manual per zona, atau dihitung dari hasil lomba/time trial dengan rumus **Daniels & Gilbert**:
+
+- VO2(v) = −4,60 + 0,182258·v + 0,000104·v² (v dalam m/menit)
+- %VO2max(t) = 0,8 + 0,1894393·e^(−0,012778·t) + 0,2989558·e^(−0,1932605·t) (t dalam menit)
+- VDOT = VO2(v) ÷ %VO2max(t)
+
+| Zona | Intensitas | Dasar |
+| --- | --- | --- |
+| Easy / Z2 | 59–74% VDOT | Daniels: Easy |
+| Tempo | 83–88% VDOT | Daniels: Threshold |
+| Interval (mini, 15/15, 30/30) | 95–100% VDOT | Daniels: Interval |
+| Norwegian 4×4 | 88–92% VDOT | Helgerud 2007: 90–95% HRmax, di antara Threshold & Interval |
+
+Contoh: 5K 30:40 → VDOT ±30 → tempo ±6:24–6:42/km (sesuai tabel Daniels).
+
+### Alat & beban
+
+- Setiap gerakan punya kebutuhan alat (mis. Seated Overhead Press = dumbbell + kursi; Clamshell & Lateral Band Walk = band; Dead Hang = pull-up bar), mengikuti deskripsi teknik di NSCA *Exercise Technique Manual for Resistance Training* (2016). Dinding & lantai dianggap selalu ada. Clamshell tetap sah tanpa band (progresi bodyweight).
+- Setelah berat handle dumbbell / batang barbell diisi, beban yang diresepkan **hanya dari kombinasi yang bisa dirakit**: plat dipasang berpasangan (kiri–kanan), sepasang dumbbell butuh dua kali jumlah plat, dan plat kecil boleh dipegang langsung. Kombinasi tetap dibatasi rentang movement library.
+- Progresi beban naik/turun ke beban **berikutnya yang bisa dirakit**, bukan sekadar +1/0,5/0,25 kg.
+- Gerakan yang rentang bebannya tidak bisa dirakit sama sekali otomatis tidak dipakai, dengan alasan yang tampil di Setting.
+
+Referensi tambahan bagian ini:
+- Daniels, J. & Gilbert, J. (1979). *Oxygen Power: Performance Tables for Distance Runners*. Rumus VDOT.
+- Willy RW dkk. (2019). Patellofemoral Pain: Clinical Practice Guidelines. *JOSPT* 49(9) ([doi](https://doi.org/10.2519/jospt.2019.0302)).
+- Crossley KM dkk. (2016). Patellofemoral pain consensus statement. *Br J Sports Med* 50(14) ([doi](https://doi.org/10.1136/bjsports-2016-096384)).
+- Fredericson M dkk. (2000). Hip abductor weakness in distance runners with ITBS. *Clin J Sport Med* 10(3) ([doi](https://doi.org/10.1097/00042752-200007000-00004)).
+- Meardon SA dkk. (2012). Step width alters iliotibial band strain during running. *Sports Biomech* 11(4) ([doi](https://doi.org/10.1080/14763141.2012.699547)).
+- Willy RW & Davis IS (2011). Hip-strengthening program & running mechanics. *JOSPT* 41(9) ([doi](https://doi.org/10.2519/jospt.2011.3470)).
+- Winters M dkk. (2013). Treatment of medial tibial stress syndrome. *Sports Med* 43(12) ([doi](https://doi.org/10.1007/s40279-013-0087-0)).
+- Alfredson H dkk. (1998). Heavy-load eccentric calf training for Achilles tendinosis. *Am J Sports Med* 26(3) ([doi](https://doi.org/10.1177/03635465980260030301)).
+- Silbernagel KG dkk. (2007). Pain-monitoring model in Achilles tendinopathy. *Am J Sports Med* 35(6) ([doi](https://doi.org/10.1177/0363546506298279)).
+- Martin RL dkk. (2014). Heel pain—plantar fasciitis CPG. *JOSPT* 44(11) ([doi](https://doi.org/10.2519/jospt.2014.0303)).
+- Rathleff MS dkk. (2015). High-load strength training for plantar fasciitis. *Scand J Med Sci Sports* 25(3) ([doi](https://doi.org/10.1111/sms.12313)).
+- NICE NG59 (2016). Low back pain and sciatica in over 16s ([tautan](https://www.nice.org.uk/guidance/ng59)).
+- Hayden JA dkk. (2021). Exercise therapy for chronic low back pain. *Cochrane* ([doi](https://doi.org/10.1002/14651858.CD009790.pub2)).
+- Diercks R dkk. (2014). Guideline for subacromial pain syndrome. *Acta Orthop* 85(3) ([doi](https://doi.org/10.3109/17453674.2014.920991)).
+- Littlewood C dkk. (2012). Exercise for rotator cuff tendinopathy. *Physiotherapy* 98(2) ([doi](https://doi.org/10.1016/j.physio.2011.08.002)).
+- Pettersson J dkk. (2008). Muscular exercise can cause highly pathological liver function tests. *Br J Clin Pharmacol* 65(2) ([doi](https://doi.org/10.1111/j.1365-2125.2007.03001.x)).
+- McGill S. (2016). *Low Back Disorders* (ed. 3). Human Kinetics.
+- NSCA (2016). *Exercise Technique Manual for Resistance Training* (ed. 3). Human Kinetics.

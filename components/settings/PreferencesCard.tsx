@@ -5,12 +5,12 @@ import { Segmented } from "@/components/ui/Segmented";
 import { Switch } from "@/components/ui/Switch";
 import { useBlockEnabled, useThemePreference, type ThemePreference } from "@/lib/preferences";
 
-/** Preferensi yang tersimpan di perangkat ini. */
-export function SettingsCard() {
+/** Tampilan & program: tema dan blok mingguan. */
+export function PreferencesCard() {
   const [theme, setTheme] = useThemePreference();
   const [blockEnabled, setBlockEnabled] = useBlockEnabled();
   return (
-    <Card title="Pengaturan" action={<span className="text-[12px] text-faint">tersimpan di perangkat ini</span>}>
+    <Card title="Tampilan & program">
       <div className="space-y-4">
         <Segmented<ThemePreference>
           label="Tema"

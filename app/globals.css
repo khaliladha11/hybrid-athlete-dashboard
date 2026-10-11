@@ -88,6 +88,7 @@
   --danger-ink: #b91c1c;
   --danger-soft: #fdecec;
   --shadow-card-value: 0px 20px 20px 0px rgba(13, 13, 18, 0.1);
+  --shadow-hover: 0 1px 2px rgba(13, 13, 18, 0.08), 0 2px 6px rgba(13, 13, 18, 0.1);
   color-scheme: light;
 }
 
@@ -122,6 +123,7 @@
   --danger-ink: #fca5a5;
   --danger-soft: #331414;
   --shadow-card-value: 0px 20px 20px 0px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.55);
   color-scheme: dark;
 }
 
@@ -156,6 +158,7 @@
     --danger-ink: #fca5a5;
     --danger-soft: #331414;
     --shadow-card-value: 0px 20px 20px 0px rgba(0, 0, 0, 0.35);
+    --shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.55);
     color-scheme: dark;
 }
 }
@@ -214,6 +217,12 @@ body {
   }
   .pressable:active:not(:disabled) {
     transform: scale(0.97);
+  }
+  /* Bayangan tipis saat hover — hanya di perangkat dengan pointer (tidak "nyangkut" di layar sentuh). */
+  @media (hover: hover) {
+    .pressable:hover:not(:disabled) {
+      box-shadow: var(--shadow-hover);
+    }
   }
 
   /* Konten yang baru di-render (hasil generate, label tombol) memudar masuk. */

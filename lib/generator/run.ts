@@ -1,4 +1,4 @@
-import { profile, type AthleteProfile } from "@/lib/profile";
+import { profile, type AthleteProfile, type ResolvedProfile } from "@/lib/profile";
 import { DEFAULT_BLOCK, type BlockContext } from "./block";
 import { createRng } from "./rng";
 import { DIFFICULTY_LABEL, type Difficulty, type Duration, type RunBlock, type RunStep, type RunWorkout } from "./types";
@@ -22,10 +22,10 @@ export function runTargets(p: AthleteProfile = profile) {
   };
 }
 
-export const CADENCE_NOTES = [
-  "Cadence 175–180 SPM — langkah pendek & cepat, jangan overstride.",
-  'Cue "rel kereta": kaki mendarat di dua rel sejajar selebar pinggul, jangan menyilang (crossover).',
-];
+export const CADENCE_NOTE = "Cadence 175–180 SPM — langkah pendek & cepat, jangan overstride.";
+export const CROSSOVER_NOTE = 'Cue "rel kereta": kaki mendarat di dua rel sejajar selebar pinggul, jangan menyilang (crossover).';
+/** Kedua cue gait untuk profil default (overpronation/crossover gait). */
+export const CADENCE_NOTES = [CADENCE_NOTE, CROSSOVER_NOTE];
 
 /**
  * Target cadence personal dari data asli (Heiderscheit dkk. 2011: naik 5–10%
@@ -91,7 +91,7 @@ const MINI_PATTERNS = [
   { work: 0.5, rest: 0.5, max: 12 },
 ];
 
-export function generateRunWorkout(input: RunInput, p: AthleteProfile = profile): RunWorkout {
+export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile): RunWorkout {
   const { duration, difficulty, seed } = input;
   const blockCtx = input.free ? DEFAULT_BLOCK : (input.block ?? DEFAULT_BLOCK);
   const rng = createRng(seed);
@@ -208,7 +208,8 @@ export function generateRunWorkout(input: RunInput, p: AthleteProfile = profile)
       block("cooldown", "Pendinginan", [jog(cd, "Jog/jalan santai")]),
     ];
     notes.push("Kalau form mulai rusak (cadence turun, kaki menyilang), hentikan repetisi.");
-  } else if (rng.pick(["4x4", "15/15"] as const) === "4x4") {
+  } else if (rng.pick(["4x4", "15/15"] as const) === "4x4" || p.rules.avoidSprints) {
+    // Kondisi tendon (Achilles) → tanpa sprint 15/15; 4×4 tetap dipakai.
     // Norwegian 4x4 (Helgerud dkk. 2007): 4×(4' kerja + 3' recovery jog) = 28 menit.
     const wu = duration === 45 ? 10 : 12;
     const flush = duration === 60 ? 12 : 0;
@@ -266,8 +267,14 @@ export function generateRunWorkout(input: RunInput, p: AthleteProfile = profile)
     difficulty,
     seed,
     blocks,
-    notes: [...CADENCE_NOTES, ...notes],
+    notes: [
+      ...(p.rules.cadenceCue ? [CADENCE_NOTE] : []),
+      ...(p.rules.crossoverCue ? [CROSSOVER_NOTE] : []),
+      ...notes,
+      ...p.rules.runNotes,
+      ...p.customConditions.map((c) => `Catatan kondisimu: ${c}`),
+    ],
   };
-  assertValidRun(workout);
+  assertValidRun(workout, p.rules);
   return workout;
 }

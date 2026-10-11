@@ -7,19 +7,20 @@
     "goals": ["Konsistensi tanpa cedera", "Koreksi postur", "Ketahanan lari efisien"],
     "raceTargets": ["Sub-30m 5K", "Sub-1h 10K", "Sub-3h Half Marathon"]
   },
-  "conditions": [
-    "Anterior Pelvic Tilt / Hiperlordosis (Spine-Friendly Protocol)",
-    "Riwayat Shin Splints (Prehab rutin)",
-    "Overpronation / Crossover Gait (Stabilitas Gluteus Medius, Cadence 175–180 SPM)",
-    "Jeda latihan beban berat 24–48 jam sebelum MCU/tes darah"
-  ],
-  "equipment": [
-    "Dumbbell Modular (Plat 4x1.25kg, 4x1.5kg, 4x2.0kg)",
-    "Barbell Mode (Connecting Bar + Hip Pad)",
-    "Resistance Band (Light/Medium)",
-    "Pull-up Bar",
-    "Dinding & Kursi/Step Box"
-  ],
+  "conditions": ["apt", "shin", "overpronation", "mcu"],
+  "equipment": {
+    "dumbbell": { "enabled": true, "handles": 2 },
+    "barbell": { "enabled": true },
+    "plates": [
+      { "kg": 1.25, "count": 4 },
+      { "kg": 1.5, "count": 4 },
+      { "kg": 2, "count": 4 }
+    ],
+    "bands": ["Light", "Medium"],
+    "pullUpBar": true,
+    "bench": true,
+    "other": ["Hip Pad (untuk Hip Thrust)"]
+  },
   "training": {
     "blockStart": "2026-09-28",
     "blockWeeks": 4

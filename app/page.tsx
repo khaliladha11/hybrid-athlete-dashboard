@@ -3,9 +3,8 @@ import { BUTTON } from "@/components/ui/Card";
 import { ActivityCalendar } from "@/components/profile/ActivityCalendar";
 import { Card } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { ConditionsCard, EquipmentLibraryCard, ProfileHeader, RunZonesCard, TargetsCard } from "@/components/profile/ProfileDetails";
+import { ProfileHeader, TargetsCard } from "@/components/profile/ProfileDetails";
 import { WeeklySummary } from "@/components/profile/WeeklySummary";
-import { SettingsCard } from "@/components/profile/SettingsCard";
 import { WellnessCard } from "@/components/profile/WellnessCard";
 import { CoachCard } from "@/components/generator/CoachCard";
 import { todayWib } from "@/lib/date";
@@ -60,10 +59,9 @@ export default async function ProfilePage() {
         </Card>
       )}
       <TargetsCard profile={profile} />
-      <ConditionsCard profile={profile} />
-      <RunZonesCard profile={profile} />
-      <EquipmentLibraryCard profile={profile} />
-      <SettingsCard />
+      <Link href="/setting" className={`${BUTTON.base} ${BUTTON.secondary} w-full`}>
+        Kondisi, zona lari & alat → Setting
+      </Link>
     </div>
   );
 }

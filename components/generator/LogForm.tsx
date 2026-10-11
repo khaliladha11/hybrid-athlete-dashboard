@@ -5,7 +5,7 @@ import { BUTTON } from "@/components/ui/Card";
 import { todayWib } from "@/lib/date";
 import type { BlockContext } from "@/lib/generator/block";
 import type { StrengthItem, StrengthWorkout } from "@/lib/generator/types";
-import { findMovement, parseWeight } from "@/lib/profile";
+import { findMovement, parseWeight, type MovementLibrary } from "@/lib/profile";
 import { parseRepRange, type LogEntry } from "@/lib/progression";
 import { newEntryId, trainingLog } from "@/lib/training-log";
 
@@ -34,11 +34,14 @@ function initialRow(item: StrengthItem): Row {
 export function LogForm({
   workout,
   block,
+  library,
   onDone,
   onSaved,
 }: {
   workout: StrengthWorkout;
   block: BlockContext;
+  /** Movement library efektif (sesudah pengaturan alat & pilihan gerakan). */
+  library?: MovementLibrary;
   onDone: () => void;
   onSaved: () => void;
 }) {
@@ -101,7 +104,7 @@ export function LogForm({
         <p className="text-[13px] text-muted">Isi set terakhir. Disimpan di perangkat ini saja.</p>
       </div>
       {rows.map((r, i) => {
-        const spec = parseWeight(findMovement(r.item.movement)?.weight ?? "");
+        const spec = parseWeight(findMovement(r.item.movement, library)?.weight ?? "");
         const sec = !!r.item.durationSec;
         return (
           <fieldset key={r.item.movement} className="space-y-2 border-t border-line pt-4 first-of-type:border-0 first-of-type:pt-0">
