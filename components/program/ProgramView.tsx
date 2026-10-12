@@ -191,7 +191,7 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
                           {w.cutback && " · cutback"} · {formatDateId(w.start)} · ±{w.totalKm} km
                         </p>
                       </div>
-                      <span className="text-[13px] text-faint transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+                      <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
                         ›
                       </span>
                     </summary>
@@ -277,7 +277,7 @@ function WeekDetail({ week }: { week: ProgramWeek }) {
           );
         })}
       </ul>
-      <p className="text-[12px] text-faint">Total ±{week.totalKm} km · mulai {formatDateId(week.start)} – {formatDateId(addDays(week.start, 6))}</p>
+      <p className="text-[12px] text-faint">Total ±{week.totalKm} km · {formatDateId(week.start)} sampai {formatDateId(addDays(week.start, 6))}</p>
     </div>
   );
 }

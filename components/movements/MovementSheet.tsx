@@ -178,7 +178,7 @@ function MovementFrames({ name, images }: { name: string; images: readonly [stri
     return () => clearInterval(t);
   }, [reduced, playing]);
 
-  const alt = (i: 0 | 1) => `${name} — posisi ${i ? "akhir" : "awal"}`;
+  const alt = (i: 0 | 1) => `${name}, posisi ${i ? "akhir" : "awal"}`;
 
   if (reduced) {
     return (

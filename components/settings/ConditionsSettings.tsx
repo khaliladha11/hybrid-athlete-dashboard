@@ -55,7 +55,7 @@ export function ConditionsSettings({
               <details className="group mt-1">
                 <summary className="inline-flex min-h-8 cursor-pointer list-none items-center gap-1 text-[12px] font-semibold text-muted hover:text-ink">
                   Sumber ({c.sources.length})
-                  <span className="transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+                  <span className="transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
                     ›
                   </span>
                 </summary>

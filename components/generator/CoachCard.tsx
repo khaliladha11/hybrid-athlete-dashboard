@@ -75,7 +75,7 @@ export function CoachCard({
                   <span aria-hidden className="h-2 w-2 shrink-0 rounded-full bg-brand" />
                   <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-ink">{a.title}</span>
                   {recs[0] && <span className="shrink-0 truncate text-[12px] font-semibold text-brand-ink">{recs[0].short}</span>}
-                  <span className="text-[13px] text-faint transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+                  <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
                     ›
                   </span>
                 </summary>

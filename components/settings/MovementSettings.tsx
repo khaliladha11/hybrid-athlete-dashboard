@@ -54,7 +54,7 @@ export function MovementSettings({
               <span className={`text-[12px] ${counts[ci] ? "text-muted" : "font-semibold text-danger-ink"}`}>
                 {counts[ci]}/{baseProfile.movementLibrary[cat].length} aktif
               </span>
-              <span className="text-[13px] text-faint transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+              <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
                 ›
               </span>
             </summary>

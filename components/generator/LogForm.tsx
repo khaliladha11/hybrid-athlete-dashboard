@@ -100,7 +100,7 @@ export function LogForm({
       className="swap-in mt-4 space-y-4 rounded-card border border-line-strong p-4"
     >
       <div>
-        <h3 className="text-base font-semibold">Catat sesi — gerakan utama ★</h3>
+        <h3 className="text-base font-semibold">Catat sesi: gerakan utama ★</h3>
         <p className="text-[13px] text-muted">Isi set terakhir. Disimpan di perangkat ini saja.</p>
       </div>
       {rows.map((r, i) => {

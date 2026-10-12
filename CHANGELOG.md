@@ -2,6 +2,26 @@
 
 Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/).
 
+## [0.10.0-ui] · 2026-10-12 · Redesign "Tag"
+
+Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logika latihan di `lib/` tidak berubah.
+
+### Diubah
+- **Token warna dark-first**: permukaan charcoal (`#0B0B0C` / `#161616`), satu aksen oranye `#FC4C02`, hijau/kuning/merah hanya untuk data. Mode terang setara (latar `#F7F7F6`). Token baru `--track` dan `--surface-raised`.
+- **Kontras tombol diperbaiki**: teks di atas oranye kini gelap (`--on-brand #0B0B0C`, 5.78:1). Teks putih sebelumnya hanya 3.40:1 dan gagal AA.
+- **Tipografi**: Archivo (display italic condensed, body, ledger expanded) + Geist Mono untuk label, lewat `next/font`. Utility `.t-display`, `.t-stat`, `.t-ledger`, `.t-label` (`.eyebrow` jadi alias). Font "Boathouse" yang tidak pernah termuat dihapus.
+- **Motion**: kurva `--ease-out` / `--ease-in-out` / `--ease-drawer`, tekan 140ms, hover hanya untuk pointer presisi (semua kelas `hover:`), sheet buka 320ms / tutup 220ms, `overscroll-behavior: none`.
+- **Komponen**: kartu radius 20 / padding 20 tanpa bayangan di gelap; `Card tone="tag"` + `kicker`; `StatRow` dengan garis rambut; tombol `ghost`; pill & chip mono; AppBar titik oranye + wordmark; BottomNav label mono.
+- **Coach**: garis aksen kiri dihapus; ikon + label mono `SARAN HARI INI` + kata severity berwarna; tombol "Terapkan <level>".
+- **Profil**: StatRow di 7 hari terakhir & Wellness, plus **Week Ledger** (km per hari lari minggu ini, total mentah).
+- **Generator Lari**: header kartu tag dengan judul Display dan StatRow; **Segment Skyline** (rencana = warna intensitas) menggantikan bar hijau/merah.
+- **Detail aktivitas**: header kartu tag + StatRow, **Segment Skyline** (selesai = oranye) dengan struktur sesi & best rep.
+- Pace tampil `5'50"`; nilai kosong `·`; teks UI tanpa em dash/en dash.
+
+### Ditambahkan
+- `components/charts/SegmentSkyline.tsx` + `skyline-scale.ts` (logika murni), `components/ui/format.ts`, `CLAUDE.md`.
+- 14 test baru (`skyline-scale.test.ts`), total 150.
+
 ## [0.9.0] — 2026-10-12 · Visual gerakan & library diperluas
 
 ### Ditambahkan
@@ -146,7 +166,8 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.9.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ff25f40...main
+[0.10.0-ui]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/9bcff80...ui/tag-redesign
+[0.9.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ff25f40...9bcff80
 [0.8.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/ff25f40
 [0.8.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/872a9c1
 [0.7.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/6e6762f

@@ -177,7 +177,7 @@ export function ActivityCalendar({ activities, today, oldest }: { activities: Ac
       <div className="mt-4 border-t border-line pt-3">
         <p className="text-[13px] font-semibold text-muted">{DAY_TITLE_FMT.format(utc(selected))}</p>
         {selectedList.length === 0 ? (
-          <p className="mt-1 text-body text-faint">Tidak ada aktivitas — hari istirahat.</p>
+          <p className="mt-1 text-body text-faint">Tidak ada aktivitas. Hari istirahat.</p>
         ) : (
           <ul key={selected} className="swap-in -mx-5 mt-1 divide-y divide-line">
             {selectedList.map((a) => (

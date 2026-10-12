@@ -1,6 +1,6 @@
 {
   "name": "hybrid-athlete-dashboard",
-  "version": "0.9.0",
+  "version": "0.10.0-ui",
   "private": true,
   "scripts": {
     "dev": "next dev",

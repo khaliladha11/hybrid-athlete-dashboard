@@ -469,9 +469,9 @@ body {
   .skyline-bar {
     animation-name: skyline-fade;
   }
-  /* Sheet muncul langsung tanpa slide. */
+  /* Sheet muncul langsung tanpa slide; backdrop tetap memudar (fade membantu memahami perubahan). */
   .movement-sheet,
-  .movement-sheet::backdrop {
+  .movement-sheet[open] {
     transition: none;
   }
   /* Highlight statis: tampil penuh lalu hilang sekaligus, tanpa fade. */

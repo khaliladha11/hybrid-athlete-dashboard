@@ -25,7 +25,7 @@ const INPUT = "min-h-11 w-full rounded-control border bg-surface px-3 text-base 
 
 function defaultPace(k: ZoneKey): string {
   const v = baseProfile.runZones?.[k]?.pace;
-  return typeof v === "string" ? (v.endsWith("/km") ? v : `${v}/km`) : "—";
+  return typeof v === "string" ? (v.endsWith("/km") ? v : `${v}/km`) : "·";
 }
 
 /** Pace per zona bisa diubah manual atau dihitung dari hasil lomba (VDOT Daniels). */
@@ -99,8 +99,8 @@ function ZoneRow({ zone, value, onSave }: { zone: ZoneKey; value?: string; onSav
           onKeyDown={(e) => e.key === "Enter" && commit()}
           className={`${INPUT} ${f === undefined || !valid ? "border-danger" : "border-line-strong"}`}
         />
-        <span className="text-muted" aria-hidden>
-          –
+        <span className="text-[13px] text-muted" aria-hidden>
+          sampai
         </span>
         <input
           aria-label={`${ZONE_LABEL[zone]} batas lambat`}
@@ -134,7 +134,7 @@ function VdotCalculator({ onApply }: { onApply: (zones: Partial<Record<ZoneKey, 
     <details className="group mt-4 rounded-inner border border-line">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3 text-body font-semibold">
         Hitung dari hasil lomba (VDOT)
-        <span className="text-[13px] text-faint transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+        <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
           ›
         </span>
       </summary>

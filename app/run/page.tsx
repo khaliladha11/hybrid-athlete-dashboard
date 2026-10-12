@@ -14,7 +14,7 @@ export default async function RunPage() {
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-[22px] leading-tight font-semibold">Generator Lari</h1>
-          <p className="mt-0.5 text-[13px] text-muted">Pilih durasi & kesulitan — workout lengkap dengan pace, HR, dan RPE.</p>
+          <p className="mt-0.5 text-[13px] text-muted">Pilih durasi & kesulitan. Workout lengkap dengan pace, HR, dan RPE.</p>
         </div>
         <BlockBadge block={ctx.block} />
       </header>

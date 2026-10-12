@@ -132,7 +132,7 @@ export function StrengthGenerator({
             label="Program blok mingguan"
             description={
               blockEnabled
-                ? `${blockLabel(block)} — gerakan ★ dikunci per blok, ada minggu deload.`
+                ? `${blockLabel(block)}. Gerakan ★ dikunci per blok, ada minggu deload.`
                 : "Mode bebas: gerakan ★ dipilih per sesi, tanpa deload. Log tetap tercatat."
             }
           />
@@ -252,7 +252,7 @@ export function StrengthGenerator({
               }}
               className={`${BUTTON.base} ${BUTTON.secondary} mt-4 w-full`}
             >
-              {saved ? "✓ Tersimpan — catat lagi?" : "Catat sesi (gerakan ★)"}
+              {saved ? "✓ Tersimpan. Catat lagi?" : "Catat sesi (gerakan ★)"}
             </button>
           )
         )}
