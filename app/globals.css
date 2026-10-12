@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 /*
- * Design system: putih bersih, oranye energik sebagai warna utama, biru untuk
- * informasi, hijau/kuning/merah untuk status & intensitas, sudut membulat,
- * motion 150ms ease. Semua warna lewat token semantik → tema cukup mengganti nilai token.
+ * Design system "Tag" (docs/DESIGN-SYSTEM.md): dark-first, permukaan charcoal, satu aksen
+ * oranye #FC4C02, Archivo (display italic condensed, body, ledger expanded) + Geist Mono
+ * untuk label. Hijau/kuning/merah hanya warna data (intensitas & status).
+ * Semua warna lewat token semantik → tema cukup mengganti nilai token.
  *
  * Tema: default mengikuti sistem. Pilihan manual disimpan di localStorage dan
  * dipasang sebagai <html data-theme="light|dark"> sebelum halaman dirender.
@@ -11,11 +12,13 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
-  --font-sans: "Boathouse", "Segoe UI", "Helvetica Neue", -apple-system, system-ui, BlinkMacSystemFont, Roboto, Arial,
-    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  /* Font dari next/font (app/layout.tsx) sebagai variabel CSS. */
+  --font-sans: var(--font-archivo), system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
   --color-subtle: var(--subtle);
   --color-subtle-strong: var(--subtle-strong);
   --color-line: var(--line);
@@ -28,6 +31,7 @@
   --color-brand-soft: var(--brand-soft);
   --color-brand-ink: var(--brand-ink);
   --color-on-brand: var(--on-brand);
+  --color-track: var(--track);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --color-inverse: var(--inverse);
@@ -42,42 +46,61 @@
   --color-danger-ink: var(--danger-ink);
   --color-danger-soft: var(--danger-soft);
 
-  /* Radius: kartu 16px, kontrol (tombol/input/pilihan) 12px, elemen dalam kartu 12px. */
-  --radius-card: 1rem;
+  /* Radius satu skala lembut: kartu 20px, kontrol 12px, elemen dalam 10px (sheet 24px di .movement-sheet). */
+  --radius-card: 1.25rem;
   --radius-control: 0.75rem;
-  --radius-inner: 0.75rem;
+  --radius-inner: 0.625rem;
 
-  /* Skala tipografi: body 15px, heading 16px/600, line-height rapat. */
+  /* Skala tipografi: body 15/1.4, heading kartu 16/600. */
   --text-body: 0.9375rem;
-  --text-body--line-height: 1.33;
+  --text-body--line-height: 1.4;
   --text-base--line-height: 1.3;
 
   --shadow-card: var(--shadow-card-value);
-  --ease-out: ease;
 }
 
+/* Motion (§5): kurva kuat, tidak pernah ease-in. Juga menjadi utility ease-out / ease-in-out / ease-drawer. */
+@theme {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+:root {
+  --dur-press: 140ms;
+  --dur-pop: 180ms;
+  --dur-chart: 240ms;
+  --dur-sheet-in: 320ms;
+  --dur-sheet-out: 220ms;
+}
+
+/* Terang: setara dengan gelap; latar sedikit off-white supaya kartu putih terbaca. */
 :root,
 :root[data-theme="light"] {
-  --bg: #ffffff;
+  --bg: #f7f7f6;
   --surface: #ffffff;
-  --subtle: #f7f7f5;
-  --subtle-strong: #f2f2f0;
-  --line: #f2f2f0;
-  --line-strong: #c9c8c3;
-  --ink: #000000;
-  --muted: #43423f;
-  --faint: #6d6c68;
-  --brand: #fc5200;
-  --brand-hover: #e04800;
-  --brand-soft: #fff1e8;
-  /* Oranye untuk TEKS di atas putih: #fc5200 hanya ±3.3:1, ini ±5.3:1. */
+  --surface-raised: #ffffff;
+  --subtle: #f1f1ef;
+  --subtle-strong: #e8e8e5;
+  --line: #ecebe8;
+  --line-strong: #cfcdc8;
+  --ink: #141414;
+  --muted: #4a4946;
+  --faint: #6b6a66;
+  --brand: #fc4c02;
+  --brand-hover: #e54400;
+  --brand-soft: #fff0e8;
+  /* Oranye untuk TEKS di atas putih: #fc4c02 hanya ±3.3:1, ini ±5.2:1. */
   --brand-ink: #c23f00;
-  --on-brand: #ffffff;
+  /* Teks di atas oranye: gelap (±5.8:1). Putih hanya ±3.4:1 dan gagal AA. */
+  --on-brand: #0b0b0c;
+  /* Bar segmen non-kerja (pemanasan, recovery): ≥ 3:1 terhadap surface. */
+  --track: #8f8e8a;
   --info: #0060d0;
   --info-soft: #eaf2fd;
-  --inverse: #000000;
+  --inverse: #141414;
   --on-inverse: #ffffff;
-  /* Status & intensitas: fill untuk bar/titik, ink untuk teks (≥ 4.5:1), soft untuk latar. */
+  /* Status & intensitas (warna data): fill untuk bar/titik, ink untuk teks (≥ 4.5:1), soft untuk latar. */
   --success: #16a34a;
   --success-ink: #15803d;
   --success-soft: #e8f7ee;
@@ -87,32 +110,33 @@
   --danger: #dc2626;
   --danger-ink: #b91c1c;
   --danger-soft: #fdecec;
-  --shadow-card-value: 0px 20px 20px 0px rgba(13, 13, 18, 0.1);
-  --shadow-hover: 0 1px 2px rgba(13, 13, 18, 0.08), 0 2px 6px rgba(13, 13, 18, 0.1);
+  --shadow-card-value: 0 1px 2px rgba(20, 20, 20, 0.04), 0 4px 16px rgba(20, 20, 20, 0.06);
+  --shadow-hover: 0 1px 2px rgba(20, 20, 20, 0.06), 0 2px 8px rgba(20, 20, 20, 0.08);
   color-scheme: light;
 }
 
-/* Dark: dipilih manual, atau mengikuti sistem bila belum ada pilihan. */
+/* Gelap (wajah utama): dipilih manual, atau mengikuti sistem bila belum ada pilihan. */
 :root[data-theme="dark"] {
-  --bg: #0f0f0e;
-  --surface: #1a1a19;
-  --subtle: #232321;
-  --subtle-strong: #2c2c2a;
-  --line: #2c2c2a;
-  --line-strong: #4a4945;
-  --ink: #ffffff;
-  --muted: #c4c2bc;
-  --faint: #9a9892;
-  --brand: #fc5200;
-  --brand-hover: #ff6a1f;
-  --brand-soft: #3a1d0d;
-  --brand-ink: #ff8a4c;
-  --on-brand: #ffffff;
+  --bg: #0b0b0c;
+  --surface: #161616;
+  --surface-raised: #1f1f20;
+  --subtle: #1f1f20;
+  --subtle-strong: #27272a;
+  --line: #2a2a2c;
+  --line-strong: #3e3e42;
+  --ink: #f5f4f1;
+  --muted: #a8a7a3;
+  --faint: #8c8b88;
+  --brand: #fc4c02;
+  --brand-hover: #ff5f1a;
+  --brand-soft: #2a1408;
+  --brand-ink: #ff6a2b;
+  --on-brand: #0b0b0c;
+  --track: #6e6e74;
   --info: #5aa2ff;
   --info-soft: #0f2440;
-  --inverse: #ffffff;
-  --on-inverse: #000000;
-  /* Versi gelap: lebih terang & sedikit desaturasi supaya tidak menyilaukan. */
+  --inverse: #f5f4f1;
+  --on-inverse: #0b0b0c;
   --success: #4ade80;
   --success-ink: #6ee7a0;
   --success-soft: #10291a;
@@ -122,32 +146,34 @@
   --danger: #f87171;
   --danger-ink: #fca5a5;
   --danger-soft: #331414;
-  --shadow-card-value: 0px 20px 20px 0px rgba(0, 0, 0, 0.35);
-  --shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.55);
+  /* Tanpa bayangan di gelap: elevasi dari beda tone surface → surface-raised. */
+  --shadow-card-value: none;
+  --shadow-hover: 0 0 0 1px var(--line-strong);
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --bg: #0f0f0e;
-    --surface: #1a1a19;
-    --subtle: #232321;
-    --subtle-strong: #2c2c2a;
-    --line: #2c2c2a;
-    --line-strong: #4a4945;
-    --ink: #ffffff;
-    --muted: #c4c2bc;
-    --faint: #9a9892;
-    --brand: #fc5200;
-    --brand-hover: #ff6a1f;
-    --brand-soft: #3a1d0d;
-    --brand-ink: #ff8a4c;
-    --on-brand: #ffffff;
+    --bg: #0b0b0c;
+    --surface: #161616;
+    --surface-raised: #1f1f20;
+    --subtle: #1f1f20;
+    --subtle-strong: #27272a;
+    --line: #2a2a2c;
+    --line-strong: #3e3e42;
+    --ink: #f5f4f1;
+    --muted: #a8a7a3;
+    --faint: #8c8b88;
+    --brand: #fc4c02;
+    --brand-hover: #ff5f1a;
+    --brand-soft: #2a1408;
+    --brand-ink: #ff6a2b;
+    --on-brand: #0b0b0c;
+    --track: #6e6e74;
     --info: #5aa2ff;
     --info-soft: #0f2440;
-    --inverse: #ffffff;
-    --on-inverse: #000000;
-    /* Versi gelap: lebih terang & sedikit desaturasi supaya tidak menyilaukan. */
+    --inverse: #f5f4f1;
+    --on-inverse: #0b0b0c;
     --success: #4ade80;
     --success-ink: #6ee7a0;
     --success-soft: #10291a;
@@ -157,10 +183,17 @@
     --danger: #f87171;
     --danger-ink: #fca5a5;
     --danger-soft: #331414;
-    --shadow-card-value: 0px 20px 20px 0px rgba(0, 0, 0, 0.35);
-    --shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.55);
+    /* Tanpa bayangan di gelap: elevasi dari beda tone surface → surface-raised. */
+    --shadow-card-value: none;
+    --shadow-hover: 0 0 0 1px var(--line-strong);
     color-scheme: dark;
 }
+}
+
+html,
+body {
+  /* App, bukan dokumen: tanpa pull-to-refresh / rubber band halaman. */
+  overscroll-behavior: none;
 }
 
 html {
@@ -206,20 +239,27 @@ body {
     font-weight: 600;
     line-height: 1.3;
   }
+
+  /* iOS tidak zoom otomatis bila isian minimal 16px. */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
 }
 
 @layer components {
   /* Umpan balik tekan: respons saat jari mendarat, bukan saat diangkat. */
   .pressable {
     transition-property: transform, color, background-color, border-color, box-shadow, opacity;
-    transition-duration: 150ms;
-    transition-timing-function: ease;
+    transition-duration: var(--dur-press);
+    transition-timing-function: var(--ease-out);
   }
   .pressable:active:not(:disabled) {
     transform: scale(0.97);
   }
   /* Bayangan tipis saat hover — hanya di perangkat dengan pointer (tidak "nyangkut" di layar sentuh). */
-  @media (hover: hover) {
+  @media (hover: hover) and (pointer: fine) {
     .pressable:hover:not(:disabled) {
       box-shadow: var(--shadow-hover);
     }
@@ -228,8 +268,8 @@ body {
   /* Konten yang baru di-render (hasil generate, label tombol) memudar masuk. */
   .swap-in {
     transition:
-      opacity 150ms ease,
-      filter 150ms ease;
+      opacity 150ms var(--ease-out),
+      filter 150ms var(--ease-out);
     @starting-style {
       opacity: 0.4;
       filter: blur(2px);
@@ -238,7 +278,7 @@ body {
 
   /* Isi <details> muncul halus saat dibuka. */
   details[open] > .details-body {
-    animation: details-in 150ms ease;
+    animation: details-in 150ms var(--ease-out);
   }
 
   /* Penanda tujuan setelah lompat dari nav Setting: garis aksen + tint tipis, lalu memudar sekali. */
@@ -294,9 +334,67 @@ body {
     }
   }
 
-  /* Label kecil huruf kapital (judul grup, label statistik). */
+  /* ---- Tipografi (§3). Lebar Archivo lewat font-stretch + font-variation-settings. ---- */
+  .t-display,
+  .t-display-sm {
+    font-family: var(--font-sans);
+    font-style: italic;
+    font-weight: 800;
+    font-stretch: 75%;
+    font-variation-settings: "wdth" 75;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    /* Ruang untuk descender italic supaya tidak terpotong. */
+    padding-bottom: 0.25rem;
+  }
+  .t-display {
+    font-size: 40px;
+    line-height: 0.95;
+  }
+  .t-display-sm {
+    font-size: 26px;
+    line-height: 1;
+  }
+  .t-stat-xl,
+  .t-stat {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .t-stat-xl {
+    font-size: 44px;
+    line-height: 1;
+  }
+  .t-stat {
+    font-size: 24px;
+    line-height: 1.05;
+  }
+  .t-ledger,
+  .t-ledger-num {
+    font-weight: 800;
+    font-stretch: 125%;
+    font-variation-settings: "wdth" 125;
+  }
+  .t-ledger {
+    font-size: 13px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .t-ledger-num {
+    font-size: 20px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Label mono kecil seperti tag/struk. .eyebrow = alias lama supaya pemakaian 0.9 tidak rusak. */
+  .t-label,
   .eyebrow {
-    @apply text-[12px] font-semibold uppercase tracking-wide text-muted;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--faint);
   }
 }
 
