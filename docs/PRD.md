@@ -10,7 +10,7 @@
 | **Live** | https://hybrid-athlete-dashboard.vercel.app |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
 | **Kualitas** | 8 file test, 136 unit test lolos · build produksi lolos |
-| **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) |
+| **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
 
@@ -37,7 +37,8 @@
 - menyusun **workout lari dan ST hari ini** yang aman untuk kondisi cedera atlet,
 - memberi **saran harian** berdasarkan kesiapan tubuh dan beban 7 hari terakhir,
 - menyusun **program menuju lomba** (5K, 10K, HM, FM),
-- mencatat sesi ST dan **menaikkan beban secara otomatis**.
+- mencatat sesi ST dan **menaikkan beban secara otomatis**,
+- menampilkan **teknik setiap gerakan**: gambar posisi awal & akhir, cue, otot yang dilatih, dan catatan sesuai kondisi atlet.
 
 **Visi jangka panjang:** satu aplikasi yang menjawab "hari ini latihan apa, seberapa berat, dan apakah aku di jalur yang benar menuju target?" tanpa harus membuka banyak aplikasi.
 
@@ -52,7 +53,8 @@
 | Kondisi tubuh berubah (cedera baru, sembuh) | Kondisi diaktifkan/nonaktifkan di Setting dari katalog berbasis riset |
 | Bingung menyeimbangkan lari dan ST | Aturan concurrent training dan saran harian |
 | Mudah terlalu semangat (km naik drastis, terlalu banyak sesi berat) | Peringatan 80/20 dan kenaikan km > 30% |
-| Latihan monoton | Periodisasi blok 4 minggu, rotasi pola, tombol "Variasi lain" |
+| Latihan monoton | Periodisasi blok 4 minggu, rotasi pola, tombol "Variasi lain", 40 gerakan di library |
+| Ragu tekniknya benar saat latihan sendiri di rumah | Thumbnail + detail gerakan: gambar awal/akhir, cue teknik, otot, catatan kondisi aktif |
 | Data tersebar (jam, intervals.icu, catatan) | Ringkasan, kalender, dan wellness dalam satu layar |
 
 ## 3. Aturan yang tidak boleh dilanggar
@@ -77,6 +79,12 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 - Kondisi hanya dari **katalog** dengan sumber kredibel (guideline, consensus, studi). Kondisi baru di katalog wajib menyertakan sumber dan test.
 - Kondisi teks bebas hanya menjadi catatan; tidak pernah mengubah generator.
 - Kondisi tidak pernah menambah gerakan di luar library; hanya mewajibkan, melarang, atau memberi catatan.
+
+**Movement library & media** · keputusan 2026-10-12
+- Gambar gerakan **hanya dari sumber berlisensi bebas** (saat ini [free-exercise-db](https://github.com/yuhonas/free-exercise-db), Unlicense), disimpan lokal di `public/movements/` (tanpa hotlink). Tidak memakai gambar buatan AI atau sumber yang lisensinya tidak mengizinkan (mis. openGym, Gym Visual).
+- Gambar yang berbeda dari versi kita (🟡) hanya dipakai bila disetujui pemilik, dan selalu diberi catatan perbedaan. Tanpa padanan → "Gambar belum tersedia".
+- Gerakan baru wajib punya: META (rep/tahan, cue), pemetaan alat, rentang beban yang bisa dirakit, entri media (gambar atau `null` eksplisit), dan lolos `scripts/audit-movement-media.mjs` serta seluruh test generator.
+- Menambah gerakan multi-joint **tidak boleh mengubah ★ blok yang sedang berjalan**; ★ baru berlaku mulai blok berikutnya.
 
 ## 4. Status fitur per modul
 
@@ -130,8 +138,12 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Gerakan wajib/terlarang mengikuti kondisi aktif | ✅ | 0.8 |
 | Hanya gerakan yang dipilih & alatnya tersedia; beban dari kombinasi plat | ✅ | 0.8 |
 | Gerakan baru di movement library | ✅ | 0.9: 13 gerakan dari free-exercise-db (stabilitas panggul, core, unilateral, soleus, bahu) |
-| Gambar teknik gerakan (awal/akhir) + detail cue & otot | 🟡 | 0.9: 35/40 gerakan bergambar; 5 tanpa padanan (Dead Hang, Negative Pull-Up, Scapular Retraction, Clamshell, Tibialis Wall Raise). Belum ada video |
-| Toggle titik tambat band | ✅ | 0.9 |
+| Thumbnail di setiap kartu gerakan + bottom sheet detail (crossfade awal/akhir, jeda, cue, otot, catatan kondisi) | ✅ | 0.9. Reduced motion: gambar berdampingan tanpa animasi |
+| Gambar teknik untuk semua gerakan | 🟡 | 35/40 bergambar; 5 tanpa padanan (Dead Hang, Negative Pull-Up, Seated DB Scapular Retraction, Clamshell, Tibialis Wall Raise). 12 gambar 🟡 yang disetujui sedikit berbeda dan diberi catatan. Belum ada video |
+| Syarat stabilitas panggul diperluas (Side Plank, Standing Band Hip Abduction) | ✅ | 0.9 |
+| Prehab berputar sesuai bagian tubuh (tungkai untuk Lower/Full, bahu untuk Upper) | ✅ | 0.9, sesi 45'/60' |
+| ★ baru (Split Squat, Step-Up, Plié Squat) mulai blok berikutnya | ✅ | 0.9, mode bebas langsung |
+| Saran ringkas satu baris (seperti Generator Lari) | ⬜ | Generator Strength masih memakai kartu saran lengkap |
 | Timer istirahat antar set | ⬜ | |
 
 ### 4.5 Periodisasi & program target
@@ -153,7 +165,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | --- | --- | --- |
 | Catat beban/rep/detik/RPE untuk gerakan ★ | ✅ | |
 | Progresi 2-for-2 (beban, detik tahan, band) | ✅ | Tidak melewati batas library |
-| Riwayat & tren per gerakan (halaman Strength), hapus per entri | ✅ | Pindah dari halaman Log (0.8) |
+| Riwayat & tren per gerakan (halaman Strength), hapus per entri | ✅ | Pindah dari halaman Log (0.8); thumbnail & detail gerakan di daftar tren (0.9) |
 | Ekspor/impor JSON (log + Setting + program + preferensi) | ✅ | Setting › Data & cadangan (0.8) |
 | Progresi ke beban berikutnya yang bisa dirakit | ✅ | 0.8 |
 | Sinkron antar perangkat | ⬜ | Masih `localStorage` |
@@ -173,7 +185,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Login / proteksi akses | ⬜ | **Prioritas**, lihat §6 |
 | Notifikasi / pengingat latihan | ⬜ | |
 
-### 4.8 Setting (0.8)
+### 4.8 Setting
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
@@ -181,7 +193,9 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Catatan kondisi teks bebas | ✅ | Tampil di workout, tidak mengubah generator |
 | Zona pace Easy/Tempo/Interval/4×4: manual atau VDOT Daniels dari hasil lomba | ✅ | Default dari JSON, reset per zona |
 | Alat: dumbbell, barbell, plat, band, pull-up bar, kursi, alat lain | ✅ | Daftar beban yang bisa dirakit tampil langsung |
-| Pilihan movement library + alasan bila tidak tersedia | ✅ | Gerakan wajib kondisi dikunci |
+| Toggle titik tambat band | ✅ | 0.9 — untuk Band Reverse Fly, Band External Rotation, Standing Band Hip Abduction, Seated Band Hamstring Curl |
+| Pilihan movement library + alasan bila tidak tersedia | ✅ | Gerakan wajib kondisi dikunci; 40 gerakan sejak 0.9 |
+| Menambah gerakan sendiri (custom) | ⬜ | Gerakan hanya dari kurasi developer |
 | Tema & blok mingguan, Data & cadangan | ✅ | |
 | Nav bagian sticky: smooth scroll, highlight kartu tujuan, scroll spy | ✅ | 0.8.1, menghormati reduced motion |
 | Zona HR & RPE bisa diubah | ⬜ | Sekarang hanya pace |
@@ -196,6 +210,8 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Mobile-first | Nyaman di layar 375px, area sentuh ≥ 44px | ✅ |
 | Aksesibilitas | Kontras teks AA di kedua tema, fokus keyboard, reduced motion | ✅ |
 | Keandalan logika | Semua aturan latihan diuji unit test | ✅ |
+| Lisensi aset | Hanya aset berlisensi bebas, atribusi di `NOTICE.md` | ✅ free-exercise-db (Unlicense) |
+| Ukuran aset & performa | Gambar lokal WebP ≤ 600 px, lazy loading, tanpa hotlink | ✅ 70 gambar, ±1,4 MB total |
 | Ketersediaan | Tetap jalan tanpa API key / saat intervals.icu error | ✅ |
 | Offline | Bisa dibuka tanpa sinyal | ⬜ |
 | Pengujian UI | Test komponen / end-to-end | ⬜ Hanya unit test logika |
@@ -208,13 +224,14 @@ Diurutkan dari yang paling berdampak.
 1. **Belum ada login.** Siapa pun yang tahu URL Vercel bisa melihat data intervals.icu pemilik. Mitigasi cepat: aktifkan *Vercel → Settings → Deployment Protection*.
 2. **Data di perangkat saja.** Setting, log ST, program, tema, dan toggle blok ada di `localStorage`. Hilang bila data browser dihapus, dan tidak sinkron antara HP dan laptop. Cadangan: ekspor JSON manual (kini mencakup semuanya). Makin penting sejak 0.8 karena Setting menyimpan lebih banyak data.
 3. **Profil sebagian statis.** Nama, target lomba, dan tanggal mulai blok masih di JSON. Bagian yang dirender server (mis. header Profil) memakai nilai default, bukan Setting perangkat.
-4. **Movement library hanya dari kurasi developer.** 0.9 menambah 13 gerakan, tetapi pengguna belum bisa menambah gerakan sendiri; alat lain (mis. kettlebell) baru dicatat. 5 gerakan belum punya gambar, dan celah anti-rotasi (Pallof, bird dog, suitcase carry) belum ada di sumber gambar. Kondisi di luar katalog hanya catatan.
+4. **Movement library hanya dari kurasi developer.** 0.9 menambah 13 gerakan (total 40), tetapi pengguna belum bisa menambah gerakan sendiri; alat lain (mis. kettlebell) baru dicatat. 5 gerakan belum punya gambar — termasuk 2 prehab wajib (Clamshell, Tibialis Wall Raise) — dan celah anti-rotasi (Pallof, bird dog, suitcase carry) belum ada di sumber gambar. Kondisi di luar katalog hanya catatan.
 5. **Program & generator belum terhubung.** Sesi di Program tidak bisa langsung dibuka di generator, dan aktivitas aktual belum dicocokkan dengan rencana.
 6. **Ambang tetap.** HR lari berat (155), penurunan HRV (15%), dan kenaikan resting HR (5 bpm) belum dipersonalisasi.
 7. **Kalender terbatas 2 bulan.** Hanya bulan ini dan bulan lalu yang diambil dari intervals.icu.
 8. **Belum offline.** Belum ada service worker.
-9. **Pengujian UI manual.** Belum ada test komponen/e2e maupun CI GitHub Actions.
+9. **Pengujian UI manual.** Belum ada test komponen/e2e maupun CI GitHub Actions. Animasi bottom sheet & crossfade 0.9 baru diverifikasi secara logika (state, posisi, reduced motion), belum di perangkat nyata.
 10. **Screenshot dokumentasi** perlu diperbarui untuk Profil 0.7, Setting 0.8, dan detail gerakan 0.9.
+11. **Script media memakai `sharp` dari Next.js** (dependensi tidak langsung). Bila Next.js berhenti membawanya, `sharp` perlu ditambahkan sebagai devDependency.
 
 ## 7. Roadmap & saran pengembangan
 
@@ -231,6 +248,8 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | **1.0 Siap pakai penuh** | Offline, edit target & tanggal blok di aplikasi, kirim workout ke intervals.icu, CI + test e2e | Stabil dan mandiri tanpa edit kode |
 
 > Catatan urutan (2026-10-11): "Edit profil di aplikasi" dimajukan ke 0.8 atas permintaan pemilik, disimpan di perangkat dulu. Proteksi akses & sinkron database bergeser ke 0.10.
+>
+> 2026-10-12: 0.9 "Library & alat" selesai sebagai **Visual gerakan + perluasan library**. Rekomendasi berikutnya tetap 0.10 — log, Setting, dan pilihan gerakan kini makin berharga untuk disinkron & dilindungi.
 
 ### Backlog lengkap
 
@@ -247,13 +266,15 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P1 | **Grafik tren** CTL/ATL/Form & km mingguan | M | Melihat kebugaran dan kelelahan jangka panjang |
 | P2 | **Kirim workout ke kalender intervals.icu** (lalu ke jam yang terhubung) | M | Workout langsung muncul di jam |
 | P2 | **Edit sisa profil di aplikasi** (target lomba, tanggal mulai blok, zona HR/RPE) | S | Tanpa edit JSON sama sekali |
-| P3 | Tampilkan kembali tab **Set Huawei** (pratinjau format set) | S | Disembunyikan sementara di 0.8 |
 | P2 | **Ambang personal** (HR berat dari zona/LTHR, baseline HRV 30 hari) | S | Saran lebih akurat |
 | P2 | **Mode offline** (service worker, cache workout terakhir) | M | Tetap bisa dibuka di gym tanpa sinyal |
 | P2 | **Timer sesi ST** (istirahat antar set, hitung mundur tahan) | M | Tidak perlu aplikasi timer lain |
 | P2 | **Milestone pull-up** & gerakan baru otomatis aktif saat siap (mis. negative pull-up) | S | Progres terlihat dan memotivasi |
 | P2 | **Grafik cadence & pace easy run** | S | Memantau perbaikan crossover gait |
+| P2 | **Gerakan custom** (tambah gerakan sendiri + alat + rentang beban, tetap lewat validator) | M | Library mengikuti alat baru tanpa menunggu developer |
 | P3 | Pengingat/notifikasi (web push) | L | Konsisten latihan |
+| P3 | Tampilkan kembali tab **Set Huawei** (pratinjau format set) | S | Disembunyikan sementara di 0.8 |
+| P3 | Saran ringkas satu baris di **Generator Strength** | S | Konsisten dengan Generator Lari |
 | P3 | Video singkat per gerakan | M | Eksekusi lebih aman (gambar awal/akhir sudah ada sejak 0.9) |
 | P3 | Multi-atlet / berbagi ke pelatih | L | Hanya bila dibutuhkan |
 | P3 | Lari trail/treadmill & cuaca (panas → turunkan target pace) | M | Target realistis di cuaca tropis |
@@ -291,5 +312,6 @@ Setiap kali ada rilis:
    - hapus keterbatasan yang sudah teratasi di §6,
    - pindahkan item roadmap yang selesai di §7 ke §8.
 3. Perbarui tabel progres di `README.md` dan screenshot bila tampilan berubah.
+4. Bila movement library berubah: putuskan media di `scripts/audit-movement-media.mjs`, isi `lib/movements/media.ts`, lalu jalankan `node scripts/audit-movement-media.mjs` dan `node scripts/fetch-movement-media.mjs`.
 
 Saat mengusulkan fitur baru, tambahkan barisnya di backlog §7 dengan prioritas, ukuran, dan nilai untuk atlet, lalu pastikan tidak melanggar aturan di §3.
