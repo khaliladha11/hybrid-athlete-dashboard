@@ -4,6 +4,7 @@
  */
 import type { ActivityInterval } from "@/lib/intervals/types";
 import type { RunStep, RunWorkout } from "@/lib/generator/types";
+import { formatClock } from "@/components/ui/format";
 
 export type SkylineTone = "work" | "track" | "success" | "warning" | "danger";
 
@@ -56,13 +57,16 @@ function median(xs: number[]): number | undefined {
 }
 
 /**
- * Segmen kerja: `type === "WORK"` dari intervals.icu bila ada; kalau tidak ada tipe WORK sama sekali,
- * segmen yang pace-nya lebih cepat dari median sesi.
+ * Segmen kerja: `type === "WORK"` dari intervals.icu bila tipe itu membedakan segmen. Bila tidak ada
+ * WORK, atau SEMUA segmen WORK (lap otomatis, tidak informatif): segmen yang lebih cepat dari median.
+ * Lari steady (selisih pace < 60 dtk) tidak punya segmen kerja.
  */
 export function detectWork(items: { type?: string; paceSecPerKm?: number }[]): boolean[] {
-  if (items.some((i) => i.type?.toUpperCase() === "WORK")) return items.map((i) => i.type?.toUpperCase() === "WORK");
-  const med = median(items.map((i) => i.paceSecPerKm).filter((p): p is number => !!p && p > 0));
-  if (med === undefined) return items.map(() => false);
+  const types = items.map((i) => i.type?.toUpperCase());
+  if (types.includes("WORK") && !types.every((t) => t === "WORK")) return types.map((t) => t === "WORK");
+  const paces = items.map((i) => i.paceSecPerKm).filter((p): p is number => !!p && p > 0);
+  if (!paces.length || Math.max(...paces) - Math.min(...paces) < STEADY_SPREAD_SEC) return items.map(() => false);
+  const med = median(paces)!;
   return items.map((i) => !!i.paceSecPerKm && i.paceSecPerKm < med);
 }
 
@@ -145,7 +149,7 @@ export function summarizeDone(segments: SkylineSegment[]): { structure: string; 
   const total = segments.reduce((a, s) => a + s.durationSec, 0);
   if (!work.length) {
     const p = paces(segments);
-    return { structure: `${segments.length} segmen · ${formatSegDuration(total)}`, bestPace: p.length ? Math.min(...p) : undefined, hasWork: false };
+    return { structure: `${segments.length} segmen · ${formatClock(total)}`, bestPace: p.length ? Math.min(...p) : undefined, hasWork: false };
   }
   const first = segments.findIndex((s) => s.role === "work");
   let last = -1;

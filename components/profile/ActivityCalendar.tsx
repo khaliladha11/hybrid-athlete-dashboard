@@ -79,7 +79,7 @@ export function ActivityCalendar({ activities, today, oldest }: { activities: Ac
   };
 
   return (
-    <section className="rounded-card border border-line bg-surface p-4 shadow-card">
+    <section className="rounded-card border border-line bg-surface p-5 shadow-card">
       <header className="flex items-center justify-between gap-2">
         <h2 className="text-base font-semibold capitalize">{MONTH_FMT.format(utc(month))}</h2>
         <div className="flex gap-1">
@@ -179,7 +179,7 @@ export function ActivityCalendar({ activities, today, oldest }: { activities: Ac
         {selectedList.length === 0 ? (
           <p className="mt-1 text-body text-faint">Tidak ada aktivitas — hari istirahat.</p>
         ) : (
-          <ul key={selected} className="swap-in -mx-4 mt-1 divide-y divide-line">
+          <ul key={selected} className="swap-in -mx-5 mt-1 divide-y divide-line">
             {selectedList.map((a) => (
               <ActivityRow key={a.id} a={a} />
             ))}
@@ -203,7 +203,7 @@ function ActivityRow({ a }: { a: Activity }) {
   ].filter(Boolean);
   return (
     <li>
-      <Link href={`/activity/${encodeURIComponent(a.id)}`} className="flex items-center gap-3 px-4 py-3 hover:bg-subtle">
+      <Link href={`/activity/${encodeURIComponent(a.id)}`} className="flex items-center gap-3 px-5 py-3 hover:bg-subtle">
         <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${dayFill(a)}`} aria-hidden>
           <Icon d={CATEGORY_ICON[a.category]} className="h-5 w-5" />
         </span>

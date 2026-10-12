@@ -50,6 +50,11 @@ describe("deteksi segmen kerja", () => {
     expect(detectWork([{ type: "WARMUP", paceSecPerKm: 300 }, { type: "WORK", paceSecPerKm: 500 }, { type: "RECOVERY" }])).toEqual([false, true, false]);
   });
 
+  it("semua WORK (lap otomatis) tidak informatif; lari steady tidak punya segmen kerja", () => {
+    expect(detectWork([{ type: "WORK", paceSecPerKm: 480 }, { type: "WORK", paceSecPerKm: 470 }, { type: "WORK", paceSecPerKm: 490 }])).toEqual([false, false, false]);
+    expect(detectWork([{ type: "WORK", paceSecPerKm: 480 }, { type: "WORK", paceSecPerKm: 300 }, { type: "WORK", paceSecPerKm: 490 }])).toEqual([false, true, false]);
+  });
+
   it("tanpa tipe WORK: lebih cepat dari median sesi", () => {
     expect(detectWork([{ paceSecPerKm: 480 }, { paceSecPerKm: 270 }, { paceSecPerKm: 490 }, { paceSecPerKm: 280 }, { paceSecPerKm: 485 }])).toEqual([
       false,

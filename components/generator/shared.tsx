@@ -1,7 +1,7 @@
 "use client";
 
 import type { Ref } from "react";
-import { BUTTON } from "@/components/ui/Card";
+import { BUTTON, Kicker } from "@/components/ui/Card";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { pillClasses, type Tone } from "@/components/ui/tones";
 
@@ -11,6 +11,8 @@ export function OutputShell({
   swapKey,
   ref,
   tag,
+  kicker,
+  display = false,
   children,
 }: {
   title: string;
@@ -20,20 +22,37 @@ export function OutputShell({
   ref?: Ref<HTMLElement>;
   /** Pill berwarna di samping judul, mis. tingkat kesulitan. */
   tag?: { label: string; tone: Tone };
+  /** Label mono dengan titik oranye di kiri atas (kartu tag). */
+  kicker?: string;
+  /** Judul sebagai Display XL (satu per layar). */
+  display?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <section
       ref={ref}
-      className="scroll-mt-4 rounded-card border border-line bg-surface p-4 shadow-card"
+      className="scroll-mt-4 rounded-card border border-line bg-surface p-5 shadow-card"
       aria-live="polite"
     >
       <div key={swapKey} className="swap-in">
-        <div className="flex items-start justify-between gap-2">
-          <h2 className="text-lg leading-snug font-semibold">{title}</h2>
-          {tag && <span className={`mt-0.5 shrink-0 ${pillClasses(tag.tone)}`}>{tag.label}</span>}
-        </div>
-        {subtitle && <p className="tabular mt-0.5 mb-4 text-[13px] text-muted">{subtitle}</p>}
+        {display ? (
+          <header className="mb-5">
+            <div className="flex items-center justify-between gap-2">
+              {kicker ? <Kicker>{kicker}</Kicker> : <span />}
+              {tag && <span className={`shrink-0 ${pillClasses(tag.tone)}`}>{tag.label}</span>}
+            </div>
+            <h2 className="t-display mt-3 text-ink">{title}</h2>
+            {subtitle && <p className="t-label mt-1">{subtitle}</p>}
+          </header>
+        ) : (
+          <>
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="text-lg leading-snug font-semibold">{title}</h2>
+              {tag && <span className={`mt-0.5 shrink-0 ${pillClasses(tag.tone)}`}>{tag.label}</span>}
+            </div>
+            {subtitle && <p className="tabular mt-0.5 mb-4 text-[13px] text-muted">{subtitle}</p>}
+          </>
+        )}
         {children}
       </div>
     </section>

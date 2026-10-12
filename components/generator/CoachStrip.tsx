@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { suggestFor, type Advice, type AdviceTarget, type Suggestion } from "@/lib/coach";
 import { DIFFICULTY_LABEL, type Difficulty, type Duration } from "@/lib/generator/types";
+import { suggestionSeverity } from "./coach-severity";
 
 /**
  * Saran hari ini versi ringkas untuk halaman generator: satu baris ringkasan,
@@ -32,27 +33,33 @@ export function CoachStrip({
   // Ringkas supaya muat satu baris di layar 360px: "Moderate · 30'".
   const summary = `${DIFFICULTY_LABEL[difficulty]} · ${duration}'`;
   const spoken = `${DIFFICULTY_LABEL[difficulty]} ${duration} menit`;
+  const severity = suggestionSeverity(s);
 
   return (
     <aside
       role="note"
       aria-label="Saran hari ini"
       title={relevant.map((a) => a.title).join(" · ")}
-      className="flex min-h-12 items-center gap-1.5 rounded-card border border-line border-l-[3px] border-l-brand bg-surface py-1.5 pr-1.5 pl-2.5"
+      className="flex min-h-14 items-center gap-2.5 rounded-card border border-line bg-surface py-2 pr-2 pl-3.5"
     >
-      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-brand" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M12 3 2.5 20h19L12 3Zm0 6v5m0 3h.01" />
+      <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-brand-ink" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M12 9v4m0 4h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
       </svg>
-      <p className="min-w-0 flex-1 truncate text-[14px]">
-        {actionable ? (
-          <>
-            <span className="text-muted">Saran: </span>
-            <span className="font-semibold text-ink">{summary}</span>
-          </>
-        ) : (
-          <span className="font-semibold text-success-ink">✓ Sesuai saran: {summary}</span>
-        )}
-      </p>
+      <div className="grid min-w-0 flex-1 gap-0.5">
+        <span className="t-label truncate">
+          Saran hari ini · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
+        </span>
+        <p className="truncate text-[14px]">
+          {actionable ? (
+            <>
+              <span className="text-muted">Saran: </span>
+              <span className="font-semibold text-ink">{summary}</span>
+            </>
+          ) : (
+            <span className="font-semibold text-success-ink">✓ Sesuai saran: {summary}</span>
+          )}
+        </p>
+      </div>
       <Link href="/#saran" className="shrink-0 px-0.5 text-[12px] font-semibold text-muted underline-offset-2 hover:text-ink hover:underline">
         Lihat detail
       </Link>

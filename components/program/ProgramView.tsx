@@ -216,9 +216,9 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
 function Fact({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-[12px] text-muted">{label}</p>
-      <p className="tabular truncate text-[18px] leading-tight font-semibold">{value}</p>
-      {sub && <p className="text-[12px] text-faint">{sub}</p>}
+      <p className="t-label">{label}</p>
+      <p className="tabular mt-1 truncate text-[20px] leading-tight font-bold">{value}</p>
+      {sub && <p className="t-label mt-1">{sub}</p>}
     </div>
   );
 }
@@ -237,7 +237,7 @@ function PhaseBar({ weeks, current }: { weeks: ProgramWeek[]; current: number })
           />
         ))}
       </div>
-      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted">
+      <div className="t-label mt-2.5 flex flex-wrap gap-x-3 gap-y-1">
         {phases.map((p) => (
           <span key={p} className="inline-flex items-center gap-1">
             <span className={`h-2 w-2 rounded-full ${PHASE_STYLE[p].fill}`} />
