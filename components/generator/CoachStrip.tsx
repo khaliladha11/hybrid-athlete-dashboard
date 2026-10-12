@@ -49,20 +49,19 @@ export function CoachStrip({
         <span className="t-label truncate">
           Saran hari ini · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
         </span>
-        <p className="truncate text-[14px]">
-          {actionable ? (
-            <>
-              <span className="text-muted">Saran: </span>
-              <span className="font-semibold text-ink">{summary}</span>
-            </>
-          ) : (
-            <span className="font-semibold text-success-ink">✓ Sesuai saran: {summary}</span>
-          )}
+        {/* Label di atas sudah menyebut "Saran", jadi baris ini cukup ringkasan + tautan detail. */}
+        <p className="flex min-w-0 items-baseline gap-2 text-[14px]">
+          <span className={`min-w-0 truncate font-semibold ${actionable ? "text-ink" : "text-success-ink"}`}>
+            {actionable ? summary : `✓ ${summary}`}
+          </span>
+          <Link
+            href="/#saran"
+            className="relative shrink-0 text-[12px] font-semibold text-muted underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-[''] hover:text-ink hover:underline"
+          >
+            Lihat detail
+          </Link>
         </p>
       </div>
-      <Link href="/#saran" className="shrink-0 px-0.5 text-[12px] font-semibold text-muted underline-offset-2 hover:text-ink hover:underline">
-        Lihat detail
-      </Link>
       {actionable && (
         <button
           type="button"

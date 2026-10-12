@@ -17,6 +17,8 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Generator Lari**: header kartu tag dengan judul Display dan StatRow; **Segment Skyline** (rencana = warna intensitas) menggantikan bar hijau/merah.
 - **Detail aktivitas**: header kartu tag + StatRow, **Segment Skyline** (selesai = oranye) dengan struktur sesi & best rep.
 - Pace tampil `5'50"`; nilai kosong `·`; teks UI tanpa em dash/en dash.
+- Strip saran di Generator Lari: baris kedua cukup ringkasan + "Lihat detail", supaya kata severity tidak terpotong di layar 375px.
+- 10 screenshot dokumentasi baru (`docs/screenshots/`), termasuk detail aktivitas, sheet gerakan, Setting, dan mode terang.
 
 ### Ditambahkan
 - `components/charts/SegmentSkyline.tsx` + `skyline-scale.ts` (logika murni), `components/ui/format.ts`, `CLAUDE.md`.
@@ -166,7 +168,7 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.10.0-ui]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/9bcff80...ui/tag-redesign
+[0.10.0-ui]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/9bcff80...main
 [0.9.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ff25f40...9bcff80
 [0.8.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/ff25f40
 [0.8.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/872a9c1

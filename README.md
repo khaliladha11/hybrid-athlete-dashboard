@@ -2,7 +2,7 @@
 
 Dashboard pelatih pribadi untuk **hybrid athlete** (lari 10K–21K + strength training di rumah). Aplikasi ini membaca data latihan dan wellness dari [intervals.icu](https://intervals.icu), lalu membuat program **lari** dan **strength training (ST)** yang menyesuaikan diri dengan profil, kondisi cedera, dan kesiapan tubuh atlet hari itu.
 
-Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dipakai seperti aplikasi native. Tampilannya mengikuti design system bergaya aplikasi olahraga: putih bersih, oranye energik, dan kontras tinggi supaya tetap terbaca di bawah matahari.
+Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dipakai seperti aplikasi native. Tampilannya mengikuti design system **"Tag"** ([docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)): rasanya seperti tag lari yang ditempel di layar. Dark-first dengan permukaan charcoal, satu aksen oranye, judul italic condensed, label mono kecil, angka besar rata kolom, dan grafik yang menggambar bentuk latihan.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)
@@ -12,36 +12,44 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
 
 <table>
   <tr>
-    <td><img src="docs/screenshots/01-profile.jpg" width="220" alt="Profil atlet dan saran hari ini"></td>
-    <td><img src="docs/screenshots/03-run-generator.jpg" width="220" alt="Generator lari dengan warna kesulitan dan toggle blok"></td>
-    <td><img src="docs/screenshots/04-run-workout.jpg" width="220" alt="Workout lari dengan bar intensitas"></td>
+    <td><img src="docs/screenshots/01-profile.jpg" width="220" alt="Profil dengan saran hari ini"></td>
+    <td><img src="docs/screenshots/03-run-generator.jpg" width="220" alt="Generator lari dengan strip saran dan kesulitan berwarna"></td>
+    <td><img src="docs/screenshots/04-run-workout.jpg" width="220" alt="Kartu tag Norwegian 4x4 dengan Segment Skyline rencana"></td>
   </tr>
   <tr>
     <td align="center"><sub>Profil &amp; saran hari ini</sub></td>
-    <td align="center"><sub>Generator lari: kesulitan berwarna &amp; toggle blok</sub></td>
-    <td align="center"><sub>Workout lari (hijau/kuning/merah)</sub></td>
+    <td align="center"><sub>Generator lari</sub></td>
+    <td align="center"><sub>Workout + Segment Skyline</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/08-program.jpg" width="220" alt="Program target Half Marathon"></td>
-    <td><img src="docs/screenshots/05-strength-workout.jpg" width="220" alt="Workout strength dengan progresi beban"></td>
-    <td><img src="docs/screenshots/06-log.jpg" width="220" alt="Log latihan dengan status target"></td>
+    <td><img src="docs/screenshots/02-weekly-summary.jpg" width="220" alt="Ringkasan 7 hari dengan StatRow, 80/20, dan Week Ledger"></td>
+    <td><img src="docs/screenshots/06-activity.jpg" width="220" alt="Detail aktivitas dengan kartu tag dan Skyline selesai"></td>
+    <td><img src="docs/screenshots/08-program.jpg" width="220" alt="Program target 10K dengan fase dan minggu ini"></td>
   </tr>
   <tr>
+    <td align="center"><sub>7 hari terakhir + Week Ledger</sub></td>
+    <td align="center"><sub>Detail aktivitas</sub></td>
     <td align="center"><sub>Program target (5K–FM)</sub></td>
-    <td align="center"><sub>Generator ST + progresi beban</sub></td>
-    <td align="center"><sub>Riwayat latihan (✓/✕ target)</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/02-weekly-summary.jpg" width="220" alt="Ringkasan 7 hari dengan status 80/20"></td>
-    <td><img src="docs/screenshots/07-dark-mode.jpg" width="220" alt="Dark mode dengan mode bebas"></td>
+    <td><img src="docs/screenshots/05-strength-workout.jpg" width="220" alt="Generator strength dengan thumbnail gerakan"></td>
+    <td><img src="docs/screenshots/09-movement-sheet.jpg" width="220" alt="Bottom sheet detail gerakan dengan gambar awal dan akhir"></td>
+    <td><img src="docs/screenshots/10-setting.jpg" width="220" alt="Halaman Setting dengan katalog kondisi"></td>
   </tr>
   <tr>
-    <td align="center"><sub>Ringkasan 7 hari (80/20, tren km)</sub></td>
-    <td align="center"><sub>Dark mode + mode bebas</sub></td>
+    <td align="center"><sub>Generator ST + gambar gerakan</sub></td>
+    <td align="center"><sub>Detail teknik gerakan</sub></td>
+    <td align="center"><sub>Setting: kondisi, zona, alat</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/07-light-mode.jpg" width="220" alt="Mode terang: kartu tag Progression Run"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Mode terang</sub></td>
   </tr>
 </table>
 
-<sub>Screenshot diambil dalam Demo Mode (data dummy).</sub>
+<sub>Screenshot 0.10.0-ui, diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
 
 ---
 

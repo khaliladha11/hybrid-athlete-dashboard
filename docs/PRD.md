@@ -214,7 +214,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Ukuran aset & performa | Gambar lokal WebP ≤ 600 px, lazy loading, tanpa hotlink | ✅ 70 gambar, ±1,4 MB total |
 | Ketersediaan | Tetap jalan tanpa API key / saat intervals.icu error | ✅ |
 | Offline | Bisa dibuka tanpa sinyal | ⬜ |
-| Pengujian UI | Test komponen / end-to-end | ⬜ Hanya unit test logika |
+| Pengujian UI | Test komponen / end-to-end | ⬜ Hanya unit test logika (termasuk logika murni Segment Skyline). Screenshot dokumentasi diperbarui tiap rilis UI (terakhir 0.10.0-ui) |
 | CI | Test & build otomatis tiap push/PR | ⬜ Hanya build Vercel |
 
 ## 6. Keterbatasan & utang teknis
@@ -230,8 +230,7 @@ Diurutkan dari yang paling berdampak.
 7. **Kalender terbatas 2 bulan.** Hanya bulan ini dan bulan lalu yang diambil dari intervals.icu.
 8. **Belum offline.** Belum ada service worker.
 9. **Pengujian UI manual.** Belum ada test komponen/e2e maupun CI GitHub Actions. Animasi bottom sheet & crossfade 0.9 baru diverifikasi secara logika (state, posisi, reduced motion), belum di perangkat nyata.
-10. **Screenshot dokumentasi** perlu diperbarui untuk Profil 0.7, Setting 0.8, dan detail gerakan 0.9.
-11. **Script media memakai `sharp` dari Next.js** (dependensi tidak langsung). Bila Next.js berhenti membawanya, `sharp` perlu ditambahkan sebagai devDependency.
+10. **Script media memakai `sharp` dari Next.js** (dependensi tidak langsung). Bila Next.js berhenti membawanya, `sharp` perlu ditambahkan sebagai devDependency.
 
 ## 7. Roadmap & saran pengembangan
 
