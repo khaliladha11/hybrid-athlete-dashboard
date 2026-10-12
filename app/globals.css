@@ -406,6 +406,27 @@ body {
   }
 }
 
+/* Segment Skyline: bar tumbuh dari bawah saat hasil generate baru (240ms ease-out, stagger ≤ 60ms). */
+.skyline-bar {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: skyline-grow var(--dur-chart) var(--ease-out) both;
+}
+.skyline-label {
+  animation: skyline-fade var(--dur-chart) var(--ease-out) 60ms both;
+}
+@keyframes skyline-grow {
+  from {
+    transform: scaleY(0.6);
+    opacity: 0;
+  }
+}
+@keyframes skyline-fade {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes section-flash-static {
   from {
     opacity: 1;
@@ -434,6 +455,10 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   /* Kurangi gerak: tanpa scale/translate, perubahan state instan. */
+  /* Skyline: tanpa gerak skala, cukup fade. */
+  .skyline-bar {
+    animation-name: skyline-fade;
+  }
   /* Sheet muncul langsung tanpa slide. */
   .movement-sheet,
   .movement-sheet::backdrop {
