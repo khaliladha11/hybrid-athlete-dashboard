@@ -31,13 +31,13 @@ export function LogHistory() {
     <section id="riwayat" className="scroll-mt-4 space-y-4">
       <header>
         <h2 className="text-[18px] leading-tight font-semibold">Riwayat latihan</h2>
-        <p className="mt-0.5 text-[13px] text-muted">Gerakan ★ yang dicatat — dasar progresi beban otomatis. Cadangan ada di Setting › Data & cadangan.</p>
+        <p className="mt-0.5 text-[13px] text-muted">Gerakan ★ yang dicatat menjadi dasar progresi beban otomatis. Cadangan ada di Setting › Data & cadangan.</p>
       </header>
 
       {!entries.length ? (
         <Card>
           <p className="text-body text-muted">
-            Belum ada sesi tercatat. Setelah latihan, tekan <strong>Catat sesi</strong> di bawah hasil generator — beban berikutnya akan disesuaikan.
+            Belum ada sesi tercatat. Setelah latihan, tekan <strong>Catat sesi</strong> di bawah hasil generator. Beban berikutnya akan disesuaikan.
           </p>
         </Card>
       ) : (
@@ -72,9 +72,9 @@ export function LogHistory() {
           <Card title="Per tanggal" flush className="!pb-1" action={<span className="text-[12px] text-faint">{dates.length} hari</span>}>
             {dates.map((d, i) => (
               <details key={d} className="group border-t border-line first-of-type:border-0" open={i === 0}>
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-4">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-5">
                   <span className="eyebrow">{formatDateId(d)}</span>
-                  <span className="text-[13px] text-faint transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+                  <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
                     ›
                   </span>
                 </summary>
@@ -82,7 +82,7 @@ export function LogHistory() {
                   {byDate
                     .filter((e) => e.date === d)
                     .map((e) => (
-                      <li key={e.id} className="flex items-center gap-3 px-4 py-2">
+                      <li key={e.id} className="flex items-center gap-3 px-5 py-2">
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-body font-semibold">{e.movement}</p>
                           <p className="tabular text-[13px] text-muted">

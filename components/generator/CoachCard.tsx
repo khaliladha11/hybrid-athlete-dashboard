@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { suggestFor, type Advice, type AdviceTarget, type Suggestion } from "@/lib/coach";
 import { DIFFICULTY_LABEL, STRENGTH_TYPE_LABEL, type Difficulty, type Duration, type StrengthType } from "@/lib/generator/types";
+import { adviceSeverity, suggestionSeverity } from "./coach-severity";
 
 /**
  * Saran hari ini (non-blokir): readiness + konteks mingguan.
@@ -38,13 +39,17 @@ export function CoachCard({
     ...(s.type ? [{ label: STRENGTH_TYPE_LABEL[s.type], apply: { type: s.type } }] : []),
   ];
 
+  const severity = target && current ? suggestionSeverity(s) : adviceSeverity(relevant);
+
   return (
-    <aside id={id} role="note" className="scroll-mt-4 rounded-card border border-line border-l-[3px] border-l-brand bg-surface p-4 shadow-card">
+    <aside id={id} role="note" className="scroll-mt-4 rounded-card border border-line bg-surface p-5 shadow-card">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
-        <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-brand" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M12 3 2.5 20h19L12 3Zm0 6v5m0 3h.01" />
+        <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-brand-ink" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M12 9v4m0 4h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
         </svg>
-        <h2 className="flex-1 shrink-0 text-base font-semibold whitespace-nowrap">Saran hari ini</h2>
+        <h2 className="t-label flex-1 shrink-0 whitespace-nowrap">
+          Saran hari ini · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
+        </h2>
         {onApply &&
           actions.map((a) => (
             <button
@@ -56,7 +61,7 @@ export function CoachCard({
               }}
               className="pressable relative min-h-8 shrink-0 rounded-control bg-brand px-3 text-[13px] font-semibold text-on-brand after:absolute after:-inset-1.5 after:content-[''] hover:bg-brand-hover"
             >
-              → {a.label}
+              Terapkan {a.label}
             </button>
           ))}
       </div>
@@ -70,7 +75,7 @@ export function CoachCard({
                   <span aria-hidden className="h-2 w-2 shrink-0 rounded-full bg-brand" />
                   <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-ink">{a.title}</span>
                   {recs[0] && <span className="shrink-0 truncate text-[12px] font-semibold text-brand-ink">{recs[0].short}</span>}
-                  <span className="text-[13px] text-faint transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+                  <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
                     ›
                   </span>
                 </summary>

@@ -90,20 +90,13 @@ Keterbatasannya, log dan Setting hanya ada di satu perangkat, dan halaman yang d
 
 ## Design system
 
-Semua gaya visual memakai **token semantik** di [`app/globals.css`](../app/globals.css), bukan warna Tailwind mentah. Komponen menulis `bg-surface`, `text-muted`, atau `bg-brand`. Tema gelap dipakai bila pengguna memilihnya lewat toggle (`<html data-theme="dark">`, disimpan di `localStorage`), atau mengikuti sistem bila belum ada pilihan. Script kecil di `<head>` memasang tema sebelum render supaya tidak berkedip. Komponen tidak memakai class `dark:`, karena cukup nilai token yang berganti.
+Sumber kebenaran desain: **[DESIGN-SYSTEM.md](DESIGN-SYSTEM.md)** (design system "Tag", 0.10.0-ui). Ringkasnya:
 
-| Token | Light | Dipakai untuk |
-| --- | --- | --- |
-| `brand` | `#fc5200` | CTA utama, navigasi aktif, gerakan ★, intensitas tinggi |
-| `brand-ink` | `#c23f00` | Teks oranye di atas putih (kontras AA) |
-| `brand-soft` | `#fff1e8` | Pilihan aktif, banner demo |
-| `info` | `#0060d0` | Informasi, link, Z2, catatan workout |
-| `ink` / `muted` / `faint` | `#000` / `#43423f` / `#6d6c68` | Teks utama / sekunder / meta |
-| `line` | `#f2f2f0` | Border kartu & pemisah |
-| `success` / `warning` / `danger` | `#16a34a` / `#eab308` / `#dc2626` | Intensitas Easy / Moderate / High, status aktif (hijau) / nonaktif (merah). Varian `-ink` untuk teks (kontras ≥ 4.5:1), `-soft` untuk latar |
-| `shadow-card` | `0 20px 20px rgba(13,13,18,.1)` | Kartu |
-
-Aturan lainnya: radius kartu 16px (`rounded-card`), tombol/input/pilihan 12px (`rounded-control`), baris di dalam kartu 12px (`rounded-inner`), motion 150ms `ease`, body 15px, heading 16px/600, area sentuh minimal 44px, dan outline fokus oranye 2px. Gaya tombol standar ada di `BUTTON` (`components/ui/Card.tsx`): primary, secondary, dan inverse. Pemetaan warna intensitas & status ada di satu tempat: `components/ui/tones.ts`.
+- Semua warna lewat **token semantik** di [`app/globals.css`](../app/globals.css) (`bg-surface`, `text-muted`, `bg-brand`, `fill-track`, …). Tema gelap (wajah utama) dipasang lewat `<html data-theme="dark">` atau mengikuti sistem; script di `<head>` memasangnya sebelum render. Komponen tidak memakai class `dark:`, cukup nilai token yang berganti.
+- Satu aksen oranye `#FC4C02` untuk chrome; hijau/kuning/merah hanya warna data (`components/ui/tones.ts`). Teks oranye selalu `brand-ink`. **Rencana = warna intensitas, selesai = oranye.**
+- Tipografi: Archivo (variable, sumbu `wdth`) + Geist Mono lewat `next/font/google`; utility `.t-display`, `.t-stat`, `.t-ledger`, `.t-label`.
+- Komponen dasar di `components/ui/`: `Card` (`tone="tag"`, `kicker`), `StatRow`, `BUTTON` (primary/secondary/ghost/inverse), `Chip`, `Segmented`, `Switch`. Grafik: `components/charts/SegmentSkyline.tsx` (logika murni di `skyline-scale.ts`, diuji).
+- Motion: `--ease-out` / `--ease-in-out` / `--ease-drawer`, tekan 140ms, hover hanya `(hover: hover) and (pointer: fine)` (varian Tailwind `hover` didefinisikan ulang), reduced motion dihormati.
 
 ## Testing
 
@@ -120,6 +113,7 @@ npm test
 | `data.test.ts` | Tanggal WIB, normalisasi field null & cadence, ringkasan 7 hari, readiness. |
 | `program.test.ts` | Program target: fase, long run ≤ 10%/2 km, cutback, taper, peringatan. |
 | `media.test.ts` | Setiap gerakan punya entri media, setiap path gambar ada, sumber/lisensi konsisten, gerakan baru bisa dijangkau & lolos semua aturan, titik tambat band, ★ baru mulai blok berikutnya. |
+| `skyline-scale.test.ts` | Skala tinggi Segment Skyline (min 10%, steady dari nol), deteksi segmen kerja (WORK / median, lap otomatis), tata letak bar, aturan label, stagger, ringkasan struktur & best rep. |
 | `settings.test.ts` | Setiap kondisi mengubah generator sesuai aturannya, kombinasi semua kondisi tetap valid, beban selalu bisa dirakit dari alat, gerakan tidak dipilih tidak pernah muncul, rumus VDOT vs tabel Daniels, parser pengaturan tahan data rusak. |
 
 Generator diuji secara menyeluruh (setiap kombinasi × banyak seed), bukan hanya dengan beberapa contoh. Bug yang ditemukan saat pengembangan, seperti deload yang gagal memenuhi durasi atau beban yang terbulatkan salah, selalu disertai test baru.

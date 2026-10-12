@@ -119,7 +119,7 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
 
         <section className="border-t border-line pt-4">
           <p className="text-body font-semibold">Plat</p>
-          <p className="mt-0.5 text-[13px] text-muted">Jumlah keping per berat. Plat dipasang berpasangan (kiri–kanan) supaya seimbang.</p>
+          <p className="mt-0.5 text-[13px] text-muted">Jumlah keping per berat. Plat dipasang berpasangan (kiri dan kanan) supaya seimbang.</p>
           <ul className="mt-2 space-y-2">
             {eq.plates.map((p, i) => (
               <li key={`${i}-${p.kg}-${p.count}`} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2">

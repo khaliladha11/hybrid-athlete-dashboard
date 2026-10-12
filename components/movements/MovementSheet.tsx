@@ -75,7 +75,7 @@ export function MovementSheet({
         <header className="flex items-start gap-2">
           <div className="min-w-0 flex-1 pt-1.5">
             <h2 id="movement-sheet-title" className="text-[18px] leading-tight font-semibold">
-              {item?.anchor && <span className="mr-1 text-brand">★</span>}
+              {item?.anchor && <span className="mr-1 text-brand-ink">★</span>}
               {name}
             </h2>
             {item && (
@@ -105,7 +105,7 @@ export function MovementSheet({
 
         {media && media.cues.length > 0 && (
           <section className="mt-4">
-            <h3 className="eyebrow mb-1.5">Cue teknik</h3>
+            <h3 className="t-label mb-2">Cue teknik</h3>
             <ul className="space-y-1.5 text-[14px] leading-snug">
               {media.cues.map((c) => (
                 <li key={c} className="flex gap-2">
@@ -119,7 +119,7 @@ export function MovementSheet({
 
         {media && (
           <section className="mt-4">
-            <h3 className="eyebrow mb-1.5">Otot</h3>
+            <h3 className="t-label mb-2">Otot</h3>
             <ul className="flex flex-wrap gap-1.5" aria-label="Otot utama dan sekunder">
               {media.primaryMuscles.map((m) => (
                 <li key={m} className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[12px] font-semibold text-brand-ink">
@@ -138,10 +138,10 @@ export function MovementSheet({
 
         {notes.length > 0 && (
           <section className="mt-4">
-            <h3 className="eyebrow mb-1.5">Kondisi aktif</h3>
+            <h3 className="t-label mb-2">Kondisi aktif</h3>
             <ul className="space-y-1.5">
               {notes.map((n) => (
-                <li key={n.id} className="rounded-inner border-l-2 border-brand bg-brand-soft py-1.5 pr-2 pl-3 text-[13px] text-ink">
+                <li key={n.id} className="rounded-inner bg-brand-soft px-3 py-2 text-[13px] text-ink">
                   <span className="font-semibold">{shortLabel(n.id)}:</span> {n.text}
                 </li>
               ))}
@@ -178,7 +178,7 @@ function MovementFrames({ name, images }: { name: string; images: readonly [stri
     return () => clearInterval(t);
   }, [reduced, playing]);
 
-  const alt = (i: 0 | 1) => `${name} — posisi ${i ? "akhir" : "awal"}`;
+  const alt = (i: 0 | 1) => `${name}, posisi ${i ? "akhir" : "awal"}`;
 
   if (reduced) {
     return (
@@ -187,7 +187,7 @@ function MovementFrames({ name, images }: { name: string; images: readonly [stri
           <figure key={i}>
             {/* eslint-disable-next-line @next/next/no-img-element -- gambar statis di /public */}
             <img src={images[i]} alt={alt(i)} decoding="async" className="aspect-[4/3] w-full rounded-inner bg-white object-contain" />
-            <figcaption className="mt-1 text-center text-[12px] font-semibold text-muted">{i ? "Akhir" : "Awal"}</figcaption>
+            <figcaption className="t-label mt-1.5 text-center">{i ? "Akhir" : "Awal"}</figcaption>
           </figure>
         ))}
       </div>
@@ -207,7 +207,7 @@ function MovementFrames({ name, images }: { name: string; images: readonly [stri
           className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-500 ease-in-out ${frame === i ? "opacity-100" : "opacity-0"}`}
         />
       ))}
-      <span className="absolute top-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[12px] font-semibold text-white" aria-live="off">
+      <span className="absolute top-2 left-2 rounded-full bg-black/60 px-2 py-0.5 font-mono text-[11px] font-medium tracking-[0.08em] text-white uppercase" aria-live="off">
         {frame ? "Akhir" : "Awal"}
       </span>
       <button

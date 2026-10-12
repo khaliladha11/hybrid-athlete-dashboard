@@ -179,7 +179,7 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
               {program.weeks.map((w) => (
                 <li key={w.index}>
                   <details className="group" open={w.index === current && !currentWeek}>
-                    <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-4 py-2">
+                    <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-5 py-2">
                       <span className={`h-8 w-1 shrink-0 rounded-full ${PHASE_STYLE[w.phase].fill}`} aria-hidden />
                       <div className="min-w-0 flex-1">
                         <p className="text-body font-semibold">
@@ -191,11 +191,11 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
                           {w.cutback && " · cutback"} · {formatDateId(w.start)} · ±{w.totalKm} km
                         </p>
                       </div>
-                      <span className="text-[13px] text-faint transition-transform duration-150 ease group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+                      <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
                         ›
                       </span>
                     </summary>
-                    <div className="details-body px-4 pb-4">
+                    <div className="details-body px-5 pb-4">
                       <WeekDetail week={w} />
                     </div>
                   </details>
@@ -216,9 +216,9 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
 function Fact({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-[12px] text-muted">{label}</p>
-      <p className="tabular truncate text-[18px] leading-tight font-semibold">{value}</p>
-      {sub && <p className="text-[12px] text-faint">{sub}</p>}
+      <p className="t-label">{label}</p>
+      <p className="tabular mt-1 truncate text-[20px] leading-tight font-bold">{value}</p>
+      {sub && <p className="t-label mt-1">{sub}</p>}
     </div>
   );
 }
@@ -237,7 +237,7 @@ function PhaseBar({ weeks, current }: { weeks: ProgramWeek[]; current: number })
           />
         ))}
       </div>
-      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted">
+      <div className="t-label mt-2.5 flex flex-wrap gap-x-3 gap-y-1">
         {phases.map((p) => (
           <span key={p} className="inline-flex items-center gap-1">
             <span className={`h-2 w-2 rounded-full ${PHASE_STYLE[p].fill}`} />
@@ -277,7 +277,7 @@ function WeekDetail({ week }: { week: ProgramWeek }) {
           );
         })}
       </ul>
-      <p className="text-[12px] text-faint">Total ±{week.totalKm} km · mulai {formatDateId(week.start)} – {formatDateId(addDays(week.start, 6))}</p>
+      <p className="text-[12px] text-faint">Total ±{week.totalKm} km · {formatDateId(week.start)} sampai {formatDateId(addDays(week.start, 6))}</p>
     </div>
   );
 }

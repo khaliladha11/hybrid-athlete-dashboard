@@ -107,7 +107,7 @@ export function StrengthGenerator({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4 rounded-card border border-line bg-surface p-4 shadow-card">
+      <div className="space-y-4 rounded-card border border-line bg-surface p-5 shadow-card">
         <Segmented
           label="Tipe"
           wrap
@@ -132,7 +132,7 @@ export function StrengthGenerator({
             label="Program blok mingguan"
             description={
               blockEnabled
-                ? `${blockLabel(block)} — gerakan ★ dikunci per blok, ada minggu deload.`
+                ? `${blockLabel(block)}. Gerakan ★ dikunci per blok, ada minggu deload.`
                 : "Mode bebas: gerakan ★ dipilih per sesi, tanpa deload. Log tetap tercatat."
             }
           />
@@ -150,7 +150,7 @@ export function StrengthGenerator({
       />
 
       {!workout ? (
-        <div role="alert" className="rounded-card border border-danger bg-danger-soft p-4 text-body text-ink">
+        <div role="alert" className="rounded-card border border-danger bg-danger-soft p-5 text-body text-ink">
           <p className="font-semibold text-danger-ink">✕ Gerakan aktif belum cukup untuk {STRENGTH_TYPE_LABEL[type]} {duration}&apos;.</p>
           <p className="mt-1 text-[14px]">
             Aktifkan lebih banyak gerakan atau alat di{" "}
@@ -168,7 +168,7 @@ export function StrengthGenerator({
           if (!items.length) return null;
           return (
             <div key={phase} className="mt-4 first:mt-0">
-              <p className="eyebrow mb-2">{PHASE_LABEL[phase]}</p>
+              <p className="t-label mb-2">{PHASE_LABEL[phase]}</p>
               {phase === "main" ? (
                 <ol className="space-y-2">
                   {items.map((it, i) => (
@@ -191,7 +191,7 @@ export function StrengthGenerator({
                           <div className="flex items-baseline justify-between gap-2">
                             <p className="text-body font-semibold">
                               {it.anchor && (
-                                <span className="mr-1 text-brand" title="Gerakan utama blok ini" aria-label="Gerakan utama blok ini">
+                                <span className="mr-1 text-brand-ink" title="Gerakan utama blok ini" aria-label="Gerakan utama blok ini">
                                   ★
                                 </span>
                               )}
@@ -205,7 +205,7 @@ export function StrengthGenerator({
                           </p>
                           {it.progression && <p className="mt-1 text-[13px] font-semibold text-brand-ink">{it.progression}</p>}
                           {it.cue && <p className="mt-1 text-[13px] text-faint">{it.cue}</p>}
-                          <p className="mt-1 text-[12px] font-semibold text-muted">Lihat teknik ›</p>
+                          <p className="t-label mt-1.5">Lihat teknik ›</p>
                         </div>
                       </button>
                     </li>
@@ -252,7 +252,7 @@ export function StrengthGenerator({
               }}
               className={`${BUTTON.base} ${BUTTON.secondary} mt-4 w-full`}
             >
-              {saved ? "✓ Tersimpan — catat lagi?" : "Catat sesi (gerakan ★)"}
+              {saved ? "✓ Tersimpan. Catat lagi?" : "Catat sesi (gerakan ★)"}
             </button>
           )
         )}

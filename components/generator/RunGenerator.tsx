@@ -1,6 +1,10 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import { SegmentSkyline } from "@/components/charts/SegmentSkyline";
+import { planSegments } from "@/components/charts/skyline-scale";
+import { StatRow } from "@/components/ui/Card";
+import { formatPaceTag } from "@/components/ui/format";
 import { Segmented } from "@/components/ui/Segmented";
 import { Switch } from "@/components/ui/Switch";
 import { INTENSITY_TONE } from "@/components/ui/tones";
@@ -22,6 +26,7 @@ import {
 } from "@/lib/generator";
 import type { BlockContext } from "@/lib/generator/block";
 import type { Advice } from "@/lib/coach";
+import { parseRange } from "@/lib/run-zones";
 import { useResolvedProfile } from "@/lib/settings-store";
 import { CoachStrip } from "./CoachStrip";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
@@ -35,11 +40,12 @@ function intensityOf(s: RunStep): Intensity {
   return "hard";
 }
 
-const INTENSITY_STYLE: Record<Intensity, { bar: string; dot: string; label: string }> = {
-  recovery: { bar: "bg-subtle-strong", dot: "bg-faint", label: "Jalan/jog" },
-  easy: { bar: "bg-success", dot: "bg-success", label: "Easy / Z2" },
-  tempo: { bar: "bg-warning", dot: "bg-warning", label: "Moderate / Tempo" },
-  hard: { bar: "bg-danger", dot: "bg-danger", label: "High / Interval" },
+/** Warna langkah rencana = tone intensitas; jalan/jog = track (sama dengan Segment Skyline). */
+const INTENSITY_STYLE: Record<Intensity, { dot: string; label: string }> = {
+  recovery: { dot: "bg-track", label: "Jalan/jog" },
+  easy: { dot: "bg-success", label: "Easy · Z2" },
+  tempo: { dot: "bg-warning", label: "Tempo" },
+  hard: { dot: "bg-danger", label: "Interval" },
 };
 
 export function RunGenerator({
@@ -82,6 +88,16 @@ export function RunGenerator({
   // Timeline: semua langkah setelah repetisi dibuka.
   const timeline = workout.blocks.flatMap((b) => Array.from({ length: b.repeat }, () => b.steps).flat());
   const used = new Set(timeline.map(intensityOf));
+  const segments = useMemo(() => planSegments(workout), [workout]);
+  // Judul Display = nama pola (bagian sebelum " · Level durasi").
+  const [displayTitle] = workout.title.split(" · ");
+  const minutesOf = (k: Intensity[]) => timeline.filter((s) => k.includes(intensityOf(s))).reduce((a, s) => a + s.durationMin, 0);
+  const workMin = minutesOf(["tempo", "hard"]);
+  const fastest = timeline
+    .filter((s) => s.kind === "run")
+    .map((s) => (s.pace ? parseRange(s.pace)?.fast : undefined))
+    .filter((v): v is number => v !== undefined);
+  const targetPace = fastest.length ? Math.min(...fastest) : undefined;
 
   return (
     <div className="space-y-4">
@@ -94,7 +110,7 @@ export function RunGenerator({
           if (s.duration) setDuration(s.duration);
         }}
       />
-      <div className="space-y-4 rounded-card border border-line bg-surface p-4 shadow-card">
+      <div className="space-y-4 rounded-card border border-line bg-surface p-5 shadow-card">
         <Segmented label="Durasi" value={duration} onChange={setDuration} options={DURATIONS.map((d) => ({ value: d, label: `${d}'` }))} />
         <Segmented
           label="Kesulitan"
@@ -110,7 +126,7 @@ export function RunGenerator({
             label="Program blok mingguan"
             description={
               blockEnabled
-                ? `${blockLabel(block)} — deload & gerakan utama mengikuti blok.`
+                ? `${blockLabel(block)}. Deload & gerakan utama mengikuti blok.`
                 : "Mode bebas: latihan tanpa jadwal blok atau deload."
             }
           />
@@ -118,25 +134,41 @@ export function RunGenerator({
       </div>
 
 
-      <OutputShell ref={outputRef} swapKey={`${duration}-${difficulty}-${seed}-${free}`} tag={{ label: DIFFICULTY_LABEL[difficulty], tone: INTENSITY_TONE[difficulty] }} title={workout.title} subtitle={`Total ${duration} menit · seed #${seed}`}>
-        <div className="flex h-2.5 w-full overflow-hidden rounded-full" aria-hidden>
-          {timeline.map((s, i) => (
-            <div
-              key={i}
-              className={`${INTENSITY_STYLE[intensityOf(s)].bar} border-r border-surface last:border-r-0`}
-              style={{ width: `${(s.durationMin / duration) * 100}%` }}
-            />
-          ))}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted">
-          {(Object.keys(INTENSITY_STYLE) as Intensity[])
-            .filter((k) => used.has(k))
-            .map((k) => (
-              <span key={k} className="inline-flex items-center gap-1">
-                <span className={`h-2 w-2 rounded-full ${INTENSITY_STYLE[k].dot}`} />
-                {INTENSITY_STYLE[k].label}
-              </span>
-            ))}
+      <OutputShell
+        ref={outputRef}
+        swapKey={`${duration}-${difficulty}-${seed}-${free}`}
+        display
+        kicker={`${DIFFICULTY_LABEL[difficulty]} run · ${duration}'`}
+        tag={{ label: DIFFICULTY_LABEL[difficulty], tone: INTENSITY_TONE[difficulty] }}
+        title={displayTitle}
+        subtitle={`Seed #${seed}`}
+      >
+        <StatRow
+          items={[
+            { label: "Durasi", value: duration, unit: "menit" },
+            workMin > 0 ? { label: "Kerja", value: workMin, unit: "menit" } : { label: "Z2", value: minutesOf(["easy"]), unit: "menit" },
+            { label: "Pace target", value: formatPaceTag(targetPace), unit: "/km", muted: !targetPace },
+          ]}
+        />
+        <SegmentSkyline
+          className="mt-5"
+          mode="plan"
+          segments={segments}
+          animateKey={seed}
+          ariaLabel={`Rencana ${displayTitle}, ${duration} menit: ${timeline.length} langkah${workMin ? `, ${workMin} menit kerja` : ""}. Rincian langkah ada di daftar di bawah.`}
+        />
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 border-t border-line pt-3">
+          <span className="t-label">Warna = intensitas</span>
+          <span className="flex flex-wrap gap-x-3 gap-y-1">
+            {(Object.keys(INTENSITY_STYLE) as Intensity[])
+              .filter((k) => used.has(k))
+              .map((k) => (
+                <span key={k} className="t-label inline-flex items-center gap-1.5">
+                  <span aria-hidden className={`h-2 w-2 rounded-full ${INTENSITY_STYLE[k].dot}`} />
+                  {INTENSITY_STYLE[k].label}
+                </span>
+              ))}
+          </span>
         </div>
 
         <ol className="mt-4 space-y-4">
@@ -145,7 +177,7 @@ export function RunGenerator({
               return (
                 <li key={bi}>
                   <div className="flex items-baseline justify-between">
-                    <p className="eyebrow">
+                    <p className="t-label">
                       {b.title.startsWith(PHASE_LABEL[b.phase]) ? b.title : `${PHASE_LABEL[b.phase]} · ${b.title}`}
                     </p>
                     <span className="tabular text-[13px] text-muted">{blockMin}&apos;</span>

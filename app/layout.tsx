@@ -1,10 +1,21 @@
 import type { Metadata, Viewport } from "next";
+import { Archivo, Geist_Mono } from "next/font/google";
 import { AppBar } from "@/components/ui/AppBar";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { isDemoMode } from "@/lib/intervals/data-source";
 import { THEME_BOOT_SCRIPT } from "@/lib/preference-keys";
 import "./globals.css";
+
+// Archivo variable (sumbu wdth untuk display condensed & ledger expanded) + Geist Mono untuk label.
+const archivo = Archivo({
+  subsets: ["latin"],
+  axes: ["wdth"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-archivo",
+});
+const geistMono = Geist_Mono({ subsets: ["latin"], display: "swap", variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
   title: "Hybrid Athlete Dashboard",
@@ -32,15 +43,15 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f0f0e" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f7f6" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0b0c" },
   ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     // data-theme dipasang oleh script boot sebelum hydrate → abaikan perbedaan atribut.
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning className={`${archivo.variable} ${geistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
