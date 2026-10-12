@@ -35,13 +35,36 @@ export const META: Record<string, MovementMeta> = {
   "Dead Bug": { reps: "8/sisi", unilateral: true, cue: "Punggung bawah menempel lantai (anti-hiperlordosis)." },
   "Tibialis Wall Raise": { reps: "15–20", cue: "Prehab shin splints — punggung bersandar dinding, angkat jari kaki." },
   "Eccentric Calf Raise": { reps: "10–12 (turun 3 detik)", unilateral: true, cue: "Naik dua kaki, turun satu kaki perlahan." },
+  // 0.9 — gerakan baru (docs/movement-library-proposal.md).
+  "Band Reverse Fly": { reps: "12–15", cue: "Lengan setinggi dada, tarik band ke samping — bahu turun, jangan mengangkat bahu." },
+  "Single-Leg Glute Bridge": { reps: { easy: "8/sisi", moderate: "10/sisi", high: "12/sisi" }, unilateral: true, cue: "Panggul tetap rata kiri–kanan, punggung bawah tidak melengkung di atas." },
+  "Rear-Foot-Elevated Split Squat": { reps: { easy: "8/kaki", moderate: "8–10/kaki", high: "10/kaki" }, unilateral: true, cue: "Kaki belakang di kursi, turun lurus ke bawah; lutut depan searah jari kaki." },
+  "DB Step-Up": { reps: { easy: "8/kaki", moderate: "8–10/kaki", high: "10/kaki" }, unilateral: true, cue: "Dorong lewat tumit kaki di atas pijakan, jangan menolak dengan kaki bawah." },
+  "DB Plié Squat": { cue: "Kaki lebar, jari kaki serong keluar; dumbbell menggantung di tengah, dada tegak." },
+  "Seated Band Hamstring Curl": { reps: "12–15", cue: "Tarik tumit ke bawah kursi, kembalikan perlahan melawan band." },
+  "Side Plank": { holdSec: { easy: 20, moderate: 30, high: 40 }, unilateral: true, cue: "Siku tepat di bawah bahu, badan lurus kepala–kaki; panggul jangan turun." },
+  "Standing Band Hip Abduction": { reps: "12–15/sisi", unilateral: true, cue: "Badan tegak, angkat kaki ke samping tanpa memiringkan badan." },
+  Plank: { holdSec: { easy: 20, moderate: 30, high: 45 }, cue: "Posterior pelvic tilt ringan, glute aktif — punggung bawah tidak melengkung." },
+  "Seated Single-Leg Calf Raise": { reps: "12–15/kaki", unilateral: true, cue: "Dumbbell di paha dekat lutut, angkat tumit setinggi mungkin, turun perlahan." },
+  "DB Scaption": { reps: "12–15", cue: "Ibu jari ke atas, angkat serong ±30° di depan badan sampai setinggi bahu saja." },
+  "Band External Rotation": { reps: "12–15/sisi", unilateral: true, cue: "Siku menempel di samping badan 90°, putar lengan bawah keluar." },
 };
 
-export const STABILITY_HIP = ["Lateral Band Walk", "Clamshell"];
+/** Prehab tungkai (shin, betis, Achilles) — untuk sesi Lower/Full Body. */
+export const LOWER_PREHAB = ["Tibialis Wall Raise", "Eccentric Calf Raise", "Seated Single-Leg Calf Raise"];
+/** Prehab bahu — diutamakan untuk sesi Upper. */
+export const SHOULDER_PREHAB = ["DB Scaption", "Band External Rotation"];
+
+/**
+ * Gerakan yang memenuhi syarat "stabilitas panggul" (gluteus medius). Side Plank & Standing
+ * Band Hip Abduction: aktivasi gluteus medius tinggi (Ekstrom 2007; Distefano 2009).
+ */
+export const STABILITY_HIP = ["Lateral Band Walk", "Clamshell", "Side Plank", "Standing Band Hip Abduction"];
 
 export function itemSeconds(item: Pick<StrengthItem, "sets" | "durationSec" | "restSec" | "movement">): number {
   const meta = META[item.movement];
-  const work = item.durationSec ?? (meta?.unilateral ? UNILATERAL_SET_SEC : REP_SET_SEC);
+  // Tahan per sisi (mis. Side Plank) = dua kali durasi.
+  const work = item.durationSec ? item.durationSec * (meta?.unilateral ? 2 : 1) : meta?.unilateral ? UNILATERAL_SET_SEC : REP_SET_SEC;
   // Istirahat tidak dihitung setelah set terakhir; diganti waktu transisi.
   return item.sets * work + Math.max(0, item.sets - 1) * item.restSec + TRANSITION_SEC;
 }
@@ -70,4 +93,17 @@ export const COMPOUND_MOVEMENTS = [
   "DB RDL Wall-Tap Method",
   "Reverse Lunge",
   "Glute Bridge",
+  "Rear-Foot-Elevated Split Squat",
+  "DB Step-Up",
+  "DB Plié Squat",
 ];
+
+/**
+ * Tanggal gerakan multi-joint baru ditambahkan. Gerakan ini baru boleh jadi ★ di blok yang
+ * dimulai setelah tanggal itu — supaya ★ blok yang sedang berjalan (dan progresinya) tidak berubah.
+ */
+export const ANCHOR_SINCE: Record<string, string> = {
+  "Rear-Foot-Elevated Split Squat": "2026-10-12",
+  "DB Step-Up": "2026-10-12",
+  "DB Plié Squat": "2026-10-12",
+};

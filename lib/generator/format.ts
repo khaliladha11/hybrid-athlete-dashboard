@@ -1,3 +1,4 @@
+import { META } from "./meta";
 import { PHASE_LABEL, type LoadPrescription, type RunStep, type RunWorkout, type StrengthItem, type StrengthWorkout, type Workout } from "./types";
 
 export function formatMinutes(min: number): string {
@@ -16,7 +17,7 @@ export function formatLoad(load: LoadPrescription): string {
 
 export function formatVolume(it: StrengthItem): string {
   if (it.durationSec && it.phase !== "main") return `${formatSec(it.durationSec)}`;
-  const per = it.durationSec ? formatSec(it.durationSec) : `${it.reps}`;
+  const per = it.durationSec ? `${formatSec(it.durationSec)}${META[it.movement]?.unilateral ? "/sisi" : ""}` : `${it.reps}`;
   return `${it.sets}×${per}`;
 }
 

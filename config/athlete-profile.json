@@ -19,12 +19,10 @@
     "bands": ["Light", "Medium"],
     "pullUpBar": true,
     "bench": true,
+    "bandAnchor": true,
     "other": ["Hip Pad (untuk Hip Thrust)"]
   },
-  "training": {
-    "blockStart": "2026-09-28",
-    "blockWeeks": 4
-  },
+  "training": { "blockStart": "2026-09-28", "blockWeeks": 4 },
   "runZones": {
     "easy": { "pace": "8:00–8:50/km", "maxHr": 160, "rpe": "3–4" },
     "tempo": { "pace": "6:15–6:30/km", "hr": "160–180", "rpe": "6–7" },
@@ -47,29 +45,42 @@
       { "name": "Supported Single-Arm Row", "weight": "5–7.5 kg/tangan" },
       { "name": "DB Floor Pullover", "weight": "5–7.5 kg" },
       { "name": "Seated Bent-Over DB Face Pull", "weight": "1.25–1.5 kg" },
-      { "name": "Reverse Wrist Curl", "weight": "1.25–1.5 kg" }
+      { "name": "Reverse Wrist Curl", "weight": "1.25–1.5 kg" },
+      { "name": "Band Reverse Fly", "weight": "Light/Medium Band" }
     ],
     "lower": [
       { "name": "Barbell Sumo Deadlift / Hip Thrust", "weight": "14–20 kg" },
       { "name": "Barbell Squat", "weight": "10–16 kg" },
       { "name": "DB RDL Wall-Tap Method", "weight": "8–10 kg" },
       { "name": "Reverse Lunge", "weight": "3–5 kg/tangan" },
-      { "name": "Glute Bridge", "weight": "Bodyweight" }
+      { "name": "Glute Bridge", "weight": "Bodyweight" },
+      { "name": "Single-Leg Glute Bridge", "weight": "Bodyweight" },
+      { "name": "Rear-Foot-Elevated Split Squat", "weight": "4–8 kg/tangan" },
+      { "name": "DB Step-Up", "weight": "4–8 kg/tangan" },
+      { "name": "DB Plié Squat", "weight": "6–12 kg" },
+      { "name": "Seated Band Hamstring Curl", "weight": "Light/Medium Band" }
     ],
     "stabilityAndCore": [
       { "name": "Lateral Band Walk", "weight": "Light/Medium Band" },
       { "name": "Dead Bug", "weight": "Bodyweight" },
-      { "name": "Clamshell", "weight": "Light Band" }
+      { "name": "Clamshell", "weight": "Light Band" },
+      { "name": "Side Plank", "weight": "Bodyweight" },
+      { "name": "Standing Band Hip Abduction", "weight": "Light/Medium Band" },
+      { "name": "Plank", "weight": "Bodyweight" }
     ],
     "prehab": [
       { "name": "Tibialis Wall Raise", "weight": "Bodyweight" },
-      { "name": "Eccentric Calf Raise", "weight": "Bodyweight" }
+      { "name": "Eccentric Calf Raise", "weight": "Bodyweight" },
+      { "name": "Seated Single-Leg Calf Raise", "weight": "5–10 kg" },
+      { "name": "DB Scaption", "weight": "1.25–2 kg/tangan" },
+      { "name": "Band External Rotation", "weight": "Light Band" }
     ],
     "warmupAndCooldown": [
       "Kneeling Hip Flexor Stretch",
       "Cat-Cow",
       "Band Pull-Apart",
-      "Calf Stretch"
+      "Calf Stretch",
+      "Quadruped Hip Circles"
     ]
   }
 }

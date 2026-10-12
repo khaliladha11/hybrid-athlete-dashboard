@@ -11,6 +11,7 @@ import {
   runToText,
   validateStrength,
 } from "@/lib/generator";
+import { STABILITY_HIP } from "@/lib/generator/meta";
 import { recommend, type LogEntry } from "@/lib/progression";
 import { baseProfile, findMovement } from "@/lib/profile";
 import { formatPace, formatRange, paceAtFraction, parseDuration, parseRange, vdot, zonesFromVdot } from "@/lib/run-zones";
@@ -57,7 +58,7 @@ describe("kondisi aktif memengaruhi generator ST", () => {
   it("overpronation/PFP/ITBS → minimal satu gerakan stabilitas panggul", () => {
     for (const id of ["overpronation", "pfp", "itbs"] as const) {
       for (const w of allStrength(withConditions([id])).filter((x) => x.type === "lower" || x.type === "fullBody")) {
-        expect(mainNames(w).some((n) => n === "Lateral Band Walk" || n === "Clamshell")).toBe(true);
+        expect(mainNames(w).some((n) => STABILITY_HIP.includes(n))).toBe(true);
       }
     }
   });
@@ -153,7 +154,11 @@ describe("alat → gerakan & beban", () => {
     const names = allStrength(p).flatMap(mainNames);
     for (const n of ["Barbell Squat", "Barbell Sumo Deadlift / Hip Thrust", "Lateral Band Walk", "Dead Hang"]) expect(names).not.toContain(n);
     expect(findMovement("Clamshell", p.movementLibrary)?.weight).toBe("Bodyweight");
-    for (const w of allStrength(p).filter((x) => x.type === "lower")) expect(mainNames(w)).toContain("Clamshell");
+    expect(names).not.toContain("Standing Band Hip Abduction");
+    // Tanpa band, syarat stabilitas panggul tetap terpenuhi oleh Clamshell (bodyweight) atau Side Plank.
+    for (const w of allStrength(p).filter((x) => x.type === "lower")) {
+      expect(mainNames(w).some((n) => n === "Clamshell" || n === "Side Plank")).toBe(true);
+    }
   });
 
   it("progresi naik ke beban berikutnya yang bisa dirakit", () => {

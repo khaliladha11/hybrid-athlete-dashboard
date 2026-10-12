@@ -28,16 +28,19 @@ export interface Equipment {
   pullUpBar: boolean;
   /** Kursi / bench / step box. */
   bench: boolean;
+  /** Titik tambat band (kaki meja, handle pintu, door anchor) untuk gerakan band yang ditambatkan. */
+  bandAnchor: boolean;
   /** Alat lain (catatan; belum dipakai generator). */
   other: string[];
 }
 
-export type EquipmentNeed = "dumbbell" | "barbell" | "band" | "pullUpBar" | "bench";
+export type EquipmentNeed = "dumbbell" | "barbell" | "band" | "bandAnchor" | "pullUpBar" | "bench";
 
 export const NEED_LABEL: Record<EquipmentNeed, string> = {
   dumbbell: "dumbbell",
   barbell: "barbell",
   band: "resistance band",
+  bandAnchor: "titik tambat band",
   pullUpBar: "pull-up bar",
   bench: "kursi/bench/step box",
 };
@@ -68,6 +71,24 @@ export const MOVEMENT_EQUIPMENT: Record<string, EquipmentNeed[]> = {
   "Tibialis Wall Raise": [],
   "Eccentric Calf Raise": [],
   "Band Pull-Apart": ["band"],
+  // 0.9 — gerakan baru dari free-exercise-db (lihat docs/movement-library-proposal.md).
+  "Band Reverse Fly": ["band", "bandAnchor"],
+  "Single-Leg Glute Bridge": [],
+  "Rear-Foot-Elevated Split Squat": ["dumbbell", "bench"],
+  "DB Step-Up": ["dumbbell", "bench"],
+  "DB Plié Squat": ["dumbbell"],
+  "Seated Band Hamstring Curl": ["band", "bandAnchor", "bench"],
+  "Side Plank": [],
+  "Standing Band Hip Abduction": ["band", "bandAnchor"],
+  Plank: [],
+  "Seated Single-Leg Calf Raise": ["dumbbell", "bench"],
+  "DB Scaption": ["dumbbell"],
+  "Band External Rotation": ["band", "bandAnchor"],
+  "Quadruped Hip Circles": [],
+  // Pemanasan & pendinginan tanpa alat.
+  "Kneeling Hip Flexor Stretch": [],
+  "Cat-Cow": [],
+  "Calf Stretch": [],
 };
 
 /** Gerakan band yang tetap sah tanpa band (progresi awal bodyweight). */
@@ -84,6 +105,8 @@ export function hasNeed(eq: Equipment, need: EquipmentNeed): boolean {
       return eq.barbell.enabled;
     case "band":
       return eq.bands.length > 0;
+    case "bandAnchor":
+      return eq.bandAnchor;
     case "pullUpBar":
       return eq.pullUpBar;
     case "bench":
@@ -181,6 +204,7 @@ export function normalizeEquipment(x: unknown, fallback: Equipment): Equipment {
     bands: BAND_LEVELS.filter((l) => (x.bands as unknown[]).includes(l)),
     pullUpBar: x.pullUpBar !== false,
     bench: x.bench !== false,
+    bandAnchor: x.bandAnchor !== false,
     other: Array.isArray(x.other) ? x.other.filter((o): o is string => typeof o === "string" && !!o.trim()).slice(0, 20) : [],
   };
 }

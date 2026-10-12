@@ -181,6 +181,14 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
               );
             })}
           </div>
+          <div className="mt-4">
+            <Switch
+              checked={eq.bandAnchor}
+              onChange={(bandAnchor) => set({ bandAnchor })}
+              label="Titik tambat band"
+              description="Kaki meja, handle pintu, atau door anchor. Dibutuhkan Band Reverse Fly, Band External Rotation, Standing Band Hip Abduction, dan Seated Band Hamstring Curl."
+            />
+          </div>
         </section>
 
         <section className="space-y-4 border-t border-line pt-4">

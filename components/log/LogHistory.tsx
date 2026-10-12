@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
+import { MovementSheet } from "@/components/movements/MovementSheet";
+import { MovementThumb } from "@/components/movements/MovementThumb";
 import { Card } from "@/components/ui/Card";
 import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import { formatDateId } from "@/lib/date";
 import { historyFor, type LogEntry } from "@/lib/progression";
+import { useResolvedProfile } from "@/lib/settings-store";
 import { trainingLog, useTrainingLog } from "@/lib/training-log";
 
 function valueLabel(e: LogEntry) {
@@ -17,6 +21,8 @@ const done = (e: LogEntry) => e.value >= e.target.hi && e.rpe <= e.targetRpe;
 /** Riwayat gerakan ★ (dasar progresi beban): tren per gerakan + riwayat per tanggal. */
 export function LogHistory() {
   const entries = useTrainingLog();
+  const p = useResolvedProfile();
+  const [detail, setDetail] = useState<string | null>(null);
   const movements = [...new Set(entries.map((e) => e.movement))].sort();
   const byDate = [...entries].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
   const dates = [...new Set(byDate.map((e) => e.date))];
@@ -41,12 +47,22 @@ export function LogHistory() {
               {movements.map((m) => {
                 const h = historyFor(entries, m).slice(0, 5).reverse();
                 return (
-                  <li key={m} className="py-3 first:pt-0 last:pb-0">
-                    <p className="text-body font-semibold">{m}</p>
-                    <p className="tabular text-[13px] text-muted">
-                      {h.map((e) => (e.load !== undefined ? `${e.load}` : e.valueUnit === "sec" ? `${e.value}s` : e.band ?? `${e.value}`)).join(" → ")}
-                      <span className="text-faint"> · {h.length} sesi terakhir</span>
-                    </p>
+                  <li key={m} className="py-2 first:pt-0 last:pb-0">
+                    <button
+                      type="button"
+                      onClick={() => setDetail(m)}
+                      aria-haspopup="dialog"
+                      className="pressable -mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-inner px-2 py-1 text-left hover:bg-subtle"
+                    >
+                      <MovementThumb name={m} size="h-11 w-11" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-body font-semibold">{m}</span>
+                        <span className="tabular block text-[13px] text-muted">
+                          {h.map((e) => (e.load !== undefined ? `${e.load}` : e.valueUnit === "sec" ? `${e.value}s` : e.band ?? `${e.value}`)).join(" → ")}
+                          <span className="text-faint"> · {h.length} sesi terakhir</span>
+                        </span>
+                      </span>
+                    </button>
                   </li>
                 );
               })}
@@ -87,6 +103,7 @@ export function LogHistory() {
           </Card>
         </>
       )}
+      {detail && <MovementSheet name={detail} activeConditions={p.activeConditions} onClose={() => setDetail(null)} />}
     </section>
   );
 }

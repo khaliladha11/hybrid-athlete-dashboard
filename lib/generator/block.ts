@@ -9,6 +9,8 @@ export interface BlockContext {
   week: number;
   weeks: number;
   deload: boolean;
+  /** Tanggal mulai blok ini (YYYY-MM-DD); tidak ada = di luar program blok. */
+  start?: string;
 }
 
 export const DEFAULT_BLOCK: BlockContext = { index: 0, week: 1, weeks: 4, deload: false };
@@ -22,7 +24,9 @@ export function blockContext(today: string, blockStart?: string, weeks = 4): Blo
   if (!Number.isFinite(days) || days < 0) return { ...DEFAULT_BLOCK, weeks: w };
   const totalWeeks = Math.floor(days / 7);
   const week = (totalWeeks % w) + 1;
-  return { index: Math.floor(totalWeeks / w), week, weeks: w, deload: week === w };
+  const index = Math.floor(totalWeeks / w);
+  const startDate = new Date(Date.parse(`${start}T00:00:00Z`) + index * w * 7 * DAY_MS).toISOString().slice(0, 10);
+  return { index, week, weeks: w, deload: week === w, start: startDate };
 }
 
 export function blockLabel(b: BlockContext): string {

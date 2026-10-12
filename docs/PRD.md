@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.8.1 (2026-10-11) |
+| **Versi saat ini** | 0.9.0 (2026-10-12) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Live** | https://hybrid-athlete-dashboard.vercel.app |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 7 file test, 123 unit test lolos · build produksi lolos |
+| **Kualitas** | 8 file test, 136 unit test lolos · build produksi lolos |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -129,8 +129,9 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Mode bebas (tanpa blok) | ✅ | 0.6 |
 | Gerakan wajib/terlarang mengikuti kondisi aktif | ✅ | 0.8 |
 | Hanya gerakan yang dipilih & alatnya tersedia; beban dari kombinasi plat | ✅ | 0.8 |
-| Gerakan baru di movement library | ⬜ | Sesi pengembangan berikutnya |
-| Video/gambar teknik gerakan | ⬜ | |
+| Gerakan baru di movement library | ✅ | 0.9: 13 gerakan dari free-exercise-db (stabilitas panggul, core, unilateral, soleus, bahu) |
+| Gambar teknik gerakan (awal/akhir) + detail cue & otot | 🟡 | 0.9: 35/40 gerakan bergambar; 5 tanpa padanan (Dead Hang, Negative Pull-Up, Scapular Retraction, Clamshell, Tibialis Wall Raise). Belum ada video |
+| Toggle titik tambat band | ✅ | 0.9 |
 | Timer istirahat antar set | ⬜ | |
 
 ### 4.5 Periodisasi & program target
@@ -207,13 +208,13 @@ Diurutkan dari yang paling berdampak.
 1. **Belum ada login.** Siapa pun yang tahu URL Vercel bisa melihat data intervals.icu pemilik. Mitigasi cepat: aktifkan *Vercel → Settings → Deployment Protection*.
 2. **Data di perangkat saja.** Setting, log ST, program, tema, dan toggle blok ada di `localStorage`. Hilang bila data browser dihapus, dan tidak sinkron antara HP dan laptop. Cadangan: ekspor JSON manual (kini mencakup semuanya). Makin penting sejak 0.8 karena Setting menyimpan lebih banyak data.
 3. **Profil sebagian statis.** Nama, target lomba, dan tanggal mulai blok masih di JSON. Bagian yang dirender server (mis. header Profil) memakai nilai default, bukan Setting perangkat.
-4. **Movement library belum bisa ditambah.** Alat baru (mis. kettlebell) baru dicatat; gerakannya menyusul. Kondisi di luar katalog hanya catatan.
+4. **Movement library hanya dari kurasi developer.** 0.9 menambah 13 gerakan, tetapi pengguna belum bisa menambah gerakan sendiri; alat lain (mis. kettlebell) baru dicatat. 5 gerakan belum punya gambar, dan celah anti-rotasi (Pallof, bird dog, suitcase carry) belum ada di sumber gambar. Kondisi di luar katalog hanya catatan.
 5. **Program & generator belum terhubung.** Sesi di Program tidak bisa langsung dibuka di generator, dan aktivitas aktual belum dicocokkan dengan rencana.
 6. **Ambang tetap.** HR lari berat (155), penurunan HRV (15%), dan kenaikan resting HR (5 bpm) belum dipersonalisasi.
 7. **Kalender terbatas 2 bulan.** Hanya bulan ini dan bulan lalu yang diambil dari intervals.icu.
 8. **Belum offline.** Belum ada service worker.
 9. **Pengujian UI manual.** Belum ada test komponen/e2e maupun CI GitHub Actions.
-10. **Screenshot dokumentasi** perlu diperbarui untuk Profil 0.7 dan halaman Setting 0.8.
+10. **Screenshot dokumentasi** perlu diperbarui untuk Profil 0.7, Setting 0.8, dan detail gerakan 0.9.
 
 ## 7. Roadmap & saran pengembangan
 
@@ -224,7 +225,6 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 
 | Usulan versi | Isi | Alasan |
 | --- | --- | --- |
-| **0.9 Library & alat** | Gerakan baru untuk alat yang dimiliki (sesi berikutnya sesuai rencana), dengan pemetaan alat & sumber | Variasi ST bertambah sesuai alat |
 | **0.10 Aman & tersinkron** | Proteksi akses (PIN/passcode) + sinkron data ke database | Setting & log kini berharga; jangan hilang atau terbuka |
 | **0.11 Program hidup** | Program ↔ generator, kepatuhan rencana vs aktual di kalender, prediksi waktu lomba | Program target jadi benar-benar dipakai harian |
 | **0.12 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
@@ -239,7 +239,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P0 | **Proteksi akses** (passcode di middleware atau Vercel Authentication) | S | Data kesehatan tidak terbuka untuk umum |
 | P0 | **Sinkron data** (Upstash Redis / Supabase) untuk log, program, preferensi | M | Data aman dan sama di semua perangkat |
 | P0 | **CI GitHub Actions** (typecheck, test, build tiap push) | S | Mencegah rilis rusak |
-| P1 | **Gerakan baru** di movement library untuk alat yang dimiliki (+ pemetaan alat, META, sumber) | M | Variasi ST lebih kaya |
+| P1 | **Gambar untuk 5 gerakan sisa** & gerakan anti-rotasi (sumber berlisensi bebas lain, atau foto sendiri) | M | Detail teknik lengkap untuk prehab wajib |
 | P1 | **Program → generator**: tombol "Kerjakan sesi hari ini" yang mengisi generator lari | S | Satu tap dari rencana ke workout |
 | P1 | **Kepatuhan program**: tandai sesi rencana ✓/✕ dari aktivitas intervals.icu, tampil di kalender | M | Tahu apakah masih di jalur |
 | P1 | **Prediksi waktu lomba** (rumus Riegel dari lari terbaik terbaru) untuk mengecek target | S | Target realistis |
@@ -254,7 +254,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P2 | **Milestone pull-up** & gerakan baru otomatis aktif saat siap (mis. negative pull-up) | S | Progres terlihat dan memotivasi |
 | P2 | **Grafik cadence & pace easy run** | S | Memantau perbaikan crossover gait |
 | P3 | Pengingat/notifikasi (web push) | L | Konsisten latihan |
-| P3 | Panduan teknik (gambar/video singkat per gerakan) | M | Eksekusi lebih aman |
+| P3 | Video singkat per gerakan | M | Eksekusi lebih aman (gambar awal/akhir sudah ada sejak 0.9) |
 | P3 | Multi-atlet / berbagi ke pelatih | L | Hanya bila dibutuhkan |
 | P3 | Lari trail/treadmill & cuaca (panas → turunkan target pace) | M | Target realistis di cuaca tropis |
 
@@ -276,6 +276,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.7 | 2026-10-09 | Kalender aktivitas, saran ringkas, kondisi dropdown |
 | 0.8 | 2026-10-11 | Halaman Setting: kondisi berbasis riset, zona VDOT, alat & beban, movement library; Log → Strength & Setting |
 | 0.8.1 | 2026-10-11 | Saran ringkas di Generator Lari; navigasi Setting (smooth scroll, highlight, scroll spy) |
+| 0.9 | 2026-10-12 | Gambar & detail teknik gerakan (free-exercise-db), 13 gerakan baru, titik tambat band |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 

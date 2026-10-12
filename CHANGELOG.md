@@ -2,6 +2,23 @@
 
 Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/).
 
+## [0.9.0] — 2026-10-12 · Visual gerakan & library diperluas
+
+### Ditambahkan
+- **Gambar teknik gerakan** dari [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (Unlicense): 35 dari 40 gerakan punya gambar posisi awal & akhir (WebP ≤ 600 px, disimpan lokal di `public/movements/`, tanpa hotlink). Pemilihan lewat audit (`docs/movement-media-audit.md`); 5 gerakan tanpa padanan tampil "Gambar belum tersedia".
+- **Thumbnail** di setiap kartu gerakan Generator Strength dan daftar tren di Riwayat latihan.
+- **Bottom sheet detail gerakan** (tap kartu): gambar awal ↔ akhir berganti otomatis (crossfade, tombol jeda), cue teknik berbahasa Indonesia, tag otot utama/sekunder, catatan kondisi aktif yang relevan, dan catatan bila gambar sedikit berbeda dari versi kita. Reduced motion: kedua gambar berdampingan ("Awal"/"Akhir") tanpa animasi.
+- **13 gerakan baru**: Side Plank, Standing Band Hip Abduction, Plank, Single-Leg Glute Bridge, Rear-Foot-Elevated Split Squat, DB Step-Up, DB Plié Squat, Seated Band Hamstring Curl, Seated Single-Leg Calf Raise, DB Scaption, Band External Rotation, Band Reverse Fly, Quadruped Hip Circles — lengkap dengan META, pemetaan alat, rentang beban yang bisa dirakit, dan catatan kondisi (`docs/movement-library-proposal.md`).
+- Toggle **Titik tambat band** di Setting › Alat (untuk 4 gerakan band yang ditambatkan).
+- `lib/movements/media.ts`, `scripts/audit-movement-media.mjs`, `scripts/fetch-movement-media.mjs`, `NOTICE.md`.
+- 13 test baru (`media.test.ts`), total 136.
+
+### Diubah
+- Syarat **stabilitas panggul** kini juga dipenuhi Side Plank & Standing Band Hip Abduction.
+- Split Squat, Step-Up, dan Plié Squat bisa jadi gerakan utama ★ — **mulai blok berikutnya** (★ blok yang sedang berjalan tidak berubah).
+- Sesi Lower/Full 45'/60' mendapat satu prehab tungkai yang berputar; sesi Upper 45'/60' satu prehab bahu yang berputar. Pemanasan Lower/Full menambah Quadruped Hip Circles.
+- Tahan per sisi (Side Plank) dihitung dua kali durasi dan ditampilkan "/sisi".
+
 ## [0.8.1] — 2026-10-11 · Polesan navigasi
 
 ### Diubah
@@ -129,7 +146,9 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.8.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/d64e590...main
+[0.9.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ff25f40...main
+[0.8.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/ff25f40
+[0.8.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/872a9c1
 [0.7.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/6e6762f
 [0.6.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/afe6f63
 [0.5.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/9a668ef

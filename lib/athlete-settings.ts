@@ -15,6 +15,7 @@ import {
   ownedBands,
   type Equipment,
 } from "./equipment";
+import { STABILITY_HIP } from "./generator/meta";
 import { formatRange, parseRange, ZONE_KEYS, type ZoneKey } from "./run-zones";
 import type { AthleteProfile, Movement, MovementCategory, MovementLibrary } from "./profile";
 
@@ -58,6 +59,7 @@ const FALLBACK_EQUIPMENT: Equipment = {
   bands: ["Light", "Medium"],
   pullUpBar: true,
   bench: true,
+  bandAnchor: true,
   other: [],
 };
 
@@ -162,8 +164,8 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
   for (const req of rules.requiredLower) {
     if (!usable(req)) warnings.push(`${req} wajib untuk kondisi aktif, tetapi tidak tersedia (${movementStatus[req]?.reason ?? "tidak ada di library"}).`);
   }
-  if (rules.hipStability && !["Lateral Band Walk", "Clamshell"].some(usable)) {
-    warnings.push("Kondisi aktif butuh stabilitas panggul, tetapi Lateral Band Walk & Clamshell tidak tersedia.");
+  if (rules.hipStability && !STABILITY_HIP.some(usable)) {
+    warnings.push(`Kondisi aktif butuh stabilitas panggul, tetapi ${STABILITY_HIP.join(", ")} tidak tersedia.`);
   }
 
   return {

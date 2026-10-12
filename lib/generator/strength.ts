@@ -13,7 +13,7 @@ import {
   type StrengthType,
   type StrengthWorkout,
 } from "./types";
-import { COMPOUND_MOVEMENTS, estimateStrengthMinutes, itemSeconds, META, STABILITY_HIP } from "./meta";
+import { ANCHOR_SINCE, COMPOUND_MOVEMENTS, estimateStrengthMinutes, itemSeconds, LOWER_PREHAB, META, SHOULDER_PREHAB, STABILITY_HIP } from "./meta";
 import { assertValidStrength, DURATION_TOLERANCE_MIN, sanitizeStrength } from "./validate";
 
 export const STRENGTH_RPE: Record<Difficulty, number> = { easy: 5, moderate: 6, high: 7 };
@@ -68,6 +68,7 @@ function planSlots(
   rng: Rng,
   rules: Pick<ActiveRules, "hipStability" | "requiredLower">,
   prehabNames: Set<string>,
+  anchorPool: string[],
 ): Slot[] {
   const extra = duration === 30 ? 0 : duration === 45 ? 1 : 2;
   // Stabilitas panggul (gluteus medius) bila kondisi aktif mewajibkan; selain itu aktivasi core/stabilitas umum.
@@ -80,15 +81,19 @@ function planSlots(
   const requiredPrehab = rules.requiredLower.filter((n) => prehabNames.has(n)).map(fixed);
   const deadBug = fixed("Dead Bug");
   const lowerCore = requiredCore.length ? requiredCore : duration === 60 ? [deadBug] : [];
+  // 45'/60': satu prehab tambahan yang berputar (mis. Seated Single-Leg Calf Raise untuk soleus).
+  const extraPrehab: Slot[] = duration === 30 ? [] : [{ kind: "pool", category: "prehab", role: "accessory", include: LOWER_PREHAB }];
+  // Upper 45'/60': satu prehab bahu yang berputar (Scaption / External Rotation).
+  const shoulderPrehab: Slot[] = duration === 30 ? [] : [{ kind: "pool", category: "prehab", role: "accessory", include: SHOULDER_PREHAB }];
   const pool = (category: MovementCategory, n: number, anchors = 0): Slot[] =>
     Array.from(
       { length: n },
-      (_, i) => ({ kind: "pool", category, role: "main", ...(i < anchors ? { anchor: true, include: COMPOUND_MOVEMENTS } : {}) }) as Slot,
+      (_, i) => ({ kind: "pool", category, role: "main", ...(i < anchors ? { anchor: true, include: anchorPool } : {}) }) as Slot,
     );
 
   switch (type) {
     case "lower":
-      return [stability, ...pool("lower", 2 + extra, 2), ...lowerCore, ...requiredPrehab];
+      return [stability, ...pool("lower", 2 + extra, 2), ...lowerCore, ...requiredPrehab, ...extraPrehab];
     case "fullBody": {
       const upperExtra =
         extra === 0
@@ -105,10 +110,11 @@ function planSlots(
         ...upperExtra,
         ...lowerCore,
         ...requiredPrehab,
+        ...extraPrehab,
       ];
     }
     case "upperPush":
-      return [...pool("upperPush", 3 + extra, 2), ...(duration !== 30 ? [deadBug] : [])];
+      return [...pool("upperPush", 3 + extra, 2), ...(duration !== 30 ? [deadBug] : []), ...shoulderPrehab];
     case "upperPull":
       // Progresi pull-up SELALU di awal selagi grip masih segar.
       return [
@@ -116,6 +122,7 @@ function planSlots(
         { kind: "fixed", name: "Negative Pull-Up", role: "main", anchor: true },
         ...pool("upperPull", 2 + extra, 1),
         ...(duration === 60 ? [deadBug] : []),
+        ...shoulderPrehab,
       ];
   }
 }
@@ -236,7 +243,9 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
   };
 
   const prehabNames = new Set((lib.prehab ?? []).map((m) => m.name));
-  for (const slot of planSlots(type, duration, rng, rules, prehabNames)) {
+  // Gerakan ★ baru baru berlaku di blok yang dimulai setelah gerakan itu ditambahkan (mode bebas: langsung).
+  const anchorPool = COMPOUND_MOVEMENTS.filter((n) => free || !block.start || !ANCHOR_SINCE[n] || ANCHOR_SINCE[n] <= block.start);
+  for (const slot of planSlots(type, duration, rng, rules, prehabNames, anchorPool)) {
     const m =
       slot.kind === "fixed"
         ? byName(slot.name)
@@ -255,7 +264,7 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
   while (budgetSec - totalSeconds(main) > 90) {
     let next: { m: Movement; role: ItemRole } | undefined;
     for (const f of fillers) {
-      const m = takeFrom(rng, f.category);
+      const m = takeFrom(rng, f.category, f.include);
       if (m) {
         next = { m, role: f.role };
         break;
@@ -277,7 +286,7 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
   const wc = lib.warmupAndCooldown ?? [];
   const has = (n: string) => wc.includes(n);
   const isUpper = type === "upperPush" || type === "upperPull";
-  const warmupNames = (isUpper ? ["Cat-Cow", "Band Pull-Apart"] : ["Cat-Cow", "Kneeling Hip Flexor Stretch"]).filter(has);
+  const warmupNames = (isUpper ? ["Cat-Cow", "Band Pull-Apart"] : ["Cat-Cow", "Quadruped Hip Circles", "Kneeling Hip Flexor Stretch"]).filter(has);
   const cooldownNames = (isUpper ? ["Kneeling Hip Flexor Stretch", "Cat-Cow"] : ["Kneeling Hip Flexor Stretch", "Calf Stretch"]).filter(has);
   const flex = (name: string, phase: "warmup" | "cooldown", totalMin: number, n: number): StrengthItem => ({
     phase,
@@ -334,21 +343,24 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
   return clean;
 }
 
-const FILLER_CATEGORIES: Record<StrengthType, { category: MovementCategory; role: ItemRole }[]> = {
+/** Urutan pengisi sisa waktu. Prehab dipilih sesuai bagian tubuh sesi (bahu untuk Upper, tungkai untuk Lower/Full). */
+const FILLER_CATEGORIES: Record<StrengthType, { category: MovementCategory; role: ItemRole; include?: string[] }[]> = {
   upperPush: [
     { category: "upperPush", role: "main" },
     { category: "stabilityAndCore", role: "accessory" },
+    { category: "prehab", role: "accessory", include: SHOULDER_PREHAB },
     { category: "prehab", role: "accessory" },
   ],
   upperPull: [
     { category: "upperPull", role: "main" },
     { category: "stabilityAndCore", role: "accessory" },
+    { category: "prehab", role: "accessory", include: SHOULDER_PREHAB },
     { category: "prehab", role: "accessory" },
   ],
   lower: [
     { category: "lower", role: "main" },
     { category: "stabilityAndCore", role: "accessory" },
-    { category: "prehab", role: "accessory" },
+    { category: "prehab", role: "accessory", include: LOWER_PREHAB },
   ],
   fullBody: [
     { category: "lower", role: "main" },

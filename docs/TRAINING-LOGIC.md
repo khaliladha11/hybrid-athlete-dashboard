@@ -11,6 +11,7 @@ Dokumen ini menjelaskan **semua aturan** yang dipakai generator dan sistem saran
 - [7. Program target (5K / 10K / HM / FM)](#7-program-target-5k--10k--hm--fm)
 - [8. Referensi](#8-referensi)
 - [9. Setting: kondisi, zona, alat & gerakan](#9-setting-kondisi-zona-alat--gerakan)
+- [10. Gerakan tambahan & media (0.9)](#10-gerakan-tambahan--media-09)
 
 ---
 
@@ -227,3 +228,25 @@ Referensi tambahan bagian ini:
 - Pettersson J dkk. (2008). Muscular exercise can cause highly pathological liver function tests. *Br J Clin Pharmacol* 65(2) ([doi](https://doi.org/10.1111/j.1365-2125.2007.03001.x)).
 - McGill S. (2016). *Low Back Disorders* (ed. 3). Human Kinetics.
 - NSCA (2016). *Exercise Technique Manual for Resistance Training* (ed. 3). Human Kinetics.
+
+## 10. Gerakan tambahan & media (0.9)
+
+Kode: [`lib/movements/media.ts`](../lib/movements/media.ts), [`lib/generator/meta.ts`](../lib/generator/meta.ts). Usulan & alasan: [`movement-library-proposal.md`](movement-library-proposal.md). Audit gambar: [`movement-media-audit.md`](movement-media-audit.md).
+
+| Aturan | Detail |
+| --- | --- |
+| Stabilitas panggul | Dipenuhi oleh Lateral Band Walk, Clamshell, **Side Plank**, atau **Standing Band Hip Abduction** (aktivasi gluteus medius tinggi — Ekstrom 2007; Distefano 2009). |
+| Prehab tungkai berputar | Lower/Full 45'/60' mendapat satu prehab tungkai tambahan (Tibialis Wall Raise / Eccentric Calf Raise / **Seated Single-Leg Calf Raise** untuk soleus — Dorn 2012). |
+| Prehab bahu berputar | Upper Push/Pull 45'/60' mendapat satu prehab bahu (**DB Scaption** / **Band External Rotation** — Reinold 2004). Pengisi sisa waktu juga mengutamakan prehab sesuai bagian tubuh sesi. |
+| ★ baru | Rear-Foot-Elevated Split Squat, DB Step-Up, dan DB Plié Squat masuk daftar multi-joint, tetapi baru boleh jadi ★ di blok yang dimulai **setelah** tanggal ditambahkan (`ANCHOR_SINCE`), supaya ★ & progresi blok yang berjalan tidak berubah. Mode bebas: langsung boleh. |
+| Titik tambat band | Band Reverse Fly, Band External Rotation, Standing Band Hip Abduction, dan Seated Band Hamstring Curl butuh band + titik tambat (toggle di Setting › Alat). |
+| Tahan per sisi | Side Plank dihitung 2× durasi untuk estimasi waktu dan ditampilkan "/sisi". |
+| Kondisi | Gerakan baru tidak dilarang kondisi mana pun; batasannya berupa catatan teknik di detail gerakan (mis. PFP → batasi kedalaman split squat/step-up/plié; nyeri bahu → batasi side plank/plank/scaption). |
+
+Gambar hanya dari free-exercise-db (Unlicense) — tidak memakai gambar AI atau sumber lain. Gambar yang sedikit berbeda dari versi kita (🟡 yang disetujui) diberi catatan di detail gerakan.
+
+Referensi tambahan:
+- Ekstrom RA dkk. (2007). EMG of core trunk, hip, and thigh muscles during 9 rehabilitation exercises. *JOSPT* 37(12) ([doi](https://doi.org/10.2519/jospt.2007.2471)).
+- Distefano LJ dkk. (2009). Gluteal muscle activation during common therapeutic exercises. *JOSPT* 39(7) ([doi](https://doi.org/10.2519/jospt.2009.2796)).
+- Dorn TW dkk. (2012). Muscular strategy shift in human running. *J Exp Biol* 215(11) ([doi](https://doi.org/10.1242/jeb.075051)).
+- Reinold MM dkk. (2004). EMG of the rotator cuff and deltoid during shoulder external rotation exercises. *JOSPT* 34(7) ([doi](https://doi.org/10.2519/jospt.2004.34.7.385)).

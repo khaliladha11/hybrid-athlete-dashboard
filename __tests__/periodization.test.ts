@@ -19,11 +19,12 @@ const mainSets = (w: StrengthWorkout) => w.items.filter((i) => i.phase === "main
 
 describe("blok periodisasi (Bompa: 3 minggu naik + 1 deload)", () => {
   it("menghitung minggu & deload dari tanggal", () => {
-    expect(blockContext("2026-09-28", START)).toEqual({ index: 0, week: 1, weeks: 4, deload: false });
+    expect(blockContext("2026-09-28", START)).toEqual({ index: 0, week: 1, weeks: 4, deload: false, start: "2026-09-28" });
     expect(blockContext("2026-10-04", START)).toMatchObject({ index: 0, week: 1 }); // Minggu, masih minggu 1
     expect(blockContext("2026-10-05", START)).toMatchObject({ index: 0, week: 2, deload: false });
     expect(blockContext("2026-10-19", START)).toMatchObject({ index: 0, week: 4, deload: true });
-    expect(blockContext("2026-10-26", START)).toMatchObject({ index: 1, week: 1, deload: false });
+    expect(blockContext("2026-10-26", START)).toMatchObject({ index: 1, week: 1, deload: false, start: "2026-10-26" });
+    expect(blockContext("2026-11-04", START)).toMatchObject({ index: 1, week: 2, start: "2026-10-26" });
   });
 
   it("tanggal sebelum mulai / blockStart tidak valid → blok 1 minggu 1", () => {

@@ -33,6 +33,9 @@ import type { Movement, ResolvedProfile } from "@/lib/profile";
 import { useResolvedProfile } from "@/lib/settings-store";
 import { applyProgression } from "@/lib/progression";
 import { useTrainingLog } from "@/lib/training-log";
+import { MovementSheet } from "@/components/movements/MovementSheet";
+import { MovementThumb } from "@/components/movements/MovementThumb";
+import type { StrengthItem } from "@/lib/generator/types";
 import { CoachCard } from "./CoachCard";
 import { LogForm } from "./LogForm";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
@@ -74,6 +77,7 @@ export function StrengthGenerator({
   const [blockEnabled, setBlockEnabled] = useBlockEnabled();
   const free = !blockEnabled;
   const [saved, setSaved] = useState(false);
+  const [detail, setDetail] = useState<StrengthItem | null>(null);
   const log = useTrainingLog();
   const p = useResolvedProfile();
   const movements = useMemo(() => movementMap(p), [p]);
@@ -168,10 +172,20 @@ export function StrengthGenerator({
               {phase === "main" ? (
                 <ol className="space-y-2">
                   {items.map((it, i) => (
-                    <li key={it.movement} className={`rounded-inner bg-subtle px-3 py-3 ${it.anchor ? "border-l-[3px] border-brand" : ""}`}>
-                      <div className="flex items-start gap-3">
-                        <span className={`tabular mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg text-[12px] font-semibold ${it.anchor ? "bg-brand text-on-brand" : "bg-subtle-strong text-ink"}`}>
-                          {i + 1}
+                    <li key={it.movement}>
+                      <button
+                        type="button"
+                        onClick={() => setDetail(it)}
+                        aria-haspopup="dialog"
+                        className={`pressable flex w-full items-start gap-3 rounded-inner bg-subtle px-3 py-3 text-left hover:bg-subtle-strong ${it.anchor ? "border-l-[3px] border-brand" : ""}`}
+                      >
+                        <span className="relative shrink-0">
+                          <MovementThumb name={it.movement} />
+                          <span
+                            className={`tabular absolute -top-1.5 -left-1.5 grid h-6 w-6 place-items-center rounded-lg text-[12px] font-semibold ring-2 ring-subtle ${it.anchor ? "bg-brand text-on-brand" : "bg-subtle-strong text-ink"}`}
+                          >
+                            {i + 1}
+                          </span>
                         </span>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-baseline justify-between gap-2">
@@ -189,20 +203,26 @@ export function StrengthGenerator({
                             {formatLoad(it.load)} · RPE {it.rpe}
                             {it.sets > 1 && ` · rest ${restLabel(it.restSec)}`}
                           </p>
-                          {it.progression && (
-                            <p className="mt-1 text-[13px] font-semibold text-brand-ink">{it.progression}</p>
-                          )}
+                          {it.progression && <p className="mt-1 text-[13px] font-semibold text-brand-ink">{it.progression}</p>}
                           {it.cue && <p className="mt-1 text-[13px] text-faint">{it.cue}</p>}
+                          <p className="mt-1 text-[12px] font-semibold text-muted">Lihat teknik ›</p>
                         </div>
-                      </div>
+                      </button>
                     </li>
                   ))}
                 </ol>
               ) : (
                 <ul className="flex flex-wrap gap-2">
                   {items.map((it) => (
-                    <li key={it.movement} className="rounded-full bg-subtle-strong px-3 py-1 text-[13px]">
-                      {it.movement} <span className="tabular text-muted">{formatVolume(it)}</span>
+                    <li key={it.movement}>
+                      <button
+                        type="button"
+                        onClick={() => setDetail(it)}
+                        aria-haspopup="dialog"
+                        className="pressable relative min-h-8 rounded-full bg-subtle-strong px-3 py-1 text-[13px] after:absolute after:-inset-1.5 after:content-[''] hover:bg-line-strong/40"
+                      >
+                        {it.movement} <span className="tabular text-muted">{formatVolume(it)}</span>
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -255,6 +275,7 @@ export function StrengthGenerator({
       />
       </>
       )}
+      {detail && <MovementSheet name={detail.movement} item={detail} activeConditions={p.activeConditions} onClose={() => setDetail(null)} />}
     </div>
   );
 }
