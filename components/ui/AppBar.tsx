@@ -3,21 +3,14 @@
 import Link from "next/link";
 import { useResolvedTheme, useThemePreference } from "@/lib/preferences";
 
-/** Bilah atas: logo + sakelar tema terang/gelap (tersimpan di perangkat). */
+/** Bilah atas: titik oranye + wordmark, dan sakelar tema terang/gelap (tersimpan di perangkat). */
 export function AppBar() {
   return (
     <header className="safe-x mx-auto flex w-full max-w-xl items-center justify-between pt-3">
-      <Link href="/" className="pressable flex items-center gap-2 rounded-control py-1 pr-2" aria-label="Beranda Hybrid Athlete">
-        <span className="grid h-8 w-8 place-items-center rounded-control bg-brand" aria-hidden>
-          <svg viewBox="0 0 24 24" className="h-5 w-5 text-on-brand" fill="currentColor">
-            <rect x="4" y="6" width="3" height="10" rx="1" />
-            <rect x="7.5" y="8" width="2" height="6" rx="0.6" />
-            <rect x="14.5" y="8" width="2" height="6" rx="0.6" />
-            <rect x="17" y="6" width="3" height="10" rx="1" />
-            <rect x="9.5" y="10.2" width="5" height="1.6" rx="0.5" />
-          </svg>
-        </span>
-        <span className="text-base font-semibold">Hybrid Athlete</span>
+      <Link href="/" className="pressable flex min-h-11 items-center gap-2 rounded-control pr-2" aria-label="Beranda Hybrid Athlete">
+        {/* Identitas: titik oranye + wordmark Display, tanpa logo grafis. */}
+        <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand" />
+        <span className="t-display-sm pb-0 text-[15px] leading-none">Hybrid Athlete</span>
       </Link>
       <ThemeToggle />
     </header>

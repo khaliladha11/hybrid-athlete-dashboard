@@ -4,8 +4,8 @@ import { useId } from "react";
 import { TONES, type Tone } from "./tones";
 
 /**
- * Pilihan tunggal. Opsi aktif ditandai oranye (garis + teks + tint) supaya jelas
- * di layar terang di luar ruangan, tanpa membanjiri layar dengan blok oranye.
+ * Pilihan tunggal. Opsi aktif ditandai oranye (garis + teks + tint) atau tone intensitas.
+ * Tanpa animasi pindah indikator: dipakai puluhan kali per hari.
  */
 export function Segmented<T extends string | number>({
   label,
@@ -27,7 +27,7 @@ export function Segmented<T extends string | number>({
   const id = useId();
   return (
     <fieldset>
-      <legend id={id} className="eyebrow mb-2">
+      <legend id={id} className="t-label mb-2">
         {label}
       </legend>
       <div

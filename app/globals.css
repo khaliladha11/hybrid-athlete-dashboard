@@ -10,6 +10,14 @@
  * dipasang sebagai <html data-theme="light|dark"> sebelum halaman dirender.
  */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* hover: hanya pointer presisi (tidak "nyangkut" setelah tap di layar sentuh). Berlaku untuk semua kelas hover:. */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
 
 @theme inline {
   /* Font dari next/font (app/layout.tsx) sebagai variabel CSS. */

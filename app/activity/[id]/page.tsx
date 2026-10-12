@@ -38,11 +38,11 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
           </Card>
           <Card title="Interval / lap" flush>
             {res.data.intervals.length === 0 ? (
-              <p className="px-4 text-body text-muted">Tidak ada data interval untuk aktivitas ini.</p>
+              <p className="px-5 text-body text-muted">Tidak ada data interval untuk aktivitas ini.</p>
             ) : (
               <ul className="divide-y divide-line text-body">
                 {res.data.intervals.map((iv, i) => (
-                  <li key={i} className="tabular flex items-baseline justify-between gap-3 px-4 py-2">
+                  <li key={i} className="tabular flex items-baseline justify-between gap-3 px-5 py-2">
                     <span className="font-medium">{iv.label}</span>
                     <span className="text-right text-[13px] text-muted">
                       {[

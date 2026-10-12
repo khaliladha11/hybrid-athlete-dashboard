@@ -179,7 +179,7 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
               {program.weeks.map((w) => (
                 <li key={w.index}>
                   <details className="group" open={w.index === current && !currentWeek}>
-                    <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-4 py-2">
+                    <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-5 py-2">
                       <span className={`h-8 w-1 shrink-0 rounded-full ${PHASE_STYLE[w.phase].fill}`} aria-hidden />
                       <div className="min-w-0 flex-1">
                         <p className="text-body font-semibold">
@@ -195,7 +195,7 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
                         ›
                       </span>
                     </summary>
-                    <div className="details-body px-4 pb-4">
+                    <div className="details-body px-5 pb-4">
                       <WeekDetail week={w} />
                     </div>
                   </details>

@@ -28,8 +28,8 @@ export const INTENSITY_TONE: Record<Difficulty, Tone> = { easy: "success", moder
 
 export const statusTone = (ok: boolean): Tone => (ok ? "success" : "danger");
 
-/** Pill kecil berwarna, mis. label kesulitan atau status. */
+/** Pill kecil berwarna (Geist Mono 11px UPPERCASE, tinggi 22px), mis. label kesulitan atau status. */
 export function pillClasses(tone: Tone): string {
   const t = TONES[tone];
-  return `inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${t.soft} ${t.ink}`;
+  return `inline-flex h-[22px] items-center gap-1.5 rounded-full px-[9px] font-mono text-[11px] font-medium tracking-[0.08em] uppercase ${t.soft} ${t.ink}`;
 }
