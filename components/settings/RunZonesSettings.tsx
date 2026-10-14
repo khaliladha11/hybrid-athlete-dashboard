@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { BUTTON, Card } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
+import { TimePicker } from "@/components/ui/TimePicker";
 import type { AthleteSettings } from "@/lib/athlete-settings";
 import { baseProfile } from "@/lib/profile";
 import {
@@ -12,7 +13,6 @@ import {
   ZONE_SOURCE,
   formatPace,
   formatRange,
-  parseDuration,
   parsePace,
   parseRange,
   vdot,
@@ -21,7 +21,8 @@ import {
   type ZoneKey,
 } from "@/lib/run-zones";
 
-const INPUT = "min-h-11 w-full rounded-control border bg-surface px-3 text-base text-ink tabular focus:border-brand";
+/** Batas pace yang diterima lib (2:30–15:00/km), dipakai ulang lewat parsePace. */
+const inBounds = (sec: number) => parsePace(formatPace(sec)) !== undefined;
 
 function defaultPace(k: ZoneKey): string {
   const v = baseProfile.runZones?.[k]?.pace;
@@ -51,10 +52,10 @@ export function RunZonesSettings({ settings, onChange }: { settings: AthleteSett
         )
       }
     >
-      <p className="text-[13px] text-muted">Format m:ss per km. Dipakai generator lari dan Program target.</p>
+      <p className="text-[13px] text-muted">Pace per km (menit:detik). Ketuk angka untuk mengubah. Dipakai generator lari dan Program target.</p>
       <ul className="mt-3 space-y-4">
         {ZONE_KEYS.map((k) => (
-          <ZoneRow key={`${k}-${settings.runZones[k] ?? ""}`} zone={k} value={settings.runZones[k]} onSave={(p) => setZone(k, p)} />
+          <ZoneRow key={k} zone={k} value={settings.runZones[k]} onSave={(p) => setZone(k, p)} />
         ))}
       </ul>
       <VdotCalculator onApply={(zones) => onChange({ ...settings, runZones: zones })} />
@@ -63,17 +64,21 @@ export function RunZonesSettings({ settings, onChange }: { settings: AthleteSett
 }
 
 function ZoneRow({ zone, value, onSave }: { zone: ZoneKey; value?: string; onSave: (pace: string | null) => void }) {
-  const current = parseRange(value ?? defaultPace(zone));
-  const [fast, setFast] = useState(current ? formatPace(current.fast) : "");
-  const [slow, setSlow] = useState(current ? formatPace(current.slow) : "");
-  const f = parsePace(fast);
-  const s = parsePace(slow);
-  const valid = f !== undefined && s !== undefined && f <= s;
+  const saved = value ?? defaultPace(zone);
+  const current = parseRange(saved) ?? { fast: 360, slow: 360 };
+  // Draft hanya hidup selama kombinasi belum valid, dan gugur bila nilai tersimpan berubah dari luar (reset, VDOT).
+  const [draft, setDraft] = useState<{ base: string; fast: number; slow: number } | null>(null);
+  const shown = draft && draft.base === saved ? draft : current;
+  const valid = inBounds(shown.fast) && inBounds(shown.slow) && shown.fast <= shown.slow;
 
-  const commit = () => {
-    if (!valid) return;
-    const next = formatRange({ fast: f, slow: s });
-    if (next !== (value ?? defaultPace(zone))) onSave(next === defaultPace(zone) ? null : next);
+  const change = (next: { fast: number; slow: number }) => {
+    if (!(inBounds(next.fast) && inBounds(next.slow) && next.fast <= next.slow)) {
+      setDraft({ base: saved, ...next });
+      return;
+    }
+    setDraft(null);
+    const text = formatRange(next);
+    if (text !== saved) onSave(text === defaultPace(zone) ? null : text);
   };
 
   return (
@@ -89,32 +94,28 @@ function ZoneRow({ zone, value, onSave }: { zone: ZoneKey; value?: string; onSav
         )}
       </div>
       <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-        <input
+        <TimePicker
           aria-label={`${ZONE_LABEL[zone]} batas cepat`}
-          inputMode="numeric"
-          placeholder="cepat"
-          value={fast}
-          onChange={(e) => setFast(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => e.key === "Enter" && commit()}
-          className={`${INPUT} ${f === undefined || !valid ? "border-danger" : "border-line-strong"}`}
+          format="ms"
+          minuteRange={[2, 15]}
+          value={shown.fast}
+          onChange={(fast) => change({ fast, slow: shown.slow })}
+          invalid={!valid}
         />
         <span className="text-[13px] text-muted" aria-hidden>
           sampai
         </span>
-        <input
+        <TimePicker
           aria-label={`${ZONE_LABEL[zone]} batas lambat`}
-          inputMode="numeric"
-          placeholder="lambat"
-          value={slow}
-          onChange={(e) => setSlow(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => e.key === "Enter" && commit()}
-          className={`${INPUT} ${s === undefined || !valid ? "border-danger" : "border-line-strong"}`}
+          format="ms"
+          minuteRange={[2, 15]}
+          value={shown.slow}
+          onChange={(slow) => change({ fast: shown.fast, slow })}
+          invalid={!valid}
         />
       </div>
       <p className={`mt-1 text-[12px] ${valid ? "text-faint" : "font-semibold text-danger-ink"}`}>
-        {valid ? `Default ${defaultPace(zone)} · ${ZONE_SOURCE[zone]}` : "✕ Format m:ss (2:30–15:00), batas cepat ≤ batas lambat."}
+        {valid ? `Default ${defaultPace(zone)} · ${ZONE_SOURCE[zone]}` : "✕ Pace harus 2:30–15:00/km dan batas cepat ≤ batas lambat. Belum disimpan."}
       </p>
     </li>
   );
@@ -122,12 +123,13 @@ function ZoneRow({ zone, value, onSave }: { zone: ZoneKey; value?: string; onSav
 
 function VdotCalculator({ onApply }: { onApply: (zones: Partial<Record<ZoneKey, string>>) => void }) {
   const [dist, setDist] = useState<RaceDistanceKey>("5k");
-  const [time, setTime] = useState("");
-  const meters = RACE_DISTANCES.find((d) => d.key === dist)!.meters;
-  const sec = parseDuration(time);
-  // Rentang wajar: pace 2:30–15:00/km.
-  const plausible = sec !== undefined && sec / (meters / 1000) >= 150 && sec / (meters / 1000) <= 900;
-  const v = plausible ? vdot(meters, sec!) : undefined;
+  const [sec, setSec] = useState(0);
+  const timeId = useId();
+  const km = RACE_DISTANCES.find((d) => d.key === dist)!.meters / 1000;
+  // Rentang wajar: pace 2:30–15:00/km. 0 = belum diisi.
+  const pace = sec / km;
+  const plausible = sec > 0 && inBounds(pace);
+  const v = plausible ? vdot(km * 1000, sec) : undefined;
   const zones = v ? zonesFromVdot(v) : undefined;
 
   return (
@@ -148,17 +150,25 @@ function VdotCalculator({ onApply }: { onApply: (zones: Partial<Record<ZoneKey, 
           onChange={setDist}
           options={RACE_DISTANCES.map((d) => ({ value: d.key, label: d.key === "hm" ? "HM" : d.key === "fm" ? "FM" : d.label }))}
         />
-        <label className="block text-[12px] text-muted">
-          Waktu
-          <input
-            inputMode="numeric"
-            placeholder={dist === "5k" ? "mm:ss" : "h:mm:ss"}
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className={`${INPUT} mt-1 ${time && !plausible ? "border-danger" : "border-line-strong"}`}
+        <div>
+          <p id={timeId} className="t-label">
+            Waktu
+          </p>
+          <TimePicker
+            aria-labelledby={timeId}
+            format="hms"
+            maxHours={Math.floor((km * 900) / 3600)}
+            value={sec}
+            onChange={setSec}
+            invalid={sec > 0 && !plausible}
+            placeholder={sec === 0}
+            units
+            className="mt-1"
           />
-        </label>
-        {time && !plausible && <p className="text-[13px] font-semibold text-danger-ink">✕ Format mm:ss atau h:mm:ss dengan pace masuk akal.</p>}
+        </div>
+        {sec > 0 && !plausible && (
+          <p className="text-[13px] font-semibold text-danger-ink">✕ Pace {formatPace(pace)}/km di luar rentang wajar 2:30–15:00/km. Cek jarak dan waktunya.</p>
+        )}
         {zones && v && (
           <>
             <div className="rounded-inner bg-subtle p-3">

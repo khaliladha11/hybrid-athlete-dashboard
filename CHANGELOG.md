@@ -2,6 +2,11 @@
 
 Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/).
 
+## [Unreleased]
+
+### Diperbaiki
+- **Input waktu & pace di Setting bisa diisi dari HP.** Keyboard angka di HP tidak punya tombol ":", jadi kolom teks "mm:ss" / "h:mm:ss" (waktu VDOT) dan "m:ss" (pace per zona) tidak bisa diisi. Sekarang memakai pemilih `TimePicker` (jam : menit : detik) berbasis `<select>` native: ketuk angka, pilih dari wheel/daftar bawaan OS, tanpa mengetik. Pace zona tersimpan begitu kombinasinya valid; kombinasi tidak valid ditandai merah dan belum disimpan.
+
 ## [0.10.0-ui] · 2026-10-12 · Redesign "Tag"
 
 Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logika latihan di `lib/` tidak berubah.
