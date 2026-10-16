@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dedupeActivities, isEmptyActivity } from "@/lib/intervals/dedupe";
 import { normalizeActivity, normalizeActivityDetail, normalizeList } from "@/lib/intervals/normalize";
-import { kmSplits, parseStreams } from "@/lib/intervals/splits";
+import { gpsDistance, isEvenlySpread, kmSplits, parseStreams, splitsFromStreams } from "@/lib/intervals/splits";
 import { mockActivities, mockActivityDetail } from "@/lib/mock-data";
 
 const TODAY = "2026-09-28";
@@ -62,6 +62,21 @@ function steady(meters: number, speed: number, extra: { hr?: number; cadence?: n
   };
 }
 
+/** Stream dengan kecepatan berganti 2.5 / 3 m/s tiap 400 detik (lari sungguhan, jarak tidak linear). */
+function varying(meters: number) {
+  const time = [0];
+  const distance = [0];
+  while (distance.at(-1)! < meters) {
+    const t = time.length;
+    time.push(t);
+    distance.push(Math.min(meters, distance.at(-1)! + (Math.floor(t / 400) % 2 ? 3 : 2.5)));
+  }
+  return { time, distance };
+}
+
+/** Koordinat yang berjalan ke utara sesuai stream jarak (1° lintang ≈ 111.195 km). */
+const toLat = (distance: (number | null)[]) => distance.map((d) => (d === null ? null : -6.2 + d / 111_195));
+
 describe("split per km dari stream", () => {
   it("kecepatan konstan: km penuh + sisa parsial", () => {
     const splits = kmSplits(steady(2500, 2.5, { hr: 150, cadence: 80 }));
@@ -110,12 +125,60 @@ describe("split per km dari stream", () => {
   });
 
   it("cadence stream per-kaki dikali 2 sesuai rata-rata aktivitas", () => {
-    const s = steady(1000, 2.5, { cadence: 70 });
+    const v = varying(1500);
+    const s = { ...v, cadence: v.time.map(() => 70) };
     const streams = Object.entries(s).map(([type, data]) => ({ type, data }));
     const d = normalizeActivityDetail(huaweiRun, streams);
     expect(d?.splits[0].cadenceSpm).toBe(140);
     // Strength tidak punya split walau ada stream.
     expect(normalizeActivityDetail(huaweiST, streams)?.splits).toEqual([]);
+  });
+});
+
+describe("sumber jarak split: stream asli, GPS, atau tidak ada", () => {
+  it("jarak yang naik persis sebanding waktu dikenali sebagai dibagi rata", () => {
+    const s = steady(4580, 4580 / 2722);
+    expect(isEvenlySpread(s.time, s.distance)).toBe(true);
+    const v = varying(4580);
+    expect(isEvenlySpread(v.time, v.distance)).toBe(false);
+  });
+
+  it("jarak dibagi rata + tanpa GPS: tidak ada split palsu", () => {
+    const s = steady(4580, 4580 / 2722, { hr: 150 });
+    const r = splitsFromStreams(s, 4580);
+    expect(r).toEqual({ splits: [], issue: "no-gps" });
+    expect(splitsFromStreams({}, 4580).issue).toBe("no-streams");
+  });
+
+  it("jarak dibagi rata + ada GPS: split dari GPS, diskalakan ke total jarak", () => {
+    const v = varying(3000);
+    const linear = v.time.map((t) => (t * 3000) / v.time.at(-1)!);
+    // GPS 3% lebih panjang dari jarak jam; hasil tetap diskalakan ke 3000 m.
+    const lat = toLat(v.distance.map((d) => d * 1.03));
+    const lng = v.time.map(() => 106.8);
+    const r = splitsFromStreams({ time: v.time, distance: linear, lat, lng }, 3000);
+    expect(r.source).toBe("gps");
+    expect(r.splits).toHaveLength(3);
+    expect(r.splits.reduce((a, x) => a + x.distanceKm, 0)).toBeCloseTo(3, 3);
+    const paces = r.splits.map((x) => x.avgPaceSecPerKm!);
+    expect(Math.max(...paces) - Math.min(...paces)).toBeGreaterThan(5);
+  });
+
+  it("stream jarak asli dipakai apa adanya", () => {
+    expect(splitsFromStreams(varying(2000), 2000).source).toBe("distance");
+  });
+
+  it("gpsDistance: titik kosong atau (0,0) tidak menambah jarak", () => {
+    const d = gpsDistance([null, -6.2, 0, -6.2 + 1000 / 111_195], [null, 106.8, 0, 106.8])!;
+    expect(d[0]).toBeNull();
+    expect(d[1]).toBe(0);
+    expect(d[2]).toBe(0);
+    expect(d[3]).toBeCloseTo(1000, 0);
+    expect(gpsDistance([1, 1], [2, 2])).toBeUndefined();
+  });
+
+  it("parseStreams memecah latlng jadi lat & lng", () => {
+    expect(parseStreams([{ type: "latlng", data: [-6.2, -6.3], data2: [106.8, 106.9] }])).toEqual({ lat: [-6.2, -6.3], lng: [106.8, 106.9] });
   });
 });
 

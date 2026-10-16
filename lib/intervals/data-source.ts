@@ -53,7 +53,7 @@ export async function getActivityDetail(id: string): Promise<FetchResult<Activit
   // Stream untuk split per km; bila gagal (mis. aktivitas tanpa GPS) detail tetap tampil tanpa split.
   const [res, streams] = await Promise.all([
     intervalsGet(`/activity/${encodeURIComponent(id)}`, { intervals: "true" }),
-    intervalsGet(`/activity/${encodeURIComponent(id)}/streams`, { types: "time,distance,heartrate,cadence" }),
+    intervalsGet(`/activity/${encodeURIComponent(id)}/streams`, { types: "time,distance,latlng,heartrate,cadence" }),
   ]);
   if (!res.ok) return res;
   const data = normalizeActivityDetail(res.data, streams.ok ? streams.data : undefined);

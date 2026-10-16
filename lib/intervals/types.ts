@@ -45,6 +45,10 @@ export interface ActivityDetail extends Activity {
   intervals: ActivityInterval[];
   /** Hanya untuk lari & jalan yang punya stream jarak; kosong bila tidak ada. */
   splits: ActivitySplit[];
+  /** Asal jarak split: stream distance, atau GPS bila distance hanya dibagi rata. */
+  splitSource?: "distance" | "gps";
+  /** Alasan split kosong untuk lari & jalan. */
+  splitIssue?: "no-streams" | "no-gps";
 }
 
 export interface Wellness {

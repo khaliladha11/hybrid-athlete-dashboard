@@ -1,5 +1,5 @@
 import { datePart } from "@/lib/date";
-import { kmSplits, parseStreams } from "./splits";
+import { parseStreams, splitsFromStreams } from "./splits";
 import type { Activity, ActivityCategory, ActivityDetail, ActivityInterval, Wellness } from "./types";
 
 type Raw = Record<string, unknown>;
@@ -90,14 +90,18 @@ export function normalizeActivityDetail(raw: unknown, rawStreams?: unknown): Act
   // Cadence stream per-kaki bila rata-rata aktivitas per-kaki (< 120): faktor diputuskan sekali per aktivitas.
   const avgCadence = num((raw as Raw).average_cadence);
   const cadenceFactor = avgCadence === undefined ? undefined : avgCadence < 120 ? 2 : 1;
-  const splits =
-    base.category === "run" || base.category === "walk"
-      ? kmSplits(parseStreams(rawStreams)).map((s) => ({
-          ...s,
-          cadenceSpm: cadenceFactor && s.cadenceSpm ? Math.round(s.cadenceSpm * cadenceFactor) : normalizeCadence(s.cadenceSpm),
-        }))
-      : [];
-  return { ...base, intervals, splits };
+  if (base.category !== "run" && base.category !== "walk") return { ...base, intervals, splits: [] };
+  const { splits, source, issue } = splitsFromStreams(parseStreams(rawStreams), base.distanceKm ? base.distanceKm * 1000 : undefined);
+  return {
+    ...base,
+    intervals,
+    splits: splits.map((s) => ({
+      ...s,
+      cadenceSpm: cadenceFactor && s.cadenceSpm ? Math.round(s.cadenceSpm * cadenceFactor) : normalizeCadence(s.cadenceSpm),
+    })),
+    splitSource: source,
+    splitIssue: issue,
+  };
 }
 
 export function normalizeWellness(raw: unknown): Wellness | null {

@@ -10,9 +10,9 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 - Baris aktivitas tanpa data tidak lagi menampilkan "—".
 
 ### Ditambahkan
-- **Split per km** di detail aktivitas lari & jalan, dihitung dari stream intervals.icu (`/activity/{id}/streams`): Segment Skyline per km, tabel pace/HR/cadence, km tercepat ditandai, sisa < 1 km jadi split parsial. Waktu split = moving time (berhenti tidak dihitung). Kartu "Interval / lap" kini hanya muncul bila ada lebih dari satu interval (sesi terstruktur atau lap), karena satu interval sama dengan ringkasan sesi.
+- **Split per km** di detail aktivitas lari & jalan, dihitung dari stream intervals.icu (`/activity/{id}/streams`): Segment Skyline per km, tabel pace/HR/cadence, km tercepat ditandai, sisa < 1 km jadi split parsial. Waktu split = moving time (berhenti tidak dihitung). Data Huawei di intervals.icu sering hanya punya total jarak yang dibagi rata per detik (pace tiap km jadi sama); kasus ini dikenali dan split dihitung dari koordinat GPS (`latlng`) yang diskalakan ke total jarak. Tanpa GPS, tampil penjelasan, bukan split palsu. Kartu "Interval / lap" kini hanya muncul bila ada lebih dari satu interval (sesi terstruktur atau lap), karena satu interval sama dengan ringkasan sesi.
 - Demo Mode: stream sintetis per sesi, sehingga split dan struktur interval (Tempo, Mini Interval, Norwegian 4×4) ikut tampil.
-- 15 test baru (`activity-data.test.ts`, `splitSegments`), total 165.
+- 21 test baru (`activity-data.test.ts`, `splitSegments`), total 171.
 
 ### Diubah
 - Lingkaran inisial di header Profil dihapus (belum ada fitur foto profil).

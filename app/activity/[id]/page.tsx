@@ -61,7 +61,11 @@ function ActivityDetailView({ data }: { data: Detail }) {
         onFoot &&
         data.intervals.length <= 1 && (
           <Card title="Split per km">
-            <p className="text-body text-muted">Split belum tersedia: aktivitas ini tidak punya data jarak per detik (stream GPS) di intervals.icu.</p>
+            <p className="text-body text-muted">
+              {data.splitIssue === "no-gps"
+                ? "Split belum tersedia: data dari jam di intervals.icu hanya berisi total jarak, tanpa GPS per detik, jadi pace tiap km tidak bisa dihitung."
+                : "Split belum tersedia: intervals.icu tidak punya data per detik untuk aktivitas ini."}
+            </p>
           </Card>
         )
       )}
@@ -93,7 +97,7 @@ function SplitsCard({ data }: { data: Detail }) {
           />
           {fastest && (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
-              <span className="t-label">Lebar = waktu · tinggi = kecepatan</span>
+              <span className="t-label">{data.splitSource === "gps" ? "Dihitung dari GPS" : "Lebar = waktu · tinggi = kecepatan"}</span>
               <span className="t-label font-semibold text-brand-ink">
                 Km {fastest.index} tercepat {formatPaceTag(fastest.avgPaceSecPerKm)}/km
               </span>

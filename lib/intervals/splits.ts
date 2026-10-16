@@ -7,17 +7,100 @@ export const MIN_MOVING_SPEED = 0.5;
 /** Sisa terakhir yang lebih pendek dari ini tidak dijadikan split. */
 export const MIN_LAST_SPLIT_M = 50;
 
-/** Respons `/activity/{id}/streams` (array `{ type, data }`) → map per tipe. */
+const nums = (data: unknown[]) => data.map((v) => (typeof v === "number" && Number.isFinite(v) ? v : null));
+
+/** Respons `/activity/{id}/streams` (array `{ type, data }`) → map per tipe. `latlng` dipecah jadi `lat` & `lng`. */
 export function parseStreams(raw: unknown): StreamMap {
   const map: StreamMap = {};
   if (!Array.isArray(raw)) return map;
   for (const s of raw) {
     if (!s || typeof s !== "object") continue;
-    const { type, data } = s as { type?: unknown; data?: unknown };
+    const { type, data, data2 } = s as { type?: unknown; data?: unknown; data2?: unknown };
     if (typeof type !== "string" || !Array.isArray(data)) continue;
-    map[type] = data.map((v) => (typeof v === "number" && Number.isFinite(v) ? v : null));
+    if (type === "latlng") {
+      // intervals.icu: latitude di data, longitude di data2.
+      map.lat = nums(data);
+      if (Array.isArray(data2)) map.lng = nums(data2);
+      continue;
+    }
+    map[type] = nums(data);
   }
   return map;
+}
+
+function validPairs(time: (number | null)[], values: (number | null)[]): [number, number][] {
+  const out: [number, number][] = [];
+  for (let i = 0; i < Math.min(time.length, values.length); i++) {
+    const t = time[i];
+    const v = values[i];
+    if (t !== null && v !== null) out.push([t, v]);
+  }
+  return out;
+}
+
+/**
+ * Jarak yang naik persis sebanding waktu: sumber hanya punya total jarak lalu dibagi rata
+ * (terjadi pada data Huawei di intervals.icu). Split dari data seperti ini pasti sama semua.
+ */
+export function isEvenlySpread(time: (number | null)[], distance: (number | null)[]): boolean {
+  const pts = validPairs(time, distance);
+  if (pts.length < 3) return false;
+  const [t0, d0] = pts[0];
+  const [t1, d1] = pts[pts.length - 1];
+  if (t1 <= t0 || d1 <= d0) return false;
+  const rate = (d1 - d0) / (t1 - t0);
+  let maxDev = 0;
+  for (const [t, d] of pts) maxDev = Math.max(maxDev, Math.abs(d - (d0 + rate * (t - t0))));
+  return maxDev <= Math.max(2, 0.001 * (d1 - d0));
+}
+
+const EARTH_M = 6_371_008.8;
+const rad = (deg: number) => (deg * Math.PI) / 180;
+
+function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const a = Math.sin(rad(lat2 - lat1) / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lng2 - lng1) / 2) ** 2;
+  return 2 * EARTH_M * Math.asin(Math.sqrt(a));
+}
+
+/** Jarak kumulatif (m) dari koordinat GPS. Titik kosong atau (0, 0) memakai jarak terakhir. */
+export function gpsDistance(lat?: (number | null)[], lng?: (number | null)[]): (number | null)[] | undefined {
+  if (!lat?.length || !lng?.length) return undefined;
+  const out: (number | null)[] = [];
+  let total = 0;
+  let prev: [number, number] | undefined;
+  for (let i = 0; i < Math.min(lat.length, lng.length); i++) {
+    const a = lat[i];
+    const b = lng[i];
+    if (a === null || b === null || (a === 0 && b === 0) || Math.abs(a) > 90 || Math.abs(b) > 180) {
+      out.push(prev ? total : null);
+      continue;
+    }
+    if (prev) total += haversine(prev[0], prev[1], a, b);
+    prev = [a, b];
+    out.push(total);
+  }
+  return total > 0 ? out : undefined;
+}
+
+export type SplitSource = "distance" | "gps";
+/** Kenapa split kosong: tidak ada stream sama sekali, atau jarak hanya dibagi rata tanpa GPS. */
+export type SplitIssue = "no-streams" | "no-gps";
+
+/**
+ * Pilih stream jarak yang bisa dipercaya lalu hitung split: stream distance bila asli, kalau
+ * hanya dibagi rata pakai GPS (diskalakan ke total jarak aktivitas supaya jumlahnya sama).
+ */
+export function splitsFromStreams(streams: StreamMap, totalM?: number): { splits: ActivitySplit[]; source?: SplitSource; issue?: SplitIssue } {
+  const { time, distance } = streams;
+  if (!time?.length) return { splits: [], issue: "no-streams" };
+  if (distance?.length && !isEvenlySpread(time, distance)) return { splits: kmSplits(streams), source: "distance" };
+  const gps = gpsDistance(streams.lat, streams.lng);
+  if (gps && !isEvenlySpread(time, gps)) {
+    const last = gps.reduce<number>((m, v) => (v !== null && v > m ? v : m), 0);
+    const k = totalM && last ? totalM / last : 1;
+    return { splits: kmSplits({ ...streams, distance: gps.map((v) => (v === null ? null : v * k)) }), source: "gps" };
+  }
+  return { splits: [], issue: distance?.length || gps ? "no-gps" : "no-streams" };
 }
 
 interface Acc {
