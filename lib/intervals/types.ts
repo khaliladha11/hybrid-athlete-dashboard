@@ -16,6 +16,8 @@ export interface Activity {
   /** SPM total (sudah dikoreksi dari per-kaki) */
   cadenceSpm?: number;
   trainingLoad?: number;
+  /** Sumber di intervals.icu (STRAVA, HUAWEI, GARMIN_CONNECT, …). Isi aktivitas STRAVA tidak tersedia lewat API. */
+  source?: string;
 }
 
 export interface ActivityInterval {
@@ -28,8 +30,21 @@ export interface ActivityInterval {
   cadenceSpm?: number;
 }
 
+/** Split per km dari stream (lihat `kmSplits`). Split terakhir bisa parsial (< 1 km). */
+export interface ActivitySplit {
+  /** Nomor split, mulai 1. */
+  index: number;
+  distanceKm: number;
+  movingTimeSec: number;
+  avgPaceSecPerKm?: number;
+  avgHr?: number;
+  cadenceSpm?: number;
+}
+
 export interface ActivityDetail extends Activity {
   intervals: ActivityInterval[];
+  /** Hanya untuk lari & jalan yang punya stream jarak; kosong bila tidak ada. */
+  splits: ActivitySplit[];
 }
 
 export interface Wellness {

@@ -6,6 +6,16 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ### Diperbaiki
 - **Input waktu & pace di Setting bisa diisi dari HP.** Keyboard angka di HP tidak punya tombol ":", jadi kolom teks "mm:ss" / "h:mm:ss" (waktu VDOT) dan "m:ss" (pace per zona) tidak bisa diisi. Sekarang memakai pemilih `TimePicker` (jam : menit : detik) berbasis `<select>` native: ketuk angka, pilih dari wheel/daftar bawaan OS, tanpa mengetik. Pace zona tersimpan begitu kombinasinya valid; kombinasi tidak valid ditandai merah dan belum disimpan.
+- **Aktivitas tidak lagi terhitung dobel.** Jam Huawei yang juga tersambung ke Strava membuat intervals.icu menerima dua salinan tiap sesi; salinan Strava kosong karena intervals.icu tidak boleh meneruskan isinya lewat API. `dedupeActivities` membuang rekaman ganda (jam mulai selisih ≤ 5 menit, jenis sama atau salah satunya kosong) dan menyimpan yang datanya paling lengkap. Berlaku untuk kalender, ringkasan 7 hari, saran coach, dan Program. Salinan Strava tanpa pasangan tetap tampil sebagai "Aktivitas Strava" dengan penjelasan.
+- Baris aktivitas tanpa data tidak lagi menampilkan "—".
+
+### Ditambahkan
+- **Split per km** di detail aktivitas lari & jalan, dihitung dari stream intervals.icu (`/activity/{id}/streams`): Segment Skyline per km, tabel pace/HR/cadence, km tercepat ditandai, sisa < 1 km jadi split parsial. Waktu split = moving time (berhenti tidak dihitung). Kartu "Interval / lap" kini hanya muncul bila ada lebih dari satu interval (sesi terstruktur atau lap), karena satu interval sama dengan ringkasan sesi.
+- Demo Mode: stream sintetis per sesi, sehingga split dan struktur interval (Tempo, Mini Interval, Norwegian 4×4) ikut tampil.
+- 15 test baru (`activity-data.test.ts`, `splitSegments`), total 165.
+
+### Diubah
+- Lingkaran inisial di header Profil dihapus (belum ada fitur foto profil).
 
 ## [0.10.0-ui] · 2026-10-12 · Redesign "Tag"
 

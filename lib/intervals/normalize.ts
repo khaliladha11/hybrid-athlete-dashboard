@@ -1,4 +1,5 @@
 import { datePart } from "@/lib/date";
+import { kmSplits, parseStreams } from "./splits";
 import type { Activity, ActivityCategory, ActivityDetail, ActivityInterval, Wellness } from "./types";
 
 type Raw = Record<string, unknown>;
@@ -42,6 +43,8 @@ export function normalizeActivity(raw: unknown): Activity | null {
   const r = raw as Raw;
   const id = r.id !== undefined && r.id !== null ? String(r.id) : undefined;
   if (!id) return null;
+  // Salinan Strava kadang hanya ditandai lewat _note ("STRAVA activities are not available via the API").
+  const source = str(r.source) ?? (typeof r._note === "string" && /strava/i.test(r._note) ? "STRAVA" : undefined);
   const type = str(r.type) ?? "Other";
   const category = categorize(type);
   const startLocal = str(r.start_date_local) ?? str(r.start_date);
@@ -49,7 +52,8 @@ export function normalizeActivity(raw: unknown): Activity | null {
   const movingTimeSec = num(r.moving_time) ?? num(r.elapsed_time);
   return {
     id,
-    name: str(r.name) ?? type,
+    // Salinan Strava datang tanpa nama & tipe (intervals.icu tidak boleh meneruskan isinya lewat API).
+    name: str(r.name) ?? (source === "STRAVA" ? "Aktivitas Strava" : type),
     type,
     category,
     startLocal,
@@ -61,10 +65,12 @@ export function normalizeActivity(raw: unknown): Activity | null {
     avgPaceSecPerKm: category === "run" || category === "walk" ? pace(r.average_speed, distanceM, movingTimeSec) : undefined,
     cadenceSpm: normalizeCadence(r.average_cadence),
     trainingLoad: num(r.icu_training_load) ?? num(r.training_load),
+    source,
   };
 }
 
-export function normalizeActivityDetail(raw: unknown): ActivityDetail | null {
+/** `rawStreams` = respons `/activity/{id}/streams`; dipakai untuk split per km (lari & jalan saja). */
+export function normalizeActivityDetail(raw: unknown, rawStreams?: unknown): ActivityDetail | null {
   const base = normalizeActivity(raw);
   if (!base) return null;
   const list = (raw as Raw).icu_intervals;
@@ -81,7 +87,17 @@ export function normalizeActivityDetail(raw: unknown): ActivityDetail | null {
           cadenceSpm: normalizeCadence(x.average_cadence),
         }))
     : [];
-  return { ...base, intervals };
+  // Cadence stream per-kaki bila rata-rata aktivitas per-kaki (< 120): faktor diputuskan sekali per aktivitas.
+  const avgCadence = num((raw as Raw).average_cadence);
+  const cadenceFactor = avgCadence === undefined ? undefined : avgCadence < 120 ? 2 : 1;
+  const splits =
+    base.category === "run" || base.category === "walk"
+      ? kmSplits(parseStreams(rawStreams)).map((s) => ({
+          ...s,
+          cadenceSpm: cadenceFactor && s.cadenceSpm ? Math.round(s.cadenceSpm * cadenceFactor) : normalizeCadence(s.cadenceSpm),
+        }))
+      : [];
+  return { ...base, intervals, splits };
 }
 
 export function normalizeWellness(raw: unknown): Wellness | null {

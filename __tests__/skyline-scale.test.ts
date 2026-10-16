@@ -7,6 +7,7 @@ import {
   layoutBars,
   planSegments,
   speedHeights,
+  splitSegments,
   staggerDelays,
   summarizeDone,
   tierHeights,
@@ -113,6 +114,18 @@ describe("rencana & ringkasan", () => {
     expect(s.structure).toBe("WU 10' · 3× 1' / 1' · CD 5'");
     expect(s.bestPace).toBe(385);
     expect(formatPaceTag(s.bestPace)).toBe(`6'25"`);
+  });
+
+  it("split per km: semua bar oranye, lebar = waktu, split < 10 detik dibuang", () => {
+    const segs = splitSegments([
+      { index: 1, distanceKm: 1, movingTimeSec: 400, avgPaceSecPerKm: 400 },
+      { index: 2, distanceKm: 1, movingTimeSec: 380, avgPaceSecPerKm: 380 },
+      { index: 3, distanceKm: 0.02, movingTimeSec: 8, avgPaceSecPerKm: 400 },
+    ]);
+    expect(segs).toEqual([
+      { durationSec: 400, paceSecPerKm: 400, role: "work", tone: "work" },
+      { durationSec: 380, paceSecPerKm: 380, role: "work", tone: "work" },
+    ]);
   });
 
   it("format pace tag", () => {

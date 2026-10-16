@@ -9,7 +9,7 @@
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Live** | https://hybrid-athlete-dashboard.vercel.app |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 9 file test, 150 unit test lolos · build produksi lolos |
+| **Kualitas** | 10 file test, 165 unit test lolos · build produksi lolos |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -97,7 +97,8 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Wellness hari ini (HRV, resting HR, tidur, CTL/ATL/Form) | ✅ | Status ✓ data hari ini / ✕ data lama |
 | Ringkasan 7 hari (km, pace, HR, long run, load, sesi) | ✅ | Plus distribusi 80/20 & tren km |
 | Kalender aktivitas bulanan + detail per tanggal | 🟡 | Hanya bulan ini & bulan lalu (data yang diambil 2 bulan) |
-| Detail aktivitas per interval / per km | ✅ | `/activity/[id]` |
+| Detail aktivitas: split per km + interval / lap | ✅ | `/activity/[id]`; split dari stream intervals.icu, interval hanya bila > 1 |
+| Aktivitas ganda dari dua sumber (Huawei + Strava) dihitung sekali | ✅ | `lib/intervals/dedupe.ts` |
 | Edit profil dari dalam aplikasi | 🟡 | Kondisi, zona, alat, gerakan ✅ di Setting. Nama, target, dan tanggal blok masih di JSON |
 | Grafik tren (CTL/ATL/Form, km mingguan, pace, cadence) | ⬜ | Lihat roadmap |
 

@@ -56,21 +56,92 @@ export function mockActivities(today: string): Activity[] {
   return normalizeList(rawActivities(today), normalizeActivity);
 }
 
+/** Struktur sesi interval demo: [pemanasan, repetisi, kerja, istirahat] dalam detik. Sesi lain = steady. */
+const STRUCTURE: Record<string, [number, number, number, number]> = {
+  "Tempo 2×10'": [600, 2, 600, 180],
+  "Mini Interval 7×1'": [600, 7, 60, 60],
+  "Norwegian 4×4": [600, 4, 240, 180],
+};
+
+interface Phase {
+  label?: string;
+  type: "WORK" | "RECOVERY";
+  sec: number;
+  /** Pengali pace rata-rata (< 1 = lebih cepat). */
+  factor: number;
+}
+
+function phases(name: string, total: number): Phase[] {
+  const s = STRUCTURE[name];
+  if (!s) return [{ type: "RECOVERY", sec: total, factor: 1 }];
+  const [warm, reps, work, rest] = s;
+  const out: Phase[] = [{ label: "Pemanasan", type: "RECOVERY", sec: warm, factor: 1.12 }];
+  for (let i = 0; i < reps; i++) {
+    out.push({ type: "WORK", sec: work, factor: 0.85 });
+    if (i < reps - 1) out.push({ type: "RECOVERY", sec: rest, factor: 1.25 });
+  }
+  const used = out.reduce((a, p) => a + p.sec, 0);
+  out.push({ label: "Pendinginan", type: "RECOVERY", sec: Math.max(60, total - used), factor: 1.15 });
+  return out;
+}
+
+const STEP_SEC = 5;
+
+/**
+ * Detail demo: stream time/distance/HR/cadence sintetis (sampel tiap 5 detik) dibentuk dari fase sesi,
+ * lalu lewat normalizer yang sama dengan data asli, jadi split per km dihitung oleh `kmSplits`.
+ * Sesi steady punya satu interval (seperti data Huawei di intervals.icu); sesi interval punya strukturnya.
+ */
 export function mockActivityDetail(id: string, today: string): ActivityDetail | null {
   const raw = rawActivities(today).find((a) => a.id === id);
   if (!raw) return null;
-  const km = raw.distance ? Math.floor(raw.distance / 1000) : 0;
-  const perKm = raw.distance ? raw.moving_time / (raw.distance / 1000) : 0;
-  const icu_intervals = Array.from({ length: km }, (_, i) => ({
-    label: `KM ${i + 1}`,
-    type: "WORK",
-    distance: 1000,
-    moving_time: Math.round(perKm + ((i % 3) - 1) * 8),
-    average_speed: 1000 / (perKm + ((i % 3) - 1) * 8),
-    average_heartrate: raw.average_heartrate ? raw.average_heartrate - 6 + Math.min(i, 10) : null,
-    average_cadence: raw.average_cadence,
-  }));
-  return normalizeActivityDetail({ ...raw, icu_intervals });
+  if (!raw.distance) return normalizeActivityDetail(raw);
+
+  const plan = phases(raw.name, raw.moving_time);
+  const basePace = raw.moving_time / (raw.distance / 1000);
+  const time: number[] = [0];
+  const distance: number[] = [0];
+  const heartrate: (number | null)[] = [raw.average_heartrate ?? null];
+  const cadence: (number | null)[] = [raw.average_cadence ?? null];
+  const phaseAt: number[] = [0];
+  let t = 0;
+  plan.forEach((p, pi) => {
+    for (let k = 0; k < p.sec; k += STEP_SEC) {
+      t += STEP_SEC;
+      // Variasi halus antar km supaya split tidak identik.
+      const pace = basePace * p.factor * (1 + 0.03 * Math.sin(t / 420));
+      time.push(t);
+      distance.push(distance.at(-1)! + (1000 / pace) * STEP_SEC);
+      heartrate.push(raw.average_heartrate ? Math.round(raw.average_heartrate + (p.factor < 1 ? 10 : -4) + Math.min(t / 600, 6)) : null);
+      cadence.push(raw.average_cadence ? raw.average_cadence + (p.factor < 1 ? 2 : 0) : null);
+      phaseAt.push(pi);
+    }
+  });
+  // Skala jarak supaya total sama dengan ringkasan aktivitas.
+  const scale = raw.distance / distance.at(-1)!;
+  for (let i = 0; i < distance.length; i++) distance[i] = Math.round(distance[i] * scale * 10) / 10;
+
+  const icu_intervals = plan.map((p, pi) => {
+    const idx = phaseAt.flatMap((v, i) => (v === pi && i > 0 ? [i] : []));
+    const dist = idx.reduce((a, i) => a + distance[i] - distance[i - 1], 0);
+    const hrs = idx.map((i) => heartrate[i]).filter((v): v is number => v !== null);
+    return {
+      label: p.label ?? null,
+      type: p.type,
+      distance: dist,
+      moving_time: p.sec,
+      average_speed: dist / p.sec,
+      average_heartrate: hrs.length ? hrs.reduce((a, v) => a + v, 0) / hrs.length : null,
+      average_cadence: raw.average_cadence,
+    };
+  });
+  const streams = [
+    { type: "time", data: time },
+    { type: "distance", data: distance },
+    { type: "heartrate", data: heartrate },
+    { type: "cadence", data: cadence },
+  ];
+  return normalizeActivityDetail({ ...raw, icu_intervals }, streams);
 }
 
 export function mockWellness(today: string): Wellness[] {

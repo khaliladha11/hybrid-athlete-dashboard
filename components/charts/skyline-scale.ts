@@ -2,7 +2,7 @@
  * Logika murni Segment Skyline (docs/DESIGN-SYSTEM.md §6): lebar bar ∝ durasi, tinggi ∝ kecepatan.
  * Tanpa React/DOM supaya bisa diuji.
  */
-import type { ActivityInterval } from "@/lib/intervals/types";
+import type { ActivityInterval, ActivitySplit } from "@/lib/intervals/types";
 import type { RunStep, RunWorkout } from "@/lib/generator/types";
 import { formatClock } from "@/components/ui/format";
 
@@ -83,6 +83,13 @@ export function doneSegments(intervals: ActivityInterval[]): SkylineSegment[] {
 }
 
 /** Tier & warna langkah rencana: jalan/recovery = track, Z2 hijau, tempo kuning, interval merah. */
+/** Split per km: semua bar oranye (sesi selesai), lebar = waktu, tinggi = kecepatan. */
+export function splitSegments(splits: ActivitySplit[]): SkylineSegment[] {
+  return splits
+    .filter((s) => s.movingTimeSec >= MIN_SEGMENT_SEC)
+    .map((s) => ({ durationSec: s.movingTimeSec, paceSecPerKm: s.avgPaceSecPerKm, role: "work", tone: "work" }));
+}
+
 export function stepTier(s: RunStep): { tier: number; tone: SkylineTone; role: "work" | "rest" } {
   if (s.kind === "walk") return { tier: 1, tone: "track", role: "rest" };
   if (s.kind === "jog") return { tier: 1.5, tone: "track", role: "rest" };

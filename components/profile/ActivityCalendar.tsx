@@ -193,7 +193,7 @@ export function ActivityCalendar({ activities, today, oldest }: { activities: Ac
 function ActivityRow({ a }: { a: Activity }) {
   const meta = [
     a.distanceKm ? `${a.distanceKm.toFixed(2)} km` : null,
-    formatDuration(a.movingTimeSec),
+    a.movingTimeSec ? formatDuration(a.movingTimeSec) : null,
     a.category === "run" && a.avgPaceSecPerKm ? formatPace(a.avgPaceSecPerKm) : null,
   ].filter(Boolean);
   const extra = [
@@ -213,8 +213,12 @@ function ActivityRow({ a }: { a: Activity }) {
             <span className="shrink-0 text-[12px] text-muted">{formatTimeOfDay(a.startLocal)}</span>
           </div>
           <p className="tabular truncate text-[13px] text-muted">
-            <span className="text-faint">{CATEGORY_LABEL[a.category]}{a.category === "run" ? (isHardRun(a) ? " berat" : " easy") : ""} · </span>
-            {meta.join(" · ")}
+            <span className="text-faint">
+              {CATEGORY_LABEL[a.category]}
+              {a.category === "run" ? (isHardRun(a) ? " berat" : " easy") : ""}
+              {meta.length ? " · " : ""}
+            </span>
+            {meta.length ? meta.join(" · ") : <span className="text-faint">{a.source === "STRAVA" ? "data Strava tidak tersedia lewat API" : "tanpa data"}</span>}
           </p>
           {extra.length > 0 && <p className="tabular truncate text-[13px] text-faint">{extra.join(" · ")}</p>}
         </div>

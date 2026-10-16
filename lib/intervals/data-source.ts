@@ -2,6 +2,7 @@ import "server-only";
 import { addDays, todayWib } from "@/lib/date";
 import { mockActivities, mockActivityDetail, mockWellness } from "@/lib/mock-data";
 import { getIntervalsConfig, intervalsGet } from "./client";
+import { dedupeActivities } from "./dedupe";
 import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness } from "./normalize";
 import { blockContext, type BlockContext } from "@/lib/generator/block";
 import { profile } from "@/lib/profile";
@@ -23,7 +24,7 @@ export async function getActivities(days = 30, today = todayWib()): Promise<Fetc
     newest: today,
   });
   if (!res.ok) return res;
-  const data = normalizeList(res.data, normalizeActivity).sort((a, b) => (b.startLocal ?? "").localeCompare(a.startLocal ?? ""));
+  const data = dedupeActivities(normalizeList(res.data, normalizeActivity)).sort((a, b) => (b.startLocal ?? "").localeCompare(a.startLocal ?? ""));
   return { ok: true, data, source: "live" };
 }
 
@@ -49,9 +50,13 @@ export async function getActivityDetail(id: string): Promise<FetchResult<Activit
   if (!/^[\w-]+$/.test(id)) {
     return { ok: false, error: { code: "NOT_FOUND", status: 404, title: "ID aktivitas tidak valid", message: "Periksa tautan aktivitas." } };
   }
-  const res = await intervalsGet(`/activity/${encodeURIComponent(id)}`, { intervals: "true" });
+  // Stream untuk split per km; bila gagal (mis. aktivitas tanpa GPS) detail tetap tampil tanpa split.
+  const [res, streams] = await Promise.all([
+    intervalsGet(`/activity/${encodeURIComponent(id)}`, { intervals: "true" }),
+    intervalsGet(`/activity/${encodeURIComponent(id)}/streams`, { types: "time,distance,heartrate,cadence" }),
+  ]);
   if (!res.ok) return res;
-  const data = normalizeActivityDetail(res.data);
+  const data = normalizeActivityDetail(res.data, streams.ok ? streams.data : undefined);
   return data
     ? { ok: true, data, source: "live" }
     : { ok: false, error: { code: "UNKNOWN", title: "Format data tidak dikenali", message: "Respons intervals.icu tidak sesuai format yang diharapkan." } };
