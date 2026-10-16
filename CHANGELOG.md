@@ -16,6 +16,7 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ### Diubah
 - Lingkaran inisial di header Profil dihapus (belum ada fitur foto profil).
+- Screenshot README `01-profile` dan `06-activity` diperbarui (header tanpa avatar, detail aktivitas dengan split per km).
 
 ## [0.10.0-ui] · 2026-10-12 · Redesign "Tag"
 

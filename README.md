@@ -23,12 +23,12 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
   </tr>
   <tr>
     <td><img src="docs/screenshots/02-weekly-summary.jpg" width="220" alt="Ringkasan 7 hari dengan StatRow, 80/20, dan Week Ledger"></td>
-    <td><img src="docs/screenshots/06-activity.jpg" width="220" alt="Detail aktivitas dengan kartu tag dan Skyline selesai"></td>
+    <td><img src="docs/screenshots/06-activity.jpg" width="220" alt="Detail aktivitas Norwegian 4x4 dengan kartu tag dan split per km"></td>
     <td><img src="docs/screenshots/08-program.jpg" width="220" alt="Program target 10K dengan fase dan minggu ini"></td>
   </tr>
   <tr>
     <td align="center"><sub>7 hari terakhir + Week Ledger</sub></td>
-    <td align="center"><sub>Detail aktivitas</sub></td>
+    <td align="center"><sub>Detail aktivitas + split per km</sub></td>
     <td align="center"><sub>Program target (5K–FM)</sub></td>
   </tr>
   <tr>
