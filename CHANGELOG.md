@@ -4,6 +4,15 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.10.1] · 2026-10-16 · Logo "Forward H"
+
+### Ditambahkan
+- **Logo Forward H: ikon PWA, favicon, AppBar.** Tiang kiri = strength, palang oranye = hybrid, tiga lajur menikung = lintasan lari, condong 12° ke depan. Aset & aturan di [`docs/brand/`](docs/brand/LOGO.md).
+  - AppBar: `LogoMark` 22px (`text-ink`, palang oranye) menggantikan titik oranye, wordmark tetap.
+  - Ikon PWA (`icon-192/512`, `apple-touch-icon`) oranye full-bleed, tanda di dalam safe zone maskable. Favicon `favicon.svg` versi kecil + cadangan `favicon-32/16.png`.
+  - `manifest.json`: `background_color` & `theme_color` jadi `#0b0b0c`. `npm run icons` kini juga me-render favicon 16 px.
+  - README menampilkan lockup (versi gelap otomatis di GitHub mode gelap).
+
 ### Diperbaiki
 - **Input waktu & pace di Setting bisa diisi dari HP.** Keyboard angka di HP tidak punya tombol ":", jadi kolom teks "mm:ss" / "h:mm:ss" (waktu VDOT) dan "m:ss" (pace per zona) tidak bisa diisi. Sekarang memakai pemilih `TimePicker` (jam : menit : detik) berbasis `<select>` native: ketuk angka, pilih dari wheel/daftar bawaan OS, tanpa mengetik. Pace zona tersimpan begitu kombinasinya valid; kombinasi tidak valid ditandai merah dan belum disimpan.
 - **Aktivitas tidak lagi terhitung dobel.** Jam Huawei yang juga tersambung ke Strava membuat intervals.icu menerima dua salinan tiap sesi; salinan Strava kosong karena intervals.icu tidak boleh meneruskan isinya lewat API. `dedupeActivities` membuang rekaman ganda (jam mulai selisih ≤ 5 menit, jenis sama atau salah satunya kosong) dan menyimpan yang datanya paling lengkap. Berlaku untuk kalender, ringkasan 7 hari, saran coach, dan Program. Salinan Strava tanpa pasangan tetap tampil sebagai "Aktivitas Strava" dengan penjelasan.
@@ -184,7 +193,8 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.10.0-ui]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/9bcff80...main
+[0.10.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/a7d3f00...main
+[0.10.0-ui]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/9bcff80...a7d3f00
 [0.9.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ff25f40...9bcff80
 [0.8.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/ff25f40
 [0.8.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/872a9c1
