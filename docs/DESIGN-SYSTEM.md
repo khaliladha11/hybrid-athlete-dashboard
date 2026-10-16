@@ -150,7 +150,8 @@ Grafik bar SVG tanpa library. **Lebar bar ∝ durasi, tinggi bar ∝ kecepatan.*
 - Tombol terapkan saran tetap primary kecil (min-h 32 dengan area sentuh diperluas, seperti sekarang).
 
 ### AppBar & BottomNav
-- AppBar: titik oranye 10px + wordmark `HYBRID ATHLETE` (Display, 15px). Tombol tema tetap.
+- AppBar: `LogoMark` 22px (`text-ink`, palang oranye) + wordmark `HYBRID ATHLETE` (Display, 15px), jarak `gap-2`. Tombol tema tetap.
+- Logo "Forward H": makna, konstruksi, warna, ukuran minimum, dan larangan ada di [`docs/brand/LOGO.md`](brand/LOGO.md). Di UI selalu lewat `components/ui/LogoMark.tsx` (ikut token tema); ≤ 24px otomatis memakai versi kecil.
 - BottomNav: latar `bg/90` + blur, indikator aktif garis 3px oranye di atas (tetap), label Geist Mono 10px UPPERCASE, ikon stroke 1.8 seragam (aktif 2.2).
 - `theme-color` gelap → `#0B0B0C`, terang → `#F7F7F6`.
 

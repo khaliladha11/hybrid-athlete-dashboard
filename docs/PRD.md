@@ -5,7 +5,7 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.10.0-ui (2026-10-12) |
+| **Versi saat ini** | 0.10.1 (2026-10-16) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Live** | https://hybrid-athlete-dashboard.vercel.app |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
@@ -178,6 +178,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | --- | --- | --- |
 | PWA installable, full-screen, safe area | ✅ | |
 | Design system "Tag" (dark-first, aksen `#FC4C02`, Archivo + Geist Mono, StatRow, Segment Skyline, Week Ledger) | ✅ | 0.10.0-ui · [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Rencana = warna intensitas, selesai = oranye |
+| Logo "Forward H" (AppBar, ikon PWA, favicon) | ✅ | 0.10.1 · [brand/LOGO.md](brand/LOGO.md). Di UI lewat `LogoMark`, hanya di AppBar |
 | Tema Sistem/Terang/Gelap tersimpan | ✅ | |
 | Sistem warna intensitas (hijau/kuning/merah) & status (hijau/merah) | ✅ | |
 | Navigasi 5 tab (Profil, Lari, Program, Strength, Setting) | ✅ | Log → Setting di 0.8; `/log` diarahkan ke Strength |
@@ -304,6 +305,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.8.1 | 2026-10-11 | Saran ringkas di Generator Lari; navigasi Setting (smooth scroll, highlight, scroll spy) |
 | 0.9 | 2026-10-12 | Gambar & detail teknik gerakan (free-exercise-db), 13 gerakan baru, titik tambat band |
 | 0.10.0-ui | 2026-10-12 | Redesign "Tag": token dark-first, Archivo + Geist Mono, StatRow, Segment Skyline, Week Ledger, kontras tombol diperbaiki |
+| 0.10.1 | 2026-10-16 | Logo "Forward H" (AppBar, ikon PWA, favicon); split per km dari stream (GPS bila jarak dibagi rata); aktivitas ganda Huawei + Strava dihitung sekali; pemilih waktu & pace di Setting |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 

@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { LogoMark } from "@/components/ui/LogoMark";
 import { useResolvedTheme, useThemePreference } from "@/lib/preferences";
 
-/** Bilah atas: titik oranye + wordmark, dan sakelar tema terang/gelap (tersimpan di perangkat). */
+/** Bilah atas: logo "Forward H" + wordmark, dan sakelar tema terang/gelap (tersimpan di perangkat). */
 export function AppBar() {
   return (
     <header className="safe-x mx-auto flex w-full max-w-xl items-center justify-between pt-3">
       <Link href="/" className="pressable flex min-h-11 items-center gap-2 rounded-control pr-2" aria-label="Beranda Hybrid Athlete">
-        {/* Identitas: titik oranye + wordmark Display, tanpa logo grafis. */}
-        <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand" />
+        {/* Identitas: LogoMark (dekoratif, link sudah punya aria-label) + wordmark Display. Lihat docs/brand/LOGO.md. */}
+        <LogoMark size={22} className="text-ink" />
         <span className="t-display-sm pb-0 text-[15px] leading-none">Hybrid Athlete</span>
       </Link>
       <ThemeToggle />
