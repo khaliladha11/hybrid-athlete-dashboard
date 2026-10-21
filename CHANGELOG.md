@@ -4,6 +4,8 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.10.2] · 2026-10-21 · Split per km akurat
+
 ### Diperbaiki
 - **Split per km tidak lagi menampilkan pace mustahil** (mis. `0'13"/km` pada Afternoon Run 20 Okt, `i199445873`). Penyebab: status bergerak dinilai per sampel, padahal jam Huawei kadang memperbarui jarak hanya sesekali (datar lalu melompat). Sampel datar dihitung berhenti, jadi 2,44 km jalan kaki hanya mendapat ~30 detik dan total waktu split 16,6 menit dari 44:01. Sekarang (`lib/intervals/splits.ts`):
   - `buildTrack`: kecepatan dihitung antar titik di mana jarak benar-benar berubah; data bertangga diratakan, berhenti sungguhan tetap tidak dihitung.
@@ -14,6 +16,9 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
   - Hasil dicek terhadap ringkasan aktivitas (jarak ±5%/100 m, waktu ±10%/2 menit); yang tidak cocok tidak ditampilkan dan diberi penjelasan.
 - Grafik split kini satu bar per baris tabel (split < 10 detik tidak lagi hilang dari grafik).
 - 7 test kasus tepi baru (data bertangga, berhenti, lonjakan, reset jarak, GPS hilang, validasi, ambang), total 178.
+
+### Diverifikasi
+- Afternoon Run 20 Okt vs Strava: 10'53" · 9'24" · 9'10" · 9'10" · 12'13" (0.44) lawan 10:54 · 9:28 · 9:19 · 9:03 · 12:32 (0.4). Total moving time 44:00 sama, HR per km ±1 bpm. Selisih per km −9 sampai +7 detik berasal dari total jarak (Strava 4,42 km, jam 4,44 km) dan posisi batas km.
 
 ## [0.10.1] · 2026-10-16 · Logo "Forward H"
 
@@ -204,7 +209,8 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.10.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/a7d3f00...main
+[0.10.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/5266a8e...main
+[0.10.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/a7d3f00...5266a8e
 [0.10.0-ui]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/9bcff80...a7d3f00
 [0.9.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ff25f40...9bcff80
 [0.8.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/commit/ff25f40
