@@ -227,7 +227,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 
 Diurutkan dari yang paling berdampak.
 
-1. **Belum ada login.** Siapa pun yang tahu URL Vercel bisa melihat data intervals.icu pemilik. Mitigasi cepat: aktifkan *Vercel → Settings → Deployment Protection*.
+1. **Belum ada login.** Siapa pun yang tahu URL Vercel bisa melihat data intervals.icu pemilik. Mitigasi cepat: *Vercel → Settings → Deployment Protection* → Vercel Authentication dengan cakupan **All Deployments** (gratis; *Standard Protection* tidak melindungi alamat utama `*.vercel.app`). Langkahnya juga ada di tutorial README.
 2. **Data di perangkat saja.** Setting, log ST, program, tema, dan toggle blok ada di `localStorage`. Hilang bila data browser dihapus, dan tidak sinkron antara HP dan laptop. Cadangan: ekspor JSON manual (kini mencakup semuanya). Makin penting sejak 0.8 karena Setting menyimpan lebih banyak data.
 3. **Profil sebagian statis.** Nama, target lomba, dan tanggal mulai blok masih di JSON. Bagian yang dirender server (mis. header Profil) memakai nilai default, bukan Setting perangkat.
 4. **Movement library hanya dari kurasi developer.** 0.9 menambah 13 gerakan (total 40), tetapi pengguna belum bisa menambah gerakan sendiri; alat lain (mis. kettlebell) baru dicatat. 5 gerakan belum punya gambar — termasuk 2 prehab wajib (Clamshell, Tibialis Wall Raise) — dan celah anti-rotasi (Pallof, bird dog, suitcase carry) belum ada di sumber gambar. Kondisi di luar katalog hanya catatan.

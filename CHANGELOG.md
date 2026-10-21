@@ -4,6 +4,9 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Ditambahkan
+- **Tutorial "Pasang di HP-mu sendiri"** di README: fork, isi profil, API key intervals.icu, deploy ke Vercel, kunci akses (Vercel Authentication › All Deployments, karena Standard Protection tidak melindungi alamat utama), pasang PWA, atur di aplikasi, cara update, dan tabel masalah umum. Bagian developer README dirapikan dan angka test diperbarui.
+
 ## [0.10.2] · 2026-10-21 · Split per km akurat
 
 ### Diperbaiki

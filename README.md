@@ -56,7 +56,9 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
   </tr>
 </table>
 
-<sub>Screenshot 0.10.0-ui, diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
+<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
+
+> **Mau memakainya dengan data latihanmu sendiri di HP?** Ikuti [Pasang di HP-mu sendiri](#pasang-di-hp-mu-sendiri): gratis, sekitar 15 menit, tanpa menulis kode.
 
 ---
 
@@ -71,13 +73,15 @@ Aplikasi latihan umumnya memberi program generik. Atlet ini punya kebutuhan spes
 
 Semua aturan ini dikodekan sebagai **modul TypeScript murni yang diuji**, bukan sekadar teks di prompt. Hasil generator selalu divalidasi sebelum ditampilkan.
 
+Aturannya awalnya dibuat untuk satu atlet, tetapi kondisi, alat, zona lari, dan pilihan gerakan bisa diatur sendiri. Jadi orang lain bisa memasang aplikasi ini dengan profil dan data intervals.icu masing-masing.
+
 ## Fitur
 
 | Area | Yang bisa dilakukan |
 | --- | --- |
 | **Profil** | Data diri, target lomba, saran hari ini, wellness, ringkasan 7 hari, dan kalender aktivitas. |
 | **Setting** | Kondisi & batasan dari **katalog berbasis riset** (10 kondisi, masing-masing dengan sumber) yang langsung mengubah generator; zona pace per jenis latihan (manual atau dihitung **VDOT Daniels** dari hasil lomba); alat (dumbbell, plat, barbell, band, pull-up bar); pilihan gerakan movement library; tema; dan cadangan data. |
-| **Data intervals.icu** | Ringkasan 7 hari (km, pace, HR, long run, load), kalender aktivitas bulanan (ketuk tanggal untuk detail), detail interval per aktivitas, serta wellness (HRV, resting HR, tidur, CTL/ATL/Form). |
+| **Data intervals.icu** | Ringkasan 7 hari (km, pace, HR, long run, load), kalender aktivitas bulanan (ketuk tanggal untuk detail), detail aktivitas dengan **split per km** (dari data per detik jam atau GPS, divalidasi terhadap ringkasan) dan interval, serta wellness (HRV, resting HR, tidur, CTL/ATL/Form). Aktivitas yang tercatat dobel dari dua sumber (mis. jam + Strava) dihitung sekali. |
 | **Generator lari** | 30/45/60 menit × Easy/Moderate/High dengan 13 pola: Z2, run-walk, cadence drill, tempo, cruise interval, progression run, mini interval, Norwegian 4×4, dan 15/15. Target pace dari zona di Setting, cue & catatan dari kondisi aktif, dan durasinya selalu tepat. |
 | **Detail gerakan** | Thumbnail di setiap gerakan; tap untuk bottom sheet berisi gambar posisi awal ↔ akhir (crossfade, bisa dijeda), cue teknik, otot utama/sekunder, dan catatan kondisi aktif. Gambar dari free-exercise-db (Unlicense), disimpan lokal. |
 | **Generator ST** | Full Body / Upper Push / Upper Pull / Lower. Hanya gerakan yang dipilih & bisa dilakukan dengan alat yang ada, RPE ≤ 7, beban yang benar-benar bisa dirakit dari plat, plus gerakan wajib/terlarang sesuai kondisi aktif (prehab shin, stabilitas panggul, Spine-Friendly, dll.). |
@@ -91,6 +95,104 @@ Semua aturan ini dikodekan sebagai **modul TypeScript murni yang diuji**, bukan 
 | **Sistem warna** | Intensitas: **Easy = hijau, Moderate = kuning, High = merah**. Status: **aktif/tercapai = hijau, nonaktif/belum = merah**. Kontras dijaga di tema terang maupun gelap. |
 
 Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](docs/TRAINING-LOGIC.md)**.
+
+## Pasang di HP-mu sendiri
+
+Gratis, sekitar 15 menit, tanpa menulis kode. Hasilnya: aplikasi di layar utama HP yang membaca data latihanmu sendiri dari intervals.icu, berjalan di akun Vercel milikmu sendiri.
+
+### Yang kamu butuhkan
+
+- Akun **[intervals.icu](https://intervals.icu)** (gratis) yang sudah tersambung **langsung** ke jam atau aplikasi olahragamu (Garmin, Huawei Health, Coros, Polar, Suunto, Wahoo, Zepp, dll.).
+  > Strava saja tidak cukup. intervals.icu tidak boleh meneruskan isi aktivitas dari Strava lewat API, jadi aktivitas yang masuk hanya lewat Strava akan tampil kosong ("Aktivitas Strava").
+- Akun **[GitHub](https://github.com)** (gratis).
+- Akun **[Vercel](https://vercel.com/signup)** paket Hobby (gratis). Paling mudah daftar dengan akun GitHub.
+- HP Android dengan Chrome, atau iPhone dengan Safari.
+
+### Langkah 1 · Salin repo ke akun GitHub-mu (fork)
+
+1. Login ke GitHub, buka halaman repo ini, klik **Fork** lalu **Create fork**.
+2. Langkah selanjutnya memakai fork milikmu: `github.com/<username-mu>/hybrid-athlete-dashboard`.
+
+### Langkah 2 · Isi profilmu
+
+Di fork-mu, buka [`config/athlete-profile.json`](config/athlete-profile.json), klik ikon pensil (**Edit this file**), ubah isinya, lalu klik **Commit changes**.
+
+| Field | Isi | Bisa diubah lagi di aplikasi? |
+| --- | --- | --- |
+| `name`, `age`, `occupation`, `category` | Nama dan keterangan di header Profil | Belum, hanya di file ini |
+| `targets.goals`, `targets.raceTargets` | Tujuan latihan & target lomba di Profil, juga target default Program | Belum |
+| `training.blockStart` | Tanggal **Senin** awal blok latihan 4 minggu (`YYYY-MM-DD`). Isi Senin minggu ini | Belum |
+| `conditions` | Kondisi cedera yang aktif: `apt`, `shin`, `overpronation`, `mcu`, `lbp`, `pfp`, `itbs`, `achilles`, `plantar`, `shoulder` (lihat [`lib/conditions.ts`](lib/conditions.ts)). Isi `[]` bila tidak ada | Ya, Setting › Kondisi |
+| `equipment` | Alat di rumah: dumbbell (jumlah handle), barbell, plat (`kg` × `count`), band, pull-up bar, kursi | Ya, Setting › Alat |
+| `runZones` | Pace default per zona latihan | Ya, Setting › Zona lari (manual atau hitung dari hasil lomba) |
+| `movementLibrary` | Gerakan yang boleh dipakai & batas bebannya | Pilihan gerakan ya; batas beban hanya di file |
+
+Fork dari repo publik ikut publik, jadi jangan isi file ini dengan data yang tidak mau dilihat orang lain. Kalau ragu, biarkan nilai bawaannya dan atur sisanya di aplikasi (langkah 7).
+
+### Langkah 3 · Ambil API key intervals.icu
+
+1. Login ke intervals.icu, buka **[Settings](https://intervals.icu/settings)**, lalu gulir ke bagian **Developer Settings** di paling bawah.
+2. Buat atau tampilkan **API Key**, lalu salin. Catat juga **Athlete ID** (contoh `i123456`), atau cukup pakai `0` yang berarti pemilik API key.
+3. Perlakukan API key seperti kata sandi: jangan ditulis ke file di repo dan jangan dibagikan.
+
+### Langkah 4 · Deploy ke Vercel
+
+1. Buka **[vercel.com/new](https://vercel.com/new)**, pilih fork-mu, klik **Import** (izinkan Vercel membaca repo bila diminta).
+2. Ubah **Project Name** bila mau. Nama ini menjadi alamat aplikasimu: `nama-project.vercel.app`.
+3. Buka bagian **Environment Variables** dan tambahkan dua variable:
+
+   | Key | Value |
+   | --- | --- |
+   | `INTERVALS_API_KEY` | API key dari langkah 3 |
+   | `INTERVALS_ATHLETE_ID` | Athlete ID-mu, atau `0` |
+
+4. Klik **Deploy** dan tunggu 1 sampai 2 menit, lalu buka alamat yang diberikan. Bila banner **Demo Mode** tidak muncul, data aslimu sudah terbaca.
+
+API key hanya disimpan di Vercel dan dibaca di server. Kunci itu tidak pernah dikirim ke HP atau browser.
+
+### Langkah 5 · Kunci aksesnya (penting)
+
+Aplikasi ini belum punya login. Tanpa langkah ini, siapa pun yang tahu alamatnya bisa melihat data latihan dan kesehatanmu.
+
+1. Di Vercel, buka project-mu, lalu **Settings › Deployment Protection**.
+2. Aktifkan **Vercel Authentication** dengan cakupan **All Deployments**. Pilihan ini gratis di paket Hobby. Jangan berhenti di **Standard Protection**, karena cakupan itu tidak melindungi alamat utama `nama-project.vercel.app`.
+3. Setelah itu, saat membuka aplikasi kamu diminta login dengan akun Vercel-mu.
+
+Aplikasi yang dipasang di iPhone memakai penyimpanan terpisah dari Safari, jadi mungkin perlu login sekali lagi dari dalam aplikasi. Kombinasi proteksi ini dengan aplikasi yang dipasang belum diuji di semua HP.
+
+### Langkah 6 · Pasang di HP
+
+- **Android (Chrome):** buka alamat Vercel-mu, ketuk menu **⋮**, lalu **Instal aplikasi** atau **Tambahkan ke layar utama**.
+- **iPhone (Safari):** buka alamat Vercel-mu, ketuk **Bagikan**, lalu **Tambah ke Layar Utama**.
+
+Aplikasi terbuka layar penuh dengan ikon "Forward H", seperti aplikasi biasa.
+
+### Langkah 7 · Atur di dalam aplikasi
+
+Buka tab **Setting**:
+
+- **Kondisi & batasan:** aktifkan hanya yang benar-benar kamu alami. Setiap kondisi mengubah generator lari dan ST.
+- **Zona lari:** isi pace per zona, atau isi hasil lomba/time trial terbaru lalu ketuk **Terapkan ke semua zona** (rumus VDOT Daniels).
+- **Alat** dan **Gerakan:** centang yang kamu punya dan mau dipakai.
+
+Pengaturan dan log latihan tersimpan di perangkat itu saja. Untuk pindah atau menambah perangkat: **Setting › Data & cadangan**, ekspor JSON, lalu impor di perangkat baru.
+
+### Memperbarui ke versi terbaru
+
+1. Buka fork-mu di GitHub, klik **Sync fork**, lalu **Update branch**. Vercel otomatis men-deploy ulang.
+2. Bila GitHub melaporkan konflik (biasanya di `config/athlete-profile.json`), salin dulu isi file profilmu, pilih **Discard commits** untuk mengikuti versi terbaru, lalu isi lagi profilmu seperti langkah 2.
+3. Di HP, tutup lalu buka lagi aplikasinya agar memuat versi baru.
+
+### Kalau ada masalah
+
+| Gejala | Penyebab dan solusinya |
+| --- | --- |
+| Banner **Demo Mode** masih muncul | Environment variable belum terisi, atau belum di-deploy ulang setelah diisi. Vercel › **Deployments** › **⋯** › **Redeploy**. |
+| **API key ditolak (401)** | API key salah ketik atau sudah dibuat ulang. Salin lagi dari intervals.icu, perbarui di Vercel, lalu Redeploy. |
+| **Akses ditolak (403)** | Athlete ID tidak cocok dengan pemilik API key. Isi `0`. |
+| Aktivitas tampil sebagai **Aktivitas Strava** tanpa data | Aktivitas itu hanya masuk lewat Strava. Sambungkan jam atau aplikasimu langsung ke intervals.icu. |
+| **Split per km** tidak muncul | Jam tidak mengirim jarak per detik atau GPS ke intervals.icu, atau datanya tidak cocok dengan ringkasan aktivitas. Ringkasan sesi tetap tampil. |
+| Tampilan atau ikon di HP masih versi lama | Tutup lalu buka lagi aplikasinya. Untuk ikon, hapus aplikasi dari layar utama lalu pasang ulang. |
 
 ## Progres pengembangan
 
@@ -115,14 +217,15 @@ Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 
 - **Next.js 16** (App Router, Server Components) + **React 19** + **TypeScript**
 - **Tailwind CSS 4** dengan token semantik di [`app/globals.css`](app/globals.css). Dark mode mengikuti pengaturan sistem.
-- **Vitest**: 8 file test, 130+ test yang mencakup seluruh kombinasi input generator, program target, dan efek setiap kondisi/alat di Setting
-- **intervals.icu REST API**, dipanggil hanya dari server
+- **Vitest**: 10 file test, 178 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
+- **intervals.icu REST API** (aktivitas, wellness, stream per detik), dipanggil hanya dari server
+- Grafik SVG buatan sendiri (Segment Skyline), tanpa library chart
 - Tanpa database. Profil default disimpan di JSON; Setting, log sesi, dan program di localStorage perangkat (bisa diekspor/impor).
 - Deploy di **Vercel**
 
 Arsitektur dan alur data dijelaskan di **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
-## Mulai cepat
+## Menjalankan di komputer (untuk developer)
 
 Butuh Node.js 20.9 atau lebih baru.
 
@@ -133,34 +236,18 @@ npm install
 npm run dev
 ```
 
-Buka http://localhost:3000. Tanpa konfigurasi apa pun, aplikasi berjalan di **Demo Mode**.
+Buka http://localhost:3000. Tanpa konfigurasi apa pun, aplikasi berjalan di **Demo Mode** dengan data dummy.
 
-### Hubungkan ke intervals.icu
+Untuk memakai data asli, salin `.env.example` menjadi `.env.local` (sudah masuk `.gitignore`), lalu restart `npm run dev`:
 
-1. Login ke https://intervals.icu, lalu buka **Settings → Developer Settings → Generate API Key**.
-2. Salin `.env.example` menjadi `.env.local` dan isi:
+```env
+INTERVALS_API_KEY=isi_api_key_kamu
+INTERVALS_ATHLETE_ID=0   # 0 = pemilik API key, atau ID seperti i123456
+```
 
-   ```env
-   INTERVALS_API_KEY=isi_api_key_kamu
-   INTERVALS_ATHLETE_ID=0   # 0 = pemilik API key, atau ID seperti i123456
-   ```
+API key hanya dibaca di server (`import "server-only"`) dan tidak pernah dikirim ke browser. Error 401/403/404/5xx ditampilkan sebagai pesan singkat tanpa stack trace. Cara deploy sama dengan [langkah 4](#langkah-4--deploy-ke-vercel); setiap `git push` ke `main` men-deploy ulang otomatis.
 
-3. Restart `npm run dev`.
-
-API key hanya dibaca di server (`import "server-only"`) dan tidak pernah dikirim ke browser. Error 401/403/404/5xx ditampilkan sebagai pesan singkat tanpa stack trace.
-
-### Sesuaikan dengan atlet lain
-
-Kondisi, zona lari, alat, dan pilihan gerakan bisa diubah langsung di halaman **Setting** (tersimpan di perangkat). Nilai default-nya ada di [`config/athlete-profile.json`](config/athlete-profile.json):
-
-- **`movementLibrary`**: whitelist gerakan dan batas beban (`"10–20 kg/tangan"`, `"Bodyweight"`, `"Light/Medium Band"`). Gerakan dengan `"available": false` belum dipilih secara default (bisa dicentang di Setting).
-- **`conditions`**: id kondisi aktif dari katalog [`lib/conditions.ts`](lib/conditions.ts), mis. `["apt", "shin", "overpronation", "mcu"]`.
-- **`equipment`**: dumbbell (berat handle, jumlah), barbell (berat batang), plat (`kg` × `count`), band, pull-up bar, kursi/bench.
-- **`runZones`**: pace default per zona.
-- **`training.blockStart`**: tanggal Senin awal blok periodisasi. Ubah tanggal ini untuk memulai blok baru.
-- **`targets`**: ditampilkan di profil dan dipakai sebagai target default Program.
-
-## Perintah
+### Perintah
 
 | Perintah | Fungsi |
 | --- | --- |
@@ -168,34 +255,17 @@ Kondisi, zona lari, alat, dan pilihan gerakan bisa diubah langsung di halaman **
 | `npm test` | Semua unit test (Vitest) |
 | `npm run typecheck` | Pemeriksaan TypeScript |
 | `npm run build` | Build produksi |
-| `npm run icons` | Render ulang ikon PWA dari `public/icon.svg` |
-
-## Deploy ke Vercel
-
-1. Import repo ini di https://vercel.com/new (preset Next.js terdeteksi otomatis).
-2. Tambahkan environment variable `INTERVALS_API_KEY` dan `INTERVALS_ATHLETE_ID`.
-3. Klik **Deploy**. Setiap `git push` ke `main` akan men-deploy ulang otomatis.
-
-Kalau environment variable diubah setelah deploy, buka **Deployments → ⋯ → Redeploy**.
-
-> **Privasi:** aplikasi belum punya login, jadi siapa pun yang tahu URL-nya bisa melihat data intervals.icu pemiliknya. Simpan URL secara privat, atau aktifkan **Settings → Deployment Protection → Vercel Authentication**.
-
-## Install di HP
-
-- **Android (Chrome):** buka URL Vercel → menu **⋮** → **Install aplikasi / Tambahkan ke Layar Utama**.
-- **iPhone (Safari):** buka URL Vercel → tombol **Share** → **Tambah ke Layar Utama**.
-
-Install PWA butuh HTTPS, jadi URL Vercel bisa langsung dipakai. Setelah ada deploy baru, tutup lalu buka lagi aplikasinya untuk memuat versi terbaru.
+| `npm run icons` | Render ulang ikon PWA & favicon dari `public/icon.svg` dan `public/favicon.svg` |
 
 ## Struktur project
 
 ```
 app/                     halaman: Profil, /run, /program, /strength, /setting, /activity/[id]
-components/              UI: profile/, generator/, program/, settings/, log/, ui/
+components/              UI: profile/, generator/, program/, settings/, log/, movements/, charts/, ui/
 config/athlete-profile.json
 lib/
   generator/             modul murni: run, strength, block (periodisasi), validate, format, rng
-  intervals/             client (server-only), normalize, summary, data-source
+  intervals/             client (server-only), normalize, summary, data-source, dedupe, splits
   coach.ts               saran mingguan (80/20, progresi km, concurrent)
   conditions.ts          katalog kondisi berbasis riset → aturan generator
   run-zones.ts           rumus VDOT Daniels & pace
@@ -208,14 +278,14 @@ lib/
   training-log.ts        penyimpanan log di perangkat
   readiness.ts           sinyal kesiapan dari wellness
   mock-data.ts           data Demo Mode
-public/                  manifest PWA, ikon & gambar gerakan (movements/)
+public/                  manifest PWA, ikon, favicon & gambar gerakan (movements/)
 __tests__/               unit test Vitest
-docs/                    PRD, dokumentasi & screenshot
+docs/                    PRD, dokumentasi, screenshot & aset logo (brand/)
 ```
 
 ## Dokumentasi
 
-Tampilan mengikuti **[docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)** (design system "Tag").
+Tampilan mengikuti **[docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)** (design system "Tag"), logo di **[docs/brand/LOGO.md](docs/brand/LOGO.md)**.
 
 - **[docs/PRD.md](docs/PRD.md)**: gambaran produk, status semua fitur (sudah/belum), keterbatasan, dan roadmap pengembangan.
 - **[docs/TRAINING-LOGIC.md](docs/TRAINING-LOGIC.md)**: semua aturan generator, periodisasi, saran, progresi beban, dan referensi ilmiahnya.
@@ -225,4 +295,4 @@ Tampilan mengikuti **[docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)** (design sy
 
 ## Disclaimer
 
-Aplikasi ini adalah alat bantu perencanaan latihan pribadi, **bukan pengganti saran dokter, fisioterapis, atau pelatih bersertifikat**. Aturan di dalamnya dirancang untuk satu profil atlet tertentu. Sesuaikan dengan kondisimu sendiri, dan hentikan latihan bila muncul nyeri.
+Aplikasi ini adalah alat bantu perencanaan latihan pribadi, **bukan pengganti saran dokter, fisioterapis, atau pelatih bersertifikat**. Aturan di dalamnya awalnya dirancang untuk satu profil atlet tertentu. Bila kamu memasangnya untuk dirimu sendiri, sesuaikan kondisi, alat, dan zona dengan keadaanmu, konsultasikan cedera dengan tenaga kesehatan, dan hentikan latihan bila muncul nyeri.
