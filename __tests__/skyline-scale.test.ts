@@ -116,15 +116,17 @@ describe("rencana & ringkasan", () => {
     expect(formatPaceTag(s.bestPace)).toBe(`6'25"`);
   });
 
-  it("split per km: semua bar oranye, lebar = waktu, split < 10 detik dibuang", () => {
+  it("split per km: satu bar oranye per baris tabel, lebar = waktu", () => {
     const segs = splitSegments([
       { index: 1, distanceKm: 1, movingTimeSec: 400, avgPaceSecPerKm: 400 },
       { index: 2, distanceKm: 1, movingTimeSec: 380, avgPaceSecPerKm: 380 },
-      { index: 3, distanceKm: 0.02, movingTimeSec: 8, avgPaceSecPerKm: 400 },
+      { index: 3, distanceKm: 0.06, movingTimeSec: 8, avgPaceSecPerKm: 133 },
+      { index: 4, distanceKm: 0.06, movingTimeSec: 0 },
     ]);
     expect(segs).toEqual([
       { durationSec: 400, paceSecPerKm: 400, role: "work", tone: "work" },
       { durationSec: 380, paceSecPerKm: 380, role: "work", tone: "work" },
+      { durationSec: 8, paceSecPerKm: 133, role: "work", tone: "work" },
     ]);
   });
 

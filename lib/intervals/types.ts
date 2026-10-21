@@ -47,8 +47,8 @@ export interface ActivityDetail extends Activity {
   splits: ActivitySplit[];
   /** Asal jarak split: stream distance, atau GPS bila distance hanya dibagi rata. */
   splitSource?: "distance" | "gps";
-  /** Alasan split kosong untuk lari & jalan. */
-  splitIssue?: "no-streams" | "no-gps";
+  /** Alasan split kosong untuk lari & jalan (lihat `SplitIssue`). */
+  splitIssue?: "no-streams" | "no-gps" | "inconsistent";
 }
 
 export interface Wellness {

@@ -83,10 +83,13 @@ export function doneSegments(intervals: ActivityInterval[]): SkylineSegment[] {
 }
 
 /** Tier & warna langkah rencana: jalan/recovery = track, Z2 hijau, tempo kuning, interval merah. */
-/** Split per km: semua bar oranye (sesi selesai), lebar = waktu, tinggi = kecepatan. */
+/**
+ * Split per km: semua bar oranye (sesi selesai), lebar = waktu, tinggi = kecepatan.
+ * Satu bar per baris tabel (tanpa ambang MIN_SEGMENT_SEC), jadi grafik dan tabel selalu sejajar.
+ */
 export function splitSegments(splits: ActivitySplit[]): SkylineSegment[] {
   return splits
-    .filter((s) => s.movingTimeSec >= MIN_SEGMENT_SEC)
+    .filter((s) => s.movingTimeSec > 0)
     .map((s) => ({ durationSec: s.movingTimeSec, paceSecPerKm: s.avgPaceSecPerKm, role: "work", tone: "work" }));
 }
 

@@ -4,6 +4,17 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Diperbaiki
+- **Split per km tidak lagi menampilkan pace mustahil** (mis. `0'13"/km` pada Afternoon Run 20 Okt, `i199445873`). Penyebab: status bergerak dinilai per sampel, padahal jam Huawei kadang memperbarui jarak hanya sesekali (datar lalu melompat). Sampel datar dihitung berhenti, jadi 2,44 km jalan kaki hanya mendapat ~30 detik dan total waktu split 16,6 menit dari 44:01. Sekarang (`lib/intervals/splits.ts`):
+  - `buildTrack`: kecepatan dihitung antar titik di mana jarak benar-benar berubah; data bertangga diratakan, berhenti sungguhan tetap tidak dihitung.
+  - Jarak hanya boleh naik: lonjakan (> 12 m/s sejak perubahan terakhir) dan penurunan/reset ditolak tanpa membuang sisa sesi.
+  - Ambang bergerak lari = 30:00/mil seperti Strava; jalan kaki 0,5 m/s.
+  - Jarak GPS dihitung antar titik berselang ≥ 5 detik supaya getaran GPS saat diam tidak menumpuk.
+  - Sisa < 50 m digabung ke split sebelumnya, jadi jumlah jarak & waktu split = total.
+  - Hasil dicek terhadap ringkasan aktivitas (jarak ±5%/100 m, waktu ±10%/2 menit); yang tidak cocok tidak ditampilkan dan diberi penjelasan.
+- Grafik split kini satu bar per baris tabel (split < 10 detik tidak lagi hilang dari grafik).
+- 7 test kasus tepi baru (data bertangga, berhenti, lonjakan, reset jarak, GPS hilang, validasi, ambang), total 178.
+
 ## [0.10.1] · 2026-10-16 · Logo "Forward H"
 
 ### Ditambahkan

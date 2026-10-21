@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dedupeActivities, isEmptyActivity } from "@/lib/intervals/dedupe";
 import { normalizeActivity, normalizeActivityDetail, normalizeList } from "@/lib/intervals/normalize";
-import { gpsDistance, isEvenlySpread, kmSplits, parseStreams, splitsFromStreams } from "@/lib/intervals/splits";
+import { RUN_MOVING_SPEED, WALK_MOVING_SPEED, buildTrack, gpsDistance, isEvenlySpread, kmSplits, parseStreams, splitTotals, splitsFromStreams } from "@/lib/intervals/splits";
 import { mockActivities, mockActivityDetail } from "@/lib/mock-data";
 
 const TODAY = "2026-09-28";
@@ -82,7 +82,7 @@ describe("split per km dari stream", () => {
     const splits = kmSplits(steady(2500, 2.5, { hr: 150, cadence: 80 }));
     expect(splits.map((s) => s.index)).toEqual([1, 2, 3]);
     expect(splits.map((s) => Math.round(s.distanceKm * 1000))).toEqual([1000, 1000, 500]);
-    expect(splits.map((s) => s.movingTimeSec)).toEqual([400, 400, 200]);
+    splits.forEach((s, i) => expect(s.movingTimeSec).toBeCloseTo([400, 400, 200][i], 6));
     for (const s of splits) {
       expect(s.avgPaceSecPerKm).toBeCloseTo(400, 5);
       expect(s.avgHr).toBeCloseTo(150, 5);
@@ -97,7 +97,7 @@ describe("split per km dari stream", () => {
     const time = [...s.time.slice(0, at + 1), ...Array.from({ length: 120 }, (_, i) => s.time[at] + i + 1), ...s.time.slice(at + 1).map((t) => t + 120)];
     const distance = [...s.distance.slice(0, at + 1), ...Array(120).fill(s.distance[at]), ...s.distance.slice(at + 1)];
     const splits = kmSplits({ time, distance });
-    expect(splits.map((x) => x.movingTimeSec)).toEqual([400, 400]);
+    splits.forEach((x) => expect(x.movingTimeSec).toBeCloseTo(400, 6));
   });
 
   it("HR rata-rata berbobot waktu, jeda di sampel diabaikan", () => {
@@ -107,8 +107,11 @@ describe("split per km dari stream", () => {
     expect(split.avgHr).toBeCloseTo(150, 0);
   });
 
-  it("sisa < 50 m tidak jadi split; data kosong/rusak aman", () => {
-    expect(kmSplits(steady(1030, 2.5))).toHaveLength(1);
+  it("sisa < 50 m digabung ke split sebelumnya; data kosong/rusak aman", () => {
+    const merged = kmSplits(steady(1030, 2.5));
+    expect(merged).toHaveLength(1);
+    expect(merged[0].distanceKm).toBeCloseTo(1.03, 6);
+    expect(merged[0].movingTimeSec).toBeCloseTo(412, 6);
     expect(kmSplits({})).toEqual([]);
     expect(kmSplits({ time: [0, 1, 2], distance: [null, null, null] })).toEqual([]);
     const s = steady(1200, 2.5);
@@ -128,7 +131,8 @@ describe("split per km dari stream", () => {
     const v = varying(1500);
     const s = { ...v, cadence: v.time.map(() => 70) };
     const streams = Object.entries(s).map(([type, data]) => ({ type, data }));
-    const d = normalizeActivityDetail(huaweiRun, streams);
+    // Ringkasan aktivitas harus cocok dengan stream, kalau tidak split ditolak validasi.
+    const d = normalizeActivityDetail({ ...huaweiRun, distance: 1500, moving_time: v.time.at(-1) }, streams);
     expect(d?.splits[0].cadenceSpm).toBe(140);
     // Strength tidak punya split walau ada stream.
     expect(normalizeActivityDetail(huaweiST, streams)?.splits).toEqual([]);
@@ -145,9 +149,9 @@ describe("sumber jarak split: stream asli, GPS, atau tidak ada", () => {
 
   it("jarak dibagi rata + tanpa GPS: tidak ada split palsu", () => {
     const s = steady(4580, 4580 / 2722, { hr: 150 });
-    const r = splitsFromStreams(s, 4580);
+    const r = splitsFromStreams(s, { distanceM: 4580 });
     expect(r).toEqual({ splits: [], issue: "no-gps" });
-    expect(splitsFromStreams({}, 4580).issue).toBe("no-streams");
+    expect(splitsFromStreams({}, { distanceM: 4580 }).issue).toBe("no-streams");
   });
 
   it("jarak dibagi rata + ada GPS: split dari GPS, diskalakan ke total jarak", () => {
@@ -156,7 +160,7 @@ describe("sumber jarak split: stream asli, GPS, atau tidak ada", () => {
     // GPS 3% lebih panjang dari jarak jam; hasil tetap diskalakan ke 3000 m.
     const lat = toLat(v.distance.map((d) => d * 1.03));
     const lng = v.time.map(() => 106.8);
-    const r = splitsFromStreams({ time: v.time, distance: linear, lat, lng }, 3000);
+    const r = splitsFromStreams({ time: v.time, distance: linear, lat, lng }, { distanceM: 3000 });
     expect(r.source).toBe("gps");
     expect(r.splits).toHaveLength(3);
     expect(r.splits.reduce((a, x) => a + x.distanceKm, 0)).toBeCloseTo(3, 3);
@@ -165,7 +169,7 @@ describe("sumber jarak split: stream asli, GPS, atau tidak ada", () => {
   });
 
   it("stream jarak asli dipakai apa adanya", () => {
-    expect(splitsFromStreams(varying(2000), 2000).source).toBe("distance");
+    expect(splitsFromStreams(varying(2000), { distanceM: 2000 }).source).toBe("distance");
   });
 
   it("gpsDistance: titik kosong atau (0,0) tidak menambah jarak", () => {
@@ -179,6 +183,114 @@ describe("sumber jarak split: stream asli, GPS, atau tidak ada", () => {
 
   it("parseStreams memecah latlng jadi lat & lng", () => {
     expect(parseStreams([{ type: "latlng", data: [-6.2, -6.3], data2: [106.8, 106.9] }])).toEqual({ lat: [-6.2, -6.3], lng: [106.8, 106.9] });
+  });
+});
+
+/**
+ * Bentuk data Afternoon Run 20 Okt (i199445873, 4,44 km, 44:01): 2 km jog dengan jarak halus,
+ * lalu 2,44 km jalan kaki di mana jam hanya memperbarui jarak tiap 50 detik (datar lalu melompat).
+ * Algoritma lama menilai bergerak per sampel, jadi bagian bertangga dihitung ~13 detik/km.
+ */
+function staircaseRun() {
+  const time: number[] = [];
+  const distance: number[] = [];
+  const heartrate: number[] = [];
+  const cadence: number[] = [];
+  let t = 0;
+  let d = 0;
+  for (; d < 2000; t++) {
+    time.push(t);
+    distance.push(d);
+    heartrate.push(160);
+    cadence.push(71);
+    d = Math.min(2000, d + 2.1);
+  }
+  const walkStart = t;
+  const walkSpeed = 2440 / 1680;
+  let shown = d;
+  for (let k = 0; k <= 1680; k++, t++) {
+    // Jarak di jam hanya naik tiap 50 detik.
+    if (k % 50 === 0) shown = 2000 + walkSpeed * k;
+    time.push(t);
+    distance.push(Math.min(4440, k === 1680 ? 4440 : shown));
+    heartrate.push(135);
+    cadence.push(50);
+  }
+  return { streams: { time, distance, heartrate, cadence }, walkStart, elapsed: time.at(-1)! };
+}
+
+describe("kasus tepi data jam", () => {
+  it("jarak bertangga (bug 20 Okt): bagian jalan kaki tetap dapat waktu & pace yang benar", () => {
+    const { streams, elapsed } = staircaseRun();
+    const splits = kmSplits(streams);
+    expect(splits.map((s) => (s.distanceKm >= 0.995 ? s.index : Number(s.distanceKm.toFixed(2))))).toEqual([1, 2, 3, 4, 0.44]);
+    // Jog 2,1 m/s ≈ 476 detik/km, jalan 2440 m / 1680 detik ≈ 689 detik/km.
+    expect(splits[0].avgPaceSecPerKm).toBeCloseTo(1000 / 2.1, 0);
+    for (const s of splits.slice(2)) expect(Math.abs(s.avgPaceSecPerKm! - 1680 / 2.44)).toBeLessThan(8);
+    // Jumlah split = total: jarak 4440 m, waktu bergerak = seluruh waktu (tidak ada jeda).
+    const totals = splitTotals(splits);
+    expect(totals.distanceM).toBeCloseTo(4440, 6);
+    // Satu langkah 0,8 m/detik di akhir jog ada di bawah ambang Strava, jadi ±2 detik.
+    expect(Math.abs(totals.movingSec - elapsed)).toBeLessThan(2);
+    // Lolos validasi terhadap ringkasan aktivitas.
+    expect(splitsFromStreams(streams, { distanceM: 4440, movingSec: elapsed }).source).toBe("distance");
+  });
+
+  it("berhenti sungguhan di tengah data bertangga tetap tidak dihitung", () => {
+    const s = steady(2000, 2.5);
+    const at = s.distance.findIndex((d) => d >= 1000);
+    // 300 detik diam, lalu lanjut.
+    const time = [...s.time.slice(0, at + 1), ...Array.from({ length: 300 }, (_, i) => s.time[at] + i + 1), ...s.time.slice(at + 1).map((t) => t + 300)];
+    const distance = [...s.distance.slice(0, at + 1), ...Array(300).fill(s.distance[at]), ...s.distance.slice(at + 1)];
+    const totals = splitTotals(kmSplits({ time, distance }));
+    expect(totals.movingSec).toBeCloseTo(800, 0);
+    expect(totals.distanceM).toBeCloseTo(2000, 6);
+  });
+
+  it("lonjakan jarak sesaat (glitch) dibuang, sisa sesi tetap dihitung", () => {
+    const s = steady(2000, 2.5);
+    s.distance[300] += 3000;
+    // Hanya sampel lonjakan yang ditolak; sampel sesudahnya dibandingkan dengan nilai terakhir yang diterima.
+    expect(buildTrack(s.time, s.distance)!.rejected).toBe(1);
+    const splits = kmSplits(s);
+    expect(splits).toHaveLength(2);
+    splits.forEach((x) => expect(x.movingTimeSec).toBeCloseTo(400, 6));
+    expect(splitTotals(splits).distanceM).toBeCloseTo(2000, 6);
+  });
+
+  it("jarak reset ke 0 di tengah sesi: lanjut dari nilai baru, waktu tidak hilang", () => {
+    const s = steady(2000, 2.5);
+    const at = s.distance.findIndex((d) => d >= 1200);
+    const distance = s.distance.map((d, i) => (i > at ? d - s.distance[at + 1] : d));
+    const splits = kmSplits({ time: s.time, distance });
+    const totals = splitTotals(splits);
+    // Hanya langkah saat reset (2,5 m) yang hilang; waktunya tetap dihitung bergerak.
+    expect(totals.distanceM).toBeCloseTo(2000 - 2.5, 6);
+    expect(totals.movingSec).toBeCloseTo(800, 6);
+  });
+
+  it("GPS hilang 2 menit saat berlari: jarak diratakan, waktu tetap bergerak", () => {
+    const v = varying(3000);
+    const linear = v.time.map((t) => (t * 3000) / v.time.at(-1)!);
+    const lat = toLat(v.distance).map((x, i) => (i >= 300 && i < 420 ? null : x));
+    const lng = v.time.map((_, i) => (i >= 300 && i < 420 ? null : 106.8));
+    const r = splitsFromStreams({ time: v.time, distance: linear, lat, lng }, { distanceM: 3000, movingSec: v.time.at(-1)! });
+    expect(r.source).toBe("gps");
+    expect(splitTotals(r.splits).movingSec).toBeCloseTo(v.time.at(-1)!, 0);
+    expect(r.splits[0].avgPaceSecPerKm).toBeGreaterThan(350);
+  });
+
+  it("hasil yang tidak cocok dengan ringkasan aktivitas tidak ditampilkan", () => {
+    const v = varying(2000);
+    expect(splitsFromStreams(v, { distanceM: 2000, movingSec: 2 * v.time.at(-1)! })).toEqual({ splits: [], issue: "inconsistent" });
+    expect(splitsFromStreams(v, { distanceM: 3000 }).issue).toBe("inconsistent");
+  });
+
+  it("ambang bergerak: lari = 30:00/mil seperti Strava, jalan kaki lebih rendah", () => {
+    expect(RUN_MOVING_SPEED).toBeCloseTo(0.894, 3);
+    const slow = steady(1000, 0.7);
+    expect(splitTotals(kmSplits(slow, 1000, RUN_MOVING_SPEED)).movingSec).toBe(0);
+    expect(Math.abs(splitTotals(kmSplits(slow, 1000, WALK_MOVING_SPEED)).movingSec - 1000 / 0.7)).toBeLessThan(1);
   });
 });
 

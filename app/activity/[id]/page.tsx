@@ -64,7 +64,9 @@ function ActivityDetailView({ data }: { data: Detail }) {
             <p className="text-body text-muted">
               {data.splitIssue === "no-gps"
                 ? "Split belum tersedia: data dari jam di intervals.icu hanya berisi total jarak, tanpa GPS per detik, jadi pace tiap km tidak bisa dihitung."
-                : "Split belum tersedia: intervals.icu tidak punya data per detik untuk aktivitas ini."}
+                : data.splitIssue === "inconsistent"
+                  ? "Split tidak ditampilkan: data per detik dari jam tidak cocok dengan ringkasan aktivitas (jumlah jarak atau waktu split meleset jauh), jadi pace tiap km tidak bisa dipercaya."
+                  : "Split belum tersedia: intervals.icu tidak punya data per detik untuk aktivitas ini."}
             </p>
           </Card>
         )

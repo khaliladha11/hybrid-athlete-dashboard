@@ -1,5 +1,5 @@
 import { datePart } from "@/lib/date";
-import { parseStreams, splitsFromStreams } from "./splits";
+import { RUN_MOVING_SPEED, WALK_MOVING_SPEED, parseStreams, splitsFromStreams } from "./splits";
 import type { Activity, ActivityCategory, ActivityDetail, ActivityInterval, Wellness } from "./types";
 
 type Raw = Record<string, unknown>;
@@ -91,7 +91,11 @@ export function normalizeActivityDetail(raw: unknown, rawStreams?: unknown): Act
   const avgCadence = num((raw as Raw).average_cadence);
   const cadenceFactor = avgCadence === undefined ? undefined : avgCadence < 120 ? 2 : 1;
   if (base.category !== "run" && base.category !== "walk") return { ...base, intervals, splits: [] };
-  const { splits, source, issue } = splitsFromStreams(parseStreams(rawStreams), base.distanceKm ? base.distanceKm * 1000 : undefined);
+  const { splits, source, issue } = splitsFromStreams(parseStreams(rawStreams), {
+    distanceM: base.distanceKm ? base.distanceKm * 1000 : undefined,
+    movingSec: base.movingTimeSec,
+    minSpeed: base.category === "walk" ? WALK_MOVING_SPEED : RUN_MOVING_SPEED,
+  });
   return {
     ...base,
     intervals,
