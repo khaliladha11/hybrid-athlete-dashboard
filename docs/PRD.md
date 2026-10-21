@@ -7,7 +7,7 @@
 | --- | --- |
 | **Versi saat ini** | 0.10.2 (2026-10-21) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
-| **Live** | https://hybrid-athlete-dashboard.vercel.app |
+| **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
 | **Kualitas** | 10 file test, 178 unit test lolos · build produksi lolos |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
@@ -100,7 +100,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Ringkasan 7 hari (km, pace, HR, long run, load, sesi) | ✅ | Plus distribusi 80/20 & tren km |
 | Kalender aktivitas bulanan + detail per tanggal | 🟡 | Hanya bulan ini & bulan lalu (data yang diambil 2 bulan) |
 | Detail aktivitas: split per km + interval / lap | ✅ | `/activity/[id]`. Split dari stream intervals.icu: jarak jam, atau GPS bila jarak hanya dibagi rata / tidak konsisten. Data bertangga diratakan, lonjakan & reset dibuang, hasil divalidasi terhadap ringkasan (0.10.2). Interval hanya tampil bila > 1 |
-| Split cocok dengan Strava | 🟡 | Contoh 20 Okt: total moving time sama (44:00), HR per km ±1 bpm, pace per km −9 sampai +7 detik (Strava menghitung ulang jarak 4,42 km, jam 4,44 km) |
+| Split cocok dengan Strava | 🟡 | Contoh lari 4,4 km: total moving time sama (44:00), HR per km ±1 bpm, pace per km −9 sampai +7 detik (Strava menghitung ulang jarak 4,42 km, jam 4,44 km) |
 | Aktivitas ganda dari dua sumber (Huawei + Strava) dihitung sekali | ✅ | 0.10.1 · `lib/intervals/dedupe.ts`. Berlaku di kalender, ringkasan 7 hari, saran, dan Program |
 | Edit profil dari dalam aplikasi | 🟡 | Kondisi, zona, alat, gerakan ✅ di Setting. Nama, target, dan tanggal blok masih di JSON |
 | Grafik tren (CTL/ATL/Form, km mingguan, pace, cadence) | ⬜ | Lihat roadmap |

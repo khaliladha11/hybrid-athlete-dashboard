@@ -5,12 +5,13 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 ## [Unreleased]
 
 ### Ditambahkan
+- **Privasi repo publik:** data latihan asli (ID aktivitas intervals.icu & Strava, tanggal, jam) di test dan dokumen diganti data fiktif; alamat deploy tidak lagi dicantumkan di PRD; `CLAUDE.md` mendapat aturan privasi agar data asli tidak masuk lagi.
 - **Tutorial "Pasang di HP-mu sendiri"** di README: fork, isi profil, API key intervals.icu, deploy ke Vercel, kunci akses (Vercel Authentication › All Deployments, karena Standard Protection tidak melindungi alamat utama), pasang PWA, atur di aplikasi, cara update, dan tabel masalah umum. Bagian developer README dirapikan dan angka test diperbarui.
 
 ## [0.10.2] · 2026-10-21 · Split per km akurat
 
 ### Diperbaiki
-- **Split per km tidak lagi menampilkan pace mustahil** (mis. `0'13"/km` pada Afternoon Run 20 Okt, `i199445873`). Penyebab: status bergerak dinilai per sampel, padahal jam Huawei kadang memperbarui jarak hanya sesekali (datar lalu melompat). Sampel datar dihitung berhenti, jadi 2,44 km jalan kaki hanya mendapat ~30 detik dan total waktu split 16,6 menit dari 44:01. Sekarang (`lib/intervals/splits.ts`):
+- **Split per km tidak lagi menampilkan pace mustahil** (mis. `0'13"/km` pada sebuah lari 4,4 km). Penyebab: status bergerak dinilai per sampel, padahal jam Huawei kadang memperbarui jarak hanya sesekali (datar lalu melompat). Sampel datar dihitung berhenti, jadi 2,44 km jalan kaki hanya mendapat ~30 detik dan total waktu split ~17 menit dari ~44 menit. Sekarang (`lib/intervals/splits.ts`):
   - `buildTrack`: kecepatan dihitung antar titik di mana jarak benar-benar berubah; data bertangga diratakan, berhenti sungguhan tetap tidak dihitung.
   - Jarak hanya boleh naik: lonjakan (> 12 m/s sejak perubahan terakhir) dan penurunan/reset ditolak tanpa membuang sisa sesi.
   - Ambang bergerak lari = 30:00/mil seperti Strava; jalan kaki 0,5 m/s.
@@ -21,7 +22,7 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 - 7 test kasus tepi baru (data bertangga, berhenti, lonjakan, reset jarak, GPS hilang, validasi, ambang), total 178.
 
 ### Diverifikasi
-- Afternoon Run 20 Okt vs Strava: 10'53" · 9'24" · 9'10" · 9'10" · 12'13" (0.44) lawan 10:54 · 9:28 · 9:19 · 9:03 · 12:32 (0.4). Total moving time 44:00 sama, HR per km ±1 bpm. Selisih per km −9 sampai +7 detik berasal dari total jarak (Strava 4,42 km, jam 4,44 km) dan posisi batas km.
+- Lari contoh 4,4 km vs Strava: 10'53" · 9'24" · 9'10" · 9'10" · 12'13" (0.44) lawan 10:54 · 9:28 · 9:19 · 9:03 · 12:32 (0.4). Total moving time 44:00 sama, HR per km ±1 bpm. Selisih per km −9 sampai +7 detik berasal dari total jarak (Strava 4,42 km, jam 4,44 km) dan posisi batas km.
 
 ## [0.10.1] · 2026-10-16 · Logo "Forward H"
 

@@ -6,31 +6,34 @@ import { mockActivities, mockActivityDetail } from "@/lib/mock-data";
 
 const TODAY = "2026-09-28";
 
-/** Bentuk asli dari intervals.icu: rekaman Huawei lengkap + salinan Strava tanpa isi. */
-const huaweiRun = { id: "i197556034", source: "HUAWEI", start_date_local: "2026-10-15T17:20:31", type: "Run", name: "Afternoon Run", distance: 4580, moving_time: 2722, average_heartrate: 152, average_cadence: 70, icu_training_load: 45 };
-const stravaCopy = { id: "20593954795", source: "STRAVA", start_date_local: "2026-10-15T17:20:31", _note: "STRAVA activities are not available via the API" };
-const huaweiST = { id: "i192214172", source: "HUAWEI", start_date_local: "2026-10-01T18:53:10", type: "WeightTraining", name: "Evening Workout", moving_time: 2100, average_heartrate: 114, icu_training_load: 13 };
-const stravaST = { id: "20406166879", source: "STRAVA", start_date_local: "2026-10-01T18:53:10" };
+/**
+ * Bentuk respons intervals.icu: rekaman Huawei lengkap + salinan Strava tanpa isi.
+ * Data contoh (ID, tanggal, jam, angka) sengaja fiktif; jangan isi dengan aktivitas asli.
+ */
+const huaweiRun = { id: "huawei-run", source: "HUAWEI", start_date_local: "2026-01-05T06:10:00", type: "Run", name: "Easy Run", distance: 5000, moving_time: 2700, average_heartrate: 150, average_cadence: 70, icu_training_load: 40 };
+const stravaCopy = { id: "strava-run", source: "STRAVA", start_date_local: "2026-01-05T06:10:00", _note: "STRAVA activities are not available via the API" };
+const huaweiST = { id: "huawei-st", source: "HUAWEI", start_date_local: "2026-01-04T19:00:00", type: "WeightTraining", name: "Strength Session", moving_time: 2400, average_heartrate: 110, icu_training_load: 15 };
+const stravaST = { id: "strava-st", source: "STRAVA", start_date_local: "2026-01-04T19:00:00" };
 
 const acts = (raw: unknown[]) => normalizeList(raw, normalizeActivity);
 
 describe("dedupe aktivitas ganda (Huawei + Strava)", () => {
   it("salinan Strava tanpa isi dibuang, rekaman Huawei disimpan (urutan apa pun)", () => {
-    expect(dedupeActivities(acts([huaweiRun, stravaCopy])).map((a) => a.id)).toEqual(["i197556034"]);
-    expect(dedupeActivities(acts([stravaCopy, huaweiRun])).map((a) => a.id)).toEqual(["i197556034"]);
-    expect(dedupeActivities(acts([stravaST, huaweiRun, huaweiST, stravaCopy])).map((a) => a.id)).toEqual(["i197556034", "i192214172"]);
+    expect(dedupeActivities(acts([huaweiRun, stravaCopy])).map((a) => a.id)).toEqual(["huawei-run"]);
+    expect(dedupeActivities(acts([stravaCopy, huaweiRun])).map((a) => a.id)).toEqual(["huawei-run"]);
+    expect(dedupeActivities(acts([stravaST, huaweiRun, huaweiST, stravaCopy])).map((a) => a.id)).toEqual(["huawei-run", "huawei-st"]);
   });
 
   it("salinan Strava tanpa pasangan tetap ada, dengan nama yang jelas", () => {
     const [a] = dedupeActivities(acts([stravaCopy]));
-    expect(a).toMatchObject({ id: "20593954795", source: "STRAVA", name: "Aktivitas Strava", category: "other" });
+    expect(a).toMatchObject({ id: "strava-run", source: "STRAVA", name: "Aktivitas Strava", category: "other" });
     expect(isEmptyActivity(a)).toBe(true);
     // Salinan yang hanya ditandai _note juga dikenali.
-    expect(normalizeActivity({ id: 1, start_date_local: "2026-10-15T17:20:31", _note: stravaCopy._note })?.source).toBe("STRAVA");
+    expect(normalizeActivity({ id: 1, start_date_local: "2026-01-05T06:10:00", _note: stravaCopy._note })?.source).toBe("STRAVA");
   });
 
   it("aktivitas berbeda tidak digabung", () => {
-    const morning = { ...huaweiRun, id: "a", start_date_local: "2026-10-15T07:00:00" };
+    const morning = { ...huaweiRun, id: "a", start_date_local: "2026-01-05T18:00:00" };
     expect(dedupeActivities(acts([huaweiRun, morning]))).toHaveLength(2);
     // Jam mulai sama tapi dua rekaman berisi beda jenis: dua sesi berbeda.
     const st = { ...huaweiST, id: "b", start_date_local: huaweiRun.start_date_local };
@@ -38,9 +41,9 @@ describe("dedupe aktivitas ganda (Huawei + Strava)", () => {
   });
 
   it("dua rekaman sejenis selisih < 5 menit: yang paling lengkap disimpan", () => {
-    const phone = { id: "p", source: "UPLOAD", start_date_local: "2026-10-15T17:21:10", type: "Run", distance: 4500, moving_time: 2700 };
-    expect(dedupeActivities(acts([phone, huaweiRun])).map((a) => a.id)).toEqual(["i197556034"]);
-    const later = { ...phone, start_date_local: "2026-10-15T17:30:00" };
+    const phone = { id: "p", source: "UPLOAD", start_date_local: "2026-01-05T06:10:39", type: "Run", distance: 4900, moving_time: 2700 };
+    expect(dedupeActivities(acts([phone, huaweiRun])).map((a) => a.id)).toEqual(["huawei-run"]);
+    const later = { ...phone, start_date_local: "2026-01-05T06:19:30" };
     expect(dedupeActivities(acts([later, huaweiRun]))).toHaveLength(2);
   });
 
@@ -187,8 +190,8 @@ describe("sumber jarak split: stream asli, GPS, atau tidak ada", () => {
 });
 
 /**
- * Bentuk data Afternoon Run 20 Okt (i199445873, 4,44 km, 44:01): 2 km jog dengan jarak halus,
- * lalu 2,44 km jalan kaki di mana jam hanya memperbarui jarak tiap 50 detik (datar lalu melompat).
+ * Bentuk data jam yang memicu bug split: 2 km jog dengan jarak halus, lalu 2,44 km jalan kaki
+ * di mana jam hanya memperbarui jarak tiap 50 detik (datar lalu melompat). Angka fiktif.
  * Algoritma lama menilai bergerak per sampel, jadi bagian bertangga dihitung ~13 detik/km.
  */
 function staircaseRun() {
@@ -220,7 +223,7 @@ function staircaseRun() {
 }
 
 describe("kasus tepi data jam", () => {
-  it("jarak bertangga (bug 20 Okt): bagian jalan kaki tetap dapat waktu & pace yang benar", () => {
+  it("jarak bertangga: bagian jalan kaki tetap dapat waktu & pace yang benar", () => {
     const { streams, elapsed } = staircaseRun();
     const splits = kmSplits(streams);
     expect(splits.map((s) => (s.distanceKm >= 0.995 ? s.index : Number(s.distanceKm.toFixed(2))))).toEqual([1, 2, 3, 4, 0.44]);

@@ -11,3 +11,12 @@ Panduan untuk Claude Code di repo ini. Aturan produk & latihan ada di [docs/PRD.
 - Nilai kosong ditulis `·` warna faint. Pace di tampilan `5'50"` lewat `formatPaceTag` (`components/ui/format.ts`); jangan ubah `formatPace` di `lib/`.
 - Display (`.t-display`) hanya satu per layar. Area sentuh ≥ 44px, input ≥ 16px, kontras AA di kedua tema, reduced motion dihormati, hover hanya untuk pointer presisi.
 - Tanpa dependensi UI/animasi/chart baru; grafik pakai SVG sendiri.
+
+## Privasi (repo publik)
+
+Repo ini publik, sedangkan data pemilik adalah data kesehatan.
+
+- **Jangan commit data asli**: ID aktivitas intervals.icu/Strava, tanggal & jam sesi, nilai HR/HRV/tidur, atau angka yang diambil dari situs deploy. Test dan dokumen memakai data fiktif (lihat `__tests__/activity-data.test.ts`) atau Demo Mode.
+- **Screenshot hanya dari Demo Mode** (tanpa `INTERVALS_API_KEY`).
+- **Jangan cantumkan alamat deploy** pemilik di README, PRD, atau dokumen lain.
+- API key hanya di `.env.local` (diabaikan git) atau environment variable Vercel; jangan pernah di file yang di-commit.
