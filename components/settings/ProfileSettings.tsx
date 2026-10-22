@@ -59,6 +59,41 @@ function TextField({
   );
 }
 
+/**
+ * Usia disimpan saat kolom ditinggalkan. Menyimpan per ketikan membuat digit pertama ("2" dari 23)
+ * ditolak karena di bawah 10, sehingga angka kedua tidak pernah bisa diketik.
+ */
+function AgeField({ value, onCommit }: { value?: number; onCommit: (v: number | undefined) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const shown = draft ?? (value ? String(value) : "");
+  const n = Number(shown);
+  const invalid = shown !== "" && !(n >= 10 && n <= 100);
+  const commit = () => {
+    if (draft === null) return;
+    const v = Number(draft);
+    if (draft === "") onCommit(undefined);
+    else if (v >= 10 && v <= 100) onCommit(v);
+    setDraft(null);
+  };
+  return (
+    <label className="block text-[12px] text-muted">
+      Usia
+      <input
+        inputMode="numeric"
+        maxLength={3}
+        value={shown}
+        onChange={(e) => setDraft(e.target.value.replace(/\D/g, "").slice(0, 3))}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === "Enter" && commit()}
+        placeholder="th"
+        aria-invalid={invalid || undefined}
+        className={invalid ? INPUT.replace("border-line-strong", "border-danger") : INPUT}
+      />
+      {invalid && <span className="mt-1 block text-danger-ink">10 sampai 100</span>}
+    </label>
+  );
+}
+
 /** Profil dasar: nama, usia, gaya hidup, fokus, target lomba, tujuan, dan periodisasi. Dipakai di Setting & onboarding. */
 export function ProfileSettings({
   settings,
@@ -97,19 +132,7 @@ export function ProfileSettings({
       <div className="mt-3 space-y-3">
         <TextField label="Nama" value={pr.name} onCommit={(name) => set({ name })} maxLength={60} placeholder="Nama panggilan" required />
         <div className="grid grid-cols-[6rem_1fr] gap-2">
-          <label className="block text-[12px] text-muted">
-            Usia
-            <input
-              inputMode="numeric"
-              value={pr.age ?? ""}
-              onChange={(e) => {
-                const n = Number(e.target.value.replace(/\D/g, ""));
-                set({ age: n >= 10 && n <= 100 ? n : undefined });
-              }}
-              placeholder="th"
-              className={INPUT}
-            />
-          </label>
+          <AgeField value={pr.age} onCommit={(age) => set({ age })} />
           <TextField label="Gaya hidup" value={pr.occupation} onCommit={(occupation) => set({ occupation })} maxLength={80} placeholder="mis. Kerja kantoran" />
         </div>
         <TextField label="Fokus latihan" value={pr.category} onCommit={(category) => set({ category })} maxLength={80} placeholder="mis. Lari 10K + strength di rumah" />
