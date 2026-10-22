@@ -7,8 +7,9 @@
  */
 import { useSyncExternalStore } from "react";
 import { isLogEntry, type LogEntry } from "@/lib/progression";
+import { PREF_KEYS } from "@/lib/preference-keys";
 
-const KEY = "hybrid-athlete.log.v1";
+const KEY = PREF_KEYS.log;
 const EMPTY: LogEntry[] = [];
 const listeners = new Set<() => void>();
 let cache: LogEntry[] | null = null;
