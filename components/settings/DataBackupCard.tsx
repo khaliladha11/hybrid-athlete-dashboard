@@ -6,7 +6,8 @@ import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import { parseSettings } from "@/lib/athlete-settings";
 import { todayWib } from "@/lib/date";
 import { PREF_KEYS } from "@/lib/preference-keys";
-import { useBlockEnabled, useStoredString, useThemePreference } from "@/lib/preferences";
+import { useStoredString, useThemePreference } from "@/lib/preferences";
+import { useBlockMode } from "@/lib/settings-store";
 import { baseProfile } from "@/lib/profile";
 import { trainingLog, useTrainingLog } from "@/lib/training-log";
 
@@ -19,7 +20,7 @@ export function DataBackupCard() {
   const [settingsRaw, setSettingsRaw] = useStoredString(PREF_KEYS.settings, "");
   const [programRaw, setProgramRaw] = useStoredString(PREF_KEYS.program, "");
   const [theme, setTheme] = useThemePreference();
-  const [blockEnabled, setBlockEnabled] = useBlockEnabled();
+  const [blockEnabled, setBlockEnabled] = useBlockMode();
   const fileRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<string | null>(null);
 

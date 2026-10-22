@@ -9,7 +9,6 @@ import { Segmented } from "@/components/ui/Segmented";
 import { Switch } from "@/components/ui/Switch";
 import { INTENSITY_TONE } from "@/components/ui/tones";
 import { blockLabel } from "@/lib/generator/block";
-import { useBlockEnabled } from "@/lib/preferences";
 import {
   DIFFICULTIES,
   DIFFICULTY_LABEL,
@@ -24,10 +23,9 @@ import {
   type Duration,
   type RunStep,
 } from "@/lib/generator";
-import type { BlockContext } from "@/lib/generator/block";
 import type { Advice } from "@/lib/coach";
 import { parseRange } from "@/lib/run-zones";
-import { useResolvedProfile } from "@/lib/settings-store";
+import { useBlockContext, useBlockMode, useResolvedProfile } from "@/lib/settings-store";
 import { CoachStrip } from "./CoachStrip";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
 
@@ -50,19 +48,18 @@ const INTENSITY_STYLE: Record<Intensity, { dot: string; label: string }> = {
 
 export function RunGenerator({
   advice,
-  block,
   cadenceSpm,
   initialSeed,
 }: {
   advice: Advice[];
-  block: BlockContext;
   cadenceSpm?: number;
   initialSeed: number;
 }) {
   const [duration, setDuration] = useState<Duration>(45);
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const [seed, setSeed] = useState(initialSeed);
-  const [blockEnabled, setBlockEnabled] = useBlockEnabled();
+  const [blockEnabled, setBlockEnabled] = useBlockMode();
+  const block = useBlockContext();
   const free = !blockEnabled;
 
   const p = useResolvedProfile();

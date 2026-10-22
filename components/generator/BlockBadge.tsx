@@ -1,11 +1,11 @@
 "use client";
 
-import type { BlockContext } from "@/lib/generator/block";
-import { useBlockEnabled } from "@/lib/preferences";
+import { useBlockContext, useBlockMode } from "@/lib/settings-store";
 
 /** Posisi di blok periodisasi: segmen per minggu, minggu berjalan oranye, deload biru. */
-export function BlockBadge({ block }: { block: BlockContext }) {
-  const [enabled] = useBlockEnabled();
+export function BlockBadge() {
+  const [enabled] = useBlockMode();
+  const block = useBlockContext();
   if (!enabled) {
     return (
       <div className="shrink-0 text-right">

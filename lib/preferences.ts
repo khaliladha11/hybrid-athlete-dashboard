@@ -11,13 +11,12 @@ export type ThemePreference = "system" | "light" | "dark";
 
 export interface Preferences {
   theme: ThemePreference;
-  /** Program blok mingguan (periodisasi 4 minggu). false = mode latihan bebas. */
-  blockEnabled: boolean;
 }
 
 export { PREF_KEYS };
 
-const DEFAULTS: Preferences = { theme: "system", blockEnabled: true };
+/** Mode blok mingguan ada di `useBlockMode` (settings-store) karena bergantung pada profil. */
+const DEFAULTS: Preferences = { theme: "system" };
 
 const listeners = new Set<() => void>();
 
@@ -106,12 +105,4 @@ export function useResolvedTheme(): "light" | "dark" {
     () => false,
   );
   return theme === "system" ? (systemDark ? "dark" : "light") : theme;
-}
-
-// ---------- Blok mingguan ----------
-
-export function useBlockEnabled(): [boolean, (v: boolean) => void] {
-  const [raw, set] = useStoredString(PREF_KEYS.blockEnabled, DEFAULTS.blockEnabled ? "1" : "0");
-  const update = useCallback((v: boolean) => set(v ? null : "0"), [set]);
-  return [raw !== "0", update];
 }

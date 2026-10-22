@@ -4,8 +4,6 @@ import { mockActivities, mockActivityDetail, mockWellness } from "@/lib/mock-dat
 import { getIntervalsConfig, intervalsGet } from "./client";
 import { dedupeActivities } from "./dedupe";
 import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness } from "./normalize";
-import { blockContext, type BlockContext } from "@/lib/generator/block";
-import { profile } from "@/lib/profile";
 import { readinessAdvice, weeklyAdvice, type Advice } from "@/lib/coach";
 import { assessReadiness, type Readiness } from "@/lib/readiness";
 import { averageRunCadence } from "./summary";
@@ -68,20 +66,17 @@ export interface TrainingContext {
   advice: Advice[];
   /** Cadence lari rata-rata 14 hari (SPM total), jika ada data. */
   cadenceSpm?: number;
-  block: BlockContext;
 }
 
-/** Konteks untuk halaman generator: readiness, cadence personal, dan posisi blok. */
+/** Konteks untuk halaman generator: readiness & cadence personal. Posisi blok dihitung di client dari profil perangkat. */
 export async function getTrainingContext(today = todayWib()): Promise<TrainingContext> {
-  const block = blockContext(today, profile.training?.blockStart, profile.training?.blockWeeks);
   const [acts, well] = await Promise.all([getActivities(15, today), getWellness(8, today)]);
-  if (!acts.ok && !well.ok) return { readiness: null, advice: [], block };
+  if (!acts.ok && !well.ok) return { readiness: null, advice: [] };
   const activities = acts.ok ? acts.data : [];
   const readiness = assessReadiness(well.ok ? well.data : [], activities, today);
   return {
     readiness,
     advice: [...readinessAdvice(readiness), ...weeklyAdvice(activities, today)],
     cadenceSpm: averageRunCadence(activities, today, 14),
-    block,
   };
 }

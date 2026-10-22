@@ -9,7 +9,6 @@ import { WellnessCard } from "@/components/profile/WellnessCard";
 import { CoachCard } from "@/components/generator/CoachCard";
 import { todayWib } from "@/lib/date";
 import { getActivities, getWellness } from "@/lib/intervals/data-source";
-import { profile } from "@/lib/profile";
 import { readinessAdvice, weeklyAdvice } from "@/lib/coach";
 import { assessReadiness } from "@/lib/readiness";
 
@@ -30,7 +29,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="space-y-4">
-      <ProfileHeader profile={profile} />
+      <ProfileHeader />
 
       <CoachCard id="saran" advice={[...readinessAdvice(readiness), ...(activities.ok ? weeklyAdvice(activities.data, today) : [])]} />
 
@@ -58,7 +57,7 @@ export default async function ProfilePage() {
           <ErrorState error={activities.error} compact />
         </Card>
       )}
-      <TargetsCard profile={profile} />
+      <TargetsCard />
       <Link href="/setting" className={`${BUTTON.base} ${BUTTON.secondary} w-full`}>
         Kondisi, zona lari & alat → Setting
       </Link>

@@ -9,9 +9,11 @@ import { DataBackupCard } from "./DataBackupCard";
 import { EquipmentSettings } from "./EquipmentSettings";
 import { MovementSettings } from "./MovementSettings";
 import { PreferencesCard } from "./PreferencesCard";
+import { ProfileSettings } from "./ProfileSettings";
 import { RunZonesSettings } from "./RunZonesSettings";
 
 const SECTIONS = [
+  ["profil", "Profil"],
   ["kondisi", "Kondisi"],
   ["zona", "Zona lari"],
   ["alat", "Alat"],
@@ -171,6 +173,7 @@ export function SettingsView() {
           })}
         </ul>
       </nav>
+      {section("profil", <ProfileSettings settings={settings} onChange={save} />)}
       {section("kondisi", <ConditionsSettings settings={settings} onChange={save} warnings={resolved.warnings} />)}
       {section("zona", <RunZonesSettings settings={settings} onChange={save} />)}
       {section("alat", <EquipmentSettings settings={settings} onChange={save} />)}

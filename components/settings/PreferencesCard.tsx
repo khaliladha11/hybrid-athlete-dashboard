@@ -3,12 +3,13 @@
 import { Card } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
 import { Switch } from "@/components/ui/Switch";
-import { useBlockEnabled, useThemePreference, type ThemePreference } from "@/lib/preferences";
+import { useThemePreference, type ThemePreference } from "@/lib/preferences";
+import { useBlockMode } from "@/lib/settings-store";
 
 /** Tampilan & program: tema dan blok mingguan. */
 export function PreferencesCard() {
   const [theme, setTheme] = useThemePreference();
-  const [blockEnabled, setBlockEnabled] = useBlockEnabled();
+  const [blockEnabled, setBlockEnabled] = useBlockMode();
   return (
     <Card title="Tampilan & program">
       <div className="space-y-4">

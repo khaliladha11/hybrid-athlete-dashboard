@@ -7,7 +7,6 @@ import { Segmented } from "@/components/ui/Segmented";
 import { Switch } from "@/components/ui/Switch";
 import { INTENSITY_TONE } from "@/components/ui/tones";
 import { blockLabel } from "@/lib/generator/block";
-import { useBlockEnabled } from "@/lib/preferences";
 import {
   DIFFICULTIES,
   DIFFICULTY_LABEL,
@@ -27,10 +26,9 @@ import {
   type StrengthType,
   type StrengthWorkout,
 } from "@/lib/generator";
-import type { BlockContext } from "@/lib/generator/block";
 import type { Advice } from "@/lib/coach";
 import type { Movement, ResolvedProfile } from "@/lib/profile";
-import { useResolvedProfile } from "@/lib/settings-store";
+import { useBlockContext, useBlockMode, useResolvedProfile } from "@/lib/settings-store";
 import { applyProgression } from "@/lib/progression";
 import { useTrainingLog } from "@/lib/training-log";
 import { MovementSheet } from "@/components/movements/MovementSheet";
@@ -61,11 +59,9 @@ function restLabel(sec: number) {
 
 export function StrengthGenerator({
   advice,
-  block,
   initialSeed,
 }: {
   advice: Advice[];
-  block: BlockContext;
   initialSeed: number;
 }) {
   const [type, setType] = useState<StrengthType>("fullBody");
@@ -74,7 +70,8 @@ export function StrengthGenerator({
   const [seed, setSeed] = useState(initialSeed);
 
   const [logging, setLogging] = useState(false);
-  const [blockEnabled, setBlockEnabled] = useBlockEnabled();
+  const [blockEnabled, setBlockEnabled] = useBlockMode();
+  const block = useBlockContext();
   const free = !blockEnabled;
   const [saved, setSaved] = useState(false);
   const [detail, setDetail] = useState<StrengthItem | null>(null);

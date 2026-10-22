@@ -16,9 +16,9 @@ export default async function RunPage() {
           <h1 className="text-[22px] leading-tight font-semibold">Generator Lari</h1>
           <p className="mt-0.5 text-[13px] text-muted">Pilih durasi & kesulitan. Workout lengkap dengan pace, HR, dan RPE.</p>
         </div>
-        <BlockBadge block={ctx.block} />
+        <BlockBadge />
       </header>
-      <RunGenerator advice={ctx.advice} block={ctx.block} cadenceSpm={ctx.cadenceSpm} initialSeed={randomSeed()} />
+      <RunGenerator advice={ctx.advice} cadenceSpm={ctx.cadenceSpm} initialSeed={randomSeed()} />
     </div>
   );
 }
