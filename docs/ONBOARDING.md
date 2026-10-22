@@ -1,6 +1,6 @@
 # Spesifikasi Onboarding & Deploy Pribadi (rencana 0.11)
 
-> Status: **disetujui untuk dikerjakan, 2026-10-22**. Simpan di `docs/ONBOARDING.md`.
+> Status: **selesai di 0.11.0 sampai 0.11.2, 2026-10-22** (disetujui 2026-10-22). Status per fitur ada di [PRD §4.9](PRD.md#49-onboarding).
 > Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Desain mengikuti [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md).
 
 ## 1. Tujuan

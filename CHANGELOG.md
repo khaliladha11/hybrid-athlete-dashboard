@@ -4,6 +4,23 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.11.2] · 2026-10-22 · Tur in-app & strength tanpa alat
+
+Menutup rencana [ONBOARDING.md](docs/ONBOARDING.md).
+
+### Ditambahkan
+- **Tur in-app** setelah onboarding: 5 sorotan lintas tab (Saran hari ini, Generator lari + Copy Set, Strength + Catat sesi ★, Program target, Data & cadangan). Spotlight sendiri tanpa library: lapisan gelap dengan lubang di elemen `data-tour`, popover `surface-raised` (`role="dialog"`, `aria-modal`), tombol **Lewati tur**, **Kembali**, **Lanjut**/**Selesai**, Escape menutup, fokus terjebak di popover dan kembali ke pemicu. Popover masuk dari `scale(0.96)` + opacity 180ms ease-out; reduced motion hanya fade. Selesai atau dilewati dicatat (`tourCompletedAt`).
+- Ringkasan onboarding: **Mulai tur** / **Lewati tur** (keduanya menyelesaikan onboarding). **Setting › Tampilan › Ulangi tur**.
+- **5 gerakan tanpa alat** sebagai cadangan Upper Push/Pull: Push-Up (gambar free-exercise-db), Knee Push-Up, Wall Push-Up, Prone Y-T-W Raise, Prone Reverse Snow Angel (tanpa padanan, placeholder). Aktif otomatis hanya bila kategorinya tidak punya gerakan lain yang bisa dipakai; diberi label "Cadangan" di Setting › Gerakan. Superman sengaja tidak dipakai (Spine-Friendly).
+- **Pesan alat di Strength**: bila jenis sesi tidak punya gerakan utama, tampil alat minimal yang dibutuhkan dan gerakan yang bisa diaktifkan. Catatan "Sesi lebih pendek dari {durasi}'" bila gerakan aktif terbatas.
+- Test: ST bodyweight-only untuk semua jenis × durasi × kesulitan × 25 seed × blok/deload/bebas; `sessionCoverage`, gerakan cadangan, tur (`placePopover`, langkah, target `data-tour`). Total 243 di 16 file.
+- Screenshot onboarding & tur (Demo Mode): `11-onboarding`, `12-onboarding-connection`, `13-onboarding-summary`, `14-tour`.
+
+### Diubah
+- Logika generator tidak berubah; keputusan strength tanpa alat dicatat di TRAINING-LOGIC §11.
+- Movement library 45 gerakan, 36 bergambar (`docs/movement-media-audit.md`).
+- `Card` dan `GeneratorActions` menerima `tour` untuk menandai sasaran tur.
+
 ## [0.11.1] · 2026-10-22 · Koneksi, proteksi deploy, pasang ke HP
 
 ### Ditambahkan
@@ -247,7 +264,8 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.11.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ffb3a10...main
+[0.11.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/4d0042f...main
+[0.11.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ffb3a10...4d0042f
 [0.11.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/cda26c1...ffb3a10
 [0.10.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/5266a8e...cda26c1
 [0.10.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/a7d3f00...5266a8e

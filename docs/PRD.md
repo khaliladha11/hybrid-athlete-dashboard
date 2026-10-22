@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.11.1 (2026-10-22) |
+| **Versi saat ini** | 0.11.2 (2026-10-22) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 14 file test, 224 unit test lolos · build produksi lolos |
+| **Kualitas** | 16 file test, 243 unit test lolos · build produksi lolos |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -75,7 +75,7 @@ Dianggap berhasil kalau:
 | Kondisi tubuh berubah (cedera baru, sembuh) | Kondisi diaktifkan/nonaktifkan di Setting dari katalog berbasis riset |
 | Bingung menyeimbangkan lari dan ST | Aturan concurrent training dan saran harian |
 | Mudah terlalu semangat (km naik drastis, terlalu banyak sesi berat) | Peringatan 80/20 dan kenaikan km > 30% |
-| Latihan monoton | Periodisasi blok 4 minggu, rotasi pola, tombol "Variasi lain", 40 gerakan di library |
+| Latihan monoton | Periodisasi blok 4 minggu, rotasi pola, tombol "Variasi lain", 45 gerakan di library |
 | Ragu tekniknya benar saat latihan sendiri di rumah | Thumbnail + detail gerakan: gambar awal/akhir, cue teknik, otot, catatan kondisi aktif |
 | Data tersebar (jam, intervals.icu, catatan) | Ringkasan, kalender, dan wellness dalam satu layar |
 | Jam tersambung ke Strava & intervals.icu sekaligus, aktivitas tercatat dobel | Rekaman ganda dibuang otomatis; yang disimpan yang datanya paling lengkap |
@@ -172,10 +172,12 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Hanya gerakan yang dipilih & alatnya tersedia; beban dari kombinasi plat | ✅ | 0.8 |
 | Gerakan baru di movement library | ✅ | 0.9: 13 gerakan dari free-exercise-db (stabilitas panggul, core, unilateral, soleus, bahu) |
 | Thumbnail di setiap kartu gerakan + bottom sheet detail (crossfade awal/akhir, jeda, cue, otot, catatan kondisi) | ✅ | 0.9. Reduced motion: gambar berdampingan tanpa animasi |
-| Gambar teknik untuk semua gerakan | 🟡 | 35/40 bergambar; 5 tanpa padanan (Dead Hang, Negative Pull-Up, Seated DB Scapular Retraction, Clamshell, Tibialis Wall Raise). 12 gambar 🟡 yang disetujui sedikit berbeda dan diberi catatan. Belum ada video |
+| Gambar teknik untuk semua gerakan | 🟡 | 36/45 bergambar; 9 tanpa padanan (Dead Hang, Negative Pull-Up, Seated DB Scapular Retraction, Clamshell, Tibialis Wall Raise, Knee Push-Up, Wall Push-Up, Prone Y-T-W Raise, Prone Reverse Snow Angel). 12 gambar 🟡 yang disetujui sedikit berbeda dan diberi catatan. Belum ada video |
 | Syarat stabilitas panggul diperluas (Side Plank, Standing Band Hip Abduction) | ✅ | 0.9 |
 | Prehab berputar sesuai bagian tubuh (tungkai untuk Lower/Full, bahu untuk Upper) | ✅ | 0.9, sesi 45'/60' |
 | ★ baru (Split Squat, Step-Up, Plié Squat) mulai blok berikutnya | ✅ | 0.9, mode bebas langsung |
+| Strength tanpa alat: gerakan cadangan Upper Push/Pull | ✅ | 0.11.2: Push-Up, Knee Push-Up, Wall Push-Up, Prone Y-T-W Raise, Prone Reverse Snow Angel; aktif otomatis hanya bila kategorinya tidak punya gerakan lain. Diuji untuk semua kombinasi × 25 seed ([TRAINING-LOGIC §11](TRAINING-LOGIC.md#11-strength-tanpa-alat-0112)) |
+| Pesan alat bila jenis sesi tidak bisa disusun + catatan sesi lebih pendek | ✅ | 0.11.2: alat minimal yang dibutuhkan dan gerakan yang bisa diaktifkan; logika generator tidak berubah |
 | Saran ringkas satu baris (seperti Generator Lari) | ⬜ | Generator Strength masih memakai kartu saran lengkap |
 | Timer istirahat antar set | ⬜ | |
 
@@ -183,7 +185,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
-| Blok 4 minggu (3 normal + 1 deload) | 🟡 | Tanggal mulai blok diatur manual di JSON |
+| Blok 4 minggu (3 normal + 1 deload) | ✅ | Tanggal mulai blok diatur di Setting › Profil sejak 0.11.0 |
 | Toggle blok mingguan (mode bebas) | ✅ | |
 | Program PB 5K (8 mg), PB 10K (10), HM (12), FM (16) | ✅ | Base → Build → Peak → Taper |
 | Race pace dari target waktu, long run aman + cutback, peringatan | ✅ | |
@@ -228,7 +230,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Zona pace Easy/Tempo/Interval/4×4: manual atau VDOT Daniels dari hasil lomba | ✅ | Default dari JSON, reset per zona. Sejak 0.10.1 diisi lewat pemilih jam/menit/detik (`TimePicker`), tanpa mengetik ":" di HP |
 | Alat: dumbbell, barbell, plat, band, pull-up bar, kursi, alat lain | ✅ | Daftar beban yang bisa dirakit tampil langsung |
 | Toggle titik tambat band | ✅ | 0.9 — untuk Band Reverse Fly, Band External Rotation, Standing Band Hip Abduction, Seated Band Hamstring Curl |
-| Pilihan movement library + alasan bila tidak tersedia | ✅ | Gerakan wajib kondisi dikunci; 40 gerakan sejak 0.9 |
+| Pilihan movement library + alasan bila tidak tersedia | ✅ | Gerakan wajib kondisi dikunci; 45 gerakan sejak 0.11.2 (5 cadangan tanpa alat diberi label "Cadangan") |
 | Menambah gerakan sendiri (custom) | ⬜ | Gerakan hanya dari kurasi developer |
 | Tema & blok mingguan, Data & cadangan | ✅ | |
 | Nav bagian sticky: smooth scroll, highlight kartu tujuan, scroll spy | ✅ | 0.8.1, menghormati reduced motion |
@@ -237,7 +239,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 
 ### 4.9 Onboarding
 
-Rencana 0.11, spesifikasi lengkap di [ONBOARDING.md](ONBOARDING.md).
+Selesai di 0.11 (0.11.0 sampai 0.11.2), spesifikasi lengkap di [ONBOARDING.md](ONBOARDING.md).
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
@@ -245,7 +247,7 @@ Rencana 0.11, spesifikasi lengkap di [ONBOARDING.md](ONBOARDING.md).
 | Disclaimer kesehatan & lisensi wajib, tampil ulang bila versi naik | ✅ | 0.11.0. Repo belum punya file lisensi; poin lisensi menautkan NOTICE.md |
 | Profil dasar (nama, usia, fokus, target lomba, blok/mode bebas) di onboarding & Setting | ✅ | 0.11.0 |
 | Kondisi wajib eksplisit, opsi "Tidak ada kondisi" | ✅ | 0.11.0 |
-| Zona lari: VDOT / manual / "belum tahu" (zona perkiraan) | 🟡 | 0.11.0. Isian awal VDOT dari lari terbaik 90 hari belum dibuat (butuh data intervals.icu di client; ditunda) |
+| Zona lari: VDOT / manual / "belum tahu" (zona perkiraan) | ✅ | 0.11.0. Isian awal VDOT dari lari terbaik 90 hari dipindah ke backlog (P2) |
 | Alat opsional (lewati = bodyweight) | ✅ | 0.11.0, plus catatan sesi ST yang jadi lebih pendek |
 | `config/athlete-profile.json` netral + file migrasi profil pemilik | ✅ | 0.11.0: zona dari VDOT 30; `scripts/make-owner-settings.mjs` → `owner-settings.local.json` (diabaikan git) |
 | Ekspor/impor format v3 (profil dasar + status onboarding), impor v2 tetap diterima | ✅ | 0.11.0. File `kind: "defaults"` hanya mengisi yang kosong; log selalu digabung |
@@ -254,7 +256,7 @@ Rencana 0.11, spesifikasi lengkap di [ONBOARDING.md](ONBOARDING.md).
 | Pengingat amankan deploy (Vercel Authentication › All Deployments) | ✅ | 0.11.1, konfirmasi tersimpan (`protectionConfirmedAt`). Aplikasi tidak bisa memeriksanya dari dalam |
 | Pasang ke layar utama (install prompt Android, panduan iOS) | ✅ | 0.11.1, plus catatan masih butuh internet |
 | Bagian "Belum selesai" di Setting untuk langkah yang dilewati | ✅ | 0.11.1: koneksi, proteksi (termasuk pengguna lama), zona perkiraan, pasang |
-| Tur in-app 4 sampai 5 sorotan + "Ulangi tur" | ⬜ | 0.11.2 |
+| Tur in-app 4 sampai 5 sorotan + "Ulangi tur" | ✅ | 0.11.2: 5 sorotan lintas tab (Profil, Lari, Strength, Program, Setting), spotlight sendiri, Escape & fokus terjebak, reduced motion hanya fade. Ulangi dari Setting › Tampilan |
 
 ## 5. Persyaratan non-fungsional
 
@@ -267,10 +269,10 @@ Rencana 0.11, spesifikasi lengkap di [ONBOARDING.md](ONBOARDING.md).
 | Keandalan logika | Semua aturan latihan diuji unit test | ✅ |
 | Akurasi data aktivitas | Split per km konsisten dengan ringkasan aktivitas dan dekat dengan Strava | 🟡 Jumlah jarak & waktu split = total; hasil yang meleset > 5% jarak / 10% waktu tidak ditampilkan. Per km masih bisa beda beberapa detik dari Strava (lihat §6) |
 | Lisensi aset | Hanya aset berlisensi bebas, atribusi di `NOTICE.md` | ✅ free-exercise-db (Unlicense) |
-| Ukuran aset & performa | Gambar lokal WebP ≤ 600 px, lazy loading, tanpa hotlink | ✅ 70 gambar, ±1,4 MB total |
+| Ukuran aset & performa | Gambar lokal WebP ≤ 600 px, lazy loading, tanpa hotlink | ✅ 72 gambar, ±1,3 MB total |
 | Ketersediaan | Tetap jalan tanpa API key / saat intervals.icu error | ✅ |
 | Offline | Bisa dibuka tanpa sinyal | ⬜ |
-| Pengujian UI | Test komponen / end-to-end | ⬜ Hanya unit test logika (termasuk logika murni Segment Skyline). Screenshot dokumentasi diperbarui tiap rilis UI (terakhir 0.10.1: Profil & detail aktivitas) |
+| Pengujian UI | Test komponen / end-to-end | ⬜ Hanya unit test logika (termasuk logika murni Segment Skyline). Screenshot dokumentasi diperbarui tiap rilis UI (terakhir 0.11.2: onboarding & tur) |
 | CI | Test & build otomatis tiap push/PR | ⬜ Hanya build Vercel |
 
 ## 6. Keterbatasan & utang teknis
@@ -298,12 +300,13 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 
 | Usulan versi | Isi | Alasan |
 | --- | --- | --- |
-| **0.11 Onboarding & deploy pribadi** | Wizard onboarding, profil dasar di Setting, JSON netral + migrasi pemilik, ekspor v3, cek koneksi intervals.icu, pengingat proteksi deploy, pasang ke HP, tur ([ONBOARDING.md](ONBOARDING.md)) | Orang lain bisa memakai fork-nya dengan profil sendiri tanpa edit JSON dan tanpa mewarisi data pemilik |
 | **0.12 Aman & tersinkron** | Proteksi akses (PIN/passcode) + sinkron data ke database | Setting & log kini berharga; jangan hilang atau terbuka |
 | **0.13 Program hidup** | Program ↔ generator, kepatuhan rencana vs aktual di kalender, prediksi waktu lomba | Program target jadi benar-benar dipakai harian |
 | **0.14 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
 | **1.0 Siap pakai penuh** | Offline, kirim workout ke intervals.icu, CI + test e2e | Stabil dan mandiri tanpa edit kode |
 
+> 2026-10-22 (2): **0.11 Onboarding & deploy pribadi selesai** (0.11.0, 0.11.1, 0.11.2) dan pindah ke §8. Rilis berikutnya **0.12 Aman & tersinkron**. Isian awal VDOT dari lari terbaik masuk backlog P2.
+>
 > 2026-10-22: spesifikasi **Onboarding & deploy pribadi** disetujui ([ONBOARDING.md](ONBOARDING.md)) dan masuk sebagai **0.11** (0.11.0, 0.11.1, 0.11.2). Isi roadmap lama bergeser satu nomor: Aman & tersinkron → 0.12, Program hidup → 0.13, Insight → 0.14. Edit target & tanggal blok pindah dari 1.0 ke 0.11.
 >
 > 2026-10-21: 0.10.1 (logo, dedupe Huawei + Strava, split per km, pemilih waktu) dan 0.10.2 (akurasi split) adalah rilis perbaikan dari pemakaian harian. Urutan roadmap tidak berubah: berikutnya tetap **0.11 Aman & tersinkron**.
@@ -329,6 +332,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P1 | **Grafik tren** CTL/ATL/Form & km mingguan | M | Melihat kebugaran dan kelelahan jangka panjang |
 | P2 | **Kirim workout ke kalender intervals.icu** (lalu ke jam yang terhubung) | M | Workout langsung muncul di jam |
 | P2 | **Edit sisa profil di aplikasi** (target lomba, tanggal mulai blok, zona HR/RPE) | S | Tanpa edit JSON sama sekali. → Terserap ke **0.11** ([ONBOARDING.md](ONBOARDING.md) §4.5), kecuali zona HR/RPE yang tetap di backlog |
+| P2 | **Isian awal VDOT dari lari terbaik 90 hari** di onboarding & Setting (butuh data intervals.icu di client) | S | Zona lari tepat tanpa harus ingat hasil lomba |
 | P2 | **Ambang personal** (HR berat dari zona/LTHR, baseline HRV 30 hari) | S | Saran lebih akurat |
 | P2 | **Mode offline** (service worker, cache workout terakhir) | M | Tetap bisa dibuka di gym tanpa sinyal. Relevan untuk rasa native setelah onboarding mengajak pasang ke layar utama (0.11) |
 | P2 | **Timer sesi ST** (istirahat antar set, hitung mundur tahan) | M | Tidak perlu aplikasi timer lain |
@@ -370,6 +374,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.10.2 | 2026-10-21 | Split per km akurat: data jarak bertangga, lonjakan, reset; ambang bergerak seperti Strava; validasi terhadap ringkasan aktivitas |
 | 0.11.0 | 2026-10-22 | Onboarding (langkah 1, 2, 5–8, 10) + gate, profil dasar di Setting, JSON profil netral + migrasi pemilik, cadangan v3 |
 | 0.11.1 | 2026-10-22 | Onboarding langkah 3 (cek koneksi intervals.icu di server), 4 (amankan deploy), 9 (pasang ke HP); pengingat "Belum selesai" di Setting |
+| 0.11.2 | 2026-10-22 | Tur in-app 5 sorotan + Ulangi tur; strength tanpa alat (5 gerakan cadangan, pesan alat, test semua kombinasi); screenshot onboarding |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 

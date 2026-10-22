@@ -49,14 +49,26 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
     <td align="center"><sub>Setting: kondisi, zona, alat</sub></td>
   </tr>
   <tr>
+    <td><img src="docs/screenshots/11-onboarding.jpg" width="220" alt="Onboarding langkah 1: selamat datang"></td>
+    <td><img src="docs/screenshots/12-onboarding-connection.jpg" width="220" alt="Onboarding langkah 3: cek koneksi intervals.icu"></td>
+    <td><img src="docs/screenshots/13-onboarding-summary.jpg" width="220" alt="Ringkasan onboarding dengan tombol Mulai tur"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Onboarding</sub></td>
+    <td align="center"><sub>Cek koneksi intervals.icu</sub></td>
+    <td align="center"><sub>Ringkasan + Mulai tur</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/14-tour.jpg" width="220" alt="Tur in-app menyorot Saran hari ini"></td>
     <td><img src="docs/screenshots/07-light-mode.jpg" width="220" alt="Mode terang: kartu tag Progression Run"></td>
   </tr>
   <tr>
+    <td align="center"><sub>Tur in-app</sub></td>
     <td align="center"><sub>Mode terang</sub></td>
   </tr>
 </table>
 
-<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
+<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1, onboarding & tur di 0.11.2), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
 
 > **Mau memakainya dengan data latihanmu sendiri di HP?** Ikuti [Pasang di HP-mu sendiri](#pasang-di-hp-mu-sendiri): gratis, sekitar 15 menit, tanpa menulis kode.
 
@@ -86,12 +98,13 @@ Awalnya ini cuma buat saya sendiri. Tapi kondisi, alat, zona lari, dan pilihan g
 | **Data intervals.icu** | Ringkasan 7 hari (km, pace, HR, long run, load), kalender aktivitas bulanan (ketuk tanggal untuk detail), detail aktivitas dengan **split per km** (dari data per detik jam atau GPS, divalidasi terhadap ringkasan) dan interval, serta wellness (HRV, resting HR, tidur, CTL/ATL/Form). Aktivitas yang tercatat dobel dari dua sumber (mis. jam + Strava) dihitung sekali. |
 | **Generator lari** | 30/45/60 menit × Easy/Moderate/High dengan 13 pola: Z2, run-walk, cadence drill, tempo, cruise interval, progression run, mini interval, Norwegian 4×4, dan 15/15. Target pace dari zona di Setting, cue & catatan dari kondisi aktif, dan durasinya selalu tepat. |
 | **Detail gerakan** | Thumbnail di setiap gerakan; tap untuk bottom sheet berisi gambar posisi awal ↔ akhir (crossfade, bisa dijeda), cue teknik, otot utama/sekunder, dan catatan kondisi aktif. Gambar dari free-exercise-db (Unlicense), disimpan lokal. |
-| **Generator ST** | Full Body / Upper Push / Upper Pull / Lower. Hanya gerakan yang dipilih & bisa dilakukan dengan alat yang ada, RPE ≤ 7, beban yang benar-benar bisa dirakit dari plat, plus gerakan wajib/terlarang sesuai kondisi aktif (prehab shin, stabilitas panggul, Spine-Friendly, dll.). |
+| **Generator ST** | Full Body / Upper Push / Upper Pull / Lower. Hanya gerakan yang dipilih & bisa dilakukan dengan alat yang ada, RPE ≤ 7, beban yang benar-benar bisa dirakit dari plat, plus gerakan wajib/terlarang sesuai kondisi aktif (prehab shin, stabilitas panggul, Spine-Friendly, dll.). **Tanpa alat pun jalan**: Upper Push/Pull memakai gerakan cadangan (Push-Up, Wall/Knee Push-Up, Prone Y-T-W, Reverse Snow Angel), dan bila sesi tidak bisa disusun aplikasi menyebut alat yang dibutuhkan. |
 | **Periodisasi** | Blok 4 minggu (3 normal + 1 deload). Gerakan utama ★ dikunci per blok, sedangkan aksesori dan skema rep berputar. Bisa **dimatikan** (toggle) untuk latihan bebas tanpa jadwal blok. |
 | **Program target** | Program mingguan menuju **PB 5K, PB 10K, Half Marathon, atau Full Marathon**: fase Base → Build → Peak → Taper, long run naik ≤ 10%/minggu dengan cutback, race pace dari target waktu, dan jadwal ST yang tidak bentrok. |
 | **Saran hari ini** | Menggabungkan readiness (HRV, resting HR, sesi kemarin), distribusi 80/20, kenaikan km mingguan, dan jarak antara ST kaki dan lari berat. Sarannya bisa diterapkan dengan satu tap. |
 | **Progresi beban** | Catat sesi, lalu beban berikutnya disesuaikan otomatis (aturan "2-for-2" NSCA) ke beban berikutnya yang bisa dirakit, tanpa pernah melewati batas library. Riwayatnya ada di halaman Strength. |
 | **Salin cepat** | Workout ST sebagai teks ringkas; workout lari lewat tombol **Copy Set** (format "Set" Huawei Health). |
+| **Onboarding & tur** | Saat pertama dibuka: disclaimer, profil, kondisi, zona lari, alat, cek koneksi intervals.icu, pengingat amankan deploy, pasang ke HP. Lalu tur singkat 5 sorotan; bisa diulang dari Setting › Tampilan. |
 | **Demo Mode** | Tanpa API key, aplikasi tetap berjalan penuh memakai data dummy. |
 | **PWA & design system** | Bisa di-install ke HP dan full-screen. Design system "Tag": dark-first, satu aksen oranye `#FC4C02`, Archivo + Geist Mono, Segment Skyline & Week Ledger, dengan **toggle tema terang/gelap** yang tersimpan di perangkat. |
 | **Sistem warna** | Intensitas: **Easy = hijau, Moderate = kuning, High = merah**. Status: **aktif/tercapai = hijau, nonaktif/belum = merah**. Kontras dijaga di tema terang maupun gelap. |
@@ -228,6 +241,7 @@ Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di pera
 | **0.9** Visual gerakan | ✅ Selesai | Gambar & detail teknik untuk 35/40 gerakan (free-exercise-db), 13 gerakan baru (stabilitas panggul, core, unilateral, soleus, bahu), toggle titik tambat band |
 | **0.10-ui** Redesign "Tag" | ✅ Selesai | Token dark-first, tipografi Archivo + Geist Mono, StatRow, Segment Skyline (rencana & selesai), Week Ledger, kontras tombol AA |
 | **0.10.1–0.10.2** Logo & data aktivitas | ✅ Selesai | Logo "Forward H", aktivitas ganda Huawei + Strava dihitung sekali, split per km yang divalidasi (GPS bila perlu), pemilih waktu & pace di Setting |
+| **0.11** Onboarding & deploy pribadi | ✅ Selesai | Wizard 10 langkah, profil di perangkat + JSON netral, cek koneksi di server, pengingat proteksi deploy, pasang ke HP, tur in-app, strength tanpa alat |
 | Berikutnya | 💡 Rencana | Proteksi akses + sinkron data, program terhubung ke generator, grafik tren, mode offline. Lihat [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
 
 Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
@@ -236,7 +250,7 @@ Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 
 - **Next.js 16** (App Router, Server Components) + **React 19** + **TypeScript**
 - **Tailwind CSS 4** dengan token semantik di [`app/globals.css`](app/globals.css). Dark mode mengikuti pengaturan sistem.
-- **Vitest**: 10 file test, 178 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
+- **Vitest**: 16 file test, 243 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
 - **intervals.icu REST API** (aktivitas, wellness, stream per detik), dipanggil hanya dari server
 - Grafik SVG buatan sendiri (Segment Skyline), tanpa library chart
 - Tanpa database. Profil default disimpan di JSON; Setting, log sesi, dan program di localStorage perangkat (bisa diekspor/impor).
