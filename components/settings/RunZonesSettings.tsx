@@ -30,7 +30,16 @@ function defaultPace(k: ZoneKey): string {
 }
 
 /** Pace per zona bisa diubah manual atau dihitung dari hasil lomba (VDOT Daniels). */
-export function RunZonesSettings({ settings, onChange }: { settings: AthleteSettings; onChange: (s: AthleteSettings) => void }) {
+export function RunZonesSettings({
+  settings,
+  onChange,
+  calculatorOpen = false,
+}: {
+  settings: AthleteSettings;
+  onChange: (s: AthleteSettings) => void;
+  /** Buka kalkulator VDOT sejak awal (onboarding jalur "Dari hasil lomba"). */
+  calculatorOpen?: boolean;
+}) {
   const setZone = (k: ZoneKey, pace: string | null) => {
     const runZones = { ...settings.runZones };
     if (pace) runZones[k] = pace;
@@ -58,7 +67,7 @@ export function RunZonesSettings({ settings, onChange }: { settings: AthleteSett
           <ZoneRow key={k} zone={k} value={settings.runZones[k]} onSave={(p) => setZone(k, p)} />
         ))}
       </ul>
-      <VdotCalculator onApply={(zones) => onChange({ ...settings, runZones: zones })} />
+      <VdotCalculator open={calculatorOpen} onApply={(zones) => onChange({ ...settings, runZones: zones })} />
     </Card>
   );
 }
@@ -121,7 +130,7 @@ function ZoneRow({ zone, value, onSave }: { zone: ZoneKey; value?: string; onSav
   );
 }
 
-function VdotCalculator({ onApply }: { onApply: (zones: Partial<Record<ZoneKey, string>>) => void }) {
+function VdotCalculator({ onApply, open }: { onApply: (zones: Partial<Record<ZoneKey, string>>) => void; open?: boolean }) {
   const [dist, setDist] = useState<RaceDistanceKey>("5k");
   const [sec, setSec] = useState(0);
   const timeId = useId();
@@ -133,7 +142,7 @@ function VdotCalculator({ onApply }: { onApply: (zones: Partial<Record<ZoneKey, 
   const zones = v ? zonesFromVdot(v) : undefined;
 
   return (
-    <details className="group mt-4 rounded-inner border border-line">
+    <details open={open || undefined} className="group mt-4 rounded-inner border border-line">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3 text-body font-semibold">
         Hitung dari hasil lomba (VDOT)
         <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>

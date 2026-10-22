@@ -13,6 +13,8 @@ const ITEMS = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  // Onboarding tampil tanpa navigasi tab.
+  if (pathname.startsWith("/onboarding")) return null;
   return (
     <nav
       aria-label="Navigasi utama"
