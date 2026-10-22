@@ -7,7 +7,7 @@
 
 # Hybrid Athlete Dashboard
 
-Jujur, saya sering bingung hari ini mau latihan apa. Lari atau strength? Santai atau gas? Kemarin udah berat belum? Project ini saya bikin buat jawab pertanyaan itu. Aplikasinya baca data latihan dan wellness dari [intervals.icu](https://intervals.icu), lalu langsung kasih satu workout **lari** atau **strength training (ST)** buat hari ini yang pas sama kondisi badan, riwayat cedera, dan alat yang ada. Dibuat untuk **hybrid athlete**: lari 10K–21K plus ST di rumah.
+Jujur, tiap kali mau olahraga sering bingung hari ini mau latihan apa. Lari atau strength? Santai atau gas? Kemarin udah berat belum? Project ini saya bikin buat jawab pertanyaan itu. Aplikasinya baca data latihan dan wellness dari [intervals.icu](https://intervals.icu), lalu langsung kasih satu workout **lari** atau **strength training (ST)** buat hari ini yang pas sama kondisi badan, riwayat cedera, dan alat yang ada. Dibuat untuk **hybrid athlete**: lari target 10K–21K plus ST di rumah (ini saya btw hehe).
 
 Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dipakai seperti aplikasi native. Tampilannya mengikuti design system **"Tag"** ([docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)): rasanya seperti tag lari yang ditempel di layar. Dark-first dengan permukaan charcoal, satu aksen oranye, judul italic condensed, label mono kecil, angka besar rata kolom, dan grafik yang menggambar bentuk latihan.
 
@@ -64,16 +64,16 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
 
 ## Kenapa project ini ada
 
-Data latihan saya sebenarnya udah lengkap di jam dan intervals.icu. Masalahnya, data doang nggak ngasih tahu hari ini harus ngapain. Ujungnya saya buka beberapa aplikasi, lihat program dari internet, terus nebak. Kadang kebanyakan sesi berat, kadang malah skip karena kelamaan mikir.
+Data latihan saya sebenarnya udah lengkap di aplikasi jam. Masalahnya, data doang nggak ngasih tahu hari ini harus ngapain (sebenarnya ada fiturnya di app jam tangannya cuma kadang banyak yang berbayar, **bro in this economy**). Ujungnya saya buka beberapa aplikasi, lihat program dari internet, terus nebak. Kadang kebanyakan sesi berat, kadang malah skip karena kelamaan mikir (ini yang paling bikin males, mau olahraga aja harus mikir padahal bukan athlete).
 
 Program generik juga nggak bisa langsung dipakai, karena badan saya punya aturan sendiri:
 
 - **Anterior pelvic tilt / hiperlordosis:** nggak boleh ada beban axial berat tanpa tumpuan (Spine-Friendly Protocol).
-- **Riwayat shin splints:** prehab wajib, dan kenaikan volume lari harus dijaga.
+- **Riwayat shin splints:** prehab wajib, dan kenaikan volume lari harus dijaga (masih pemula).
 - **Overpronation / crossover gait:** perlu latihan stabilitas panggul, dengan target cadence 175–180 SPM.
-- **Home gym terbatas:** cuma dumbbell modular, band, dan pull-up bar. Beban nggak boleh lebih dari yang ada.
+- **Home gym terbatas:** cuma dumbbell modular, band, dan pull-up bar. Beban nggak boleh lebih dari yang ada (jarak gym dari rumah 18KM, jadi beli alat seadanya untuk di rumah).
 
-Jadi daripada mikir ulang tiap pagi, semua aturan itu saya tulis jadi **modul TypeScript yang diuji**, bukan cuma catatan di kepala atau teks di prompt. Workout yang keluar selalu dicek dulu sebelum tampil. Sarannya tetap saran: keputusan akhir tetap di kamu.
+Jadi daripada mikir ulang tiap pagi, semua aturan itu saya tulis jadi **modul TypeScript yang diuji**, bukan cuma catatan di kepala atau teks di prompt. Workout yang keluar selalu dicek dulu sebelum tampil. Sarannya tetap akan jadi saran: keputusan akhir tetap di kamu (bisa di custom kok di library webapp nya).
 
 Awalnya ini cuma buat saya sendiri. Tapi kondisi, alat, zona lari, dan pilihan gerakan bisa diatur di aplikasi, jadi kamu juga bisa pasang pakai profil dan data intervals.icu-mu sendiri.
 
@@ -100,7 +100,7 @@ Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](docs/TRAININ
 
 ## Pasang di HP-mu sendiri
 
-Gratis, sekitar 15 menit, tanpa menulis kode. Hasilnya: aplikasi di layar utama HP yang membaca data latihanmu sendiri dari intervals.icu, berjalan di akun Vercel milikmu sendiri.
+Gratis, Install sekitar 15 menit aja, tanpa menulis kode. Hasilnya: aplikasi di layar utama HP yang membaca data latihanmu sendiri dari intervals.icu, berjalan di akun Vercel milikmu sendiri.
 
 ### Yang kamu butuhkan
 
@@ -297,4 +297,4 @@ Tampilan mengikuti **[docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)** (design sy
 
 ## Disclaimer
 
-Aplikasi ini adalah alat bantu perencanaan latihan pribadi, **bukan pengganti saran dokter, fisioterapis, atau pelatih bersertifikat**. Aturan di dalamnya awalnya dirancang untuk satu profil atlet tertentu. Bila kamu memasangnya untuk dirimu sendiri, sesuaikan kondisi, alat, dan zona dengan keadaanmu, konsultasikan cedera dengan tenaga kesehatan, dan hentikan latihan bila muncul nyeri.
+Aplikasi ini adalah alat bantu perencanaan latihan pribadi, **bukan pengganti saran dokter, fisioterapis, atau pelatih bersertifikat**. Aturan di dalamnya awalnya dirancang untuk satu profil atlet tertentu. Bila kamu memasangnya untuk dirimu sendiri, sesuaikan kondisi, alat, dan zona dengan keadaanmu, konsultasikan cedera dengan tenaga kesehatan, dan hentikan latihan bila muncul nyeri. Segala saran yang ada di project ini harus di tinjau kembali, apa bila terjadi sesuatu berdasarkan saran dari project ini di tanggung masing masing. Saya bukan dokter cuma athelte rekreasional yang suka ngulik hal hal yang berbau teknologi, sains, dan kesehatan. Termakasih, boleh dong bintangnya hehe.
