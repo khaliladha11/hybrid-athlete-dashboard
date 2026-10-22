@@ -8,6 +8,7 @@ import { ConditionsSettings } from "./ConditionsSettings";
 import { DataBackupCard } from "./DataBackupCard";
 import { EquipmentSettings } from "./EquipmentSettings";
 import { MovementSettings } from "./MovementSettings";
+import { PendingCard } from "./PendingCard";
 import { PreferencesCard } from "./PreferencesCard";
 import { ProfileSettings } from "./ProfileSettings";
 import { RunZonesSettings } from "./RunZonesSettings";
@@ -144,6 +145,8 @@ export function SettingsView() {
 
   return (
     <div className="space-y-4">
+      {/* Langkah onboarding yang dilewati, di luar navigasi bagian (tidak ikut scroll spy). */}
+      <PendingCard />
       <nav
         ref={navRef}
         aria-label="Bagian setting"
