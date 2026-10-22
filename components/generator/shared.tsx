@@ -65,14 +65,18 @@ export function GeneratorActions({
   copyLabel,
   onRegenerate,
   canRegenerate,
+  tour,
 }: {
   copyText: string;
   copyLabel: string;
   onRegenerate: () => void;
   canRegenerate: boolean;
+  /** Sasaran tur in-app (`data-tour`). */
+  tour?: string;
 }) {
   return (
     <div
+      data-tour={tour}
       className="sticky z-10 rounded-card border border-line bg-surface/95 p-2 shadow-card backdrop-blur"
       style={{ bottom: "calc(4.25rem + env(safe-area-inset-bottom, 0px))" }}
     >

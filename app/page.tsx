@@ -31,7 +31,7 @@ export default async function ProfilePage() {
     <div className="space-y-4">
       <ProfileHeader />
 
-      <CoachCard id="saran" advice={[...readinessAdvice(readiness), ...(activities.ok ? weeklyAdvice(activities.data, today) : [])]} />
+      <CoachCard id="saran" tour="saran" advice={[...readinessAdvice(readiness), ...(activities.ok ? weeklyAdvice(activities.data, today) : [])]} />
 
       <div className="grid grid-cols-2 gap-2">
         <Link

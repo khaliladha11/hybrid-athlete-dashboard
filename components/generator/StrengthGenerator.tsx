@@ -246,6 +246,7 @@ export function StrengthGenerator({
           workout.items.some((i) => i.anchor) && (
             <button
               type="button"
+              data-tour="strength-log"
               onClick={() => {
                 setSaved(false);
                 setLogging(true);
@@ -270,6 +271,7 @@ export function StrengthGenerator({
       <GeneratorActions
         copyText={text}
         copyLabel="Copy teks"
+        tour="strength-generator"
         onRegenerate={regenerate}
         canRegenerate={canRegenerate}
       />

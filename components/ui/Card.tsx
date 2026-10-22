@@ -13,6 +13,7 @@ export function Card({
   flush = false,
   tone = "default",
   kicker,
+  tour,
 }: {
   title?: React.ReactNode;
   action?: React.ReactNode;
@@ -23,10 +24,12 @@ export function Card({
   tone?: "default" | "tag";
   /** Label mono kecil dengan titik oranye, mis. "EASY RUN". */
   kicker?: string;
+  /** Sasaran tur in-app (`data-tour`). */
+  tour?: string;
 }) {
   const padX = flush ? "px-5" : "";
   return (
-    <section className={`rounded-card border border-line bg-surface shadow-card ${flush ? "py-5" : "p-5"} ${className}`}>
+    <section data-tour={tour} className={`rounded-card border border-line bg-surface shadow-card ${flush ? "py-5" : "p-5"} ${className}`}>
       {tone === "tag" ? (
         (kicker || action || title) && (
           <header className={`mb-5 ${padX}`}>

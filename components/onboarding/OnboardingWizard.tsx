@@ -14,6 +14,7 @@ import {
   advance,
   back,
   canContinue,
+  completeTour,
   chooseConditions,
   confirmProtection,
   gateDecision,
@@ -38,6 +39,7 @@ import { ConnectionStep } from "./ConnectionStep";
 import { InstallStep } from "./InstallStep";
 import { ProtectStep } from "./ProtectStep";
 import { TermsStep } from "./TermsStep";
+import { useTour } from "./Tour";
 
 const TITLE: Record<OnboardingStep, string> = {
   welcome: "Selamat datang",
@@ -64,6 +66,7 @@ const now = () => new Date().toISOString();
 export function OnboardingWizard() {
   const ready = useIsClient();
   const router = useRouter();
+  const tour = useTour();
   const [stored, setState] = useOnboardingState();
   const [settings, saveSettings] = useAthleteSettings();
   const resolved = useResolvedProfile();
@@ -254,14 +257,27 @@ export function OnboardingWizard() {
             Kembali
           </button>
           {/* Langkah 3, 4, 9 punya tombolnya sendiri (Lanjut / Demo Mode / Nanti saja). */}
+          {/* Ringkasan: kedua tombol menyelesaikan onboarding; "Mulai tur" juga membuka tur in-app. */}
+          {step === "summary" && (
+            <button
+              type="button"
+              onClick={() => save(completeTour(advance(state, ctx, now(), env), now()))}
+              className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.secondary} shrink-0 px-3`}
+            >
+              Lewati tur
+            </button>
+          )}
           {step !== "connection" && step !== "protect" && step !== "install" && (
             <button
               type="button"
               disabled={!canContinue(step, ctx)}
-              onClick={next}
+              onClick={() => {
+                next();
+                if (step === "summary") tour.start();
+              }}
               className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.primary} flex-1`}
             >
-              {step === "summary" ? "Buka Profil" : "Simpan dan lanjut"}
+              {step === "summary" ? "Mulai tur" : "Simpan dan lanjut"}
             </button>
           )}
         </div>

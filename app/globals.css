@@ -463,6 +463,42 @@ body {
   }
 }
 
+/* Tur in-app (ONBOARDING §4): lapisan gelap dengan lubang di elemen sorotan + popover. */
+.tour-hole {
+  box-shadow: 0 0 0 9999px var(--tour-scrim);
+  pointer-events: none;
+}
+.tour-dim {
+  background: var(--tour-scrim);
+}
+.tour-layer {
+  --tour-scrim: rgba(0, 0, 0, 0.6);
+  animation: tour-fade-in var(--dur-pop) var(--ease-out);
+}
+.tour-layer[data-closing] {
+  animation: tour-fade-out 120ms var(--ease-out) forwards;
+}
+/* Popover masuk dari scale(0.96) + opacity, origin dari elemen sorotan. */
+.tour-pop {
+  animation: tour-pop-in var(--dur-pop) var(--ease-out);
+}
+@keyframes tour-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes tour-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes tour-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* Kurangi gerak: tanpa scale/translate, perubahan state instan. */
   /* Skyline: tanpa gerak skala, cukup fade. */
@@ -490,6 +526,10 @@ body {
     from {
       opacity: 1;
     }
+  }
+  /* Tur: popover hanya memudar, tanpa skala. */
+  .tour-pop {
+    animation-name: tour-fade-in;
   }
 }
 

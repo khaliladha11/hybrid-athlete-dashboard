@@ -28,7 +28,7 @@ export function DataBackupCard() {
   };
 
   return (
-    <Card title="Data & cadangan" action={<span className="text-[12px] text-faint">tersimpan di perangkat ini</span>}>
+    <Card title="Data & cadangan" tour="data-backup" action={<span className="text-[12px] text-faint">tersimpan di perangkat ini</span>}>
       <p className="text-[13px] text-muted">
         Log sesi, profil, pengaturan, dan program hanya ada di HP/browser ini. Ekspor berkala supaya tidak hilang saat data aplikasi dihapus atau ganti HP.
       </p>

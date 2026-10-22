@@ -85,7 +85,7 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
 
   return (
     <div className="space-y-4">
-      <Card title="Target">
+      <Card title="Target" tour="program-target">
         <div className="space-y-4">
           <Segmented
             label="Program"

@@ -3,6 +3,7 @@ import { Archivo, Geist_Mono } from "next/font/google";
 import { AppBar } from "@/components/ui/AppBar";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
+import { TourProvider } from "@/components/onboarding/Tour";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { isDemoMode } from "@/lib/intervals/data-source";
 import { THEME_BOOT_SCRIPT } from "@/lib/preference-keys";
@@ -63,10 +64,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div aria-hidden className="fixed inset-x-0 top-0 z-30 h-[env(safe-area-inset-top)] bg-black" />
         {isDemoMode() && <DemoBanner />}
         <AppBar />
-        <main className="safe-x mx-auto w-full max-w-xl pt-3 pb-[calc(7rem+env(safe-area-inset-bottom))]">
-          <OnboardingGate>{children}</OnboardingGate>
-        </main>
-        <BottomNav />
+        <TourProvider>
+          <main className="safe-x mx-auto w-full max-w-xl pt-3 pb-[calc(7rem+env(safe-area-inset-bottom))]">
+            <OnboardingGate>{children}</OnboardingGate>
+          </main>
+          <BottomNav />
+        </TourProvider>
       </body>
     </html>
   );

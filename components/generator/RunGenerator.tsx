@@ -221,6 +221,7 @@ export function RunGenerator({
       <GeneratorActions
         copyText={setText}
         copyLabel="Copy Set"
+        tour="run-generator"
         onRegenerate={regenerate}
         canRegenerate={canRegenerate}
       />

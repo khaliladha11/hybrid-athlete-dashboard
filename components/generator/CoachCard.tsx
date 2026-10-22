@@ -15,10 +15,13 @@ export function CoachCard({
   current,
   onApply,
   id,
+  tour,
 }: {
   advice: Advice[];
   /** Anchor (mis. "saran") supaya bisa ditautkan dari halaman generator. */
   id?: string;
+  /** Sasaran tur in-app (`data-tour`). */
+  tour?: string;
   target?: AdviceTarget;
   current?: { difficulty: Difficulty; duration: Duration; type?: StrengthType };
   onApply?: (s: Suggestion) => void;
@@ -42,7 +45,7 @@ export function CoachCard({
   const severity = target && current ? suggestionSeverity(s) : adviceSeverity(relevant);
 
   return (
-    <aside id={id} role="note" className="scroll-mt-4 rounded-card border border-line bg-surface p-5 shadow-card">
+    <aside id={id} data-tour={tour} role="note" className="scroll-mt-4 rounded-card border border-line bg-surface p-5 shadow-card">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
         <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-brand-ink" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M12 9v4m0 4h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
