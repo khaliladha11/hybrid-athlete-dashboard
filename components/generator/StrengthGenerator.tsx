@@ -27,7 +27,8 @@ import {
   type StrengthWorkout,
 } from "@/lib/generator";
 import type { Advice } from "@/lib/coach";
-import type { Movement, ResolvedProfile } from "@/lib/profile";
+import { sessionCoverage } from "@/lib/athlete-settings";
+import { baseProfile, type Movement, type ResolvedProfile } from "@/lib/profile";
 import { useBlockContext, useBlockMode, useResolvedProfile } from "@/lib/settings-store";
 import { applyProgression } from "@/lib/progression";
 import { useTrainingLog } from "@/lib/training-log";
@@ -145,6 +146,8 @@ export function StrengthGenerator({
           if (s.type) setType(s.type);
         }}
       />
+
+      <CoverageNote type={type} p={p} limited={!!workout?.limited} duration={duration} />
 
       {!workout ? (
         <div role="alert" className="rounded-card border border-danger bg-danger-soft p-5 text-body text-ink">
@@ -273,6 +276,30 @@ export function StrengthGenerator({
       </>
       )}
       {detail && <MovementSheet name={detail.movement} item={detail} activeConditions={p.activeConditions} onClose={() => setDetail(null)} />}
+    </div>
+  );
+}
+
+/**
+ * Pesan jujur soal alat: jenis sesi tanpa gerakan utama (mis. Upper Pull tanpa pull-up bar, dumbbell,
+ * atau band) dan sesi yang lebih pendek dari durasi pilihan karena gerakan aktif terbatas.
+ */
+function CoverageNote({ type, p, limited, duration }: { type: Parameters<typeof sessionCoverage>[0]; p: ResolvedProfile; limited: boolean; duration: number }) {
+  const c = sessionCoverage(type, p, baseProfile);
+  if (c.ok && !limited) return null;
+  return (
+    <div role="status" className="rounded-card border border-line bg-surface p-4 text-[14px] leading-relaxed">
+      {!c.ok && (
+        <>
+          <p className="font-semibold text-ink">{STRENGTH_TYPE_LABEL[type]} belum bisa disusun dengan gerakan aktif.</p>
+          {c.needs.length > 0 && <p className="mt-1 text-muted">Butuh salah satu: {c.needs.join(", ")}.</p>}
+          {c.selectable.length > 0 && <p className="mt-1 text-muted">Atau aktifkan: {c.selectable.join(", ")}.</p>}
+          <Link href="/setting#alat" className="mt-2 inline-flex min-h-11 items-center font-semibold text-brand-ink hover:underline">
+            Atur alat & gerakan di Setting
+          </Link>
+        </>
+      )}
+      {c.ok && limited && <p className="text-muted">Sesi lebih pendek dari {duration}&apos; karena gerakan aktif terbatas.</p>}
     </div>
   );
 }
