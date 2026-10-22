@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { defaultSettings, formatRaceTarget, parseRaceTarget, parseSettings, resolveProfile, type AthleteSettings } from "@/lib/athlete-settings";
+import { defaultSettings, formatRaceTarget, parseRaceTarget, parseSettings, resolveProfile, sessionCoverage, type AthleteSettings } from "@/lib/athlete-settings";
 import { goalFromProfile } from "@/lib/program";
 import { CONDITION_IDS, type ConditionId } from "@/lib/conditions";
 import { barbellLoads, dumbbellLoads, feasibleLoads } from "@/lib/equipment";
@@ -315,5 +315,37 @@ describe("gerakan cadangan tanpa alat (0.11.2)", () => {
     const off = make({ equipment: noGear as AthleteSettings["equipment"], movements: { "Wall Push-Up": false } });
     expect(off.movementStatus["Wall Push-Up"].selected).toBe(false);
     expect(off.movementStatus["Push-Up"].selected).toBe(true);
+  });
+});
+
+describe("cakupan jenis sesi ST (pesan alat)", () => {
+  const noGear = { dumbbell: { enabled: false, handles: 2 }, barbell: { enabled: false }, plates: [], bands: [], pullUpBar: false, bench: false, bandAnchor: false, other: [] };
+  const allOff = (cat: "upperPush" | "upperPull") => Object.fromEntries(baseProfile.movementLibrary[cat].map((m) => [m.name, false]));
+
+  it("profil beralat dan profil tanpa alat (dengan cadangan) bisa menyusun semua jenis sesi", () => {
+    for (const p of [make({}), make({ equipment: noGear as AthleteSettings["equipment"] })]) {
+      for (const t of ["fullBody", "upperPush", "upperPull", "lower"] as const) expect(sessionCoverage(t, p, baseProfile), t).toEqual({ ok: true });
+    }
+  });
+
+  it("tanpa alat dan semua gerakan tarik dimatikan → pesan alat yang dibutuhkan + gerakan yang bisa diaktifkan", () => {
+    const p = make({ equipment: noGear as AthleteSettings["equipment"], movements: allOff("upperPull") });
+    const c = sessionCoverage("upperPull", p, baseProfile);
+    expect(c.ok).toBe(false);
+    if (c.ok) return;
+    expect(c.category).toBe("upperPull");
+    expect(c.needs).toContain("pull-up bar");
+    expect(c.needs).toContain("dumbbell");
+    // Kombinasi yang sudah tercakup kombinasi lebih kecil tidak disebut.
+    expect(c.needs.some((n) => n.startsWith("dumbbell +"))).toBe(false);
+    expect(c.selectable).toEqual(expect.arrayContaining(["Prone Y-T-W Raise", "Prone Reverse Snow Angel"]));
+  });
+
+  it("kondisi yang melarang gerakan tidak disarankan sebagai jalan keluar", () => {
+    const p = make({ conditions: ["shoulder"], equipment: noGear as AthleteSettings["equipment"], movements: allOff("upperPush") });
+    const c = sessionCoverage("upperPush", p, baseProfile);
+    expect(c.ok).toBe(false);
+    if (c.ok) return;
+    expect(c.selectable).not.toContain("Seated Overhead Press");
   });
 });

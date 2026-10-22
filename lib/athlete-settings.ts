@@ -283,3 +283,37 @@ export function parseRaceTarget(textValue: string): { race: RaceKey; seconds: nu
   const v = Number(m[1].replace(",", "."));
   return { race, seconds: Math.round(m[2].toLowerCase() === "h" ? v * 3600 : v * 60) };
 }
+
+// ---------- Cakupan jenis sesi ST ----------
+
+/** Kategori gerakan utama per jenis sesi: Upper Push/Pull butuh gerakan dorong/tarik; Lower & Full Body butuh gerakan tungkai. */
+const SESSION_CATEGORY: Record<"fullBody" | "upperPush" | "upperPull" | "lower", MovementCategory> = {
+  fullBody: "lower",
+  upperPush: "upperPush",
+  upperPull: "upperPull",
+  lower: "lower",
+};
+
+export type SessionCoverage = { ok: true } | { ok: false; category: MovementCategory; needs: string[]; selectable: string[] };
+
+/**
+ * Apakah jenis sesi punya minimal satu gerakan utama yang bisa dipakai. Bila tidak: alat yang dibutuhkan
+ * (kombinasi per gerakan, mis. "pull-up bar", "dumbbell + kursi/bench") dan gerakan yang cukup diaktifkan
+ * di Setting karena alatnya sudah ada. Generator tidak diubah; ini hanya untuk pesan di halaman Strength.
+ */
+export function sessionCoverage(type: keyof typeof SESSION_CATEGORY, p: ResolvedProfile, base: AthleteProfile): SessionCoverage {
+  const category = SESSION_CATEGORY[type];
+  if ((p.movementLibrary[category] ?? []).some((m) => m.available)) return { ok: true };
+  const combos: string[][] = [];
+  const selectable: string[] = [];
+  for (const m of base.movementLibrary[category] ?? []) {
+    if (p.rules.exclude.includes(m.name)) continue;
+    const missing = missingNeeds(m.name, p.equipmentModel);
+    if (missing.length) combos.push(missing.map((n) => NEED_LABEL[n]));
+    else if (!p.movementStatus[m.name]?.selected) selectable.push(m.name);
+  }
+  // Hanya kombinasi minimal: "dumbbell + kursi" tidak perlu disebut bila "dumbbell" saja sudah cukup.
+  const minimal = combos.filter((c, i) => !combos.some((o, j) => j !== i && o.length < c.length && o.every((x) => c.includes(x))));
+  const needs = [...new Set(minimal.map((c) => c.join(" + ")))].sort((a, b) => a.length - b.length || a.localeCompare(b));
+  return { ok: false, category, needs, selectable };
+}
