@@ -8,12 +8,15 @@ import {
   back,
   canContinue,
   chooseConditions,
+  confirmProtection,
   gateDecision,
   goTo,
   initialState,
+  markCompleted,
   migratedState,
   nextStep,
   parseOnboardingState,
+  pendingReminders,
   prevStep,
   skip,
   stepNumber,
@@ -25,41 +28,51 @@ const NOW = "2026-10-22T03:00:00.000Z";
 /** Konteks yang memenuhi semua syarat. */
 const OK: StepContext = { termsChecked: true, name: "Atlet Contoh", conditionsChoice: "none", conditionsCount: 0, zonePath: "estimate" };
 
-function walk(ctx: StepContext = OK) {
+function walk(ctx: StepContext = OK, env?: { standalone?: boolean }) {
   const visited: string[] = [];
   let s = initialState();
   for (let i = 0; i < 20 && !s.completedAt; i++) {
     visited.push(s.currentStep);
-    s = advance(s, ctx, NOW);
+    s = advance(s, ctx, NOW, env);
   }
   return { s, visited };
 }
 
-describe("urutan langkah (0.11.0)", () => {
+describe("urutan langkah", () => {
   it("10 langkah, label x/10", () => {
     expect(STEPS).toHaveLength(10);
     expect(stepNumber("welcome")).toBe(1);
     expect(stepNumber("summary")).toBe(10);
   });
 
-  it("langkah 3, 4, 9 dilewati otomatis dan ditandai skipped", () => {
-    expect(AUTO_SKIPPED).toEqual(["connection", "protect", "install"]);
+  it("sejak 0.11.1 semua langkah tampil; tidak ada yang dilewati otomatis", () => {
+    expect(AUTO_SKIPPED).toEqual([]);
     const { s, visited } = walk();
-    expect(visited).toEqual(["welcome", "terms", "profile", "conditions", "zones", "equipment", "summary"]);
-    expect(s.skipped).toEqual(["connection", "protect", "install"]);
+    expect(visited).toEqual([...STEPS]);
+    expect(s.skipped).toEqual([]);
     expect(s.completedAt).toBe(NOW);
     expect(s.termsVersion).toBe(TERMS_VERSION);
     expect(s.conditionsChoice).toBe("none");
     expect(s.zonePath).toBe("estimate");
   });
 
-  it("maju & mundur melompati langkah otomatis; tidak ada Kembali di langkah 1", () => {
-    expect(nextStep("terms")).toBe("profile");
-    expect(prevStep("profile")).toBe("terms");
+  it("aplikasi sudah terpasang (standalone): langkah pasang selesai sendiri, maju maupun mundur", () => {
+    const env = { standalone: true };
+    const { s, visited } = walk(OK, env);
+    expect(visited).not.toContain("install");
+    expect(s.completed).toContain("install");
+    expect(nextStep("equipment", env)).toBe("summary");
+    expect(prevStep("summary", env)).toBe("equipment");
+    expect(back(goTo(initialState(), "summary"), env).currentStep).toBe("equipment");
+    expect(nextStep("equipment")).toBe("install");
+  });
+
+  it("maju & mundur; tidak ada Kembali di langkah 1", () => {
+    expect(nextStep("terms")).toBe("connection");
+    expect(prevStep("profile")).toBe("protect");
     expect(prevStep("welcome")).toBeNull();
     expect(nextStep("summary")).toBeNull();
-    const atProfile = goTo(initialState(), "profile");
-    expect(back(atProfile).currentStep).toBe("terms");
+    expect(back(goTo(initialState(), "profile")).currentStep).toBe("protect");
     expect(back(initialState()).currentStep).toBe("welcome");
   });
 });
@@ -77,8 +90,13 @@ describe("syarat lanjut", () => {
   it("langkah opsional bisa dilewati, langkah wajib tidak", () => {
     const atEquipment = goTo(initialState(), "equipment");
     const skipped = skip(atEquipment);
-    expect(skipped.currentStep).toBe("summary");
+    expect(skipped.currentStep).toBe("install");
     expect(skipped.skipped).toContain("equipment");
+    // Koneksi ("Lanjut dengan Demo Mode"), proteksi ("Nanti saja"), dan pasang bisa dilewati.
+    const atConnection = goTo(initialState(), "connection");
+    expect(skip(atConnection)).toMatchObject({ currentStep: "protect", skipped: ["connection"] });
+    expect(skip(goTo(initialState(), "protect")).currentStep).toBe("profile");
+    expect(skip(goTo(initialState(), "install"))).toMatchObject({ currentStep: "summary", skipped: ["install"] });
     const atProfile = goTo(initialState(), "profile");
     expect(skip(atProfile)).toBe(atProfile);
   });
@@ -98,7 +116,7 @@ describe("penyimpanan", () => {
     for (let i = 0; i < 3; i++) s = advance(s, OK, NOW);
     const restored = parseOnboardingState(JSON.stringify(s))!;
     expect(restored).toEqual(s);
-    expect(restored.currentStep).toBe("conditions");
+    expect(restored.currentStep).toBe("protect");
   });
 
   it("state rusak atau versi tidak dikenal → null (mulai ulang dengan aman)", () => {
@@ -135,5 +153,38 @@ describe("gate", () => {
     const done: OnboardingState = walk().s;
     expect(gateDecision(done, false)).toBe("ok");
     expect(gateDecision(done, false, TERMS_VERSION + 1)).toBe("terms");
+  });
+});
+
+describe("proteksi & pengingat (0.11.1)", () => {
+  const done = (patch: Partial<OnboardingState> = {}): OnboardingState => ({ ...walk().s, ...patch });
+
+  it("konfirmasi proteksi menyimpan waktu dan menandai langkah selesai", () => {
+    const s = confirmProtection(skip(goTo(initialState(), "protect")), NOW);
+    expect(s.protectionConfirmedAt).toBe(NOW);
+    expect(s.completed).toContain("protect");
+    expect(s.skipped).not.toContain("protect");
+  });
+
+  it("onboarding belum selesai → belum ada pengingat", () => {
+    expect(pendingReminders({ state: goTo(initialState(), "zones"), standalone: false, zonesOverridden: false })).toEqual([]);
+    expect(pendingReminders({ state: null, standalone: false, zonesOverridden: false })).toEqual([]);
+  });
+
+  it("state 0.11.0 yang selesai (3, 4, 9 dilewati otomatis) memunculkan pengingatnya", () => {
+    const old = done({ skipped: ["connection", "protect", "install"], protectionConfirmedAt: undefined, zonePath: "vdot" });
+    expect(pendingReminders({ state: old, standalone: false, zonesOverridden: false })).toEqual(["connection", "protect", "install"]);
+  });
+
+  it("pengguna lama (migrasi) diingatkan soal proteksi saja", () => {
+    const m = acceptTerms(migratedState(NOW), NOW);
+    expect(pendingReminders({ state: m, standalone: false, zonesOverridden: true })).toEqual(["protect"]);
+  });
+
+  it("pengingat hilang setelah diselesaikan", () => {
+    const s = done({ skipped: ["connection", "install"], zonePath: "estimate" });
+    expect(pendingReminders({ state: s, standalone: false, zonesOverridden: false })).toEqual(["connection", "protect", "zones", "install"]);
+    const fixed = confirmProtection(markCompleted(s, "connection"), NOW);
+    expect(pendingReminders({ state: fixed, standalone: true, zonesOverridden: true })).toEqual([]);
   });
 });

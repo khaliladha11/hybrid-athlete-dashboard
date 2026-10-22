@@ -20,8 +20,18 @@ export type OnboardingStep = (typeof STEPS)[number];
 /** Naikkan bila teks disclaimer berubah: hanya langkah disclaimer yang tampil ulang. */
 export const TERMS_VERSION = 1;
 
-/** Belum dibuat di 0.11.0 (koneksi, amankan deploy, pasang): dilewati otomatis dan ditandai `skipped`. */
-export const AUTO_SKIPPED: readonly OnboardingStep[] = ["connection", "protect", "install"];
+/**
+ * Langkah yang dilewati otomatis tanpa ditampilkan. Kosong sejak 0.11.1 (langkah 3, 4, 9 sudah ada).
+ * Di 0.11.0 isinya koneksi, amankan deploy, dan pasang; state lama itu tetap valid (`skipped`).
+ */
+export const AUTO_SKIPPED: readonly OnboardingStep[] = [];
+
+/** Kondisi perangkat yang memengaruhi alur. `standalone` = aplikasi sudah dipasang → langkah 9 selesai sendiri. */
+export interface StepEnv {
+  standalone?: boolean;
+}
+
+const isAuto = (s: OnboardingStep, env?: StepEnv) => AUTO_SKIPPED.includes(s) || (s === "install" && env?.standalone === true);
 
 /** Langkah yang tidak bisa dilewati. Syarat lanjutnya ada di `canContinue`. */
 export const REQUIRED: readonly OnboardingStep[] = ["terms", "profile", "conditions", "zones"];
@@ -84,13 +94,13 @@ export function parseOnboardingState(raw: unknown): OnboardingState | null {
 /** Nomor langkah 1..10 untuk label `LANGKAH x/10`. */
 export const stepNumber = (s: OnboardingStep) => STEPS.indexOf(s) + 1;
 
-export function nextStep(s: OnboardingStep): OnboardingStep | null {
-  for (let i = STEPS.indexOf(s) + 1; i < STEPS.length; i++) if (!AUTO_SKIPPED.includes(STEPS[i])) return STEPS[i];
+export function nextStep(s: OnboardingStep, env?: StepEnv): OnboardingStep | null {
+  for (let i = STEPS.indexOf(s) + 1; i < STEPS.length; i++) if (!isAuto(STEPS[i], env)) return STEPS[i];
   return null;
 }
 
-export function prevStep(s: OnboardingStep): OnboardingStep | null {
-  for (let i = STEPS.indexOf(s) - 1; i >= 0; i--) if (!AUTO_SKIPPED.includes(STEPS[i])) return STEPS[i];
+export function prevStep(s: OnboardingStep, env?: StepEnv): OnboardingStep | null {
+  for (let i = STEPS.indexOf(s) - 1; i >= 0; i--) if (!isAuto(STEPS[i], env)) return STEPS[i];
   return null;
 }
 
@@ -136,38 +146,78 @@ export function canContinue(step: OnboardingStep, ctx: StepContext = {}): boolea
 const add = (list: OnboardingStep[], s: OnboardingStep) => (list.includes(s) ? list : STEPS.filter((x) => x === s || list.includes(x)));
 const without = (list: OnboardingStep[], s: OnboardingStep) => list.filter((x) => x !== s);
 
-/** Lompat langsung ke langkah tertentu, mis. setelah impor cadangan. Langkah otomatis di antaranya ditandai `skipped`. */
-export function goTo(state: OnboardingState, to: OnboardingStep): OnboardingState {
-  let skipped = state.skipped;
-  for (const s of AUTO_SKIPPED) if (STEPS.indexOf(s) < STEPS.indexOf(to)) skipped = add(skipped, s);
-  return { ...state, currentStep: to, skipped };
+/**
+ * Lompat langsung ke langkah tertentu, mis. setelah impor cadangan. Langkah otomatis sebelum tujuan
+ * ditandai: `AUTO_SKIPPED` → `skipped`; langkah pasang saat sudah standalone → `completed`.
+ */
+export function goTo(state: OnboardingState, to: OnboardingStep, env?: StepEnv): OnboardingState {
+  let { skipped, completed } = state;
+  for (const s of STEPS) {
+    if (STEPS.indexOf(s) >= STEPS.indexOf(to)) break;
+    if (AUTO_SKIPPED.includes(s)) skipped = add(skipped, s);
+    else if (s === "install" && env?.standalone) {
+      completed = add(completed, s);
+      skipped = without(skipped, s);
+    }
+  }
+  return { ...state, currentStep: to, skipped, completed };
 }
 
 /** Selesaikan langkah sekarang lalu pindah ke langkah berikutnya. Tidak bergerak bila syarat belum terpenuhi. */
-export function advance(state: OnboardingState, ctx: StepContext, now: string): OnboardingState {
+export function advance(state: OnboardingState, ctx: StepContext, now: string, env?: StepEnv): OnboardingState {
   const step = state.currentStep;
   if (!canContinue(step, ctx)) return state;
   let next: OnboardingState = { ...state, completed: add(state.completed, step), skipped: without(state.skipped, step) };
   if (step === "terms") next = { ...next, termsVersion: TERMS_VERSION, termsAcceptedAt: now };
   if (step === "conditions") next = { ...next, conditionsChoice: ctx.conditionsChoice };
   if (step === "zones") next = { ...next, zonePath: ctx.zonePath };
-  const to = nextStep(step);
+  const to = nextStep(step, env);
   if (!to) return { ...next, completedAt: next.completedAt ?? now };
-  return goTo(next, to);
+  return goTo(next, to, env);
 }
 
 /** Lewati langkah opsional. Langkah wajib tidak bisa dilewati. */
-export function skip(state: OnboardingState): OnboardingState {
+export function skip(state: OnboardingState, env?: StepEnv): OnboardingState {
   const step = state.currentStep;
   if (!OPTIONAL.includes(step)) return state;
-  const to = nextStep(step);
+  const to = nextStep(step, env);
   const next = { ...state, skipped: add(state.skipped, step), completed: without(state.completed, step) };
-  return to ? goTo(next, to) : next;
+  return to ? goTo(next, to, env) : next;
 }
 
-export function back(state: OnboardingState): OnboardingState {
-  const to = prevStep(state.currentStep);
+export function back(state: OnboardingState, env?: StepEnv): OnboardingState {
+  const to = prevStep(state.currentStep, env);
   return to ? { ...state, currentStep: to } : state;
+}
+
+/** Tandai langkah selesai tanpa pindah langkah (mis. dari pengingat di Setting). */
+export function markCompleted(state: OnboardingState, step: OnboardingStep): OnboardingState {
+  return { ...state, completed: add(state.completed, step), skipped: without(state.skipped, step) };
+}
+
+/** Pengguna mengonfirmasi Vercel Authentication sudah aktif (aplikasi tidak bisa memeriksanya sendiri). */
+export function confirmProtection(state: OnboardingState, now: string): OnboardingState {
+  return { ...markCompleted(state, "protect"), protectionConfirmedAt: now };
+}
+
+export type Reminder = "connection" | "protect" | "zones" | "install";
+
+/**
+ * Pengingat di Setting › "Belum selesai" (bukan pop-up), hanya setelah onboarding selesai:
+ * - connection: langkah koneksi dilewati;
+ * - protect: belum pernah konfirmasi proteksi (termasuk pengguna lama);
+ * - zones: memilih "Belum tahu" dan belum ada zona yang diisi sendiri;
+ * - install: langkah pasang dilewati dan aplikasi belum dipasang.
+ */
+export function pendingReminders(input: { state: OnboardingState | null; standalone: boolean; zonesOverridden: boolean }): Reminder[] {
+  const { state, standalone, zonesOverridden } = input;
+  if (!state?.completedAt) return [];
+  const out: Reminder[] = [];
+  if (state.skipped.includes("connection")) out.push("connection");
+  if (!state.protectionConfirmedAt) out.push("protect");
+  if (state.zonePath === "estimate" && !zonesOverridden) out.push("zones");
+  if (state.skipped.includes("install") && !standalone) out.push("install");
+  return out;
 }
 
 /** Tutup onboarding dari ringkasan. */
