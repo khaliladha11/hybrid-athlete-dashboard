@@ -20,7 +20,7 @@ const DEFAULTS: Preferences = { theme: "system" };
 
 const listeners = new Set<() => void>();
 
-function readRaw(key: string): string | null {
+export function readStored(key: string): string | null {
   try {
     return localStorage.getItem(key);
   } catch {
@@ -28,7 +28,8 @@ function readRaw(key: string): string | null {
   }
 }
 
-function writeRaw(key: string, value: string | null) {
+/** Tulis langsung (di luar hook); semua `useStoredString` yang terkait ikut diperbarui. */
+export function writeStored(key: string, value: string | null) {
   try {
     if (value === null) localStorage.removeItem(key);
     else localStorage.setItem(key, value);
@@ -52,10 +53,10 @@ function subscribe(l: () => void) {
 export function useStoredString(key: string, fallback: string): [string, (v: string | null) => void] {
   const value = useSyncExternalStore(
     subscribe,
-    () => readRaw(key) ?? fallback,
+    () => readStored(key) ?? fallback,
     () => fallback,
   );
-  const set = useCallback((v: string | null) => writeRaw(key, v), [key]);
+  const set = useCallback((v: string | null) => writeStored(key, v), [key]);
   return [value, set];
 }
 
