@@ -24,7 +24,9 @@ export function MovementSettings({
   onChange: (s: AthleteSettings) => void;
   resolved: ResolvedProfile;
 }) {
-  const selected = (name: string) => settings.movements[name] ?? defaultSelected(baseProfile.movementLibrary[categoryOf(name)]!.find((m) => m.name === name)!);
+  // Status terpilih dari resolveProfile, termasuk gerakan cadangan yang aktif otomatis.
+  const selected = (name: string) =>
+    settings.movements[name] ?? resolved.movementStatus[name]?.selected ?? defaultSelected(baseProfile.movementLibrary[categoryOf(name)]!.find((m) => m.name === name)!);
   const setSelected = (name: string, on: boolean) => onChange({ ...settings, movements: { ...settings.movements, [name]: on } });
 
   // Gerakan yang dikunci karena diwajibkan kondisi aktif.
@@ -81,6 +83,11 @@ export function MovementSettings({
                           {resolvedWeight}
                           {status?.loads?.length ? ` · bisa: ${status.loads.map((v) => v.toLocaleString("id-ID")).join("/")} kg` : ""}
                         </span>
+                        {status?.fallback && !note && settings.movements[m.name] === undefined && (
+                          <span className="block text-[12px] text-faint">
+                            {status.autoSelected ? "Cadangan · aktif karena belum ada gerakan lain di kategori ini" : "Cadangan · dipakai bila tidak ada gerakan lain"}
+                          </span>
+                        )}
                         {note && (
                           <span className={`block text-[12px] font-semibold ${lock ? "text-success-ink" : "text-danger-ink"}`}>
                             {lock ? "✓ " : "✕ "}
