@@ -9,3 +9,6 @@ next-env.d.ts
 # kredensial — jangan pernah commit
 .env*
 !.env.example
+
+# file lokal berisi data pribadi (mis. owner-settings.local.json): jangan commit
+*.local.json
