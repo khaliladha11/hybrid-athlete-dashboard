@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { defaultSettings, parseSettings, resolveProfile, type AthleteSettings } from "@/lib/athlete-settings";
+import { defaultSettings, formatRaceTarget, parseRaceTarget, parseSettings, resolveProfile, type AthleteSettings } from "@/lib/athlete-settings";
+import { goalFromProfile } from "@/lib/program";
 import { CONDITION_IDS, type ConditionId } from "@/lib/conditions";
 import { barbellLoads, dumbbellLoads, feasibleLoads } from "@/lib/equipment";
 import {
@@ -246,5 +247,38 @@ describe("parseSettings tahan data rusak", () => {
     expect(parsed.conditions).toEqual(["apt", "pfp"]);
     expect(parsed.runZones).toEqual({ easy: "7:30–8:10/km" });
     expect(parsed.movements).toEqual({ "Floor Press": false });
+  });
+});
+
+describe("profil dasar di Setting (0.11)", () => {
+  it("field profil di Setting menimpa JSON; yang kosong ikut JSON", () => {
+    const p = make({ profile: { name: "Atlet Contoh", age: 30, raceTargets: ["Sub-25m 5K"], blockStart: "2026-01-05" } });
+    expect(p.name).toBe("Atlet Contoh");
+    expect(p.age).toBe(30);
+    expect(p.targets?.raceTargets).toEqual(["Sub-25m 5K"]);
+    expect(p.training?.blockStart).toBe("2026-01-05");
+    expect(p.training?.blockWeeks).toBe(baseProfile.training?.blockWeeks);
+    expect(p.occupation).toBe(baseProfile.occupation);
+  });
+
+  it("parseSettings membuang field profil yang rusak", () => {
+    const parsed = parseSettings(
+      { profile: { name: "  Rina  ", age: 7, occupation: 5, goals: ["Konsisten", "", 3], raceTargets: "x", blockStart: "2026-13-40" } },
+      baseProfile,
+    );
+    expect(parsed.profile).toEqual({ name: "Rina", goals: ["Konsisten"] });
+    expect(parseSettings({}, baseProfile).profile).toEqual({});
+    expect(parseSettings("", baseProfile).profile).toEqual({});
+  });
+
+  it("target lomba dari pemilih waktu terbaca oleh Program", () => {
+    expect(formatRaceTarget("5k", 28 * 60 + 30)).toBe("Sub-28.5m 5K");
+    expect(formatRaceTarget("hm", 2 * 3600)).toBe("Sub-2h Half Marathon");
+    expect(parseRaceTarget("Sub-28.5m 5K")).toEqual({ race: "5k", seconds: 1710 });
+    expect(parseRaceTarget("Sub-1h 10K")).toEqual({ race: "10k", seconds: 3600 });
+    expect(parseRaceTarget("Lari santai")).toBeUndefined();
+    const p = make({ profile: { raceTargets: [formatRaceTarget("10k", 55 * 60), formatRaceTarget("fm", 4.5 * 3600)] } });
+    expect(goalFromProfile("10k", p)).toBe(3300);
+    expect(goalFromProfile("fm", p)).toBe(16200);
   });
 });

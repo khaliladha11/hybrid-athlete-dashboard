@@ -21,8 +21,27 @@ import type { AthleteProfile, Movement, MovementCategory, MovementLibrary } from
 
 export const MOVEMENT_CATEGORIES: MovementCategory[] = ["upperPush", "upperPull", "lower", "stabilityAndCore", "prehab"];
 
+/**
+ * Profil dasar yang diisi di perangkat (Setting › Profil / onboarding). Field yang ada menimpa
+ * JSON; field yang tidak ada ikut JSON (yang sejak 0.11 netral).
+ */
+export interface ProfileSettings {
+  name?: string;
+  age?: number;
+  /** Gaya hidup, mis. "Kerja kantoran". */
+  occupation?: string;
+  /** Fokus latihan, mis. "Lari 10K + strength di rumah". */
+  category?: string;
+  goals?: string[];
+  /** Format yang dibaca `goalFromProfile`: "Sub-30m 5K", "Sub-1h 10K", "Sub-2.5h Half Marathon". */
+  raceTargets?: string[];
+  /** Senin awal blok (YYYY-MM-DD). */
+  blockStart?: string;
+}
+
 export interface AthleteSettings {
   version: 1;
+  profile: ProfileSettings;
   /** Kondisi aktif dari katalog. */
   conditions: ConditionId[];
   /** Catatan kondisi bebas — tampil saja, tidak mengubah generator. */
@@ -66,12 +85,39 @@ const FALLBACK_EQUIPMENT: Equipment = {
 export function defaultSettings(base: AthleteProfile): AthleteSettings {
   return {
     version: 1,
+    profile: {},
     conditions: (base.conditions ?? []).filter(isConditionId),
     customConditions: [],
     runZones: {},
     equipment: normalizeEquipment(base.equipment, FALLBACK_EQUIPMENT),
     movements: {},
   };
+}
+
+const text = (v: unknown, max: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined);
+const texts = (v: unknown, max: number, count: number) =>
+  Array.isArray(v) ? v.map((x) => text(x, max)).filter((x): x is string => !!x).slice(0, count) : undefined;
+
+/** Profil dasar dari localStorage/impor; field rusak dibuang. */
+export function parseProfileSettings(x: unknown): ProfileSettings {
+  if (!x || typeof x !== "object") return {};
+  const r = x as Record<string, unknown>;
+  const out: ProfileSettings = {};
+  const name = text(r.name, 60);
+  if (name) out.name = name;
+  if (typeof r.age === "number" && Number.isInteger(r.age) && r.age >= 10 && r.age <= 100) out.age = r.age;
+  const occupation = text(r.occupation, 80);
+  if (occupation) out.occupation = occupation;
+  const category = text(r.category, 80);
+  if (category) out.category = category;
+  const goals = texts(r.goals, 80, 5);
+  if (goals) out.goals = goals;
+  const raceTargets = texts(r.raceTargets, 40, 4);
+  if (raceTargets) out.raceTargets = raceTargets;
+  if (typeof r.blockStart === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.blockStart) && !Number.isNaN(Date.parse(r.blockStart))) {
+    out.blockStart = r.blockStart;
+  }
+  return out;
 }
 
 /** Pengaturan dari localStorage/impor → selalu valid; bagian rusak diganti default. */
@@ -101,6 +147,7 @@ export function parseSettings(raw: unknown, base: AthleteProfile): AthleteSettin
   }
   return {
     version: 1,
+    profile: parseProfileSettings(s.profile),
     conditions: Array.isArray(s.conditions) ? CONDITION_IDS.filter((id) => (s.conditions as unknown[]).includes(id)) : d.conditions,
     customConditions: Array.isArray(s.customConditions)
       ? s.customConditions.filter((c): c is string => typeof c === "string" && !!c.trim()).map((c) => c.trim().slice(0, 120)).slice(0, 20)
@@ -168,8 +215,15 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
     warnings.push(`Kondisi aktif butuh stabilitas panggul, tetapi ${STABILITY_HIP.join(", ")} tidak tersedia.`);
   }
 
+  const pr = s.profile ?? {};
   return {
     ...base,
+    name: pr.name ?? base.name,
+    age: pr.age ?? base.age,
+    occupation: pr.occupation ?? base.occupation,
+    category: pr.category ?? base.category,
+    targets: { goals: pr.goals ?? base.targets?.goals ?? [], raceTargets: pr.raceTargets ?? base.targets?.raceTargets ?? [] },
+    training: { ...base.training, blockStart: pr.blockStart ?? base.training?.blockStart },
     conditions: s.conditions,
     runZones,
     movementLibrary: lib,
@@ -180,4 +234,34 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
     movementStatus,
     warnings,
   };
+}
+
+// ---------- Target lomba ----------
+
+export type RaceKey = "5k" | "10k" | "hm" | "fm";
+export const RACE_LABEL: Record<RaceKey, string> = { "5k": "5K", "10k": "10K", hm: "Half Marathon", fm: "Full Marathon" };
+
+/** Detik → teks target yang bisa dibaca `goalFromProfile` ("Sub-28.5m 5K", "Sub-2h Half Marathon"). */
+export function formatRaceTarget(race: RaceKey, seconds: number): string {
+  const sec = Math.max(1, Math.round(seconds));
+  const time = sec % 3600 === 0 ? `${sec / 3600}h` : `${Math.round((sec / 60) * 100) / 100}m`;
+  return `Sub-${time} ${RACE_LABEL[race]}`;
+}
+
+/** Kebalikan `formatRaceTarget`; teks bebas lama yang tidak dikenali → undefined. */
+export function parseRaceTarget(textValue: string): { race: RaceKey; seconds: number } | undefined {
+  const m = textValue.match(/sub[-\s]?(\d+(?:[.,]\d+)?)\s*(h|m)\b/i);
+  if (!m) return undefined;
+  const race: RaceKey | undefined = /\b5K\b/i.test(textValue)
+    ? "5k"
+    : /\b10K\b/i.test(textValue)
+      ? "10k"
+      : /half/i.test(textValue)
+        ? "hm"
+        : /\bfull\b|\bFM\b|\b42K\b/i.test(textValue)
+          ? "fm"
+          : undefined;
+  if (!race) return undefined;
+  const v = Number(m[1].replace(",", "."));
+  return { race, seconds: Math.round(m[2].toLowerCase() === "h" ? v * 3600 : v * 60) };
 }
