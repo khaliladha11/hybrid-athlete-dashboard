@@ -15,6 +15,7 @@ import {
   back,
   canContinue,
   chooseConditions,
+  confirmProtection,
   gateDecision,
   goTo,
   initialState,
@@ -29,9 +30,13 @@ import {
   type ZonePath,
 } from "@/lib/onboarding";
 import { useOnboardingState } from "@/lib/onboarding-store";
+import { useInstallState } from "@/lib/install-prompt";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import { readStored } from "@/lib/preferences";
 import { useAthleteSettings, useIsClient, useResolvedProfile } from "@/lib/settings-store";
+import { ConnectionStep } from "./ConnectionStep";
+import { InstallStep } from "./InstallStep";
+import { ProtectStep } from "./ProtectStep";
 import { TermsStep } from "./TermsStep";
 
 const TITLE: Record<OnboardingStep, string> = {
@@ -83,6 +88,13 @@ export function OnboardingWizard() {
     if (ready && stored && gateDecision(stored, false) === "ok") router.replace("/");
   }, [ready, stored, router]);
 
+  // Aplikasi sudah terpasang: langkah pasang selesai sendiri (mis. state tersimpan berhenti di langkah 9).
+  const { standalone } = useInstallState();
+  const env = { standalone };
+  useEffect(() => {
+    if (ready && stored?.currentStep === "install" && standalone) setState(advance(stored, {}, now(), { standalone }));
+  }, [ready, stored, standalone, setState]);
+
   // Fokus ke judul tiap pindah langkah (pembaca layar + keyboard).
   const headingRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -92,7 +104,8 @@ export function OnboardingWizard() {
   if (!ready) return <WizardSkeleton />;
 
   const save = (next: OnboardingState) => setState(next);
-  const next = () => save(advance(state, ctx, now()));
+  const next = () => save(advance(state, ctx, now(), env));
+  const later = () => save(skip(state, env));
 
   const importFile = async (file: File) => {
     const r = await importBackupFile(file);
@@ -101,7 +114,7 @@ export function OnboardingWizard() {
     // State hasil impor (bila ada) sudah tertulis; lanjutkan dari situ.
     const after = parseOnboardingState(readStored(PREF_KEYS.onboarding) ?? "") ?? state;
     const termsOk = (after.termsVersion ?? 0) >= TERMS_VERSION;
-    save(goTo({ ...after, completedAt: undefined, completed: after.completed.filter((s) => s !== "summary") }, termsOk ? "summary" : "terms"));
+    save(goTo({ ...after, completedAt: undefined, completed: after.completed.filter((s) => s !== "summary") }, termsOk ? "summary" : "terms", env));
   };
 
   return (
@@ -139,7 +152,13 @@ export function OnboardingWizard() {
         </div>
       )}
 
-      {step === "terms" && <TermsStep onAccept={() => save(advance(state, { termsChecked: true }, now()))} />}
+      {step === "terms" && <TermsStep onAccept={() => save(advance(state, { termsChecked: true }, now(), env))} />}
+
+      {step === "connection" && <ConnectionStep onContinue={next} onSkip={later} />}
+
+      {step === "protect" && <ProtectStep onConfirm={() => save(advance(confirmProtection(state, now()), ctx, now(), env))} onLater={later} />}
+
+      {step === "install" && <InstallStep onDone={next} onLater={later} />}
 
       {step === "profile" && (
         <>
@@ -221,27 +240,30 @@ export function OnboardingWizard() {
           <p className="text-body text-muted">Centang alat yang ada di rumah. Lewati bila latihan tanpa alat.</p>
           <EquipmentSettings settings={settings} onChange={saveSettings} />
           <LimitedNote />
-          <button type="button" onClick={() => save(skip(state))} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.secondary} w-full`}>
+          <button type="button" onClick={later} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.secondary} w-full`}>
             Lewati, latihan tanpa alat
           </button>
         </>
       )}
 
-      {step === "summary" && <Summary state={state} choice={choice} zonePath={zonePath} />}
+      {step === "summary" && <Summary state={state} choice={choice} zonePath={zonePath} standalone={standalone} />}
 
       {step !== "welcome" && step !== "terms" && (
         <div className="sticky bottom-0 -mx-4 flex gap-2 border-t border-line bg-bg/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur">
-          <button type="button" onClick={() => save(back(state))} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.ghost} shrink-0`}>
+          <button type="button" onClick={() => save(back(state, env))} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.ghost} shrink-0`}>
             Kembali
           </button>
-          <button
-            type="button"
-            disabled={!canContinue(step, ctx)}
-            onClick={next}
-            className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.primary} flex-1`}
-          >
-            {step === "summary" ? "Buka Profil" : "Simpan dan lanjut"}
-          </button>
+          {/* Langkah 3, 4, 9 punya tombolnya sendiri (Lanjut / Demo Mode / Nanti saja). */}
+          {step !== "connection" && step !== "protect" && step !== "install" && (
+            <button
+              type="button"
+              disabled={!canContinue(step, ctx)}
+              onClick={next}
+              className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.primary} flex-1`}
+            >
+              {step === "summary" ? "Buka Profil" : "Simpan dan lanjut"}
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -292,7 +314,7 @@ function LimitedNote() {
   );
 }
 
-function Summary({ state, choice, zonePath }: { state: OnboardingState; choice?: ConditionsChoice; zonePath?: ZonePath }) {
+function Summary({ state, choice, zonePath, standalone }: { state: OnboardingState; choice?: ConditionsChoice; zonePath?: ZonePath; standalone: boolean }) {
   const p = useResolvedProfile();
   const eq = p.equipmentModel;
   const owned = [
@@ -303,8 +325,12 @@ function Summary({ state, choice, zonePath }: { state: OnboardingState; choice?:
     eq.bench && "kursi/bench",
   ].filter(Boolean) as string[];
   const rows: { label: string; value: string; later?: boolean }[] = [
-    { label: "Koneksi intervals.icu", value: "Dicek di versi berikutnya", later: state.skipped.includes("connection") },
-    { label: "Amankan deploy", value: "Lihat panduan di README", later: state.skipped.includes("protect") },
+    state.completed.includes("connection")
+      ? { label: "Koneksi intervals.icu", value: "Tersambung" }
+      : { label: "Koneksi intervals.icu", value: "Demo Mode", later: true },
+    state.protectionConfirmedAt
+      ? { label: "Amankan deploy", value: "Sudah dikonfirmasi" }
+      : { label: "Amankan deploy", value: "Belum dikonfirmasi", later: true },
     { label: "Profil", value: p.name || "·" },
     {
       label: "Kondisi",
@@ -312,7 +338,9 @@ function Summary({ state, choice, zonePath }: { state: OnboardingState; choice?:
     },
     { label: "Zona lari", value: ZONE_PATHS.find((z) => z.value === zonePath)?.label ?? "·" },
     { label: "Alat", value: owned.length ? owned.join(", ") : "Tanpa alat (bodyweight)", later: state.skipped.includes("equipment") },
-    { label: "Pasang ke layar utama", value: "Lihat panduan di README", later: state.skipped.includes("install") },
+    standalone || state.completed.includes("install")
+      ? { label: "Pasang ke layar utama", value: "Terpasang" }
+      : { label: "Pasang ke layar utama", value: "Belum dipasang", later: true },
   ];
   return (
     <ul className="divide-y divide-line rounded-card border border-line bg-surface">

@@ -2,6 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+// Pasang pendengar beforeinstallprompt sejak awal (dipakai onboarding langkah 9 & Setting).
+import "@/lib/install-prompt";
 import { acceptTerms, gateDecision, migratedState } from "@/lib/onboarding";
 import { useHasLegacyData, useOnboardingState } from "@/lib/onboarding-store";
 import { useIsClient } from "@/lib/settings-store";
