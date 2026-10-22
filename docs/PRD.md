@@ -10,7 +10,7 @@
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
 | **Kualitas** | 10 file test, 178 unit test lolos · build produksi lolos |
-| **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
+| **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
 
@@ -41,6 +41,8 @@
 - menampilkan **detail tiap aktivitas**: split per km, interval, HR & cadence, tanpa duplikat dari sumber kedua,
 - menampilkan **teknik setiap gerakan**: gambar posisi awal & akhir, cue, otot yang dilatih, dan catatan sesuai kondisi atlet.
 
+**Model pemakaian:** satu deploy per orang. Setiap pengguna fork repo, deploy ke Vercel miliknya sendiri dengan API key intervals.icu miliknya, lalu menyiapkan profil lewat **onboarding** di dalam aplikasi (rencana 0.11, [ONBOARDING.md](ONBOARDING.md)). Tanpa akun, login, atau database; pemilik repo tidak menerima data siapa pun.
+
 **Visi jangka panjang:** satu aplikasi yang menjawab "hari ini latihan apa, seberapa berat, dan apakah aku di jalur yang benar menuju target?" tanpa harus membuka banyak aplikasi.
 
 ## 2. Latar belakang & masalah
@@ -63,7 +65,7 @@ Dianggap berhasil kalau:
 
 ### Pengguna & masalah turunan
 
-**Pengguna utama:** saya sendiri (pemilik), 23 tahun, pekerja kantoran, hybrid athlete dengan target Sub-30 5K, Sub-1h 10K, Sub-3h HM. Sejak ada tutorial di README, orang lain juga bisa pasang dengan profil dan datanya sendiri.
+**Pengguna utama:** saya sendiri (pemilik), 23 tahun, pekerja kantoran, hybrid athlete dengan target Sub-30 5K, Sub-1h 10K, Sub-3h HM. Orang lain bisa memasang dengan profil dan datanya sendiri: deploy lewat tutorial README, lalu profil disiapkan lewat onboarding di dalam aplikasi (rencana 0.11), bukan dengan mengedit JSON.
 
 | Masalah | Jawaban di aplikasi |
 | --- | --- |
@@ -100,6 +102,14 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 - Kondisi hanya dari **katalog** dengan sumber kredibel (guideline, consensus, studi). Kondisi baru di katalog wajib menyertakan sumber dan test.
 - Kondisi teks bebas hanya menjadi catatan; tidak pernah mengubah generator.
 - Kondisi tidak pernah menambah gerakan di luar library; hanya mewajibkan, melarang, atau memberi catatan.
+
+**Onboarding & deploy pribadi** · keputusan 2026-10-22
+- Satu deploy per orang; tanpa akun, login, atau database.
+- Profil di repo selalu netral; data pribadi siapa pun tidak di-commit.
+- Disclaimer kesehatan wajib disetujui sebelum aplikasi dipakai; versi naik → tampil ulang.
+- Pemilihan kondisi wajib eksplisit ("Tidak ada" adalah pilihan, bukan default).
+- Status koneksi intervals.icu dicek di server; browser hanya menerima status.
+- Pengguna lama tidak dipaksa mengulang onboarding dan tidak kehilangan data.
 
 **Movement library & media** · keputusan 2026-10-12
 - Gambar gerakan **hanya dari sumber berlisensi bebas** (saat ini [free-exercise-db](https://github.com/yuhonas/free-exercise-db), Unlicense), disimpan lokal di `public/movements/` (tanpa hotlink). Tidak memakai gambar buatan AI atau sumber yang lisensinya tidak mengizinkan (mis. openGym, Gym Visual).
@@ -225,12 +235,33 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Zona HR & RPE bisa diubah | ⬜ | Sekarang hanya pace |
 | Edit nama, target lomba, tanggal mulai blok | ⬜ | |
 
+### 4.9 Onboarding
+
+Rencana 0.11, spesifikasi lengkap di [ONBOARDING.md](ONBOARDING.md).
+
+| Fitur | Status | Catatan |
+| --- | --- | --- |
+| Wizard `/onboarding` 10 langkah, lanjut dari langkah terakhir, tombol Kembali | ⬜ | 0.11.0 |
+| Disclaimer kesehatan & lisensi wajib, tampil ulang bila versi naik | ⬜ | 0.11.0 |
+| Profil dasar (nama, usia, fokus, target lomba, blok/mode bebas) di onboarding & Setting | ⬜ | 0.11.0 |
+| Kondisi wajib eksplisit, opsi "Tidak ada kondisi" | ⬜ | 0.11.0 |
+| Zona lari: VDOT / manual / "belum tahu" (zona perkiraan) | ⬜ | 0.11.0 |
+| Alat opsional (lewati = bodyweight) | ⬜ | 0.11.0 |
+| `config/athlete-profile.json` netral + file migrasi profil pemilik | ⬜ | 0.11.0 |
+| Ekspor/impor format v3 (profil dasar + status onboarding), impor v2 tetap diterima | ⬜ | 0.11.0 |
+| Gate di client: pengguna lama hanya melihat disclaimer, tanpa kehilangan data | ⬜ | 0.11.0 |
+| Cek koneksi intervals.icu di server (browser hanya menerima status) | ⬜ | 0.11.1 |
+| Pengingat amankan deploy (Vercel Authentication › All Deployments) | ⬜ | 0.11.1 |
+| Pasang ke layar utama (install prompt Android, panduan iOS) | ⬜ | 0.11.1 |
+| Bagian "Belum selesai" di Setting untuk langkah yang dilewati | ⬜ | 0.11.1 |
+| Tur in-app 4 sampai 5 sorotan + "Ulangi tur" | ⬜ | 0.11.2 |
+
 ## 5. Persyaratan non-fungsional
 
 | Area | Target | Status |
 | --- | --- | --- |
 | Keamanan API key | Tidak pernah ke browser | ✅ |
-| Privasi data | Hanya pemilik yang bisa melihat | 🟡 URL publik tanpa login |
+| Privasi data | Hanya pemilik deploy yang bisa melihat | 🟡 Deploy pemilik sudah dilindungi Deployment Protection. Fork/deploy baru bergantung pada pemiliknya; diingatkan lewat onboarding (0.11) |
 | Mobile-first | Nyaman di layar 375px, area sentuh ≥ 44px | ✅ |
 | Aksesibilitas | Kontras teks AA di kedua tema, fokus keyboard, reduced motion | 🟡 Teks ✅ semua pasangan ≥ 4.5:1. Tombol oranye baru lolos sejak 0.10.0-ui (teks gelap 5.78:1; teks putih lama hanya 3.40:1, jadi klaim AA sebelumnya keliru). Non-teks belum: border kontrol `line-strong` 1.7:1 / 1.6:1 dan isi kuning `warning` di mode terang 1.9:1 (butuh ≥ 3:1) |
 | Keandalan logika | Semua aturan latihan diuji unit test | ✅ |
@@ -246,7 +277,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 
 Diurutkan dari yang paling berdampak.
 
-1. **Belum ada login.** Siapa pun yang tahu URL Vercel bisa melihat data intervals.icu pemilik. Mitigasi cepat: *Vercel → Settings → Deployment Protection* → Vercel Authentication dengan cakupan **All Deployments** (gratis; *Standard Protection* tidak melindungi alamat utama `*.vercel.app`). Langkahnya juga ada di tutorial README.
+1. **Belum ada login di aplikasi.** Deploy pemilik sudah dilindungi *Deployment Protection* (Vercel Authentication, cakupan **All Deployments**). Risikonya ada di fork/deploy baru: tanpa proteksi, siapa pun yang tahu URL-nya bisa melihat data intervals.icu pemilik deploy (*Standard Protection* tidak melindungi alamat utama `*.vercel.app`). Ditangani lewat tutorial README dan langkah "Amankan deploy" di onboarding (0.11).
 2. **Data di perangkat saja.** Setting, log ST, program, tema, dan toggle blok ada di `localStorage`. Hilang bila data browser dihapus, dan tidak sinkron antara HP dan laptop. Cadangan: ekspor JSON manual (kini mencakup semuanya). Makin penting sejak 0.8 karena Setting menyimpan lebih banyak data.
 3. **Profil sebagian statis.** Nama, target lomba, dan tanggal mulai blok masih di JSON. Bagian yang dirender server (mis. header Profil) memakai nilai default, bukan Setting perangkat.
 4. **Movement library hanya dari kurasi developer.** 0.9 menambah 13 gerakan (total 40), tetapi pengguna belum bisa menambah gerakan sendiri; alat lain (mis. kettlebell) baru dicatat. 5 gerakan belum punya gambar — termasuk 2 prehab wajib (Clamshell, Tibialis Wall Raise) — dan celah anti-rotasi (Pallof, bird dog, suitcase carry) belum ada di sumber gambar. Kondisi di luar katalog hanya catatan.
@@ -268,11 +299,14 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 
 | Usulan versi | Isi | Alasan |
 | --- | --- | --- |
-| **0.11 Aman & tersinkron** | Proteksi akses (PIN/passcode) + sinkron data ke database | Setting & log kini berharga; jangan hilang atau terbuka |
-| **0.12 Program hidup** | Program ↔ generator, kepatuhan rencana vs aktual di kalender, prediksi waktu lomba | Program target jadi benar-benar dipakai harian |
-| **0.13 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
-| **1.0 Siap pakai penuh** | Offline, edit target & tanggal blok di aplikasi, kirim workout ke intervals.icu, CI + test e2e | Stabil dan mandiri tanpa edit kode |
+| **0.11 Onboarding & deploy pribadi** | Wizard onboarding, profil dasar di Setting, JSON netral + migrasi pemilik, ekspor v3, cek koneksi intervals.icu, pengingat proteksi deploy, pasang ke HP, tur ([ONBOARDING.md](ONBOARDING.md)) | Orang lain bisa memakai fork-nya dengan profil sendiri tanpa edit JSON dan tanpa mewarisi data pemilik |
+| **0.12 Aman & tersinkron** | Proteksi akses (PIN/passcode) + sinkron data ke database | Setting & log kini berharga; jangan hilang atau terbuka |
+| **0.13 Program hidup** | Program ↔ generator, kepatuhan rencana vs aktual di kalender, prediksi waktu lomba | Program target jadi benar-benar dipakai harian |
+| **0.14 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
+| **1.0 Siap pakai penuh** | Offline, kirim workout ke intervals.icu, CI + test e2e | Stabil dan mandiri tanpa edit kode |
 
+> 2026-10-22: spesifikasi **Onboarding & deploy pribadi** disetujui ([ONBOARDING.md](ONBOARDING.md)) dan masuk sebagai **0.11** (0.11.0, 0.11.1, 0.11.2). Isi roadmap lama bergeser satu nomor: Aman & tersinkron → 0.12, Program hidup → 0.13, Insight → 0.14. Edit target & tanggal blok pindah dari 1.0 ke 0.11.
+>
 > 2026-10-21: 0.10.1 (logo, dedupe Huawei + Strava, split per km, pemilih waktu) dan 0.10.2 (akurasi split) adalah rilis perbaikan dari pemakaian harian. Urutan roadmap tidak berubah: berikutnya tetap **0.11 Aman & tersinkron**.
 >
 > Catatan urutan (2026-10-11): "Edit profil di aplikasi" dimajukan ke 0.8 atas permintaan pemilik, disimpan di perangkat dulu. Proteksi akses & sinkron database bergeser ke 0.10.
@@ -295,9 +329,9 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P1 | **Check-in harian**: nyeri shin (0–10), pegal, kualitas tidur, mood → ikut ke saran | S | Sinyal dini shin splints yang tidak terlihat di HRV |
 | P1 | **Grafik tren** CTL/ATL/Form & km mingguan | M | Melihat kebugaran dan kelelahan jangka panjang |
 | P2 | **Kirim workout ke kalender intervals.icu** (lalu ke jam yang terhubung) | M | Workout langsung muncul di jam |
-| P2 | **Edit sisa profil di aplikasi** (target lomba, tanggal mulai blok, zona HR/RPE) | S | Tanpa edit JSON sama sekali |
+| P2 | **Edit sisa profil di aplikasi** (target lomba, tanggal mulai blok, zona HR/RPE) | S | Tanpa edit JSON sama sekali. → Terserap ke **0.11** ([ONBOARDING.md](ONBOARDING.md) §4.5), kecuali zona HR/RPE yang tetap di backlog |
 | P2 | **Ambang personal** (HR berat dari zona/LTHR, baseline HRV 30 hari) | S | Saran lebih akurat |
-| P2 | **Mode offline** (service worker, cache workout terakhir) | M | Tetap bisa dibuka di gym tanpa sinyal |
+| P2 | **Mode offline** (service worker, cache workout terakhir) | M | Tetap bisa dibuka di gym tanpa sinyal. Relevan untuk rasa native setelah onboarding mengajak pasang ke layar utama (0.11) |
 | P2 | **Timer sesi ST** (istirahat antar set, hitung mundur tahan) | M | Tidak perlu aplikasi timer lain |
 | P2 | **Milestone pull-up** & gerakan baru otomatis aktif saat siap (mis. negative pull-up) | S | Progres terlihat dan memotivasi |
 | P2 | **Grafik cadence & pace easy run** | S | Memantau perbaikan crossover gait |
