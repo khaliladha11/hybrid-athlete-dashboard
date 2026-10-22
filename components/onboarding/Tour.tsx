@@ -189,7 +189,7 @@ function TourLayer({ index, closing, onBack, onNext, onSkip }: { index: number; 
         aria-modal="true"
         aria-labelledby="tour-title"
         aria-describedby="tour-body"
-        className={`absolute rounded-card bg-surface-raised p-4 text-ink shadow-card ${pos ? "tour-pop" : "invisible"}`}
+        className={`absolute rounded-card border border-line-strong bg-surface-raised p-4 text-ink shadow-card ${pos ? "tour-pop" : "invisible"}`}
         style={{ top: pos?.top ?? 0, left: pos?.left ?? 16, width: pos?.width ?? popSize.width, transformOrigin: origin }}
       >
         <p className="t-label">
