@@ -6,6 +6,7 @@ import {
   DURATIONS,
   STRENGTH_TYPES,
   blockContext,
+  estimateStrengthMinutes,
   generateRunWorkout,
   generateStrengthWorkout,
   runTotalMinutes,
@@ -63,13 +64,27 @@ describe("generator dengan profil netral", () => {
     expect(n).toBe(DURATIONS.length * DIFFICULTIES.length * SEEDS.length * 3);
   });
 
-  it("strength bodyweight saja: tidak pernah error dan lolos aturan wajib (sesi boleh lebih pendek)", () => {
+  it("strength bodyweight saja: semua jenis × durasi × kesulitan × 25 seed × blok/deload/bebas tidak error dan lolos aturan wajib", () => {
+    const blocks = [blockContext("2026-01-05", "2026-01-05"), blockContext("2026-01-26", "2026-01-05"), blockContext("2026-02-02", "2026-01-05"), undefined];
+    expect(blocks[1]?.deload).toBe(true);
+    const category = { upperPush: "upperPush", upperPull: "upperPull", lower: "lower", fullBody: "lower" } as const;
+    const seen = new Set<string>();
+    let n = 0;
     for (const type of STRENGTH_TYPES)
       for (const duration of DURATIONS)
         for (const difficulty of DIFFICULTIES)
-          for (const seed of SEEDS.slice(0, 5)) {
-            const w = generateStrengthWorkout({ type, duration, difficulty, seed }, profile);
-            expect(validateStrength(w, profile.movementLibrary, profile.rules)).toEqual([]);
-          }
+          for (const seed of SEEDS)
+            for (const block of blocks) {
+              const w = generateStrengthWorkout({ type, duration, difficulty, seed, block, free: !block }, profile);
+              expect(validateStrength(w, profile.movementLibrary, profile.rules), `${type}/${duration}/${difficulty}/${seed}`).toEqual([]);
+              expect(estimateStrengthMinutes(w)).toBeLessThanOrEqual(duration + 2);
+              const names = new Set(profile.movementLibrary[category[type]].map((m) => m.name));
+              expect(w.items.some((i) => names.has(i.movement)), `${type} tanpa gerakan utama`).toBe(true);
+              for (const i of w.items) seen.add(i.movement);
+              n++;
+            }
+    expect(n).toBe(STRENGTH_TYPES.length * DURATIONS.length * DIFFICULTIES.length * SEEDS.length * blocks.length);
+    // Kelima gerakan cadangan tanpa alat benar-benar terpakai.
+    for (const m of ["Push-Up", "Knee Push-Up", "Wall Push-Up", "Prone Y-T-W Raise", "Prone Reverse Snow Angel"]) expect(seen, m).toContain(m);
   });
 });

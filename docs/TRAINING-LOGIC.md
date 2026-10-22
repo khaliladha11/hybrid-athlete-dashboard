@@ -250,3 +250,23 @@ Referensi tambahan:
 - Distefano LJ dkk. (2009). Gluteal muscle activation during common therapeutic exercises. *JOSPT* 39(7) ([doi](https://doi.org/10.2519/jospt.2009.2796)).
 - Dorn TW dkk. (2012). Muscular strategy shift in human running. *J Exp Biol* 215(11) ([doi](https://doi.org/10.1242/jeb.075051)).
 - Reinold MM dkk. (2004). EMG of the rotator cuff and deltoid during shoulder external rotation exercises. *JOSPT* 34(7) ([doi](https://doi.org/10.2519/jospt.2004.34.7.385)).
+
+## 11. Strength tanpa alat (0.11.2)
+
+Kode: [`lib/athlete-settings.ts`](../lib/athlete-settings.ts) (`resolveMovement`, `sessionCoverage`), [`components/generator/StrengthGenerator.tsx`](../components/generator/StrengthGenerator.tsx). Test: [`__tests__/neutral-profile.test.ts`](../__tests__/neutral-profile.test.ts), [`__tests__/settings.test.ts`](../__tests__/settings.test.ts).
+
+Temuan (2026-10-22): dengan profil netral tanpa alat, generator tidak pernah error dan lolos aturan wajib, tetapi **Upper Push & Upper Pull tidak berisi gerakan dorong/tarik** (High-Incline Push-Up butuh kursi; semua gerakan tarik butuh pull-up bar, dumbbell, atau band + titik tambat), dan sesi 45'/60' jadi lebih pendek.
+
+| Keputusan | Detail |
+| --- | --- |
+| Logika generator tidak diubah | Tidak ada aturan baru di `lib/generator`. Masalahnya kekurangan gerakan, bukan cara menyusun. |
+| 5 gerakan cadangan tanpa alat | Upper Push: **Push-Up**, **Knee Push-Up**, **Wall Push-Up** (progresi Wall → Knee → Push-Up). Upper Pull: **Prone Y-T-W Raise**, **Prone Reverse Snow Angel**. Kebutuhan alat `[]`, `fallback: true`. |
+| Hanya cadangan | Gerakan cadangan otomatis aktif **hanya bila** kategorinya tidak punya gerakan non-cadangan yang bisa dipakai. Profil yang punya alat tidak berubah (★ & rotasi tetap); pengguna boleh mencentangnya manual di Setting › Gerakan. |
+| ★ | Push-Up multi-joint, `ANCHOR_SINCE` 2026-10-22: tidak menggeser ★ blok yang sedang berjalan. Empat lainnya bukan ★. |
+| Tanpa Superman | Superman (ekstensi lumbal tengkurap) sengaja tidak dipakai: bertentangan dengan prinsip Spine-Friendly (APT/hiperlordosis). Y-T-W & snow angel dilakukan dengan dada rendah dan glute aktif; gerak dari tulang belikat. |
+| Tidak ada gerakan tarik sejati tanpa alat | Dataset free-exercise-db tidak punya tarik vertikal/horizontal tanpa bar/meja. Y-T-W & snow angel melatih punggung atas & bahu belakang, bukan pengganti row/pull-up. Pesan di Strength menyarankan alat yang dibutuhkan. |
+| Pesan alat | Bila jenis sesi tidak punya satu pun gerakan utama kategorinya (Upper Push → upperPush, Upper Pull → upperPull, Lower/Full → lower), misalnya karena cadangan dimatikan: "{Jenis} belum bisa disusun dengan gerakan aktif", kombinasi alat minimal yang dibutuhkan, dan gerakan yang bisa diaktifkan. |
+| Sesi lebih pendek | Bila gerakan aktif tidak cukup untuk mengisi durasi: catatan "Sesi lebih pendek dari {durasi}' karena gerakan aktif terbatas." Sesi tidak diisi gerakan berulang. |
+| Gambar | Push-Up dari free-exercise-db (`Pushups`); empat lainnya tanpa padanan → placeholder "Gambar belum tersedia". |
+
+Jaminan test: semua jenis ST × 3 durasi × 3 kesulitan × 25 seed × (blok 1, deload, blok 2, bebas) dengan profil netral → tidak error, lolos `validateStrength`, durasi ≤ target + 2', dan Upper Push/Pull selalu berisi ≥ 1 gerakan kategorinya.
