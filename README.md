@@ -150,13 +150,15 @@ Fork dari repo publik ikut publik, jadi jangan isi file ini dengan data yang tid
    | `INTERVALS_API_KEY` | API key dari langkah 3 |
    | `INTERVALS_ATHLETE_ID` | Athlete ID-mu, atau `0` |
 
-4. Klik **Deploy** dan tunggu 1 sampai 2 menit, lalu buka alamat yang diberikan. Bila banner **Demo Mode** tidak muncul, data aslimu sudah terbaca.
+4. Klik **Deploy** dan tunggu 1 sampai 2 menit, lalu buka alamat yang diberikan. Aplikasi membuka **onboarding**; langkah 3 mengecek koneksi ke intervals.icu dan menampilkan "Tersambung sebagai {namamu}" bila key benar.
+
+> **Mengisi atau mengubah environment variable setelah deploy?** Perubahannya baru berlaku setelah **redeploy**: Vercel › **Deployments** › **⋯** › **Redeploy**. Lalu buka lagi langkah 3 (atau Setting › Belum selesai) dan ketuk **Cek lagi**.
 
 API key hanya disimpan di Vercel dan dibaca di server. Kunci itu tidak pernah dikirim ke HP atau browser.
 
 ### Langkah 5 · Kunci aksesnya (penting)
 
-Aplikasi ini belum punya login. Tanpa langkah ini, siapa pun yang tahu alamatnya bisa melihat data latihan dan kesehatanmu.
+Aplikasi ini belum punya login. Tanpa langkah ini, siapa pun yang tahu alamatnya bisa melihat data latihan dan kesehatanmu. Onboarding langkah 4 menampilkan langkah yang sama; bila dilewati, pengingatnya ada di **Setting › Belum selesai**.
 
 1. Di Vercel, buka project-mu, lalu **Settings › Deployment Protection**.
 2. Aktifkan **Vercel Authentication** dengan cakupan **All Deployments**. Pilihan ini gratis di paket Hobby. Jangan berhenti di **Standard Protection**, karena cakupan itu tidak melindungi alamat utama `nama-project.vercel.app`.
@@ -169,11 +171,11 @@ Aplikasi yang dipasang di iPhone memakai penyimpanan terpisah dari Safari, jadi 
 - **Android (Chrome):** buka alamat Vercel-mu, ketuk menu **⋮**, lalu **Instal aplikasi** atau **Tambahkan ke layar utama**.
 - **iPhone (Safari):** buka alamat Vercel-mu, ketuk **Bagikan**, lalu **Tambah ke Layar Utama**.
 
-Aplikasi terbuka layar penuh dengan ikon "Forward H", seperti aplikasi biasa.
+Aplikasi terbuka layar penuh dengan ikon "Forward H", seperti aplikasi biasa. Onboarding langkah 9 membantu hal yang sama: di Android/Chrome ada tombol **Pasang aplikasi**, di iPhone ada petunjuk Bagikan › Tambah ke Layar Utama. Aplikasi masih butuh internet untuk dibuka.
 
 ### Langkah 7 · Atur di dalam aplikasi
 
-Buka tab **Setting**:
+Onboarding sudah menanyakan profil, kondisi, zona lari, dan alat. Langkah yang kamu lewati muncul lagi di **Setting › Belum selesai**. Untuk mengubah semuanya nanti, buka tab **Setting**:
 
 - **Kondisi & batasan:** aktifkan hanya yang benar-benar kamu alami. Setiap kondisi mengubah generator lari dan ST.
 - **Zona lari:** isi pace per zona, atau isi hasil lomba/time trial terbaru lalu ketuk **Terapkan ke semua zona** (rumus VDOT Daniels).
@@ -203,8 +205,10 @@ Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di pera
 | Gejala | Penyebab dan solusinya |
 | --- | --- |
 | Banner **Demo Mode** masih muncul | Environment variable belum terisi, atau belum di-deploy ulang setelah diisi. Vercel › **Deployments** › **⋯** › **Redeploy**. |
+| Langkah 3 onboarding: **API key belum diisi** | `INTERVALS_API_KEY` kosong. Isi di Vercel › Settings › Environment Variables, lalu Redeploy dan ketuk **Cek lagi**. |
 | **API key ditolak (401)** | API key salah ketik atau sudah dibuat ulang. Salin lagi dari intervals.icu, perbarui di Vercel, lalu Redeploy. |
-| **Akses ditolak (403)** | Athlete ID tidak cocok dengan pemilik API key. Isi `0`. |
+| **Akses ditolak (403)** / **Athlete ID tidak cocok dengan key** | Athlete ID tidak cocok dengan pemilik API key. Isi `0`, lalu Redeploy. |
+| Langkah 3: **intervals.icu tidak bisa dihubungi** | intervals.icu sedang bermasalah atau koneksi server putus. Tunggu sebentar lalu **Cek lagi**. |
 | Aktivitas tampil sebagai **Aktivitas Strava** tanpa data | Aktivitas itu hanya masuk lewat Strava. Sambungkan jam atau aplikasimu langsung ke intervals.icu. |
 | **Split per km** tidak muncul | Jam tidak mengirim jarak per detik atau GPS ke intervals.icu, atau datanya tidak cocok dengan ringkasan aktivitas. Ringkasan sesi tetap tampil. |
 | Tampilan atau ikon di HP masih versi lama | Tutup lalu buka lagi aplikasinya. Untuk ikon, hapus aplikasi dari layar utama lalu pasang ulang. |

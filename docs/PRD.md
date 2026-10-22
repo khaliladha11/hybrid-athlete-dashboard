@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.11.0 (2026-10-22) |
+| **Versi saat ini** | 0.11.1 (2026-10-22) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 13 file test, 206 unit test lolos · build produksi lolos |
+| **Kualitas** | 14 file test, 224 unit test lolos · build produksi lolos |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -241,19 +241,19 @@ Rencana 0.11, spesifikasi lengkap di [ONBOARDING.md](ONBOARDING.md).
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
-| Wizard `/onboarding` 10 langkah, lanjut dari langkah terakhir, tombol Kembali | 🟡 | 0.11.0: langkah 1, 2, 5, 6, 7, 8, 10. Langkah 3, 4, 9 dilewati otomatis sampai 0.11.1 |
+| Wizard `/onboarding` 10 langkah, lanjut dari langkah terakhir, tombol Kembali | ✅ | 0.11.0 (langkah 1, 2, 5–8, 10) + 0.11.1 (langkah 3, 4, 9). Langkah 9 selesai sendiri bila aplikasi sudah terpasang |
 | Disclaimer kesehatan & lisensi wajib, tampil ulang bila versi naik | ✅ | 0.11.0. Repo belum punya file lisensi; poin lisensi menautkan NOTICE.md |
 | Profil dasar (nama, usia, fokus, target lomba, blok/mode bebas) di onboarding & Setting | ✅ | 0.11.0 |
 | Kondisi wajib eksplisit, opsi "Tidak ada kondisi" | ✅ | 0.11.0 |
-| Zona lari: VDOT / manual / "belum tahu" (zona perkiraan) | 🟡 | 0.11.0. Isian awal VDOT dari lari terbaik 90 hari menunggu cek koneksi (0.11.1) |
+| Zona lari: VDOT / manual / "belum tahu" (zona perkiraan) | 🟡 | 0.11.0. Isian awal VDOT dari lari terbaik 90 hari belum dibuat (butuh data intervals.icu di client; ditunda) |
 | Alat opsional (lewati = bodyweight) | ✅ | 0.11.0, plus catatan sesi ST yang jadi lebih pendek |
 | `config/athlete-profile.json` netral + file migrasi profil pemilik | ✅ | 0.11.0: zona dari VDOT 30; `scripts/make-owner-settings.mjs` → `owner-settings.local.json` (diabaikan git) |
 | Ekspor/impor format v3 (profil dasar + status onboarding), impor v2 tetap diterima | ✅ | 0.11.0. File `kind: "defaults"` hanya mengisi yang kosong; log selalu digabung |
 | Gate di client: pengguna lama hanya melihat disclaimer, tanpa kehilangan data | ✅ | 0.11.0 |
-| Cek koneksi intervals.icu di server (browser hanya menerima status) | ⬜ | 0.11.1 |
-| Pengingat amankan deploy (Vercel Authentication › All Deployments) | ⬜ | 0.11.1 |
-| Pasang ke layar utama (install prompt Android, panduan iOS) | ⬜ | 0.11.1 |
-| Bagian "Belum selesai" di Setting untuk langkah yang dilewati | ⬜ | 0.11.1 |
+| Cek koneksi intervals.icu di server (browser hanya menerima status) | ✅ | 0.11.1: `GET /api/connection` → `{ status, athleteName? }`, tanpa cache; key & athlete ID tidak pernah dikirim |
+| Pengingat amankan deploy (Vercel Authentication › All Deployments) | ✅ | 0.11.1, konfirmasi tersimpan (`protectionConfirmedAt`). Aplikasi tidak bisa memeriksanya dari dalam |
+| Pasang ke layar utama (install prompt Android, panduan iOS) | ✅ | 0.11.1, plus catatan masih butuh internet |
+| Bagian "Belum selesai" di Setting untuk langkah yang dilewati | ✅ | 0.11.1: koneksi, proteksi (termasuk pengguna lama), zona perkiraan, pasang |
 | Tur in-app 4 sampai 5 sorotan + "Ulangi tur" | ⬜ | 0.11.2 |
 
 ## 5. Persyaratan non-fungsional
@@ -369,6 +369,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.10.1 | 2026-10-16 | Logo "Forward H" (AppBar, ikon PWA, favicon); split per km dari stream (GPS bila jarak dibagi rata); aktivitas ganda Huawei + Strava dihitung sekali; pemilih waktu & pace di Setting |
 | 0.10.2 | 2026-10-21 | Split per km akurat: data jarak bertangga, lonjakan, reset; ambang bergerak seperti Strava; validasi terhadap ringkasan aktivitas |
 | 0.11.0 | 2026-10-22 | Onboarding (langkah 1, 2, 5–8, 10) + gate, profil dasar di Setting, JSON profil netral + migrasi pemilik, cadangan v3 |
+| 0.11.1 | 2026-10-22 | Onboarding langkah 3 (cek koneksi intervals.icu di server), 4 (amankan deploy), 9 (pasang ke HP); pengingat "Belum selesai" di Setting |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 

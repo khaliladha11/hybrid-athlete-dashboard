@@ -4,6 +4,19 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.11.1] · 2026-10-22 · Koneksi, proteksi deploy, pasang ke HP
+
+### Ditambahkan
+- **Onboarding langkah 3 · Koneksi intervals.icu.** `GET /api/connection` memakai `client.ts` yang ada dan hanya mengembalikan `{ status, athleteName? }` (`ok`, `missing`, `unauthorized`, `forbidden`, `not_found`, `network`), tanpa cache. Tampilan per status: nama atlet bila tersambung; panduan mengisi `INTERVALS_API_KEY` / `INTERVALS_ATHLETE_ID` di Vercel bila kosong; pesan untuk key ditolak, athlete ID tidak cocok, dan intervals.icu tidak bisa dihubungi. Semua status selain `ok` mengingatkan bahwa perubahan env var baru berlaku setelah redeploy, dengan tombol **Cek lagi** dan **Lanjut dengan Demo Mode**.
+- **Langkah 4 · Amankan deploy**: Vercel Authentication dengan cakupan All Deployments, konfirmasi tersimpan.
+- **Langkah 9 · Pasang ke layar utama**: dialog pasang bawaan di Android/Chrome (`beforeinstallprompt`), instruksi Bagikan › Tambah ke Layar Utama di iOS, catatan bahwa aplikasi masih butuh internet. Sudah terpasang → langkah selesai sendiri.
+- **Setting › "Belum selesai"**: pengingat untuk koneksi yang dilewati, proteksi yang belum dikonfirmasi (termasuk pengguna lama), zona perkiraan yang belum diisi, dan aplikasi yang belum dipasang. Bukan pop-up; tiap baris memakai komponen langkah yang sama dan hilang setelah selesai.
+- 18 test baru (`connection.test.ts` termasuk route end-to-end tanpa key di respons; pengingat & standalone di `onboarding.test.ts`), total 224 di 14 file.
+
+### Diubah
+- Ringkasan onboarding menampilkan status nyata koneksi, proteksi, dan pemasangan.
+- README: tutorial deploy menyebut onboarding dan redeploy setelah mengisi atau mengubah env var.
+
 ## [0.11.0] · 2026-10-22 · Onboarding & profil di perangkat
 
 Bagian pertama rencana [ONBOARDING.md](docs/ONBOARDING.md): fork baru memakai profil miliknya sendiri tanpa mengedit JSON dan tanpa mewarisi data pemilik repo.
@@ -234,7 +247,8 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.11.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/cda26c1...main
+[0.11.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ffb3a10...main
+[0.11.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/cda26c1...ffb3a10
 [0.10.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/5266a8e...cda26c1
 [0.10.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/a7d3f00...5266a8e
 [0.10.0-ui]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/9bcff80...a7d3f00
