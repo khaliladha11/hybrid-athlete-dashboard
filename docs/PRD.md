@@ -19,7 +19,7 @@
 ## Daftar isi
 
 1. [Ringkasan produk](#1-ringkasan-produk)
-2. [Pengguna & masalah](#2-pengguna--masalah)
+2. [Latar belakang & masalah](#2-latar-belakang--masalah)
 3. [Aturan yang tidak boleh dilanggar](#3-aturan-yang-tidak-boleh-dilanggar)
 4. [Status fitur per modul](#4-status-fitur-per-modul)
 5. [Persyaratan non-fungsional](#5-persyaratan-non-fungsional)
@@ -43,12 +43,31 @@
 
 **Visi jangka panjang:** satu aplikasi yang menjawab "hari ini latihan apa, seberapa berat, dan apakah aku di jalur yang benar menuju target?" tanpa harus membuka banyak aplikasi.
 
-## 2. Pengguna & masalah
+## 2. Latar belakang & masalah
 
-**Pengguna utama:** satu atlet (pemilik), 23 tahun, pekerja kantoran, hybrid athlete dengan target Sub-30 5K, Sub-1h 10K, Sub-3h HM.
+### Background
+
+Saya lari 10K–21K dan latihan strength di rumah. Datanya udah rapi di jam dan intervals.icu, tapi tiap mau latihan pertanyaannya selalu sama: **hari ini ngapain?** Lari atau ST? Easy atau interval? Kemarin udah berat belum? Biasanya saya buka beberapa aplikasi, cek program dari internet, lalu nebak. Hasilnya nggak konsisten. Kadang kebanyakan sesi berat, kadang skip karena kelamaan mikir.
+
+Dari sisi developer, ini bukan masalah kurang data. Ini masalah keputusan. Datanya ada, aturannya sebenarnya juga udah jelas (80/20, kenaikan km yang aman, prehab buat shin splints, beban sesuai alat), cuma kesebar di kepala dan di catatan. Jadi aturan-aturan itu saya pindahin ke kode yang bisa dites, biar tiap pagi tinggal buka aplikasi.
+
+### Problem statement
+
+> Setiap hari saya butuh jawaban cepat untuk **"hari ini latihan apa, dan seberapa berat?"** yang ngitung kondisi badan hari itu, beban 7 hari terakhir, riwayat cedera, dan alat yang ada. Tanpa itu, keputusan latihan jadi tebakan: gampang kebanyakan sesi berat, gampang skip, dan gampang bikin cedera lama kambuh.
+
+Dianggap berhasil kalau:
+
+- Buka aplikasi, dapat satu workout yang siap dikerjakan dalam beberapa ketukan, tanpa buka aplikasi lain.
+- Workout selalu lolos aturan wajib di §3, jadi tetap aman walaupun lagi males mikir.
+- Saran nggak maksa. Kalau saya mau pilih yang lain, ya bebas.
+
+### Pengguna & masalah turunan
+
+**Pengguna utama:** saya sendiri (pemilik), 23 tahun, pekerja kantoran, hybrid athlete dengan target Sub-30 5K, Sub-1h 10K, Sub-3h HM. Sejak ada tutorial di README, orang lain juga bisa pasang dengan profil dan datanya sendiri.
 
 | Masalah | Jawaban di aplikasi |
 | --- | --- |
+| Bingung hari ini mau latihan apa dan seberapa berat | Generator lari & ST plus saran hari ini dari readiness dan beban 7 hari terakhir; satu tap untuk menerapkan saran |
 | Program generik tidak memperhitungkan anterior pelvic tilt, shin splints, dan overpronation | Aturan cedera dikodekan sebagai modul TypeScript yang diuji (Spine-Friendly, prehab wajib, stabilitas panggul, target cadence) |
 | Alat terbatas (dumbbell modular, band, pull-up bar) | Generator hanya memakai gerakan yang bisa dilakukan dengan alat yang ada, dan beban yang bisa dirakit dari plat |
 | Kondisi tubuh berubah (cedera baru, sembuh) | Kondisi diaktifkan/nonaktifkan di Setting dari katalog berbasis riset |

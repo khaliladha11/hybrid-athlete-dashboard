@@ -7,7 +7,7 @@
 
 # Hybrid Athlete Dashboard
 
-Dashboard pelatih pribadi untuk **hybrid athlete** (lari 10K–21K + strength training di rumah). Aplikasi ini membaca data latihan dan wellness dari [intervals.icu](https://intervals.icu), lalu membuat program **lari** dan **strength training (ST)** yang menyesuaikan diri dengan profil, kondisi cedera, dan kesiapan tubuh atlet hari itu.
+Jujur, saya sering bingung hari ini mau latihan apa. Lari atau strength? Santai atau gas? Kemarin udah berat belum? Project ini saya bikin buat jawab pertanyaan itu. Aplikasinya baca data latihan dan wellness dari [intervals.icu](https://intervals.icu), lalu langsung kasih satu workout **lari** atau **strength training (ST)** buat hari ini yang pas sama kondisi badan, riwayat cedera, dan alat yang ada. Dibuat untuk **hybrid athlete**: lari 10K–21K plus ST di rumah.
 
 Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dipakai seperti aplikasi native. Tampilannya mengikuti design system **"Tag"** ([docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)): rasanya seperti tag lari yang ditempel di layar. Dark-first dengan permukaan charcoal, satu aksen oranye, judul italic condensed, label mono kecil, angka besar rata kolom, dan grafik yang menggambar bentuk latihan.
 
@@ -64,16 +64,18 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
 
 ## Kenapa project ini ada
 
-Aplikasi latihan umumnya memberi program generik. Atlet ini punya kebutuhan spesifik yang tidak bisa diabaikan:
+Data latihan saya sebenarnya udah lengkap di jam dan intervals.icu. Masalahnya, data doang nggak ngasih tahu hari ini harus ngapain. Ujungnya saya buka beberapa aplikasi, lihat program dari internet, terus nebak. Kadang kebanyakan sesi berat, kadang malah skip karena kelamaan mikir.
 
-- **Anterior pelvic tilt / hiperlordosis:** tidak boleh ada beban axial berat tanpa tumpuan (Spine-Friendly Protocol).
+Program generik juga nggak bisa langsung dipakai, karena badan saya punya aturan sendiri:
+
+- **Anterior pelvic tilt / hiperlordosis:** nggak boleh ada beban axial berat tanpa tumpuan (Spine-Friendly Protocol).
 - **Riwayat shin splints:** prehab wajib, dan kenaikan volume lari harus dijaga.
-- **Overpronation / crossover gait:** latihan stabilitas panggul, dengan target cadence 175–180 SPM.
-- **Home gym terbatas:** dumbbell modular, band, dan pull-up bar. Beban tidak boleh melebihi yang tersedia.
+- **Overpronation / crossover gait:** perlu latihan stabilitas panggul, dengan target cadence 175–180 SPM.
+- **Home gym terbatas:** cuma dumbbell modular, band, dan pull-up bar. Beban nggak boleh lebih dari yang ada.
 
-Semua aturan ini dikodekan sebagai **modul TypeScript murni yang diuji**, bukan sekadar teks di prompt. Hasil generator selalu divalidasi sebelum ditampilkan.
+Jadi daripada mikir ulang tiap pagi, semua aturan itu saya tulis jadi **modul TypeScript yang diuji**, bukan cuma catatan di kepala atau teks di prompt. Workout yang keluar selalu dicek dulu sebelum tampil. Sarannya tetap saran: keputusan akhir tetap di kamu.
 
-Aturannya awalnya dibuat untuk satu atlet, tetapi kondisi, alat, zona lari, dan pilihan gerakan bisa diatur sendiri. Jadi orang lain bisa memasang aplikasi ini dengan profil dan data intervals.icu masing-masing.
+Awalnya ini cuma buat saya sendiri. Tapi kondisi, alat, zona lari, dan pilihan gerakan bisa diatur di aplikasi, jadi kamu juga bisa pasang pakai profil dan data intervals.icu-mu sendiri.
 
 ## Fitur
 
