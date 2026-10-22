@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import profileJson from "@/config/athlete-profile.json";
 import { defaultSettings, resolveProfile, type AthleteSettings } from "@/lib/athlete-settings";
 import { CONDITION_IDS } from "@/lib/conditions";
@@ -9,6 +9,9 @@ import { DIFFICULTIES, DURATIONS, STRENGTH_TYPES, blockContext, generateStrength
 import { ANCHOR_SINCE } from "@/lib/generator/meta";
 import { MOVEMENT_MEDIA } from "@/lib/movements/media";
 import { baseProfile } from "@/lib/profile";
+
+// Test aturan memakai profil contoh (kondisi + home gym lengkap), bukan JSON netral di repo.
+vi.mock("@/config/athlete-profile.json", async () => ({ default: (await import("./fixtures/example-athlete.json")).default }));
 
 const lib = profileJson.movementLibrary;
 const coreNames = [lib.upperPush, lib.upperPull, lib.lower, lib.stabilityAndCore, lib.prehab].flat().map((m) => m.name);

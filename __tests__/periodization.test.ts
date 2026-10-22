@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   DIFFICULTIES,
   DURATIONS,
@@ -11,6 +11,9 @@ import {
   runToText,
   type StrengthWorkout,
 } from "@/lib/generator";
+
+// Test aturan memakai profil contoh (kondisi + home gym lengkap), bukan JSON netral di repo.
+vi.mock("@/config/athlete-profile.json", async () => ({ default: (await import("./fixtures/example-athlete.json")).default }));
 
 const START = "2026-09-28"; // Senin
 const SEEDS = Array.from({ length: 30 }, (_, i) => i * 104_729 + 7);

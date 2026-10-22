@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { defaultSettings, formatRaceTarget, parseRaceTarget, parseSettings, resolveProfile, type AthleteSettings } from "@/lib/athlete-settings";
 import { goalFromProfile } from "@/lib/program";
 import { CONDITION_IDS, type ConditionId } from "@/lib/conditions";
@@ -16,6 +16,9 @@ import { STABILITY_HIP } from "@/lib/generator/meta";
 import { recommend, type LogEntry } from "@/lib/progression";
 import { baseProfile, findMovement } from "@/lib/profile";
 import { formatPace, formatRange, paceAtFraction, parseDuration, parseRange, vdot, zonesFromVdot } from "@/lib/run-zones";
+
+// Test aturan memakai profil contoh (kondisi + home gym lengkap), bukan JSON netral di repo.
+vi.mock("@/config/athlete-profile.json", async () => ({ default: (await import("./fixtures/example-athlete.json")).default }));
 
 const SEEDS = Array.from({ length: 8 }, (_, i) => i * 7919 + 3);
 const base = defaultSettings(baseProfile);

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import profileJson from "@/config/athlete-profile.json";
 import {
   DIFFICULTIES,
@@ -25,6 +25,9 @@ import {
 } from "@/lib/generator";
 import { parseWeight, profile, type Movement } from "@/lib/profile";
 import { STABILITY_HIP } from "@/lib/generator/meta";
+
+// Test aturan memakai profil contoh (kondisi + home gym lengkap), bukan JSON netral di repo.
+vi.mock("@/config/athlete-profile.json", async () => ({ default: (await import("./fixtures/example-athlete.json")).default }));
 
 const SEEDS = Array.from({ length: 25 }, (_, i) => i * 7919 + 1);
 const TOL = 2;
