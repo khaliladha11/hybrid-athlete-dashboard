@@ -73,8 +73,14 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/conditions.ts` | Katalog kondisi berbasis riset → aturan generator | Server & client |
 | `lib/run-zones.ts` | Rumus VDOT Daniels, parser & format pace | Client |
 | `lib/equipment.ts` | Kebutuhan alat per gerakan, beban yang bisa dirakit dari plat | Server & client |
-| `lib/athlete-settings.ts` | Pengaturan Setting + `resolveProfile()` → profil efektif (JSON default + pengaturan perangkat) | Server & client |
-| `lib/settings-store.ts` | Hook `useAthleteSettings` / `useResolvedProfile` (localStorage) | Client |
+| `lib/athlete-settings.ts` | Pengaturan Setting (termasuk profil dasar sejak 0.11) + `resolveProfile()` → profil efektif (JSON netral + pengaturan perangkat), format target lomba | Server & client |
+| `lib/settings-store.ts` | Hook `useAthleteSettings` / `useResolvedProfile`, `useBlockMode` / `useBlockContext` (blok dihitung dari profil perangkat), `useIsClient` | Client |
+| `lib/onboarding.ts` | State machine onboarding murni: langkah, syarat lanjut, lewati, lanjut dari langkah tersimpan, pengguna lama (`migrated`), versi disclaimer, `gateDecision` | Server & client |
+| `lib/onboarding-store.ts` | Hook status onboarding + deteksi data sebelum 0.11 | Client |
+| `lib/backup.ts` | Format cadangan v3 murni (`buildBackup`, `parseBackup`, `applyBackup`); v1/v2 tetap diterima | Server & client |
+| `lib/backup-store.ts` | `BackupStore` di atas localStorage, ekspor/impor file | Client |
+| `components/onboarding/*` | `OnboardingGate` (di layout), `OnboardingWizard` (`/onboarding`, memakai ulang komponen Setting), `TermsStep` | Client |
+| `scripts/make-owner-settings.mjs` | Sekali jalan: profil di JSON lama → `owner-settings.local.json` (cadangan v3 `kind: "defaults"`, tanpa log) | Node |
 | `lib/movements/media.ts` | Gambar (path lokal), sumber & lisensi, cue, otot, catatan kondisi per gerakan | Server & client (juga dibaca script Node) |
 | `scripts/audit-movement-media.mjs` | Audit pencocokan library ↔ free-exercise-db; gagal bila ada gerakan belum diaudit | Dev |
 | `scripts/fetch-movement-media.mjs` | Unduh gambar yang dipakai → WebP ≤ 600 px di `public/movements/` | Dev |
@@ -83,12 +89,27 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 
 | Data | Tempat | Alasan |
 | --- | --- | --- |
-| Profil atlet | `config/athlete-profile.json` di repo | Mudah diedit, ikut versi git |
+| Profil default | `config/athlete-profile.json` di repo, **netral** sejak 0.11 (tanpa nama, kondisi, alat; zona dari VDOT 30) | Fork baru tidak mewarisi data siapa pun. Movement library tetap di sini |
 | Data latihan & wellness | intervals.icu (dibaca, tidak disimpan) | Satu sumber kebenaran |
 | Log sesi ST | `localStorage` perangkat | Tanpa setup/biaya. Data kesehatan tidak keluar dari HP. Cadangan lewat ekspor JSON |
-| Setting (kondisi, zona, alat, gerakan), program target, tema | `localStorage` perangkat | JSON profil jadi default; pengaturan perangkat menimpa. Ikut ekspor/impor JSON (format v2) |
+| Setting (profil dasar, kondisi, zona, alat, gerakan), program target, tema, mode blok, status onboarding | `localStorage` perangkat | JSON netral jadi default; pengaturan perangkat menimpa. Ikut ekspor/impor JSON (format v3) |
 
-Keterbatasannya, log dan Setting hanya ada di satu perangkat, dan halaman yang dirender server (Profil) memakai profil default. Jalur upgrade-nya adalah database (misalnya Upstash Redis lewat Vercel) dengan proteksi PIN/secret, karena aplikasi belum punya login.
+Key `localStorage` (pola `hybrid-athlete.<nama>[.vN]`, di `lib/preference-keys.ts`):
+
+| Key | Isi |
+| --- | --- |
+| `hybrid-athlete.settings.v1` | `AthleteSettings`: `profile` (override per field), `conditions` & `equipment` (nilai penuh begitu disimpan), `runZones` & `movements` (override) |
+| `hybrid-athlete.log.v1` | Log sesi ST |
+| `hybrid-athlete.program` | Program target |
+| `hybrid-athlete.theme` | `light` / `dark` (kosong = sistem) |
+| `hybrid-athlete.block-enabled` | `1` / `0`; kosong = aktif hanya bila profil punya tanggal mulai blok |
+| `hybrid-athlete.onboarding.v1` | `OnboardingState` |
+
+**Format cadangan v3** (`lib/backup.ts`): `{ app, version: 3, kind, exportedAt, log, settings, program, preferences, onboarding }`. `kind: "backup"` menimpa bagian yang ada di file; `kind: "defaults"` (file migrasi) hanya mengisi yang masih kosong di perangkat. Log selalu digabung tanpa duplikat; file tanpa log tidak menyentuh log.
+
+**Gate onboarding** (`components/onboarding/OnboardingGate.tsx`, di dalam `<main>` layout): status hanya ada di perangkat, jadi diperiksa di client. Sebelum localStorage terbaca tampil kerangka. Pengguna baru → `/onboarding` (tanpa BottomNav); pengguna lama (punya Setting/log/program) → `migrated` + disclaimer saja sekali; `termsVersion` < `TERMS_VERSION` → disclaimer saja. Header Profil, target, dan posisi blok kini dibaca di client dari profil perangkat, bukan dari JSON di server.
+
+Keterbatasannya, log dan Setting hanya ada di satu perangkat. Jalur upgrade-nya adalah database (misalnya Upstash Redis lewat Vercel) dengan proteksi PIN/secret, karena aplikasi belum punya login.
 
 ## Design system
 
@@ -106,6 +127,8 @@ Sumber kebenaran desain: **[DESIGN-SYSTEM.md](DESIGN-SYSTEM.md)** (design system
 npm test
 ```
 
+Test aturan (generator, periodization, media, settings) memakai profil contoh anonim `__tests__/fixtures/example-athlete.json` lewat `vi.mock` pada JSON profil, karena JSON di repo netral.
+
 | File | Cakupan |
 | --- | --- |
 | `generator.test.ts` | Seluruh kombinasi input (9 lari + 36 ST) × 25 seed × 3 kondisi blok. Durasi ±2 menit, RPE ≤ 7, beban ≤ library, prehab wajib, whitelist gerakan, Spine-Friendly, dan sanitizer. |
@@ -117,6 +140,9 @@ npm test
 | `program.test.ts` | Program target: fase, long run ≤ 10%/2 km, cutback, taper, peringatan. |
 | `media.test.ts` | Setiap gerakan punya entri media, setiap path gambar ada, sumber/lisensi konsisten, gerakan baru bisa dijangkau & lolos semua aturan, titik tambat band, ★ baru mulai blok berikutnya. |
 | `skyline-scale.test.ts` | Skala tinggi Segment Skyline (min 10%, steady dari nol), deteksi segmen kerja (WORK / median, lap otomatis), tata letak bar, aturan label, stagger, ringkasan struktur & best rep. |
+| `onboarding.test.ts` | Urutan & langkah otomatis 0.11.0, maju/mundur, langkah wajib memblokir, opsional dilewati, lanjut dari langkah tersimpan, state rusak, "Tidak ada kondisi" eksklusif, gate (baru/lama/versi disclaimer). |
+| `backup.test.ts` | Ekspor v3, impor v1/v2/v3, impor tanpa log tidak menghapus log, log tanpa duplikat, `kind: "defaults"` tidak menimpa kustomisasi perangkat. |
+| `neutral-profile.test.ts` | JSON netral tanpa data pribadi, zona = `zonesFromVdot(30)`, semua kombinasi lari valid dengan profil netral, ST bodyweight-only tidak pernah error. |
 | `settings.test.ts` | Setiap kondisi mengubah generator sesuai aturannya, kombinasi semua kondisi tetap valid, beban selalu bisa dirakit dari alat, gerakan tidak dipilih tidak pernah muncul, rumus VDOT vs tabel Daniels, parser pengaturan tahan data rusak. |
 
 Generator diuji secara menyeluruh (setiap kombinasi × banyak seed), bukan hanya dengan beberapa contoh. Bug yang ditemukan saat pengembangan, seperti deload yang gagal memenuhi durasi atau beban yang terbulatkan salah, selalu disertai test baru.

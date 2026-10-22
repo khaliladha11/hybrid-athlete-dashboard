@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.10.2 (2026-10-21) |
+| **Versi saat ini** | 0.11.0 (2026-10-22) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 10 file test, 178 unit test lolos · build produksi lolos |
+| **Kualitas** | 13 file test, 206 unit test lolos · build produksi lolos |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -123,7 +123,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
-| Header profil (nama, usia, gaya hidup, fokus) | ✅ | Dari `config/athlete-profile.json`. Tanpa avatar inisial sejak 0.10.1 (belum ada fitur foto) |
+| Header profil (nama, usia, gaya hidup, fokus) | ✅ | Dari profil di perangkat sejak 0.11.0 (dulu dari JSON). Tanpa avatar inisial sejak 0.10.1 |
 | Target lomba | ✅ | Kondisi, zona, alat & movement library pindah ke Setting (0.8) |
 | Wellness hari ini (HRV, resting HR, tidur, CTL/ATL/Form) | ✅ | Status ✓ data hari ini / ✕ data lama |
 | Ringkasan 7 hari (km, pace, HR, long run, load, sesi) | ✅ | Plus distribusi 80/20 & tren km |
@@ -131,7 +131,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Detail aktivitas: split per km + interval / lap | ✅ | `/activity/[id]`. Split dari stream intervals.icu: jarak jam, atau GPS bila jarak hanya dibagi rata / tidak konsisten. Data bertangga diratakan, lonjakan & reset dibuang, hasil divalidasi terhadap ringkasan (0.10.2). Interval hanya tampil bila > 1 |
 | Split cocok dengan Strava | 🟡 | Contoh lari 4,4 km: total moving time sama (44:00), HR per km ±1 bpm, pace per km −9 sampai +7 detik (Strava menghitung ulang jarak 4,42 km, jam 4,44 km) |
 | Aktivitas ganda dari dua sumber (Huawei + Strava) dihitung sekali | ✅ | 0.10.1 · `lib/intervals/dedupe.ts`. Berlaku di kalender, ringkasan 7 hari, saran, dan Program |
-| Edit profil dari dalam aplikasi | 🟡 | Kondisi, zona, alat, gerakan ✅ di Setting. Nama, target, dan tanggal blok masih di JSON |
+| Edit profil dari dalam aplikasi | ✅ | 0.11.0: nama, usia, gaya hidup, fokus, target lomba, tujuan, blok mingguan/mode bebas di Setting › Profil; kondisi, zona, alat, gerakan sejak 0.8 |
 | Grafik tren (CTL/ATL/Form, km mingguan, pace, cadence) | ⬜ | Lihat roadmap |
 
 ### 4.2 Saran hari ini (coach)
@@ -233,7 +233,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Tema & blok mingguan, Data & cadangan | ✅ | |
 | Nav bagian sticky: smooth scroll, highlight kartu tujuan, scroll spy | ✅ | 0.8.1, menghormati reduced motion |
 | Zona HR & RPE bisa diubah | ⬜ | Sekarang hanya pace |
-| Edit nama, target lomba, tanggal mulai blok | ⬜ | |
+| Edit nama, target lomba, tanggal mulai blok | ✅ | 0.11.0, bagian Profil (paling atas). Target lomba lewat pemilih waktu |
 
 ### 4.9 Onboarding
 
@@ -241,15 +241,15 @@ Rencana 0.11, spesifikasi lengkap di [ONBOARDING.md](ONBOARDING.md).
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
-| Wizard `/onboarding` 10 langkah, lanjut dari langkah terakhir, tombol Kembali | ⬜ | 0.11.0 |
-| Disclaimer kesehatan & lisensi wajib, tampil ulang bila versi naik | ⬜ | 0.11.0 |
-| Profil dasar (nama, usia, fokus, target lomba, blok/mode bebas) di onboarding & Setting | ⬜ | 0.11.0 |
-| Kondisi wajib eksplisit, opsi "Tidak ada kondisi" | ⬜ | 0.11.0 |
-| Zona lari: VDOT / manual / "belum tahu" (zona perkiraan) | ⬜ | 0.11.0 |
-| Alat opsional (lewati = bodyweight) | ⬜ | 0.11.0 |
-| `config/athlete-profile.json` netral + file migrasi profil pemilik | ⬜ | 0.11.0 |
-| Ekspor/impor format v3 (profil dasar + status onboarding), impor v2 tetap diterima | ⬜ | 0.11.0 |
-| Gate di client: pengguna lama hanya melihat disclaimer, tanpa kehilangan data | ⬜ | 0.11.0 |
+| Wizard `/onboarding` 10 langkah, lanjut dari langkah terakhir, tombol Kembali | 🟡 | 0.11.0: langkah 1, 2, 5, 6, 7, 8, 10. Langkah 3, 4, 9 dilewati otomatis sampai 0.11.1 |
+| Disclaimer kesehatan & lisensi wajib, tampil ulang bila versi naik | ✅ | 0.11.0. Repo belum punya file lisensi; poin lisensi menautkan NOTICE.md |
+| Profil dasar (nama, usia, fokus, target lomba, blok/mode bebas) di onboarding & Setting | ✅ | 0.11.0 |
+| Kondisi wajib eksplisit, opsi "Tidak ada kondisi" | ✅ | 0.11.0 |
+| Zona lari: VDOT / manual / "belum tahu" (zona perkiraan) | 🟡 | 0.11.0. Isian awal VDOT dari lari terbaik 90 hari menunggu cek koneksi (0.11.1) |
+| Alat opsional (lewati = bodyweight) | ✅ | 0.11.0, plus catatan sesi ST yang jadi lebih pendek |
+| `config/athlete-profile.json` netral + file migrasi profil pemilik | ✅ | 0.11.0: zona dari VDOT 30; `scripts/make-owner-settings.mjs` → `owner-settings.local.json` (diabaikan git) |
+| Ekspor/impor format v3 (profil dasar + status onboarding), impor v2 tetap diterima | ✅ | 0.11.0. File `kind: "defaults"` hanya mengisi yang kosong; log selalu digabung |
+| Gate di client: pengguna lama hanya melihat disclaimer, tanpa kehilangan data | ✅ | 0.11.0 |
 | Cek koneksi intervals.icu di server (browser hanya menerima status) | ⬜ | 0.11.1 |
 | Pengingat amankan deploy (Vercel Authentication › All Deployments) | ⬜ | 0.11.1 |
 | Pasang ke layar utama (install prompt Android, panduan iOS) | ⬜ | 0.11.1 |
@@ -279,16 +279,15 @@ Diurutkan dari yang paling berdampak.
 
 1. **Belum ada login di aplikasi.** Deploy pemilik sudah dilindungi *Deployment Protection* (Vercel Authentication, cakupan **All Deployments**). Risikonya ada di fork/deploy baru: tanpa proteksi, siapa pun yang tahu URL-nya bisa melihat data intervals.icu pemilik deploy (*Standard Protection* tidak melindungi alamat utama `*.vercel.app`). Ditangani lewat tutorial README dan langkah "Amankan deploy" di onboarding (0.11).
 2. **Data di perangkat saja.** Setting, log ST, program, tema, dan toggle blok ada di `localStorage`. Hilang bila data browser dihapus, dan tidak sinkron antara HP dan laptop. Cadangan: ekspor JSON manual (kini mencakup semuanya). Makin penting sejak 0.8 karena Setting menyimpan lebih banyak data.
-3. **Profil sebagian statis.** Nama, target lomba, dan tanggal mulai blok masih di JSON. Bagian yang dirender server (mis. header Profil) memakai nilai default, bukan Setting perangkat.
-4. **Movement library hanya dari kurasi developer.** 0.9 menambah 13 gerakan (total 40), tetapi pengguna belum bisa menambah gerakan sendiri; alat lain (mis. kettlebell) baru dicatat. 5 gerakan belum punya gambar — termasuk 2 prehab wajib (Clamshell, Tibialis Wall Raise) — dan celah anti-rotasi (Pallof, bird dog, suitcase carry) belum ada di sumber gambar. Kondisi di luar katalog hanya catatan.
-5. **Program & generator belum terhubung.** Sesi di Program tidak bisa langsung dibuka di generator, dan aktivitas aktual belum dicocokkan dengan rencana.
-6. **Ambang tetap.** HR lari berat (155), penurunan HRV (15%), dan kenaikan resting HR (5 bpm) belum dipersonalisasi.
-7. **Data per detik dari jam tidak selalu bisa dipercaya.** Untuk data Huawei, intervals.icu kadang hanya punya total jarak yang dibagi rata, atau jarak bertangga (datar lalu melompat). Split lalu dihitung dari GPS dan diskalakan ke jarak jam, sehingga per km bisa beda beberapa detik dari Strava yang menghitung ulang jarak sendiri. Kalibrasi lebih lanjut butuh data mentah (lihat backlog).
-8. **Isi aktivitas Strava tidak bisa dibaca.** Kebijakan Strava melarang intervals.icu meneruskan data Strava lewat API. Salinan Strava dibuang bila ada rekaman lain; aktivitas yang hanya ada di Strava tampil sebagai "Aktivitas Strava" tanpa data.
-9. **Kalender terbatas 2 bulan.** Hanya bulan ini dan bulan lalu yang diambil dari intervals.icu.
-10. **Belum offline.** Belum ada service worker.
-11. **Pengujian UI manual.** Belum ada test komponen/e2e maupun CI GitHub Actions. Animasi bottom sheet & crossfade 0.9 baru diverifikasi secara logika (state, posisi, reduced motion), belum di perangkat nyata.
-12. **Script media & ikon memakai `sharp` dari Next.js** (dependensi tidak langsung). Bila Next.js berhenti membawanya, `sharp` perlu ditambahkan sebagai devDependency.
+3. **Movement library hanya dari kurasi developer.** 0.9 menambah 13 gerakan (total 40), tetapi pengguna belum bisa menambah gerakan sendiri; alat lain (mis. kettlebell) baru dicatat. 5 gerakan belum punya gambar — termasuk 2 prehab wajib (Clamshell, Tibialis Wall Raise) — dan celah anti-rotasi (Pallof, bird dog, suitcase carry) belum ada di sumber gambar. Kondisi di luar katalog hanya catatan.
+4. **Program & generator belum terhubung.** Sesi di Program tidak bisa langsung dibuka di generator, dan aktivitas aktual belum dicocokkan dengan rencana.
+5. **Ambang tetap.** HR lari berat (155), penurunan HRV (15%), dan kenaikan resting HR (5 bpm) belum dipersonalisasi.
+6. **Data per detik dari jam tidak selalu bisa dipercaya.** Untuk data Huawei, intervals.icu kadang hanya punya total jarak yang dibagi rata, atau jarak bertangga (datar lalu melompat). Split lalu dihitung dari GPS dan diskalakan ke jarak jam, sehingga per km bisa beda beberapa detik dari Strava yang menghitung ulang jarak sendiri. Kalibrasi lebih lanjut butuh data mentah (lihat backlog).
+7. **Isi aktivitas Strava tidak bisa dibaca.** Kebijakan Strava melarang intervals.icu meneruskan data Strava lewat API. Salinan Strava dibuang bila ada rekaman lain; aktivitas yang hanya ada di Strava tampil sebagai "Aktivitas Strava" tanpa data.
+8. **Kalender terbatas 2 bulan.** Hanya bulan ini dan bulan lalu yang diambil dari intervals.icu.
+9. **Belum offline.** Belum ada service worker.
+10. **Pengujian UI manual.** Belum ada test komponen/e2e maupun CI GitHub Actions. Animasi bottom sheet & crossfade 0.9 baru diverifikasi secara logika (state, posisi, reduced motion), belum di perangkat nyata.
+11. **Script media & ikon memakai `sharp` dari Next.js** (dependensi tidak langsung). Bila Next.js berhenti membawanya, `sharp` perlu ditambahkan sebagai devDependency.
 
 ## 7. Roadmap & saran pengembangan
 
@@ -369,6 +368,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.10.0-ui | 2026-10-12 | Redesign "Tag": token dark-first, Archivo + Geist Mono, StatRow, Segment Skyline, Week Ledger, kontras tombol diperbaiki |
 | 0.10.1 | 2026-10-16 | Logo "Forward H" (AppBar, ikon PWA, favicon); split per km dari stream (GPS bila jarak dibagi rata); aktivitas ganda Huawei + Strava dihitung sekali; pemilih waktu & pace di Setting |
 | 0.10.2 | 2026-10-21 | Split per km akurat: data jarak bertangga, lonjakan, reset; ambang bergerak seperti Strava; validasi terhadap ringkasan aktivitas |
+| 0.11.0 | 2026-10-22 | Onboarding (langkah 1, 2, 5–8, 10) + gate, profil dasar di Setting, JSON profil netral + migrasi pemilik, cadangan v3 |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 

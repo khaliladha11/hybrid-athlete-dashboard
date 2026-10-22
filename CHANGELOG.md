@@ -4,7 +4,28 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.11.0] · 2026-10-22 · Onboarding & profil di perangkat
+
+Bagian pertama rencana [ONBOARDING.md](docs/ONBOARDING.md): fork baru memakai profil miliknya sendiri tanpa mengedit JSON dan tanpa mewarisi data pemilik repo.
+
 ### Ditambahkan
+- **Onboarding `/onboarding`** (tanpa BottomNav): selamat datang (Mulai atau impor cadangan), disclaimer & lisensi wajib, profil dasar (nama wajib), kondisi wajib eksplisit dengan "Tidak ada kondisi", zona lari (VDOT, manual, atau "Belum tahu"), alat (boleh dilewati, dengan catatan sesi ST yang jadi lebih pendek), ringkasan dengan chip NANTI. Label `LANGKAH x/10`, tombol Kembali, fokus ke judul, pengumuman `aria-live`. Langkah 3, 4, 9 dilewati otomatis sampai 0.11.1.
+- **Gate di client**: pengguna baru ke onboarding; pengguna lama (sudah punya data) dicatat `migrated` dan hanya menyetujui disclaimer sekali, tanpa kehilangan data; versi disclaimer naik → disclaimer saja. Kerangka tampil selama memeriksa.
+- **Setting › Profil**: nama, usia, gaya hidup, fokus, target lomba (pemilih waktu, format yang dibaca Program), tujuan latihan, blok mingguan dengan tanggal mulai atau mode bebas.
+- **Cadangan format v3** (`lib/backup.ts`): profil dasar + status onboarding; impor v1/v2 tetap jalan; file `kind: "defaults"` hanya mengisi yang kosong; log selalu digabung, file tanpa log tidak menyentuh log.
+- `scripts/make-owner-settings.mjs`: salin profil JSON lama ke `owner-settings.local.json` (diabaikan git lewat `*.local.json`).
+- 28 test baru (`onboarding`, `backup`, `neutral-profile`, profil di `settings`), total 206 di 13 file.
+
+### Diubah
+- **`config/athlete-profile.json` netral**: tanpa nama, target, kondisi, alat, atau tanggal blok; zona default dari VDOT 30 (dicatat di `runZonesSource`). Movement library tetap.
+- Header Profil, kartu Target, dan posisi blok dibaca di client dari profil perangkat. Server tidak lagi menghitung blok dari JSON.
+- Mode blok tanpa nilai tersimpan aktif hanya bila ada tanggal mulai blok (fork baru mulai di mode bebas).
+- Test aturan memakai profil contoh anonim `__tests__/fixtures/example-athlete.json`; ekspektasinya tidak berubah.
+
+### Untuk pengguna lama
+- Lihat README › "Sudah memasang sebelum 0.11?": ekspor cadangan, deploy, setujui disclaimer, lalu impor `owner-settings.local.json`.
+
+### Dokumentasi & privasi (sejak 0.10.2)
 - **Privasi repo publik:** data latihan asli (ID aktivitas intervals.icu & Strava, tanggal, jam) di test dan dokumen diganti data fiktif; alamat deploy tidak lagi dicantumkan di PRD; `CLAUDE.md` mendapat aturan privasi agar data asli tidak masuk lagi.
 - **Tutorial "Pasang di HP-mu sendiri"** di README: fork, isi profil, API key intervals.icu, deploy ke Vercel, kunci akses (Vercel Authentication › All Deployments, karena Standard Protection tidak melindungi alamat utama), pasang PWA, atur di aplikasi, cara update, dan tabel masalah umum. Bagian developer README dirapikan dan angka test diperbarui.
 
@@ -213,7 +234,8 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.10.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/5266a8e...main
+[0.11.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/cda26c1...main
+[0.10.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/5266a8e...cda26c1
 [0.10.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/a7d3f00...5266a8e
 [0.10.0-ui]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/9bcff80...a7d3f00
 [0.9.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ff25f40...9bcff80

@@ -117,6 +117,8 @@ Gratis, Install sekitar 15 menit aja, tanpa menulis kode. Hasilnya: aplikasi di 
 
 ### Langkah 2 · Isi profilmu
 
+> Sejak 0.11.0 profil diisi lewat **onboarding** saat aplikasi pertama dibuka, jadi langkah ini opsional. Nilai di file ini hanya jadi default.
+
 Di fork-mu, buka [`config/athlete-profile.json`](config/athlete-profile.json), klik ikon pensil (**Edit this file**), ubah isinya, lalu klik **Commit changes**.
 
 | Field | Isi | Bisa diubah lagi di aplikasi? |
@@ -178,6 +180,17 @@ Buka tab **Setting**:
 - **Alat** dan **Gerakan:** centang yang kamu punya dan mau dipakai.
 
 Pengaturan dan log latihan tersimpan di perangkat itu saja. Untuk pindah atau menambah perangkat: **Setting › Data & cadangan**, ekspor JSON, lalu impor di perangkat baru.
+
+### Sudah memasang sebelum 0.11?
+
+Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di perangkat, dan `config/athlete-profile.json` di repo netral. Data di HP-mu tidak hilang, tapi nama, target, dan tanggal blok yang dulu ada di JSON perlu dipindahkan sekali:
+
+1. **Ekspor cadangan dulu.** Di HP: **Setting › Data & cadangan › Ekspor JSON**. Simpan filenya.
+2. **Buat file migrasi** (bila profilmu ada di `config/athlete-profile.json` fork-mu). Di komputer, sebelum update: clone fork-mu lalu jalankan `node scripts/make-owner-settings.mjs`. Hasilnya `owner-settings.local.json`, yang otomatis diabaikan git, jadi jangan di-commit. Tanpa komputer: lewati langkah ini dan isi ulang di **Setting › Profil** setelah update.
+3. **Update dan deploy** seperti di bawah (Sync fork). Kalau GitHub melaporkan konflik di `config/athlete-profile.json`, pilih versi terbaru (netral).
+4. **Buka aplikasi.** Kamu hanya diminta menyetujui disclaimer sekali. Onboarding tidak diulang, dan log serta Setting tetap ada.
+5. **Impor file migrasi.** **Setting › Data & cadangan › Impor JSON**, pilih `owner-settings.local.json` (kirim ke HP lewat chat atau drive pribadi). File ini hanya mengisi yang masih kosong, jadi alat, zona, dan pilihan gerakan yang sudah kamu ubah di HP tidak tertimpa.
+6. **Cek** Setting › Profil (nama, target, tanggal blok), Zona lari, dan Alat.
 
 ### Memperbarui ke versi terbaru
 
