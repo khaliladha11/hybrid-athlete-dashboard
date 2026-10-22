@@ -10,6 +10,11 @@ export interface Movement {
   weight: string;
   /** false = tercatat di library tapi belum dipakai generator (mis. belum mampu). Default true. */
   available?: boolean;
+  /**
+   * Gerakan cadangan (mis. push-up tanpa alat): tanpa pilihan pengguna, otomatis dipilih hanya bila
+   * kategorinya tidak punya gerakan non-cadangan yang bisa dipakai. Pilihan eksplisit di Setting tetap menang.
+   */
+  fallback?: boolean;
   /** Beban (kg) yang bisa dirakit dari alat, sudah dalam rentang library. Tidak ada = pakai rentang library. */
   loads?: number[];
 }

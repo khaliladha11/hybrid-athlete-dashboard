@@ -35,7 +35,7 @@ const NEW_MOVEMENTS = [
 ];
 const BAND_ANCHORED = ["Band Reverse Fly", "Band External Rotation", "Standing Band Hip Abduction", "Seated Band Hamstring Curl"];
 /** Keputusan audit (docs/movement-media-audit.md): tanpa padanan / ditolak pemilik. */
-const WITHOUT_IMAGE = ["Dead Hang", "Negative Pull-Up", "Seated DB Scapular Retraction", "Clamshell", "Tibialis Wall Raise"];
+const WITHOUT_IMAGE = ["Dead Hang", "Negative Pull-Up", "Seated DB Scapular Retraction", "Clamshell", "Tibialis Wall Raise", "Knee Push-Up", "Wall Push-Up", "Prone Y-T-W Raise", "Prone Reverse Snow Angel"];
 
 const base = defaultSettings(baseProfile);
 const make = (patch: Partial<AthleteSettings>) => resolveProfile(baseProfile, { ...base, ...patch });

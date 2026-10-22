@@ -30,6 +30,12 @@ export const META: Record<string, MovementMeta> = {
   "Floor Press": { cue: "Siku ±45°, punggung bawah tetap menempel lantai." },
   "Seated Overhead Press": { cue: "Duduk bersandar, jangan melengkungkan punggung bawah." },
   "High-Incline Push-Up": { reps: { easy: "10", moderate: "12", high: "12–15" }, cue: "Badan lurus seperti papan, glute aktif." },
+  // 0.11.2 — gerakan tanpa alat untuk Upper Push/Pull (profil tanpa alat). Progresi: Wall → Knee → Push-Up.
+  "Push-Up": { reps: { easy: "6", moderate: "8", high: "10–12" }, cue: "Badan lurus dari kepala ke tumit, siku ±45°; turun sampai dada sekepalan dari lantai." },
+  "Knee Push-Up": { reps: { easy: "8", moderate: "10", high: "12–15" }, cue: "Lutut di lantai, panggul segaris dengan badan. Jangan menungging." },
+  "Wall Push-Up": { reps: { easy: "12", moderate: "15", high: "15–20" }, cue: "Tangan di dinding setinggi bahu; makin jauh kaki dari dinding, makin berat." },
+  "Prone Y-T-W Raise": { reps: { easy: "4/posisi (Y, T, W)", moderate: "5/posisi (Y, T, W)", high: "6/posisi (Y, T, W)" }, cue: "Tengkurap, dahi di handuk; angkat lengan dengan menarik tulang belikat ke bawah-belakang, punggung bawah diam." },
+  "Prone Reverse Snow Angel": { reps: { easy: "8", moderate: "10", high: "12" }, cue: "Tengkurap, lengan melayang sedikit di atas lantai, sapukan dari samping paha ke atas kepala; glute aktif." },
   "Lateral Band Walk": { reps: "10 langkah/arah", unilateral: true, cue: "Gluteus medius — lutut tetap keluar, jangan menyilang." },
   Clamshell: { reps: "12–15/sisi", unilateral: true, cue: "Panggul tidak ikut berputar ke belakang." },
   "Dead Bug": { reps: "8/sisi", unilateral: true, cue: "Punggung bawah menempel lantai (anti-hiperlordosis)." },
@@ -86,6 +92,7 @@ export const COMPOUND_MOVEMENTS = [
   "Floor Press",
   "Seated Overhead Press",
   "High-Incline Push-Up",
+  "Push-Up",
   "Supported Single-Arm Row",
   "DB Floor Pullover",
   "Barbell Sumo Deadlift / Hip Thrust",
@@ -106,4 +113,5 @@ export const ANCHOR_SINCE: Record<string, string> = {
   "Rear-Foot-Elevated Split Squat": "2026-10-12",
   "DB Step-Up": "2026-10-12",
   "DB Plié Squat": "2026-10-12",
+  "Push-Up": "2026-10-22",
 };

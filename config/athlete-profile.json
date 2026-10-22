@@ -62,6 +62,21 @@
       {
         "name": "High-Incline Push-Up",
         "weight": "Bodyweight"
+      },
+      {
+        "name": "Push-Up",
+        "weight": "Bodyweight",
+        "fallback": true
+      },
+      {
+        "name": "Knee Push-Up",
+        "weight": "Bodyweight",
+        "fallback": true
+      },
+      {
+        "name": "Wall Push-Up",
+        "weight": "Bodyweight",
+        "fallback": true
       }
     ],
     "upperPull": [
@@ -101,6 +116,16 @@
       {
         "name": "Band Reverse Fly",
         "weight": "Light/Medium Band"
+      },
+      {
+        "name": "Prone Y-T-W Raise",
+        "weight": "Bodyweight",
+        "fallback": true
+      },
+      {
+        "name": "Prone Reverse Snow Angel",
+        "weight": "Bodyweight",
+        "fallback": true
       }
     ],
     "lower": [

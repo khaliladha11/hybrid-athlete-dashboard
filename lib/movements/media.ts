@@ -87,6 +87,24 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     conditionNotes: { apt: "Panggul jangan turun — jaga posterior pelvic tilt ringan." },
   }),
   // ---------------- Upper Pull ----------------
+  // 0.11.2 — tanpa alat. Push-Up dari free-exercise-db; empat lainnya tidak ada padanannya.
+  fromDb("Push-Up", "Pushups", {
+    cues: ["Tangan sedikit lebih lebar dari bahu, badan lurus dari kepala ke tumit.", "Siku ±45° dari badan; turun sampai dada sekepalan dari lantai, dorong kembali."],
+    primaryMuscles: ["Dada", "Trisep"],
+    secondaryMuscles: ["Bahu depan", "Core"],
+    conditionNotes: { apt: "Glute dan perut aktif supaya pinggul tidak turun dan punggung bawah tidak melengkung.", shoulder: "Kurangi kedalaman bila nyeri, atau pakai Knee/Wall Push-Up." },
+  }),
+  noImage("Knee Push-Up", {
+    cues: ["Lutut di lantai, tangan sedikit lebih lebar dari bahu.", "Lutut, panggul, dan bahu segaris; jangan menungging."],
+    primaryMuscles: ["Dada", "Trisep"],
+    secondaryMuscles: ["Bahu depan", "Core"],
+    conditionNotes: { apt: "Perut aktif supaya punggung bawah tidak melengkung." },
+  }),
+  noImage("Wall Push-Up", {
+    cues: ["Berdiri menghadap dinding, tangan di dinding setinggi bahu.", "Badan lurus, tekuk siku sampai dada mendekati dinding, lalu dorong."],
+    primaryMuscles: ["Dada", "Trisep"],
+    secondaryMuscles: ["Bahu depan"],
+  }),
   noImage("Dead Hang", {
     cues: ["Pegang palang selebar bahu, menggantung dengan kaki lepas dari lantai.", "Bahu aktif: tarik tulang belikat sedikit ke bawah, jangan menggantung pasif."],
     primaryMuscles: ["Lengan bawah (grip)", "Latissimus"],
@@ -104,6 +122,22 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     primaryMuscles: ["Lengan bawah (grip)"],
     secondaryMuscles: ["Trapezius", "Perut"],
     conditionNotes: { apt: "Jangan condong ke belakang; panggul netral." },
+  }),
+  noImage("Prone Y-T-W Raise", {
+    cues: ["Tengkurap, dahi di atas handuk, ibu jari menghadap ke atas.", "Angkat lengan sedikit dari lantai membentuk Y, lalu T, lalu W; gerak dari tulang belikat."],
+    primaryMuscles: ["Punggung atas (trapezius tengah & bawah)", "Bahu belakang"],
+    secondaryMuscles: ["Rotator cuff"],
+    conditionNotes: {
+      apt: "Dada tetap rendah; gerakan di tulang belikat, bukan dengan melengkungkan punggung bawah.",
+      lbp: "Tetap dalam rentang tanpa nyeri; bantal tipis di bawah perut boleh.",
+      shoulder: "Mulai dari T dan W; posisi Y hanya bila tanpa nyeri.",
+    },
+  }),
+  noImage("Prone Reverse Snow Angel", {
+    cues: ["Tengkurap, lengan di samping paha dan melayang sedikit di atas lantai.", "Sapukan lengan ke atas kepala dan kembali, perlahan, tulang belikat ditarik ke bawah."],
+    primaryMuscles: ["Punggung atas", "Bahu belakang"],
+    secondaryMuscles: ["Punggung bawah (stabilisasi)"],
+    conditionNotes: { apt: "Glute aktif, kepala dan dada tetap rendah.", shoulder: "Batasi jangkauan di atas kepala bila nyeri." },
   }),
   noImage("Seated DB Scapular Retraction", {
     cues: ["Duduk sedikit membungkuk, lengan lurus menggantung.", "Rapatkan tulang belikat ke belakang tanpa menekuk siku, tahan 1 detik."],

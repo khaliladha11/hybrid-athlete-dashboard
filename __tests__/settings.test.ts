@@ -285,3 +285,35 @@ describe("profil dasar di Setting (0.11)", () => {
     expect(goalFromProfile("fm", p)).toBe(16200);
   });
 });
+
+describe("gerakan cadangan tanpa alat (0.11.2)", () => {
+  const PUSH = ["Push-Up", "Knee Push-Up", "Wall Push-Up"];
+  const PULL = ["Prone Y-T-W Raise", "Prone Reverse Snow Angel"];
+  const noGear = { dumbbell: { enabled: false, handles: 2 }, barbell: { enabled: false }, plates: [], bands: [], pullUpBar: false, bench: false, bandAnchor: false, other: [] };
+
+  it("profil beralat: cadangan tidak dipilih otomatis (rotasi lama tidak berubah)", () => {
+    const p = make({});
+    for (const n of [...PUSH, ...PULL]) {
+      expect(p.movementStatus[n], n).toMatchObject({ fallback: true, selected: false, available: false, autoSelected: false });
+    }
+  });
+
+  it("tanpa alat: cadangan aktif otomatis untuk dorong & tarik", () => {
+    const p = make({ equipment: noGear as AthleteSettings["equipment"] });
+    for (const n of [...PUSH, ...PULL]) expect(p.movementStatus[n], n).toMatchObject({ selected: true, available: true, autoSelected: true });
+  });
+
+  it("per kategori: semua gerakan dorong utama dimatikan → cadangan dorong aktif, tarik tidak", () => {
+    const pushPrimary = Object.fromEntries(baseProfile.movementLibrary.upperPush.filter((m) => !m.fallback).map((m) => [m.name, false]));
+    const p = make({ movements: pushPrimary });
+    for (const n of PUSH) expect(p.movementStatus[n].selected, n).toBe(true);
+    for (const n of PULL) expect(p.movementStatus[n].selected, n).toBe(false);
+  });
+
+  it("pilihan eksplisit di Setting menang atas default cadangan", () => {
+    expect(make({ movements: { "Push-Up": true } }).movementStatus["Push-Up"]).toMatchObject({ selected: true, available: true, autoSelected: false });
+    const off = make({ equipment: noGear as AthleteSettings["equipment"], movements: { "Wall Push-Up": false } });
+    expect(off.movementStatus["Wall Push-Up"].selected).toBe(false);
+    expect(off.movementStatus["Push-Up"].selected).toBe(true);
+  });
+});

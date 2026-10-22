@@ -147,6 +147,12 @@ const AUDIT = {
   "DB Scaption": { verdict: "exact", ids: ["Dumbbell_Scaption"], note: "Ditambahkan dari database (0.9)." },
   "Band External Rotation": { verdict: "exact", ids: ["External_Rotation_with_Band"], note: "Ditambahkan dari database (0.9)." },
   "Quadruped Hip Circles": { verdict: "exact", ids: ["Hip_Circles_prone"], note: "Ditambahkan dari database (0.9)." },
+  // ---------- 0.11.2 · tanpa alat ----------
+  "Push-Up": { verdict: "exact", ids: ["Pushups"], note: "Ditambahkan dari database (0.11.2): push-up standar tanpa alat." },
+  "Knee Push-Up": { verdict: "none", ids: [], note: "Tidak ada push-up bertumpu lutut di database (hanya Incline/Decline/variasi tangan). Tanpa gambar." },
+  "Wall Push-Up": { verdict: "none", ids: [], note: "Tidak ada push-up ke dinding; Incline_Push-Up memakai bangku. Tanpa gambar." },
+  "Prone Y-T-W Raise": { verdict: "none", ids: [], note: "Tidak ada gerakan Y/T/W tengkurap tanpa alat di database. Tanpa gambar." },
+  "Prone Reverse Snow Angel": { verdict: "none", ids: [], note: "Tidak ada reverse snow angel di database; Superman (lumbar extension) sengaja tidak dipakai (Spine-Friendly). Tanpa gambar." },
 };
 
 /**

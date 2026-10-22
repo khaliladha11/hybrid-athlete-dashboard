@@ -4,14 +4,14 @@
 
 - **Sumber:** [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (876 gerakan), lisensi **Unlicense** (public domain).
 - **Data:** `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json`
-- **Diperiksa:** 2026-10-12 · 40 gerakan (35 gerakan inti + 5 pemanasan/pendinginan).
+- **Diperiksa:** 2026-10-22 · 45 gerakan (40 gerakan inti + 5 pemanasan/pendinginan).
 - **Cara menilai:** instruksi setiap kandidat dibaca, dan gambar dicek untuk kasus yang meragukan. Cocok persis = posisi tubuh, alat, dan pola gerak sama.
 
 ## Ringkasan
 
-- ✅ Cocok persis: **23**
+- ✅ Cocok persis: **24**
 - 🟡 Mirip tapi berbeda: **14** — default **tidak dipakai** sampai disetujui
-- ⬜ Tidak ada: **3** — akan tampil "Gambar belum tersedia"
+- ⬜ Tidak ada: **7** — akan tampil "Gambar belum tersedia"
 
 ## Upper Push
 
@@ -42,6 +42,17 @@
   - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Push-Up/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Push-Up/1.jpg)
   - Catatan: Pola sama, tetapi tumpuan di gambar setinggi bangku; versi kita high-incline (kursi/meja/dinding, lebih tinggi & lebih ringan).
   - Hasil pencarian nama lain (tidak dipilih): `Incline_Push-Up_Wide`, `Cable_Incline_Pushdown`, `Incline_Push-Up_Medium`
+- ✅ **Push-Up** (Bodyweight)
+  - ID: `Pushups`
+  - Data: alat `body only`, level `beginner`, otot utama chest
+  - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/1.jpg)
+  - Catatan: Ditambahkan dari database (0.11.2): push-up standar tanpa alat.
+- ⬜ **Knee Push-Up** (Bodyweight)
+  - Catatan: Tidak ada push-up bertumpu lutut di database (hanya Incline/Decline/variasi tangan). Tanpa gambar.
+  - Hasil pencarian nama lain (tidak dipilih): `Pushups`, `Drop_Push`, `Sled_Push`, `Push_Press`
+- ⬜ **Wall Push-Up** (Bodyweight)
+  - Catatan: Tidak ada push-up ke dinding; Incline_Push-Up memakai bangku. Tanpa gambar.
+  - Hasil pencarian nama lain (tidak dipilih): `Pushups`, `Drop_Push`, `Sled_Push`, `Push_Press`
 
 ## Upper Pull
 
@@ -93,6 +104,12 @@
   - Data: alat `bands`, level `beginner`, otot utama shoulders
   - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Back_Flyes_-_With_Bands/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Back_Flyes_-_With_Bands/1.jpg)
   - Catatan: Ditambahkan dari database (0.9).
+- ⬜ **Prone Y-T-W Raise** (Bodyweight)
+  - Catatan: Tidak ada gerakan Y/T/W tengkurap tanpa alat di database. Tanpa gambar.
+  - Hasil pencarian nama lain (tidak dipilih): `Dumbbell_Raise`, `Shoulder_Raise`, `Glute_Ham_Raise`, `Rear_Leg_Raises`
+- ⬜ **Prone Reverse Snow Angel** (Bodyweight)
+  - Catatan: Tidak ada reverse snow angel di database; Superman (lumbar extension) sengaja tidak dipakai (Spine-Friendly). Tanpa gambar.
+  - Hasil pencarian nama lain (tidak dipilih): `Reverse_Flyes`, `Reverse_Crunch`, `Sled_Reverse_Flye`, `Reverse_Cable_Curl`
 
 ## Lower
 
@@ -258,5 +275,5 @@ Diputuskan 2026-10-12. ✓ = gambar kandidat dipakai; ✕ = ditolak, tampil "Gam
 
 ## Hasil akhir untuk Fase 3
 
-- Dengan gambar: **35** gerakan
-- Tanpa gambar ("Gambar belum tersedia"): **5** — Dead Hang, Negative Pull-Up, Seated DB Scapular Retraction, Clamshell, Tibialis Wall Raise
+- Dengan gambar: **36** gerakan
+- Tanpa gambar ("Gambar belum tersedia"): **9** — Knee Push-Up, Wall Push-Up, Dead Hang, Negative Pull-Up, Seated DB Scapular Retraction, Prone Y-T-W Raise, Prone Reverse Snow Angel, Clamshell, Tibialis Wall Raise

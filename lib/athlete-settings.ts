@@ -56,6 +56,11 @@ export interface AthleteSettings {
 /** Status gerakan setelah pilihan, alat, dan kondisi diterapkan. */
 export interface MovementStatus {
   available: boolean;
+  /** Terpilih (pilihan pengguna, default library, atau cadangan yang aktif otomatis). */
+  selected: boolean;
+  /** Gerakan cadangan; `autoSelected` = aktif otomatis karena kategorinya kosong. */
+  fallback?: boolean;
+  autoSelected?: boolean;
   /** Alasan tidak tersedia (untuk Setting). */
   reason?: string;
   loads?: number[];
@@ -169,9 +174,10 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
   const movementStatus: Record<string, MovementStatus> = {};
   const excludedBy = (name: string) => s.conditions.filter((id) => CONDITIONS[id].rules.exclude?.includes(name));
 
-  const resolveMovement = (m: Movement): Movement => {
-    // Gerakan yang diwajibkan kondisi aktif selalu terpilih.
-    const selected = rules.requiredLower.includes(m.name) || (s.movements[m.name] ?? defaultSelected(m));
+  const resolveMovement = (m: Movement, fallbackOn = false): Movement => {
+    // Gerakan yang diwajibkan kondisi aktif selalu terpilih. Cadangan: default mengikuti `fallbackOn`.
+    const chosen = s.movements[m.name];
+    const selected = rules.requiredLower.includes(m.name) || (chosen ?? (m.fallback ? fallbackOn : defaultSelected(m)));
     const missing = missingNeeds(m.name, eq);
     const excl = excludedBy(m.name);
     let weight = m.weight;
@@ -192,12 +198,24 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
       loads = feasibleLoads(m.name, m.weight, eq);
       if (loads && !loads.length) reason = `Beban ${m.weight} tidak bisa dirakit dari alat`;
     }
-    movementStatus[m.name] = { available: !reason, reason, loads: reason ? undefined : loads };
+    movementStatus[m.name] = {
+      available: !reason,
+      selected,
+      reason,
+      loads: reason ? undefined : loads,
+      ...(m.fallback ? { fallback: true, autoSelected: chosen === undefined && fallbackOn } : {}),
+    };
     return { ...m, weight, available: !reason, ...(loads && !reason ? { loads } : {}) };
   };
 
   const lib = {} as MovementLibrary;
-  for (const c of MOVEMENT_CATEGORIES) lib[c] = (base.movementLibrary[c] ?? []).map(resolveMovement);
+  for (const c of MOVEMENT_CATEGORIES) {
+    // Gerakan non-cadangan dulu; cadangan aktif otomatis bila tidak ada satu pun yang bisa dipakai.
+    const list = base.movementLibrary[c] ?? [];
+    const primary = new Map(list.filter((m) => !m.fallback).map((m) => [m.name, resolveMovement(m)]));
+    const fallbackOn = ![...primary.values()].some((m) => m.available);
+    lib[c] = list.map((m) => primary.get(m.name) ?? resolveMovement(m, fallbackOn));
+  }
   lib.warmupAndCooldown = (base.movementLibrary.warmupAndCooldown ?? []).filter((n) => !missingNeeds(n, eq).length);
 
   const runZones: AthleteProfile["runZones"] = { ...(base.runZones ?? {}) };
