@@ -225,6 +225,11 @@ export function finish(state: OnboardingState, now: string): OnboardingState {
   return { ...state, currentStep: "summary", completed: add(state.completed, "summary"), completedAt: state.completedAt ?? now };
 }
 
+/** Tur in-app selesai atau dilewati (keduanya dicatat; tur bisa diulang dari Setting). */
+export function completeTour(state: OnboardingState, now: string): OnboardingState {
+  return { ...state, tourCompletedAt: now };
+}
+
 /** Setujui disclaimer versi sekarang (layar tunggal untuk pengguna lama atau saat versi naik). */
 export function acceptTerms(state: OnboardingState, now: string): OnboardingState {
   return { ...state, completed: add(state.completed, "terms"), termsVersion: TERMS_VERSION, termsAcceptedAt: now };
