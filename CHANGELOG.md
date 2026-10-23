@@ -4,6 +4,15 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.11.3] · 2026-10-23 · Keamanan dependensi & tur lebih ringkas
+
+### Keamanan
+- `npm audit fix`: Next.js 16.3.6 → 16.4.2 (advisory kritis & tinggi: RCE pada fungsi `use cache`, cache poisoning SSG/ISR, SSRF di Image Optimization, kebocoran info), Vitest 5.0.5 / `@vitest/mocker`, Vite, dan `source-map-js`. `npm audit`: 0 kerentanan. Aplikasi tidak memakai `use cache` atau ISR, dan `next/image` hanya untuk gambar lokal, tetapi tetap diperbarui. Batas minimum di `package.json` ikut dinaikkan.
+- Rilis keamanan Node.js 21 Okt 2026 (mis. CVE-2026-111497 di dekoder Brotli) ada di runtime, bukan di repo. Pastikan Node lokal ≥ 22.23.4 dan versi Node project di Vercel 22.x/24.x (Vercel memperbarui patch otomatis). PHP tidak dipakai.
+
+### Diubah
+- Popover tur lebih ringkas (padding, ukuran teks, lebar 340 px) dan teks sorotan Profil dipersingkat supaya tidak menutupi data di bawah kartu saran.
+
 ## [0.11.2] · 2026-10-22 · Tur in-app & strength tanpa alat
 
 Menutup rencana [ONBOARDING.md](docs/ONBOARDING.md).
@@ -264,7 +273,8 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.11.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/4d0042f...main
+[0.11.3]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/77815e4...main
+[0.11.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/4d0042f...77815e4
 [0.11.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ffb3a10...4d0042f
 [0.11.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/cda26c1...ffb3a10
 [0.10.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/5266a8e...cda26c1

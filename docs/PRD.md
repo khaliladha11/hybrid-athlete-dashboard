@@ -5,7 +5,7 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.11.2 (2026-10-22) |
+| **Versi saat ini** | 0.11.3 (2026-10-23) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
@@ -375,6 +375,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.11.0 | 2026-10-22 | Onboarding (langkah 1, 2, 5–8, 10) + gate, profil dasar di Setting, JSON profil netral + migrasi pemilik, cadangan v3 |
 | 0.11.1 | 2026-10-22 | Onboarding langkah 3 (cek koneksi intervals.icu di server), 4 (amankan deploy), 9 (pasang ke HP); pengingat "Belum selesai" di Setting |
 | 0.11.2 | 2026-10-22 | Tur in-app 5 sorotan + Ulangi tur; strength tanpa alat (5 gerakan cadangan, pesan alat, test semua kombinasi); screenshot onboarding |
+| 0.11.3 | 2026-10-23 | Pembaruan keamanan dependensi (Next.js 16.4.2, Vitest 5.0.5, Vite); popover tur lebih ringkas |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 
