@@ -3,7 +3,20 @@
 import { useState } from "react";
 
 /** Tombol aksi berisiko dua langkah: tap pertama minta konfirmasi, tap kedua menjalankan. */
-export function ConfirmButton({ label, confirmLabel, onConfirm }: { label: string; confirmLabel: string; onConfirm: () => void }) {
+export function ConfirmButton({
+  label,
+  confirmLabel,
+  onConfirm,
+  disabled = false,
+  size = "sm",
+}: {
+  label: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+  disabled?: boolean;
+  /** `md`: area sentuh 44px. */
+  size?: "sm" | "md";
+}) {
   const [armed, setArmed] = useState(false);
   return (
     <button
@@ -14,7 +27,8 @@ export function ConfirmButton({ label, confirmLabel, onConfirm }: { label: strin
         onConfirm();
       }}
       onBlur={() => setArmed(false)}
-      className={`pressable min-h-9 shrink-0 rounded-control px-3 text-[13px] font-semibold ${
+      disabled={disabled}
+      className={`pressable ${size === "md" ? "min-h-11" : "min-h-9"} shrink-0 disabled:opacity-50 rounded-control px-3 text-[13px] font-semibold ${
         armed ? "bg-danger text-surface" : "text-muted hover:bg-subtle hover:text-ink"
       }`}
     >

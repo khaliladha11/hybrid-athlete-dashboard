@@ -15,8 +15,8 @@ const POINTS: { title: string; body: React.ReactNode }[] = [
     body: "Data dibaca dari intervals.icu milikmu ke deploy Vercel milikmu. Pengembang aplikasi tidak menerima datamu.",
   },
   {
-    title: "Data tersimpan di perangkat ini.",
-    body: "Setting dan log ada di browser ini dan hilang bila data browser dihapus. Cadangkan lewat Setting › Data & cadangan.",
+    title: "Data ada di perangkat ini, dan di database milikmu bila sinkron aktif.",
+    body: "Setting dan log tersimpan di browser ini. Bila kamu memasang Upstash Redis dan sandi aplikasi, data yang sama juga disimpan di database itu, di akun Vercel milikmu, tanpa enkripsi tambahan dari aplikasi. Hapus database untuk menghapus salinannya. Cadangkan lewat Setting › Data & cadangan.",
   },
   {
     title: "Lisensi.",

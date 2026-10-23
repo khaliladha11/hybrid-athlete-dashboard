@@ -8,6 +8,7 @@ import { todayWib } from "@/lib/date";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import { useStoredString } from "@/lib/preferences";
 import { trainingLog, useTrainingLog } from "@/lib/training-log";
+import { BackupHistory } from "./BackupHistory";
 
 /**
  * Cadangan semua data perangkat: log sesi, pengaturan & profil, program target, preferensi, dan
@@ -58,6 +59,7 @@ export function DataBackupCard({ synced = false }: { synced?: boolean }) {
           {status}
         </p>
       )}
+      {synced && <BackupHistory />}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
         <span className="text-[13px] text-muted">{entries.length} entri log tersimpan</span>
         <div className="flex flex-wrap gap-1">

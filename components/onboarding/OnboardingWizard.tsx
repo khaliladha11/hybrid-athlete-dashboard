@@ -15,6 +15,7 @@ import {
   back,
   canContinue,
   completeTour,
+  connectDecision,
   chooseConditions,
   confirmProtection,
   gateDecision,
@@ -34,6 +35,8 @@ import { useOnboardingState } from "@/lib/onboarding-store";
 import { useInstallState } from "@/lib/install-prompt";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import { readStored } from "@/lib/preferences";
+import { syncNow } from "@/lib/sync/client";
+import type { Availability } from "@/lib/sync/server";
 import { useAthleteSettings, useIsClient, useResolvedProfile } from "@/lib/settings-store";
 import { ConnectionStep } from "./ConnectionStep";
 import { InstallStep } from "./InstallStep";
@@ -146,6 +149,7 @@ export function OnboardingWizard() {
           <button type="button" onClick={next} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.primary} w-full`}>
             Mulai
           </button>
+          <ConnectButton onDone={(path) => router.replace(path)} />
           <ImportButton onFile={importFile} />
           {importMsg && (
             <p role="status" className={`text-[13px] font-semibold ${importMsg.startsWith("✓") ? "text-success-ink" : "text-danger-ink"}`}>
@@ -283,6 +287,50 @@ export function OnboardingWizard() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * "Sambungkan perangkat ini" (0.12.2): hanya bila sinkron aktif. Sandi sudah diminta proxy sebelum halaman ini.
+ * Ambil data server; bila onboarding di server selesai, wizard dilewati (gate menampilkan disclaimer bila perlu).
+ */
+function ConnectButton({ onDone }: { onDone: (path: string) => void }) {
+  const [available, setAvailable] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/status", { cache: "no-store" })
+      .then((r) => (r.ok ? (r.json() as Promise<Availability>) : null))
+      .then((s) => alive && setAvailable(!!s?.sync))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+  if (!available) return null;
+
+  const connect = async () => {
+    setBusy(true);
+    setMsg(null);
+    const meta = await syncNow();
+    const decision = connectDecision(parseOnboardingState(readStored(PREF_KEYS.onboarding) ?? ""));
+    setBusy(false);
+    if (decision !== "no-data") return onDone("/");
+    setMsg(meta.state === "ok" ? "Belum ada data di server. Mulai dari awal di perangkat ini." : "Tidak bisa mengambil data. Periksa koneksi lalu coba lagi.");
+  };
+
+  return (
+    <>
+      <button type="button" onClick={connect} disabled={busy} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.secondary} w-full`}>
+        {busy ? "Mengambil data" : "Sambungkan perangkat ini"}
+      </button>
+      {msg && (
+        <p role="status" className="text-[13px] font-semibold text-muted">
+          {msg}
+        </p>
+      )}
+    </>
   );
 }
 
