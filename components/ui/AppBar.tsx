@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SyncAlert } from "@/components/sync/SyncAlert";
 import { LogoMark } from "@/components/ui/LogoMark";
 import { useResolvedTheme, useThemePreference } from "@/lib/preferences";
 
@@ -13,7 +14,10 @@ export function AppBar() {
         <LogoMark size={22} className="text-ink" />
         <span className="t-display-sm pb-0 text-[15px] leading-none">Hybrid Athlete</span>
       </Link>
-      <ThemeToggle />
+      <div className="flex items-center gap-1">
+        <SyncAlert />
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

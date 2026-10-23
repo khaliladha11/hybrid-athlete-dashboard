@@ -13,7 +13,3 @@ export async function isRequestUnlocked(): Promise<boolean> {
   if (cfg.state !== "on") return false;
   return verifySession(cfg, (await cookies()).get(SESSION_COOKIE)?.value);
 }
-
-export function isPasscodeEnabled(): boolean {
-  return passcodeConfig().state !== "off";
-}

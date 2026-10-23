@@ -116,11 +116,14 @@ export function StatRow({ items, cols = 3, className = "" }: { items: StatItem[]
 }
 
 /** Chip: Geist Mono 11px UPPERCASE, pill 22px. */
-export function Chip({ children, tone = "neutral" }: { children: React.ReactNode; tone?: "neutral" | "accent" | "warn" }) {
+/** `success` / `danger` hanya untuk status (aktif/tercapai vs nonaktif/bermasalah), bukan chrome. */
+export function Chip({ children, tone = "neutral" }: { children: React.ReactNode; tone?: "neutral" | "accent" | "warn" | "success" | "danger" }) {
   const tones = {
     neutral: "bg-subtle-strong text-ink",
     accent: "bg-brand-soft text-brand-ink",
     warn: "bg-brand-soft text-brand-ink",
+    success: "bg-success-soft text-success-ink",
+    danger: "bg-danger-soft text-danger-ink",
   };
   return (
     <span className={`inline-flex h-[22px] items-center rounded-full px-[9px] font-mono text-[11px] font-medium tracking-[0.08em] uppercase ${tones[tone]}`}>

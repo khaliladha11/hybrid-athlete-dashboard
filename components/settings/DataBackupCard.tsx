@@ -13,7 +13,8 @@ import { trainingLog, useTrainingLog } from "@/lib/training-log";
  * Cadangan semua data perangkat: log sesi, pengaturan & profil, program target, preferensi, dan
  * status onboarding (format v3, `lib/backup.ts`). File v1 dan v2 tetap bisa diimpor; log selalu digabung.
  */
-export function DataBackupCard() {
+/** `synced`: sinkron aktif di deploy ini (data juga ada di database milik pengguna). */
+export function DataBackupCard({ synced = false }: { synced?: boolean }) {
   const entries = useTrainingLog();
   const [, setSettingsRaw] = useStoredString(PREF_KEYS.settings, "");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -28,9 +29,11 @@ export function DataBackupCard() {
   };
 
   return (
-    <Card title="Data & cadangan" tour="data-backup" action={<span className="text-[12px] text-faint">tersimpan di perangkat ini</span>}>
+    <Card title="Data & cadangan" tour="data-backup" action={<span className="text-[12px] text-faint">{synced ? "perangkat & database" : "tersimpan di perangkat ini"}</span>}>
       <p className="text-[13px] text-muted">
-        Log sesi, profil, pengaturan, dan program hanya ada di HP/browser ini. Ekspor berkala supaya tidak hilang saat data aplikasi dihapus atau ganti HP.
+        {synced
+          ? "Log sesi, profil, pengaturan, dan program disinkronkan ke database milikmu. Ekspor JSON tetap berguna sebagai cadangan terpisah."
+          : "Log sesi, profil, pengaturan, dan program hanya ada di HP/browser ini. Ekspor berkala supaya tidak hilang saat data aplikasi dihapus atau ganti HP."}
       </p>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button type="button" onClick={exportFile} className={`${BUTTON.base} ${BUTTON.inverse}`}>
