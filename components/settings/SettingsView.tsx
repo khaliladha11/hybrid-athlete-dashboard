@@ -12,6 +12,7 @@ import { PendingCard } from "./PendingCard";
 import { PreferencesCard } from "./PreferencesCard";
 import { ProfileSettings } from "./ProfileSettings";
 import { RunZonesSettings } from "./RunZonesSettings";
+import { SecurityCard } from "./SecurityCard";
 
 const SECTIONS = [
   ["profil", "Profil"],
@@ -65,7 +66,8 @@ function needsScroll(el: HTMLElement): boolean {
   return Math.abs(target - window.scrollY) > 2;
 }
 
-export function SettingsView() {
+/** `passcodeEnabled`: sandi aplikasi aktif (dibaca server dari env, hanya boolean). */
+export function SettingsView({ passcodeEnabled = false }: { passcodeEnabled?: boolean }) {
   const [settings, save] = useAthleteSettings();
   const resolved = useMemo(() => resolveProfile(baseProfile, settings), [settings]);
   const [active, setActive] = useState<SectionId>("kondisi");
@@ -182,7 +184,13 @@ export function SettingsView() {
       {section("alat", <EquipmentSettings settings={settings} onChange={save} />)}
       {section("gerakan", <MovementSettings settings={settings} onChange={save} resolved={resolved} />)}
       {section("tampilan", <PreferencesCard />)}
-      {section("data", <DataBackupCard />)}
+      {section(
+        "data",
+        <div className="space-y-4">
+          {passcodeEnabled && <SecurityCard />}
+          <DataBackupCard />
+        </div>,
+      )}
     </div>
   );
 }

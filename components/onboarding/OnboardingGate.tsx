@@ -22,7 +22,8 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [state, setState] = useOnboardingState();
   const legacy = useHasLegacyData();
-  const onWizard = pathname.startsWith("/onboarding");
+  // Halaman kunci sandi tidak melewati gate (belum boleh membaca/mengarahkan apa pun).
+  const onWizard = pathname.startsWith("/onboarding") || pathname === "/unlock";
   const decision = ready ? gateDecision(state, legacy) : null;
 
   useEffect(() => {
