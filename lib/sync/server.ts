@@ -2,12 +2,14 @@
  * Logika /api/sync dan /api/status tanpa Next.js (bisa diuji). Setiap bagian divalidasi dengan
  * parser yang sama seperti impor cadangan; tombstone log lama dipadatkan saat ditulis.
  */
+import { todayWib } from "@/lib/date";
 import { compactTombstones } from "@/lib/log-entries";
 import type { AthleteProfile } from "@/lib/profile";
 import type { PasscodeConfig } from "@/lib/auth/config";
 import type { RedisConfig } from "@/lib/redis";
 import { emptyPart, isPartName, PART_NAMES, validatePart, type PartData, type PartName } from "./parts";
-import type { PartWrite, SyncStore, WriteResult } from "./store";
+import { beforeRestoreId, dailyId, isSnapshotId, pruneIds, serverHasData, sortSnapshots, summarize, type SnapshotKind, type SnapshotParts } from "./snapshots";
+import type { PartWrite, StoredPart, SyncStore, WriteResult } from "./store";
 
 export const MAX_BODY_BYTES = 1024 * 1024;
 
@@ -29,10 +31,51 @@ function clean(part: PartName, data: unknown, base: AthleteProfile): unknown {
   return validatePart(part, data, base) ?? emptyPart(part);
 }
 
-export async function handleGet(store: SyncStore, base: AthleteProfile) {
-  const all = await store.readAll();
-  const parts = Object.fromEntries(PART_NAMES.map((p) => [p, { rev: all[p].rev, data: clean(p, all[p].data, base) }]));
+const cleanAll = (all: Record<PartName, StoredPart>, base: AthleteProfile) =>
+  Object.fromEntries(PART_NAMES.map((p) => [p, { rev: all[p].rev, epoch: all[p].epoch, data: clean(p, all[p].data, base) }])) as Record<PartName, StoredPart>;
+
+/** Simpan snapshot (bila id belum ada), lalu sisakan 7 terbaru. */
+async function takeSnapshot(store: SyncStore, kind: SnapshotKind, id: string, parts: SnapshotParts, nowIso: string): Promise<boolean> {
+  const created = await store.saveSnapshot({ id, kind, createdAt: nowIso, summary: summarize(parts) }, parts);
+  if (created) await store.deleteSnapshots(pruneIds(await store.listSnapshots()));
+  return created;
+}
+
+/** Semua bagian + snapshot harian saat sinkron pertama hari itu (WIB), sebelum ada tulisan hari itu. */
+export async function handleGet(store: SyncStore, base: AthleteProfile, now = new Date()) {
+  const id = dailyId(todayWib(now));
+  const { parts: all, hasSnapshot } = await store.readForSync(id);
+  const parts = cleanAll(all, base);
+  if (!hasSnapshot && serverHasData(parts)) {
+    // Snapshot gagal tidak boleh menggagalkan sinkron.
+    await takeSnapshot(store, "daily", id, parts, now.toISOString()).catch(() => false);
+  }
   return { enabled: true as const, parts };
+}
+
+export async function handleListSnapshots(store: SyncStore) {
+  return { enabled: true as const, snapshots: sortSnapshots(await store.listSnapshots()) };
+}
+
+export type RestoreOutcome = { status: 200; body: { enabled: true; restored: string; undoId: string } } | { status: 400 | 404; body: { error: string } };
+
+/** Pulihkan: snapshot keadaan sekarang dulu (bisa dibatalkan), lalu ganti semua bagian & naikkan epoch. */
+export async function handleRestore(store: SyncStore, rawBody: string, base: AthleteProfile, now = new Date()): Promise<RestoreOutcome> {
+  let id: unknown;
+  try {
+    id = (JSON.parse(rawBody) as { id?: unknown })?.id;
+  } catch {
+    id = undefined;
+  }
+  if (!isSnapshotId(id)) return { status: 400, body: { error: "invalid" } };
+  const snap = await store.getSnapshot(id);
+  if (!snap) return { status: 404, body: { error: "not_found" } };
+  const iso = now.toISOString();
+  const undoId = beforeRestoreId(iso);
+  await takeSnapshot(store, "before-restore", undoId, cleanAll(await store.readAll(), base), iso);
+  const data = Object.fromEntries(PART_NAMES.map((p) => [p, clean(p, snap[p]?.data, base)])) as Record<PartName, unknown>;
+  await store.restoreAll(data);
+  return { status: 200, body: { enabled: true, restored: id, undoId } };
 }
 
 export type PostOutcome = { status: 200; body: { enabled: true; results: WriteResult[] } } | { status: 400 | 413; body: { error: string } };

@@ -16,6 +16,8 @@ export interface PartMeta {
   dirty: string[];
   /** Naik setiap ada perubahan lokal; dirty hanya dibersihkan bila tidak berubah selama request. */
   gen: number;
+  /** Epoch server yang terakhir diterapkan (naik setiap pulihkan). */
+  epoch?: number;
 }
 
 export type SyncState = "off" | "ok" | "pending" | "conflict";
@@ -31,7 +33,7 @@ export interface SyncMeta {
 export const emptyMeta = (): SyncMeta => ({ parts: {}, state: "ok" });
 const partMeta = (m: SyncMeta, p: PartName): PartMeta => m.parts[p] ?? { rev: null, dirty: [], gen: 0 };
 
-export type ServerParts = Record<PartName, { rev: number; data: unknown }>;
+export type ServerParts = Record<PartName, { rev: number; epoch?: number; data: unknown }>;
 export type GetResponse = { enabled: true; parts: ServerParts } | { enabled: false };
 export type PostResult = { part: PartName; ok: true; rev: number } | { part: PartName; ok: false; rev: number; data: unknown };
 
@@ -92,9 +94,14 @@ export async function syncOnce(io: SyncIO): Promise<SyncMeta> {
       const m = partMeta(meta, p);
       const s = server[p];
       const first = m.rev === null;
+      const epoch = s.epoch ?? 0;
       let value: unknown = local[p];
       let send: boolean;
-      if (first) {
+      if (!first && epoch > (m.epoch ?? 0)) {
+        // Pulihkan di server: data server menggantikan lokal persis (termasuk entri yang sempat dihapus).
+        value = s.data;
+        send = false;
+      } else if (first) {
         value = s.rev === 0 ? local[p] : mergePart(p, s.data as never, local[p] as never, [], true);
         send = hasData(p, value) && !same(value, s.data);
       } else if (s.rev !== m.rev) {
@@ -107,9 +114,9 @@ export async function syncOnce(io: SyncIO): Promise<SyncMeta> {
       if (send) {
         writes.push({ part: p, baseRev: s.rev, data: value });
         sentGen[p] = m.gen;
-        parts[p] = { ...m, rev: m.rev };
+        parts[p] = { ...m, rev: m.rev, epoch: first ? epoch : m.epoch };
       } else {
-        parts[p] = { ...m, rev: s.rev, dirty: [] };
+        parts[p] = { ...m, rev: s.rev, dirty: [], epoch };
       }
     }
     if (Object.keys(apply).length) io.applyLocal(apply);
@@ -132,10 +139,10 @@ export async function syncOnce(io: SyncIO): Promise<SyncMeta> {
       if (r.ok) {
         const unchanged = m.gen === sentGen[r.part];
         after[r.part] = { ...m, rev: r.rev, dirty: unchanged ? [] : m.dirty };
-        server[r.part] = { rev: r.rev, data: writes.find((w) => w.part === r.part)!.data };
+        server[r.part] = { ...server[r.part], rev: r.rev, data: writes.find((w) => w.part === r.part)!.data };
       } else {
         conflict = true;
-        server[r.part] = { rev: r.rev, data: r.data };
+        server[r.part] = { ...server[r.part], rev: r.rev, data: r.data };
       }
     }
     io.setMeta({ ...meta, parts: after });

@@ -81,9 +81,9 @@ describe("aktivasi pertama", () => {
     const all = await store.readAll();
     expect(all.profile.data).toEqual({ name: "Alex" });
     expect(all.log.data).toEqual([entry("a")]);
-    expect(m.parts.profile).toEqual({ rev: 1, dirty: [], gen: 0 });
+    expect(m.parts.profile).toEqual({ rev: 1, dirty: [], gen: 0, epoch: 0 });
     // Perangkat kosong tidak mengunggah bagian kosong.
-    expect(all.program).toEqual({ rev: 0, data: null });
+    expect(all.program).toEqual({ rev: 0, epoch: 0, data: null });
   });
 
   it("keduanya berisi → server menang untuk profil, log & onboarding digabung", async () => {

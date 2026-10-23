@@ -72,7 +72,7 @@ describe.each(stores())("store sinkron (%s)", (_name, make) => {
     const s = make();
     const all = await s.readAll();
     expect(Object.keys(all)).toEqual(["profile", "settings", "program", "preferences", "onboarding", "log"]);
-    expect(all.profile).toEqual({ rev: 0, data: null });
+    expect(all.profile).toEqual({ rev: 0, epoch: 0, data: null });
   });
 
   it("baseRev cocok → simpan & rev naik; tidak cocok → konflik dengan versi terbaru", async () => {
@@ -80,7 +80,7 @@ describe.each(stores())("store sinkron (%s)", (_name, make) => {
     expect(await s.writeMany([{ part: "profile", baseRev: 0, data: { name: "A" } }])).toEqual([{ part: "profile", ok: true, rev: 1 }]);
     expect(await s.writeMany([{ part: "profile", baseRev: 0, data: { name: "B" } }])).toEqual([{ part: "profile", ok: false, rev: 1, data: { name: "A" } }]);
     expect(await s.writeMany([{ part: "profile", baseRev: 1, data: { name: "B" } }])).toEqual([{ part: "profile", ok: true, rev: 2 }]);
-    expect((await s.readAll()).profile).toEqual({ rev: 2, data: { name: "B" } });
+    expect((await s.readAll()).profile).toEqual({ rev: 2, epoch: 0, data: { name: "B" } });
   });
 
   it("beberapa bagian dalam satu tulis; baca semua bagian = satu request", async () => {
@@ -112,9 +112,9 @@ describe("logika /api/sync", () => {
     s.raw.set("profile", { rev: 3, data: '"bukan objek"' });
     s.raw.set("log", { rev: 1, data: JSON.stringify([entry("a"), { rusak: 1 }]) });
     const out = await handleGet(s, baseProfile);
-    expect(out.parts.profile).toEqual({ rev: 3, data: null });
-    expect(out.parts.log).toEqual({ rev: 1, data: [entry("a")] });
-    expect(out.parts.preferences).toEqual({ rev: 0, data: {} });
+    expect(out.parts.profile).toEqual({ rev: 3, epoch: 0, data: null });
+    expect(out.parts.log).toEqual({ rev: 1, epoch: 0, data: [entry("a")] });
+    expect(out.parts.preferences).toEqual({ rev: 0, epoch: 0, data: {} });
   });
 
   it("POST memvalidasi tiap bagian; payload rusak atau bagian ganda ditolak", async () => {
@@ -199,7 +199,7 @@ describe("route /api/sync & /api/status", () => {
     const post = await POST(new Request("https://app.example.test/api/sync", { method: "POST", body: JSON.stringify({ writes: [{ part: "program", baseRev: 0, data: "p" }] }) }));
     expect(await post.json()).toEqual({ enabled: true, results: [{ part: "program", ok: true, rev: 1 }] });
     const got = await (await GET()).json();
-    expect(got.parts.program).toEqual({ rev: 1, data: "p" });
+    expect(got.parts.program).toEqual({ rev: 1, epoch: 0, data: "p" });
     expect(JSON.stringify(got)).not.toContain("tok-uji");
   });
 
