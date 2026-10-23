@@ -190,6 +190,16 @@ describe.each(makers)("snapshot harian & pulihkan (%s)", (_n, make) => {
     expect((final.log.data as LogEntry[]).find((e) => e.id === "a")?.deletedAt).toBeTruthy();
   });
 
+  it("pulihkan tidak menurunkan kemajuan onboarding atau versi disclaimer", async () => {
+    const store = make();
+    const ob = (termsVersion: number) => ({ version: 1, currentStep: "summary", completed: ["welcome", "terms"], skipped: [], termsVersion, completedAt: "2026-01-01T00:00:00.000Z" });
+    await store.writeMany([{ part: "onboarding", baseRev: 0, data: ob(1) }]);
+    await handleGet(store, baseProfile, at(5));
+    await store.writeMany([{ part: "onboarding", baseRev: 1, data: ob(2) }]);
+    await handleRestore(store, JSON.stringify({ id: "daily-2026-01-05" }), baseProfile, at(5, 12));
+    expect(((await store.readAll()).onboarding.data as { termsVersion: number }).termsVersion).toBe(2);
+  });
+
   it("id tidak valid → 400, tidak ada → 404", async () => {
     const store = await seeded();
     expect((await handleRestore(store, JSON.stringify({ id: "../ha:sync:log" }), baseProfile)).status).toBe(400);

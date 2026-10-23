@@ -4,10 +4,12 @@
  */
 import { todayWib } from "@/lib/date";
 import { compactTombstones } from "@/lib/log-entries";
+import type { OnboardingState } from "@/lib/onboarding";
 import type { AthleteProfile } from "@/lib/profile";
 import type { PasscodeConfig } from "@/lib/auth/config";
 import type { RedisConfig } from "@/lib/redis";
 import { emptyPart, isPartName, PART_NAMES, validatePart, type PartData, type PartName } from "./parts";
+import { mergeOnboarding } from "./merge";
 import { beforeRestoreId, dailyId, isSnapshotId, pruneIds, serverHasData, sortSnapshots, summarize, type SnapshotKind, type SnapshotParts } from "./snapshots";
 import type { PartWrite, StoredPart, SyncStore, WriteResult } from "./store";
 
@@ -72,8 +74,11 @@ export async function handleRestore(store: SyncStore, rawBody: string, base: Ath
   if (!snap) return { status: 404, body: { error: "not_found" } };
   const iso = now.toISOString();
   const undoId = beforeRestoreId(iso);
-  await takeSnapshot(store, "before-restore", undoId, cleanAll(await store.readAll(), base), iso);
+  const current = cleanAll(await store.readAll(), base);
+  await takeSnapshot(store, "before-restore", undoId, current, iso);
   const data = Object.fromEntries(PART_NAMES.map((p) => [p, clean(p, snap[p]?.data, base)])) as Record<PartName, unknown>;
+  // Kemajuan onboarding & persetujuan disclaimer tidak ikut mundur karena pulihkan.
+  data.onboarding = mergeOnboarding(data.onboarding as OnboardingState | null, current.onboarding.data as OnboardingState | null);
   await store.restoreAll(data);
   return { status: 200, body: { enabled: true, restored: id, undoId } };
 }
