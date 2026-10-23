@@ -4,6 +4,26 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.12.2] · 2026-10-23 · Cadangan otomatis & perangkat kedua
+
+Menutup rencana [SYNC.md](docs/SYNC.md) (§4 cadangan otomatis & privasi, §5, §10).
+
+### Ditambahkan
+- **Snapshot harian** di database milik pengguna: dibuat saat sinkron pertama tiap hari (WIB), sebelum ada tulisan hari itu; satu per hari walau dua perangkat bersamaan; 7 terbaru disimpan. Ringkasan tanpa data mentah.
+- **Setting › Data & cadangan › Riwayat cadangan**: tanggal & jam WIB, jenis (Harian / Sebelum pulihkan), ringkasan, **Pulihkan** (dua ketukan). Pulihkan menyimpan keadaan sekarang dulu lalu mengganti data di semua perangkat lewat `epoch`; **Batalkan pulihkan** mengembalikannya. Kemajuan onboarding & persetujuan disclaimer tidak ikut mundur.
+- **Onboarding langkah 1 · Sambungkan perangkat ini** (saat sinkron aktif): ambil data server, lewati wizard; disclaimer tampil bila versinya belum disetujui. Sandi diminta lebih dulu oleh halaman sandi.
+- `GET /api/sync/snapshots`, `POST /api/sync/restore` dengan gerbang yang sama seperti `/api/sync`.
+- README: panduan memasang Upstash Redis dari Vercel, env var, redeploy, batas paket Free (dicek 2026-10-23), privasi & cara menghapus data.
+- Screenshot `15-sync.jpg` (Demo Mode).
+- 18 test baru (`sync-snapshots`, `connectDecision`, disclaimer v2), total 345 di 23 file. Uji ujung-ke-ujung dua browser dengan Upstash tiruan.
+
+### Diubah
+- **Disclaimer poin 3** menyebut salinan data di database milik pengguna bila sinkron aktif; `TERMS_VERSION` 2, jadi disclaimer tampil sekali lagi.
+- `ConfirmButton` punya ukuran 44px dan status nonaktif.
+
+### Diperbaiki
+- Pulihkan snapshot yang dibuat sebelum disclaimer baru disetujui tidak lagi memunculkan disclaimer kembali (ditemukan saat uji dua browser).
+
 ## [0.12.1] · 2026-10-23 · Sinkron antar perangkat
 
 Bagian kedua rencana [SYNC.md](docs/SYNC.md) (§4, §5 langkah 4, §7, §8).
@@ -313,7 +333,8 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.12.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/465da7d...main
+[0.12.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ea49a56...main
+[0.12.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/465da7d...ea49a56
 [0.12.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/1c7334f...465da7d
 [0.11.3]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/77815e4...49f5f14
 [0.11.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/4d0042f...77815e4

@@ -102,9 +102,11 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/log-entries.ts` | Entri log untuk sinkron: id deterministik untuk entri lama, `updatedAt`, tombstone, `mergeLogs` per id (komutatif & idempoten), pemadatan tombstone 90 hari | Server & client (murni) |
 | `lib/sync/parts.ts` | Enam bagian (profile, settings, program, preferences, onboarding, log) ↔ key localStorage; validasi memakai parser impor | Server & client (murni) |
 | `lib/sync/merge.ts` | Merge per bagian berdasarkan kunci yang diubah lokal (bukan jam), gabungan onboarding simetris, aturan aktivasi pertama | Server & client (murni) |
-| `lib/sync/store.ts` | Satu hash Redis per bagian (`rev` + `data`); baca semua = 1 pipeline; tulis EVAL Lua atomik dengan `baseRev` | Server |
+| `lib/sync/store.ts` | Satu hash Redis per bagian (`rev`, `epoch`, `data`); baca semua (+ cek snapshot harian) = 1 pipeline; tulis EVAL Lua atomik dengan `baseRev`; pulihkan = satu EVAL untuk semua bagian (`rev` & `epoch` naik); snapshot di `ha:sync:snap:<id>` + ringkasan di hash `ha:sync:snapmeta` | Server |
+| `lib/sync/snapshots.ts` | Snapshot harian (`daily-YYYY-MM-DD`, WIB) & "sebelum pulihkan", ringkasan tanpa data mentah, retensi 7 | Server & client (murni) |
+| `lib/sync/gate.ts`, `app/api/sync/snapshots/route.ts`, `app/api/sync/restore/route.ts` | Gerbang bersama semua route sinkron (sandi `on` + database + sesi); daftar snapshot; pulihkan (snapshot keadaan sekarang dulu, onboarding tidak mundur) | Server |
 | `lib/sync/server.ts`, `app/api/sync/route.ts`, `app/api/status/route.ts` | `/api/sync` (sandi `on` + sesi + database; body ≤ 1 MB; validasi tiap bagian) dan `/api/status` (boolean saja) | Server |
-| `lib/sync/engine.ts` | Satu putaran sinkron murni: ambil → gabung → terapkan → kirim dengan `baseRev` → ulang konflik maks 3 kali; gagal tidak membuang data | Client (murni) |
+| `lib/sync/engine.ts` | Satu putaran sinkron murni: ambil → gabung → terapkan → kirim dengan `baseRev` → ulang konflik maks 3 kali; `epoch` server lebih baru (pulihkan) → ganti bagian lokal tanpa merge; gagal tidak membuang data | Client (murni) |
 | `lib/sync/client.ts`, `lib/local-change.ts`, `components/sync/*` | Pemicu (buka, visible, online, debounce 2 detik, manual), meta `hybrid-athlete.sync.v1`, `useSyncStatus`, `SyncAgent` di layout, titik status AppBar | Client |
 | `app/api/connection/route.ts` | `GET /api/connection` untuk onboarding langkah 3 & pengingat: `{ status, athleteName? }`, `force-dynamic`, `Cache-Control: no-store` | Server |
 | `lib/install-prompt.ts` | Tangkap `beforeinstallprompt` / `appinstalled` sejak awal, deteksi standalone & platform (`useInstallState`) | Client |
@@ -123,7 +125,7 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | Data latihan & wellness | intervals.icu (dibaca, tidak disimpan) | Satu sumber kebenaran |
 | Log sesi ST | `localStorage` perangkat; bila sinkron aktif juga Upstash Redis milik pengguna | Tanpa setup/biaya bila tanpa database. Entri punya `id` & `updatedAt`; hapus = tombstone. Cadangan lewat ekspor JSON |
 | Setting (profil dasar, kondisi, zona, alat, gerakan), program target, tema, mode blok, status onboarding | `localStorage` perangkat; bila sinkron aktif juga Upstash Redis | JSON netral jadi default; pengaturan perangkat menimpa. Ikut ekspor/impor JSON (format v3) |
-| Data sinkron | Upstash Redis milik pengguna (opsional): hash `ha:sync:<bagian>` dengan `rev` + `data` | Satu deploy satu database; hanya diakses `/api/sync` |
+| Data sinkron | Upstash Redis milik pengguna (opsional): hash `ha:sync:<bagian>` dengan `rev`, `epoch`, `data`; 7 snapshot terakhir | Satu deploy satu database; hanya diakses route `/api/sync*` |
 
 Key `localStorage` (pola `hybrid-athlete.<nama>[.vN]`, di `lib/preference-keys.ts`):
 
@@ -141,7 +143,7 @@ Key `localStorage` (pola `hybrid-athlete.<nama>[.vN]`, di `lib/preference-keys.t
 
 **Gate onboarding** (`components/onboarding/OnboardingGate.tsx`, di dalam `<main>` layout): status hanya ada di perangkat, jadi diperiksa di client. Sebelum localStorage terbaca tampil kerangka. Pengguna baru → `/onboarding` (tanpa BottomNav); pengguna lama (punya Setting/log/program) → `migrated` + disclaimer saja sekali; `termsVersion` < `TERMS_VERSION` → disclaimer saja. Header Profil, target, dan posisi blok kini dibaca di client dari profil perangkat, bukan dari JSON di server.
 
-Tanpa database, log dan Setting hanya ada di satu perangkat. Dengan Upstash Redis + sandi aplikasi (0.12.1), data disinkron antar perangkat; snapshot harian & Riwayat cadangan menyusul di 0.12.2.
+Tanpa database, log dan Setting hanya ada di satu perangkat. Dengan Upstash Redis + sandi aplikasi, data disinkron antar perangkat (0.12.1) dan dicadangkan otomatis tiap hari dengan Riwayat cadangan & Pulihkan (0.12.2).
 
 ## Design system
 
@@ -176,6 +178,7 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `sync-log.test.ts` | Migrasi entri log (id deterministik sama di dua perangkat, `updatedAt`), tombstone lewat `remove`/`clear`, ekspor & entri hidup tanpa tombstone, impor v1/v2/v3 tetap jalan, impor tidak menghidupkan entri terhapus, gabungan idempoten/komutatif/50 urutan acak, pemadatan 90 hari. |
 | `sync-merge.test.ts` | Bagian ↔ localStorage bolak-balik, validasi payload, `changedKeys`, merge tiap bagian (dirty vs tidak, reset), hapus vs ubah Setting di dua perangkat, onboarding gabungan komutatif, aktivasi pertama. |
 | `sync-store.test.ts` | Store memori & Redis tiruan (rev/baseRev, konflik dengan data terbaru, 1 pipeline per baca), logika `/api/sync` (validasi, 413, pemadatan), route tanpa sandi/database → tidak aktif, tanpa sesi → 401, `/api/status` hanya boolean. |
+| `sync-snapshots.test.ts` | Snapshot harian sekali per hari WIB (pergantian hari), tidak dibuat untuk server kosong, retensi 7, ringkasan tanpa data mentah, pulihkan membuat snapshot dulu & menaikkan `rev`/`epoch`, batalkan, onboarding tidak mundur, id tidak valid/tidak ada; `epoch` membuat entri terhapus hidup lagi di kedua perangkat; route tanpa sesi/database. Memori & Redis tiruan. |
 | `sync-client.test.ts` | Mesin sinkron dengan dua "perangkat": aktivasi pertama, catat di HP → laptop, hapus di laptop sementara HP offline mengubah Setting, perubahan per kunci lewat konflik, gagal kirim (dirty tetap, data utuh), konflik terus → maks 3 ulang, perubahan selama request. |
 | `auth-routes.test.ts` | Route `/api/unlock` & `/api/lock` end-to-end (atribut cookie, Retry-After, IP lain tidak terblokir), `proxy` dengan `NextRequest` (tanpa sandi identik 0.11, 307/401, aset PWA terbuka, matcher), dan `intervalsGet` tidak memanggil intervals.icu tanpa sesi. |
 | `connection.test.ts` | Pemetaan status koneksi (missing tanpa panggilan, 401/403/404/5xx/timeout/jaringan/lainnya), hanya nama atlet yang diteruskan, dan route `GET /api/connection` end-to-end dengan `fetch` palsu: respons tanpa key, athlete ID, atau email; header `no-store`; key hanya di header Authorization. |

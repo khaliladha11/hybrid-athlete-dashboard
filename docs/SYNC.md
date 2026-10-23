@@ -1,6 +1,6 @@
-# Spesifikasi Aman & Tersinkron (rencana 0.12)
+# Spesifikasi Aman & Tersinkron (0.12)
 
-> Status: **usulan, 2026-10-23**. Simpan di `docs/SYNC.md`. Bergantung pada 0.11 (onboarding, format ekspor v3).
+> Status: **selesai di 0.12.0 sampai 0.12.2, 2026-10-23** (diusulkan 2026-10-23). Status per fitur ada di [PRD §4.10](PRD.md#410-sinkron--keamanan). Bergantung pada 0.11 (onboarding, format ekspor v3).
 > Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Desain mengikuti [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md).
 
 ## 1. Tujuan

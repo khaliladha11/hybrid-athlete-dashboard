@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.12.1 (2026-10-23) |
+| **Versi saat ini** | 0.12.2 (2026-10-23) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 22 file test, 327 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
+| **Kualitas** | 23 file test, 345 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -111,7 +111,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 - Status koneksi intervals.icu dicek di server; browser hanya menerima status.
 - Pengguna lama tidak dipaksa mengulang onboarding dan tidak kehilangan data.
 
-**Sandi aplikasi & sinkron** · keputusan 2026-10-23, berlaku mulai 0.12 ([SYNC.md](SYNC.md)); test ditambahkan saat rilis
+**Sandi aplikasi & sinkron** · keputusan 2026-10-23, berlaku sejak 0.12 ([SYNC.md](SYNC.md)); diuji di `auth*.test.ts` dan `sync-*.test.ts`
 - Sandi aplikasi lewat env var `APP_PASSCODE` (≥ 8 karakter) dan `SESSION_SECRET` (≥ 32 byte). Tanpa `APP_PASSCODE`, aplikasi berperilaku seperti 0.11.
 - Sandi dibandingkan waktu-konstan, tidak pernah disimpan di `localStorage` dan tidak pernah dikirim balik ke browser. Sesi berupa cookie `httpOnly`, `Secure`, `SameSite=Lax`, ditandatangani HMAC; mengganti sandi membatalkan semua sesi. Percobaan gagal dibatasi (5 per 15 menit per IP).
 - **Database hanya diakses server** (`server-only`), sama seperti API key intervals.icu. Browser hanya menerima data miliknya dan status berupa boolean, tidak pernah URL atau token database.
@@ -268,7 +268,7 @@ Selesai di 0.11 (0.11.0 sampai 0.11.2), spesifikasi lengkap di [ONBOARDING.md](O
 
 ### 4.10 Sinkron & keamanan
 
-Rencana 0.12 (0.12.0 dan 0.12.1 selesai), spesifikasi lengkap di [SYNC.md](SYNC.md).
+Selesai di 0.12 (0.12.0 sampai 0.12.2), spesifikasi lengkap di [SYNC.md](SYNC.md).
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
@@ -283,9 +283,9 @@ Rencana 0.12 (0.12.0 dan 0.12.1 selesai), spesifikasi lengkap di [SYNC.md](SYNC.
 | Pemicu sinkron (buka, kembali terlihat, debounce 2 detik, Sinkron sekarang) + antrean "belum terkirim" | ✅ | 0.12.1: juga saat kembali online. Gagal kirim tidak membuang data lokal |
 | Setting › **Sinkron & keamanan** (status, Sinkron sekarang) + titik status di AppBar hanya saat bermasalah | ✅ | 0.12.1: menggantikan kartu Keamanan 0.12.0; titik muncul saat konflik atau belum terkirim > 10 menit |
 | Onboarding langkah 4: status sandi aplikasi & database (endpoint status hanya boolean) | ✅ | 0.12.1: `/api/status` → `{ passcode, database, sync }` |
-| Cadangan otomatis harian (7 snapshot) + Riwayat cadangan & Pulihkan | ⬜ | 0.12.2 |
-| Onboarding langkah 1: **Sambungkan perangkat ini** | ⬜ | 0.12.2 |
-| Disclaimer diperbarui untuk sinkron (`TERMS_VERSION` naik) + README panduan Upstash | ⬜ | 0.12.2 |
+| Cadangan otomatis harian (7 snapshot) + Riwayat cadangan & Pulihkan | ✅ | 0.12.2: snapshot saat sinkron pertama tiap hari WIB (SET NX); Pulihkan menyimpan keadaan sekarang dulu (bisa dibatalkan) dan menaikkan `epoch` sehingga semua perangkat mengganti datanya; kemajuan onboarding tidak ikut mundur |
+| Onboarding langkah 1: **Sambungkan perangkat ini** | ✅ | 0.12.2: hanya saat sinkron aktif; sandi diminta proxy lebih dulu; wizard dilewati bila server sudah punya onboarding selesai, disclaimer tampil bila versinya belum disetujui |
+| Disclaimer diperbarui untuk sinkron (`TERMS_VERSION` naik) + README panduan Upstash | ✅ | 0.12.2: `TERMS_VERSION` 2; README dengan batas paket gratis (dicek 2026-10-23) |
 
 ## 5. Persyaratan non-fungsional
 
@@ -308,19 +308,19 @@ Rencana 0.12 (0.12.0 dan 0.12.1 selesai), spesifikasi lengkap di [SYNC.md](SYNC.
 
 Diurutkan dari yang paling berdampak.
 
-1. **Sandi aplikasi opsional.** Sejak 0.12.0 aplikasi bisa dikunci dengan `APP_PASSCODE`, tetapi tidak aktif bila pemilik deploy tidak mengisinya. Deploy pemilik juga dilindungi *Deployment Protection* (Vercel Authentication, cakupan **All Deployments**); *Standard Protection* tidak melindungi alamat utama `*.vercel.app`. Dianjurkan lewat README dan langkah "Amankan deploy" di onboarding.
-2. **Sinkron opsional.** Sejak 0.12.1 data bisa disinkron ke Upstash Redis milik pengguna, tetapi hanya bila database dan sandi aplikasi dipasang; tanpa itu Setting, log, program, tema, dan toggle blok tetap hanya di `localStorage` dan hilang bila data browser dihapus. Cadangan ekspor JSON tetap ada. Butir ini dihapus saat cadangan otomatis rilis (0.12.2).
-3. **Movement library hanya dari kurasi developer.** 0.9 menambah 13 gerakan (total 40), tetapi pengguna belum bisa menambah gerakan sendiri; alat lain (mis. kettlebell) baru dicatat. 5 gerakan belum punya gambar — termasuk 2 prehab wajib (Clamshell, Tibialis Wall Raise) — dan celah anti-rotasi (Pallof, bird dog, suitcase carry) belum ada di sumber gambar. Kondisi di luar katalog hanya catatan.
-4. **Program & generator belum terhubung.** Sesi di Program tidak bisa langsung dibuka di generator, dan aktivitas aktual belum dicocokkan dengan rencana.
-5. **Ambang tetap.** HR lari berat (155), penurunan HRV (15%), dan kenaikan resting HR (5 bpm) belum dipersonalisasi.
-6. **Data per detik dari jam tidak selalu bisa dipercaya.** Untuk data Huawei, intervals.icu kadang hanya punya total jarak yang dibagi rata, atau jarak bertangga (datar lalu melompat). Split lalu dihitung dari GPS dan diskalakan ke jarak jam, sehingga per km bisa beda beberapa detik dari Strava yang menghitung ulang jarak sendiri. Kalibrasi lebih lanjut butuh data mentah (lihat backlog).
-7. **Isi aktivitas Strava tidak bisa dibaca.** Kebijakan Strava melarang intervals.icu meneruskan data Strava lewat API. Salinan Strava dibuang bila ada rekaman lain; aktivitas yang hanya ada di Strava tampil sebagai "Aktivitas Strava" tanpa data.
-8. **Kalender terbatas 2 bulan.** Hanya bulan ini dan bulan lalu yang diambil dari intervals.icu.
-9. **Belum offline.** Belum ada service worker.
-10. **Pengujian UI manual.** Belum ada test komponen/e2e maupun CI GitHub Actions. Animasi bottom sheet & crossfade 0.9 baru diverifikasi secara logika (state, posisi, reduced motion), belum di perangkat nyata.
-11. **Script media & ikon memakai `sharp` dari Next.js** (dependensi tidak langsung). Bila Next.js berhenti membawanya, `sharp` perlu ditambahkan sebagai devDependency.
-12. **Batas percobaan sandi tanpa Redis hanya upaya terbaik.** Tanpa Upstash, hitungan gagal disimpan di memori per instance serverless, jadi bisa ter-reset saat instance baru dibuat. IP diambil dari `x-forwarded-for` yang di Vercel diisi oleh platform; di hosting lain header ini bisa dipalsukan.
-13. **Sinkron bergantung pada paket gratis Upstash.** Desainnya hemat (satu baca + satu tulis per sinkron), tetapi batas perintah dan ukuran paket gratis belum dicatat di README (0.12.2). Belum ada snapshot sebelum aktivasi pertama atau Riwayat cadangan (0.12.2). Tema ikut tersinkron, jadi mengganti tema di satu perangkat mengubah semua perangkat.
+1. **Movement library hanya dari kurasi developer.** 0.9 menambah 13 gerakan (total 40), tetapi pengguna belum bisa menambah gerakan sendiri; alat lain (mis. kettlebell) baru dicatat. 5 gerakan belum punya gambar — termasuk 2 prehab wajib (Clamshell, Tibialis Wall Raise) — dan celah anti-rotasi (Pallof, bird dog, suitcase carry) belum ada di sumber gambar. Kondisi di luar katalog hanya catatan.
+2. **Program & generator belum terhubung.** Sesi di Program tidak bisa langsung dibuka di generator, dan aktivitas aktual belum dicocokkan dengan rencana.
+3. **Ambang tetap.** HR lari berat (155), penurunan HRV (15%), dan kenaikan resting HR (5 bpm) belum dipersonalisasi.
+4. **Data per detik dari jam tidak selalu bisa dipercaya.** Untuk data Huawei, intervals.icu kadang hanya punya total jarak yang dibagi rata, atau jarak bertangga (datar lalu melompat). Split lalu dihitung dari GPS dan diskalakan ke jarak jam, sehingga per km bisa beda beberapa detik dari Strava yang menghitung ulang jarak sendiri. Kalibrasi lebih lanjut butuh data mentah (lihat backlog).
+5. **Isi aktivitas Strava tidak bisa dibaca.** Kebijakan Strava melarang intervals.icu meneruskan data Strava lewat API. Salinan Strava dibuang bila ada rekaman lain; aktivitas yang hanya ada di Strava tampil sebagai "Aktivitas Strava" tanpa data.
+6. **Kalender terbatas 2 bulan.** Hanya bulan ini dan bulan lalu yang diambil dari intervals.icu.
+7. **Belum offline.** Belum ada service worker.
+8. **Pengujian UI manual.** Belum ada test komponen/e2e (CI GitHub Actions menjalankan unit test & build sejak 0.12.0). Animasi bottom sheet & crossfade 0.9 baru diverifikasi secara logika (state, posisi, reduced motion), belum di perangkat nyata.
+9. **Script media & ikon memakai `sharp` dari Next.js** (dependensi tidak langsung). Bila Next.js berhenti membawanya, `sharp` perlu ditambahkan sebagai devDependency.
+10. **Batas percobaan sandi tanpa Redis hanya upaya terbaik.** Tanpa Upstash, hitungan gagal disimpan di memori per instance serverless, jadi bisa ter-reset saat instance baru dibuat. IP diambil dari `x-forwarded-for` yang di Vercel diisi oleh platform; di hosting lain header ini bisa dipalsukan.
+11. **Sinkron bergantung pada paket gratis Upstash** (500K perintah/bulan, data 256 MB, dicek 2026-10-23; lihat README). Desainnya hemat: satu baca + satu tulis per sinkron, ditambah satu snapshot harian. Tema ikut tersinkron, jadi mengganti tema di satu perangkat mengubah semua perangkat.
+12. **Pulihkan bersifat otoritatif.** Pulihkan mengganti data di semua perangkat (lewat `epoch`). Perubahan yang belum terkirim dari perangkat lain saat itu ikut tergantikan; snapshot "Sebelum pulihkan" hanya menyimpan keadaan server. Kemajuan onboarding dan persetujuan disclaimer tidak ikut mundur.
+13. **Tanpa enkripsi sisi klien.** Data di database tersimpan apa adanya (Upstash mengenkripsi saat disimpan, database ada di akun pengguna, dibatasi sandi aplikasi). Enkripsi dengan passphrase ada di backlog P2.
 
 ## 7. Roadmap & saran pengembangan
 
@@ -331,11 +331,12 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 
 | Usulan versi | Isi | Alasan |
 | --- | --- | --- |
-| **0.12 Aman & tersinkron** | CI, sandi aplikasi, sinkron opsional ke database milik pengguna, cadangan otomatis ([SYNC.md](SYNC.md); 0.12.0 sampai 0.12.2) | Setting & log kini berharga; jangan hilang atau terbuka |
 | **0.13 Program hidup** | Program ↔ generator, kepatuhan rencana vs aktual di kalender, prediksi waktu lomba | Program target jadi benar-benar dipakai harian |
 | **0.14 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
 | **1.0 Siap pakai penuh** | Offline, kirim workout ke intervals.icu, CI + test e2e | Stabil dan mandiri tanpa edit kode |
 
+> 2026-10-23 (2): **0.12 Aman & tersinkron selesai** (0.12.0 CI + sandi aplikasi, 0.12.1 sinkron, 0.12.2 cadangan otomatis & perangkat kedua) dan pindah ke §8. Rilis berikutnya **0.13 Program hidup**. Enkripsi sisi klien tetap di backlog P2.
+>
 > 2026-10-23: spesifikasi **Aman & tersinkron** ditulis ([SYNC.md](SYNC.md)) dan menjadi rencana **0.12** (0.12.0 CI + sandi aplikasi, 0.12.1 sinkron, 0.12.2 cadangan otomatis & perangkat kedua). Tiga item backlog P0 (proteksi akses, sinkron data, CI) masuk 0.12. Enkripsi sisi klien tidak masuk 0.12 dan dicatat sebagai backlog opsional.
 >
 > 2026-10-22 (2): **0.11 Onboarding & deploy pribadi selesai** (0.11.0, 0.11.1, 0.11.2) dan pindah ke §8. Rilis berikutnya **0.12 Aman & tersinkron**. Isian awal VDOT dari lari terbaik masuk backlog P2.
@@ -412,6 +413,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.11.3 | 2026-10-23 | Pembaruan keamanan dependensi (Next.js 16.4.2, Vitest 5.0.5, Vite); popover tur lebih ringkas |
 | 0.12.0 | 2026-10-23 | CI GitHub Actions; sandi aplikasi opsional (proxy, `/unlock`, sesi HMAC 90 hari, batas percobaan, Kunci perangkat ini) |
 | 0.12.1 | 2026-10-23 | Sinkron opsional ke Upstash Redis milik pengguna: merge per bagian, log ber-id + tombstone, `rev`/`baseRev`, antrean belum terkirim, Setting › Sinkron & keamanan, status di AppBar & onboarding langkah 4 |
+| 0.12.2 | 2026-10-23 | Cadangan otomatis harian (7 snapshot) + Riwayat cadangan & Pulihkan yang bisa dibatalkan; Sambungkan perangkat ini; disclaimer v2; README panduan Upstash |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 

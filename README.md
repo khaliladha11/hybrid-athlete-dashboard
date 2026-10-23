@@ -61,15 +61,17 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
   </tr>
   <tr>
     <td><img src="docs/screenshots/14-tour.jpg" width="220" alt="Tur in-app menyorot Saran hari ini"></td>
+    <td><img src="docs/screenshots/15-sync.jpg" width="220" alt="Setting: Sinkron & keamanan dan Riwayat cadangan"></td>
     <td><img src="docs/screenshots/07-light-mode.jpg" width="220" alt="Mode terang: kartu tag Progression Run"></td>
   </tr>
   <tr>
     <td align="center"><sub>Tur in-app</sub></td>
+    <td align="center"><sub>Sinkron & Riwayat cadangan</sub></td>
     <td align="center"><sub>Mode terang</sub></td>
   </tr>
 </table>
 
-<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1, onboarding & tur di 0.11.2), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
+<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1, onboarding & tur di 0.11.2, sinkron di 0.12.2), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
 
 > **Mau memakainya dengan data latihanmu sendiri di HP?** Ikuti [Pasang di HP-mu sendiri](#pasang-di-hp-mu-sendiri): gratis, sekitar 15 menit, tanpa menulis kode.
 
@@ -183,6 +185,20 @@ Dengan `APP_PASSCODE`, setiap perangkat harus memasukkan sandi sekali sebelum ap
 - Bila `APP_PASSCODE` diisi tapi kurang dari 8 karakter atau `SESSION_SECRET` kurang dari 32 karakter, aplikasi tetap terkunci dan halaman sandi meminta konfigurasi dilengkapi.
 - Sandi dan secret hanya dibaca di server; tidak pernah dikirim ke browser atau ditulis di log.
 
+#### Sinkron antar perangkat (opsional, sejak 0.12.1)
+
+Dengan database milikmu sendiri, log, Setting, program, dan profil sama di HP dan laptop, dan kembali sendiri setelah data browser dihapus. Butuh sandi aplikasi di atas.
+
+1. Di Vercel, buka project-mu › **Storage** (atau **Marketplace**) › **Upstash Redis** › **Create** / **Install**. Paket **Free** sudah cukup.
+2. **Connect** database ke project ini. Vercel mengisi env var otomatis: `KV_REST_API_URL` + `KV_REST_API_TOKEN` atau `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (keduanya didukung).
+3. Pastikan `APP_PASSCODE` dan `SESSION_SECRET` sudah terisi, lalu **Redeploy**.
+4. Buka **Setting › Data**: kartu **Sinkron & keamanan** menampilkan **TERSINKRON**.
+5. **Perangkat kedua:** buka alamatmu, masukkan sandi, lalu di onboarding ketuk **Sambungkan perangkat ini** (atau tunggu sebentar; data diambil otomatis).
+
+- **Cadangan otomatis:** sinkron pertama tiap hari (WIB) menyimpan snapshot; 7 terakhir ada di **Setting › Data & cadangan › Riwayat cadangan**. **Pulihkan** mengganti data di semua perangkat dan menyimpan keadaan sekarang dulu, jadi bisa dibatalkan.
+- **Batas paket Free Upstash** (halaman harga resmi, dicek 2026-10-23): 500K perintah/bulan, data 256 MB, request maks 10 MB, bandwidth 10 GB/bulan. Satu sinkron memakai sekitar 2 perintah tulis/baca per bagian yang berubah, jauh di bawah batas untuk satu orang. Cek ulang di [upstash.com/pricing/redis](https://upstash.com/pricing/redis) karena bisa berubah.
+- **Privasi:** database ada di akun Vercel-mu, hanya diakses server aplikasi setelah sandi diperiksa, dan pemilik repo tidak menerima apa pun. Data disimpan tanpa enkripsi tambahan dari aplikasi (Upstash mengenkripsi saat disimpan). **Menghapus data:** hapus database di Vercel › Storage.
+
 ### Langkah 5 · Kunci aksesnya (penting)
 
 Tanpa proteksi, siapa pun yang tahu alamatnya bisa melihat data latihan dan kesehatanmu. Sandi aplikasi (di atas) sudah mengunci aplikasinya; Vercel Authentication menambah lapisan di luarnya dan tetap dianjurkan. Onboarding langkah 4 menampilkan langkah yang sama; bila dilewati, pengingatnya ada di **Setting › Belum selesai**.
@@ -255,6 +271,7 @@ Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di pera
 | **0.9** Visual gerakan | ✅ Selesai | Gambar & detail teknik untuk 35/40 gerakan (free-exercise-db), 13 gerakan baru (stabilitas panggul, core, unilateral, soleus, bahu), toggle titik tambat band |
 | **0.10-ui** Redesign "Tag" | ✅ Selesai | Token dark-first, tipografi Archivo + Geist Mono, StatRow, Segment Skyline (rencana & selesai), Week Ledger, kontras tombol AA |
 | **0.10.1–0.10.2** Logo & data aktivitas | ✅ Selesai | Logo "Forward H", aktivitas ganda Huawei + Strava dihitung sekali, split per km yang divalidasi (GPS bila perlu), pemilih waktu & pace di Setting |
+| **0.12** Aman & tersinkron | ✅ Selesai | CI GitHub Actions, sandi aplikasi opsional, sinkron ke Upstash Redis milikmu, cadangan otomatis harian dengan Pulihkan, Sambungkan perangkat ini |
 | **0.11** Onboarding & deploy pribadi | ✅ Selesai | Wizard 10 langkah, profil di perangkat + JSON netral, cek koneksi di server, pengingat proteksi deploy, pasang ke HP, tur in-app, strength tanpa alat |
 | Berikutnya | 💡 Rencana | Proteksi akses + sinkron data, program terhubung ke generator, grafik tren, mode offline. Lihat [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
 
@@ -264,7 +281,7 @@ Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 
 - **Next.js 16** (App Router, Server Components) + **React 19** + **TypeScript**
 - **Tailwind CSS 4** dengan token semantik di [`app/globals.css`](app/globals.css). Dark mode mengikuti pengaturan sistem.
-- **Vitest**: 22 file test, 327 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
+- **Vitest**: 23 file test, 345 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
 - **intervals.icu REST API** (aktivitas, wellness, stream per detik), dipanggil hanya dari server
 - Grafik SVG buatan sendiri (Segment Skyline), tanpa library chart
 - Tanpa database. Profil default disimpan di JSON; Setting, log sesi, dan program di localStorage perangkat (bisa diekspor/impor).
