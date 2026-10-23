@@ -28,6 +28,10 @@ export interface LogEntry {
   targetRpe: number;
   deload: boolean;
   blockIndex: number;
+  /** ISO. Diisi sejak 0.12.1 (sinkron); entri lama diberi `${date}T00:00:00.000Z` saat migrasi. */
+  updatedAt?: string;
+  /** ISO. Ada = entri sudah dihapus (tombstone sinkron); tidak pernah tampil atau dihitung progresi. */
+  deletedAt?: string;
 }
 
 export type Recommendation =
@@ -192,6 +196,8 @@ export function isLogEntry(x: unknown): x is LogEntry {
     typeof e.deload === "boolean" &&
     num(e.blockIndex) &&
     (e.load === undefined || num(e.load)) &&
-    (e.band === undefined || typeof e.band === "string")
+    (e.band === undefined || typeof e.band === "string") &&
+    (e.updatedAt === undefined || typeof e.updatedAt === "string") &&
+    (e.deletedAt === undefined || typeof e.deletedAt === "string")
   );
 }
