@@ -17,8 +17,11 @@ export const STEPS = [
 ] as const;
 export type OnboardingStep = (typeof STEPS)[number];
 
-/** Naikkan bila teks disclaimer berubah: hanya langkah disclaimer yang tampil ulang. */
-export const TERMS_VERSION = 1;
+/**
+ * Naikkan bila teks disclaimer berubah: hanya langkah disclaimer yang tampil ulang.
+ * 2 (0.12.2): poin 3 menyebut salinan data di database milik pengguna bila sinkron aktif.
+ */
+export const TERMS_VERSION = 2;
 
 /**
  * Langkah yang dilewati otomatis tanpa ditampilkan. Kosong sejak 0.11.1 (langkah 3, 4, 9 sudah ada).
@@ -245,6 +248,19 @@ export function migratedState(now: string): OnboardingState {
     migrated: true,
     completedAt: now,
   };
+}
+
+export type ConnectDecision = "no-data" | "terms" | "ok";
+
+/**
+ * "Sambungkan perangkat ini" (onboarding langkah 1, 0.12.2): setelah data server diambil,
+ * - server belum punya onboarding selesai → "no-data" (mulai dari awal di perangkat ini);
+ * - selesai tapi disclaimer versi sekarang belum disetujui → "terms" (gate menampilkan disclaimer saja);
+ * - selain itu "ok" (wizard dilewati).
+ */
+export function connectDecision(state: OnboardingState | null, termsVersion = TERMS_VERSION): ConnectDecision {
+  if (!state?.completedAt) return "no-data";
+  return (state.termsVersion ?? 0) < termsVersion ? "terms" : "ok";
 }
 
 export type GateDecision = "ok" | "onboarding" | "terms" | "migrate";

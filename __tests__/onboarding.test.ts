@@ -8,6 +8,7 @@ import {
   back,
   canContinue,
   chooseConditions,
+  connectDecision,
   confirmProtection,
   gateDecision,
   goTo,
@@ -186,5 +187,23 @@ describe("proteksi & pengingat (0.11.1)", () => {
     expect(pendingReminders({ state: s, standalone: false, zonesOverridden: false })).toEqual(["connection", "protect", "zones", "install"]);
     const fixed = confirmProtection(markCompleted(s, "connection"), NOW);
     expect(pendingReminders({ state: fixed, standalone: true, zonesOverridden: true })).toEqual([]);
+  });
+});
+
+describe("sambungkan perangkat & disclaimer 0.12.2", () => {
+  const done = (patch: Partial<OnboardingState> = {}): OnboardingState => ({ ...walk().s, ...patch });
+
+  it("TERMS_VERSION naik ke 2: state lama versi 1 melihat disclaimer sekali, lalu ok", () => {
+    expect(TERMS_VERSION).toBe(2);
+    const old = done({ termsVersion: 1 });
+    expect(gateDecision(old, false)).toBe("terms");
+    expect(gateDecision(acceptTerms(old, NOW), false)).toBe("ok");
+  });
+
+  it("connectDecision: server kosong / belum selesai → no-data; versi lama → terms; disetujui → ok", () => {
+    expect(connectDecision(null)).toBe("no-data");
+    expect(connectDecision(goTo(initialState(), "zones"))).toBe("no-data");
+    expect(connectDecision(done({ termsVersion: 1 }))).toBe("terms");
+    expect(connectDecision(done())).toBe("ok");
   });
 });
