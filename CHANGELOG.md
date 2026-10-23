@@ -4,6 +4,25 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.12.0] · 2026-10-23 · CI & sandi aplikasi
+
+Bagian pertama rencana [SYNC.md](docs/SYNC.md) (§3, §6).
+
+### Ditambahkan
+- **CI GitHub Actions** (`.github/workflows/ci.yml`): `npm ci`, typecheck, test, build di setiap push & PR, tanpa env rahasia (Demo Mode). Badge di README.
+- **Sandi aplikasi opsional** lewat `APP_PASSCODE` (≥ 8 karakter) + `SESSION_SECRET` (≥ 32 byte):
+  - `proxy.ts` (nama middleware di Next.js 16) mengunci halaman (→ `/unlock?next`) dan API (401). Manifest, ikon, dan aset build tetap terbuka supaya PWA bisa dipasang & dibuka.
+  - Halaman `/unlock`: input sandi 16px (`autocomplete="current-password"`), sisa percobaan, pesan batas, pesan konfigurasi belum lengkap tanpa menyebut nilainya.
+  - Sesi cookie `httpOnly`, `Secure`, `SameSite=Lax`, 90 hari, bertanda tangan HMAC-SHA256 yang menyertakan sidik jari sandi: mengganti sandi atau secret mengunci semua perangkat. Perbandingan waktu-konstan.
+  - Batas 5 gagal per 15 menit per IP (di-hash), di Upstash Redis bila env `KV_REST_API_*` / `UPSTASH_REDIS_REST_*` ada, selain itu di memori (upaya terbaik).
+  - `intervalsGet` memeriksa sesi sebelum memanggil intervals.icu, jadi data tidak pernah diambil untuk request tanpa sesi.
+  - **Setting › Data › Keamanan › Kunci perangkat ini** (hanya saat sandi aktif).
+  - Konfigurasi tidak lengkap → gagal tertutup (semua terkunci).
+- 35 test baru (`auth.test.ts`, `auth-routes.test.ts`), total 278 di 18 file.
+
+### Tidak berubah
+- Tanpa `APP_PASSCODE`, perilaku identik dengan 0.11. Tanpa dependensi baru (`node:crypto` dan `fetch`).
+
 ## [0.11.3] · 2026-10-23 · Keamanan dependensi & tur lebih ringkas
 
 ### Keamanan
@@ -273,7 +292,8 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.11.3]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/77815e4...main
+[0.12.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/1c7334f...main
+[0.11.3]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/77815e4...49f5f14
 [0.11.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/4d0042f...77815e4
 [0.11.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ffb3a10...4d0042f
 [0.11.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/cda26c1...ffb3a10

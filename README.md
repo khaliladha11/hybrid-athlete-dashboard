@@ -163,6 +163,8 @@ Fork dari repo publik ikut publik, jadi jangan isi file ini dengan data yang tid
    | --- | --- |
    | `INTERVALS_API_KEY` | API key dari langkah 3 |
    | `INTERVALS_ATHLETE_ID` | Athlete ID-mu, atau `0` |
+   | `APP_PASSCODE` | *(opsional, dianjurkan)* sandi aplikasi, minimal 8 karakter |
+   | `SESSION_SECRET` | *(wajib bila `APP_PASSCODE` diisi)* teks acak minimal 32 karakter, lihat di bawah |
 
 4. Klik **Deploy** dan tunggu 1 sampai 2 menit, lalu buka alamat yang diberikan. Aplikasi membuka **onboarding**; langkah 3 mengecek koneksi ke intervals.icu dan menampilkan "Tersambung sebagai {namamu}" bila key benar.
 
@@ -170,9 +172,20 @@ Fork dari repo publik ikut publik, jadi jangan isi file ini dengan data yang tid
 
 API key hanya disimpan di Vercel dan dibaca di server. Kunci itu tidak pernah dikirim ke HP atau browser.
 
+#### Sandi aplikasi (opsional, sejak 0.12.0)
+
+Dengan `APP_PASSCODE`, setiap perangkat harus memasukkan sandi sekali sebelum aplikasi terbuka, lalu tetap terbuka 90 hari. Tanpa `APP_PASSCODE` aplikasi terbuka seperti versi sebelumnya.
+
+- **Membuat `SESSION_SECRET`:** jalankan `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` lalu tempel hasilnya. Jangan pakai ulang secret dari tempat lain.
+- **Salah sandi** 5 kali dari alamat yang sama → harus menunggu 15 menit.
+- **Mengganti sandi:** ubah `APP_PASSCODE` di Vercel › Settings › Environment Variables, lalu **Redeploy**. Semua perangkat langsung terkunci dan perlu sandi baru. Mengganti `SESSION_SECRET` juga mengunci semua perangkat.
+- **Mengunci satu perangkat** (mis. HP yang dipinjamkan): **Setting › Data › Kunci perangkat ini**.
+- Bila `APP_PASSCODE` diisi tapi kurang dari 8 karakter atau `SESSION_SECRET` kurang dari 32 karakter, aplikasi tetap terkunci dan halaman sandi meminta konfigurasi dilengkapi.
+- Sandi dan secret hanya dibaca di server; tidak pernah dikirim ke browser atau ditulis di log.
+
 ### Langkah 5 · Kunci aksesnya (penting)
 
-Aplikasi ini belum punya login. Tanpa langkah ini, siapa pun yang tahu alamatnya bisa melihat data latihan dan kesehatanmu. Onboarding langkah 4 menampilkan langkah yang sama; bila dilewati, pengingatnya ada di **Setting › Belum selesai**.
+Tanpa proteksi, siapa pun yang tahu alamatnya bisa melihat data latihan dan kesehatanmu. Sandi aplikasi (di atas) sudah mengunci aplikasinya; Vercel Authentication menambah lapisan di luarnya dan tetap dianjurkan. Onboarding langkah 4 menampilkan langkah yang sama; bila dilewati, pengingatnya ada di **Setting › Belum selesai**.
 
 1. Di Vercel, buka project-mu, lalu **Settings › Deployment Protection**.
 2. Aktifkan **Vercel Authentication** dengan cakupan **All Deployments**. Pilihan ini gratis di paket Hobby. Jangan berhenti di **Standard Protection**, karena cakupan itu tidak melindungi alamat utama `nama-project.vercel.app`.
@@ -251,7 +264,7 @@ Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 
 - **Next.js 16** (App Router, Server Components) + **React 19** + **TypeScript**
 - **Tailwind CSS 4** dengan token semantik di [`app/globals.css`](app/globals.css). Dark mode mengikuti pengaturan sistem.
-- **Vitest**: 16 file test, 243 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
+- **Vitest**: 18 file test, 278 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
 - **intervals.icu REST API** (aktivitas, wellness, stream per detik), dipanggil hanya dari server
 - Grafik SVG buatan sendiri (Segment Skyline), tanpa library chart
 - Tanpa database. Profil default disimpan di JSON; Setting, log sesi, dan program di localStorage perangkat (bisa diekspor/impor).
@@ -277,6 +290,9 @@ Untuk memakai data asli, salin `.env.example` menjadi `.env.local` (sudah masuk 
 ```env
 INTERVALS_API_KEY=isi_api_key_kamu
 INTERVALS_ATHLETE_ID=0   # 0 = pemilik API key, atau ID seperti i123456
+# Opsional: kunci aplikasi dengan sandi
+# APP_PASSCODE=minimal-8-karakter
+# SESSION_SECRET=teks-acak-minimal-32-karakter
 ```
 
 API key hanya dibaca di server (`import "server-only"`) dan tidak pernah dikirim ke browser. Error 401/403/404/5xx ditampilkan sebagai pesan singkat tanpa stack trace. Cara deploy sama dengan [langkah 4](#langkah-4--deploy-ke-vercel); setiap `git push` ke `main` men-deploy ulang otomatis.
