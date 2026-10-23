@@ -16,7 +16,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
     route: "/",
     targets: ["saran"],
     title: "Saran hari ini",
-    body: "Ringkasan kesiapanmu hari ini dari tidur, HRV, dan beban latihan. Di Lari dan Strength, saran yang sama bisa langsung dipakai ke generator.",
+    body: "Kesiapanmu hari ini dari tidur, HRV, dan beban latihan. Saran yang sama bisa dipakai langsung di generator Lari dan Strength.",
   },
   {
     id: "run",
