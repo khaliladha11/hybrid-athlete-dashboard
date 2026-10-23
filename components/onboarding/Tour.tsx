@@ -99,7 +99,7 @@ function TourLayer({ index, closing, onBack, onNext, onSkip }: { index: number; 
 
   // Ukuran layar & posisi elemen, diperbarui saat scroll, resize, atau elemen berubah ukuran.
   const [layout, setLayout] = useState<{ rect: Rect | null; vw: number; vh: number; insetTop: number; insetBottom: number } | null>(null);
-  const [popSize, setPopSize] = useState({ width: 360, height: 220 });
+  const [popSize, setPopSize] = useState({ width: 340, height: 160 });
   useLayoutEffect(() => {
     if (!found) return;
     const insets = readSafeArea();
@@ -114,7 +114,7 @@ function TourLayer({ index, closing, onBack, onNext, onSkip }: { index: number; 
           vh: window.innerHeight,
           ...insets,
         });
-        if (popRef.current) setPopSize({ width: 360, height: popRef.current.offsetHeight });
+        if (popRef.current) setPopSize({ width: 340, height: popRef.current.offsetHeight });
       });
     };
     measure();
@@ -189,19 +189,19 @@ function TourLayer({ index, closing, onBack, onNext, onSkip }: { index: number; 
         aria-modal="true"
         aria-labelledby="tour-title"
         aria-describedby="tour-body"
-        className={`absolute rounded-card border border-line-strong bg-surface-raised p-4 text-ink shadow-card ${pos ? "tour-pop" : "invisible"}`}
+        className={`absolute rounded-card border border-line-strong bg-surface-raised px-4 pt-3 pb-2.5 text-ink shadow-card ${pos ? "tour-pop" : "invisible"}`}
         style={{ top: pos?.top ?? 0, left: pos?.left ?? 16, width: pos?.width ?? popSize.width, transformOrigin: origin }}
       >
         <p className="t-label">
           Tur · {index + 1}/{TOUR_STEPS.length}
         </p>
-        <h2 id="tour-title" className="mt-2 text-[17px] leading-snug font-semibold">
+        <h2 id="tour-title" className="mt-1.5 text-[15px] leading-snug font-semibold">
           {step.title}
         </h2>
-        <p id="tour-body" className="mt-1.5 text-body text-muted">
+        <p id="tour-body" className="mt-1 text-[13px] leading-snug text-muted">
           {step.body}
         </p>
-        <div className="mt-4 flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-2">
           <button type="button" onClick={onSkip} className={`${BUTTON.base} ${BUTTON.ghost} mr-auto px-3 text-body text-muted`}>
             Lewati tur
           </button>
