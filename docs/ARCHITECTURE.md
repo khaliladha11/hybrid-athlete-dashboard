@@ -91,6 +91,8 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 
 ## Penyimpanan
 
+> **Catatan keputusan (2026-10-23), berlaku mulai 0.12.** Prinsip "data kesehatan tidak keluar dari HP" di bawah akan berubah. Sejak 0.12 data (log, Setting, program, profil, status onboarding) boleh disinkronkan ke **database milik pengguna sendiri** (Upstash Redis di akun Vercel-nya), **hanya bila** pengguna memasang database dan sandi aplikasi. Database diakses lewat server saja; tanpa database, aplikasi tetap lokal seperti sekarang. Tidak ada database bersama, dan enkripsi sisi klien belum termasuk 0.12. Diagram, tabel modul, dan tabel di bawah diperbarui saat rilis. Spesifikasi: [SYNC.md](SYNC.md).
+
 | Data | Tempat | Alasan |
 | --- | --- | --- |
 | Profil default | `config/athlete-profile.json` di repo, **netral** sejak 0.11 (tanpa nama, kondisi, alat; zona dari VDOT 30) | Fork baru tidak mewarisi data siapa pun. Movement library tetap di sini |

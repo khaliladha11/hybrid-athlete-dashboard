@@ -10,7 +10,7 @@
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
 | **Kualitas** | 16 file test, 243 unit test lolos · build produksi lolos |
-| **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
+| **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
 
@@ -104,12 +104,20 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 - Kondisi tidak pernah menambah gerakan di luar library; hanya mewajibkan, melarang, atau memberi catatan.
 
 **Onboarding & deploy pribadi** · keputusan 2026-10-22
-- Satu deploy per orang; tanpa akun, login, atau database.
+- Satu deploy per orang; tanpa akun atau login. Database hanya opsional dan milik pengguna sendiri (lihat aturan 0.12 di bawah).
 - Profil di repo selalu netral; data pribadi siapa pun tidak di-commit.
 - Disclaimer kesehatan wajib disetujui sebelum aplikasi dipakai; versi naik → tampil ulang.
 - Pemilihan kondisi wajib eksplisit ("Tidak ada" adalah pilihan, bukan default).
 - Status koneksi intervals.icu dicek di server; browser hanya menerima status.
 - Pengguna lama tidak dipaksa mengulang onboarding dan tidak kehilangan data.
+
+**Sandi aplikasi & sinkron** · keputusan 2026-10-23, berlaku mulai 0.12 ([SYNC.md](SYNC.md)); test ditambahkan saat rilis
+- Sandi aplikasi lewat env var `APP_PASSCODE` (≥ 8 karakter) dan `SESSION_SECRET` (≥ 32 byte). Tanpa `APP_PASSCODE`, aplikasi berperilaku seperti 0.11.
+- Sandi dibandingkan waktu-konstan, tidak pernah disimpan di `localStorage` dan tidak pernah dikirim balik ke browser. Sesi berupa cookie `httpOnly`, `Secure`, `SameSite=Lax`, ditandatangani HMAC; mengganti sandi membatalkan semua sesi. Percobaan gagal dibatasi (5 per 15 menit per IP).
+- **Database hanya diakses server** (`server-only`), sama seperti API key intervals.icu. Browser hanya menerima data miliknya dan status berupa boolean, tidak pernah URL atau token database.
+- **Sinkron opsional.** Tanpa env var database, aplikasi berjalan lokal saja. Sinkron mewajibkan sandi aplikasi.
+- **Tanpa database bersama.** Setiap orang memasang database di akun Vercel-nya sendiri; pemilik repo tidak menerima data siapa pun.
+- Gagal kirim tidak pernah membuang data lokal; perubahan ditandai "belum terkirim" dan dicoba lagi.
 
 **Movement library & media** · keputusan 2026-10-12
 - Gambar gerakan **hanya dari sumber berlisensi bebas** (saat ini [free-exercise-db](https://github.com/yuhonas/free-exercise-db), Unlicense), disimpan lokal di `public/movements/` (tanpa hotlink). Tidak memakai gambar buatan AI atau sumber yang lisensinya tidak mengizinkan (mis. openGym, Gym Visual).
@@ -258,6 +266,27 @@ Selesai di 0.11 (0.11.0 sampai 0.11.2), spesifikasi lengkap di [ONBOARDING.md](O
 | Bagian "Belum selesai" di Setting untuk langkah yang dilewati | ✅ | 0.11.1: koneksi, proteksi (termasuk pengguna lama), zona perkiraan, pasang |
 | Tur in-app 4 sampai 5 sorotan + "Ulangi tur" | ✅ | 0.11.2: 5 sorotan lintas tab (Profil, Lari, Strength, Program, Setting), spotlight sendiri, Escape & fokus terjebak, reduced motion hanya fade. Ulangi dari Setting › Tampilan |
 
+### 4.10 Sinkron & keamanan
+
+Rencana 0.12, spesifikasi lengkap di [SYNC.md](SYNC.md).
+
+| Fitur | Status | Catatan |
+| --- | --- | --- |
+| CI GitHub Actions (typecheck, test, build tiap push & PR, Demo Mode) + badge README | ⬜ | 0.12.0 |
+| Sandi aplikasi: middleware mengunci halaman & API, `/unlock`, pengecualian aset & PWA | ⬜ | 0.12.0 |
+| Sesi cookie 90 hari bertanda tangan HMAC; ganti sandi membatalkan semua sesi | ⬜ | 0.12.0 |
+| Pembatasan percobaan sandi (Redis bila ada, memori sebagai upaya terbaik) | ⬜ | 0.12.0 |
+| Tombol **Kunci perangkat ini** di Setting | ⬜ | 0.12.0 |
+| Sinkron per bagian (profil, setting, program, preferensi, onboarding, log) ke Upstash Redis milik pengguna | ⬜ | 0.12.1 |
+| Log per entri: `id` stabil, migrasi entri lama, hapus memakai tombstone | ⬜ | 0.12.1 |
+| Konkurensi dengan `rev` dari server (`baseRev`, merge lalu ulang, maks 3 kali, status konflik) | ⬜ | 0.12.1 |
+| Pemicu sinkron (buka, kembali terlihat, debounce 2 detik, Sinkron sekarang) + antrean "belum terkirim" | ⬜ | 0.12.1 |
+| Setting › **Sinkron & keamanan** (status, Sinkron sekarang) + titik status di AppBar hanya saat bermasalah | ⬜ | 0.12.1 |
+| Onboarding langkah 4: status sandi aplikasi & database (endpoint status hanya boolean) | ⬜ | 0.12.1 |
+| Cadangan otomatis harian (7 snapshot) + Riwayat cadangan & Pulihkan | ⬜ | 0.12.2 |
+| Onboarding langkah 1: **Sambungkan perangkat ini** | ⬜ | 0.12.2 |
+| Disclaimer diperbarui untuk sinkron (`TERMS_VERSION` naik) + README panduan Upstash | ⬜ | 0.12.2 |
+
 ## 5. Persyaratan non-fungsional
 
 | Area | Target | Status |
@@ -300,11 +329,13 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 
 | Usulan versi | Isi | Alasan |
 | --- | --- | --- |
-| **0.12 Aman & tersinkron** | Proteksi akses (PIN/passcode) + sinkron data ke database | Setting & log kini berharga; jangan hilang atau terbuka |
+| **0.12 Aman & tersinkron** | CI, sandi aplikasi, sinkron opsional ke database milik pengguna, cadangan otomatis ([SYNC.md](SYNC.md); 0.12.0 sampai 0.12.2) | Setting & log kini berharga; jangan hilang atau terbuka |
 | **0.13 Program hidup** | Program ↔ generator, kepatuhan rencana vs aktual di kalender, prediksi waktu lomba | Program target jadi benar-benar dipakai harian |
 | **0.14 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
 | **1.0 Siap pakai penuh** | Offline, kirim workout ke intervals.icu, CI + test e2e | Stabil dan mandiri tanpa edit kode |
 
+> 2026-10-23: spesifikasi **Aman & tersinkron** ditulis ([SYNC.md](SYNC.md)) dan menjadi rencana **0.12** (0.12.0 CI + sandi aplikasi, 0.12.1 sinkron, 0.12.2 cadangan otomatis & perangkat kedua). Tiga item backlog P0 (proteksi akses, sinkron data, CI) masuk 0.12. Enkripsi sisi klien tidak masuk 0.12 dan dicatat sebagai backlog opsional.
+>
 > 2026-10-22 (2): **0.11 Onboarding & deploy pribadi selesai** (0.11.0, 0.11.1, 0.11.2) dan pindah ke §8. Rilis berikutnya **0.12 Aman & tersinkron**. Isian awal VDOT dari lari terbaik masuk backlog P2.
 >
 > 2026-10-22: spesifikasi **Onboarding & deploy pribadi** disetujui ([ONBOARDING.md](ONBOARDING.md)) dan masuk sebagai **0.11** (0.11.0, 0.11.1, 0.11.2). Isi roadmap lama bergeser satu nomor: Aman & tersinkron → 0.12, Program hidup → 0.13, Insight → 0.14. Edit target & tanggal blok pindah dari 1.0 ke 0.11.
@@ -321,9 +352,9 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 
 | Prioritas | Fitur | Ukuran | Nilai untuk atlet |
 | --- | --- | --- | --- |
-| P0 | **Proteksi akses** (passcode di middleware atau Vercel Authentication) | S | Data kesehatan tidak terbuka untuk umum |
-| P0 | **Sinkron data** (Upstash Redis / Supabase) untuk log, program, preferensi | M | Data aman dan sama di semua perangkat |
-| P0 | **CI GitHub Actions** (typecheck, test, build tiap push) | S | Mencegah rilis rusak |
+| P0 | **Proteksi akses** (passcode di middleware atau Vercel Authentication) | S | Data kesehatan tidak terbuka untuk umum. → Masuk **0.12.0** (sandi aplikasi, [SYNC.md](SYNC.md) §3) |
+| P0 | **Sinkron data** (Upstash Redis / Supabase) untuk log, program, preferensi | M | Data aman dan sama di semua perangkat. → Masuk **0.12.1–0.12.2** (Upstash Redis milik pengguna, [SYNC.md](SYNC.md) §4) |
+| P0 | **CI GitHub Actions** (typecheck, test, build tiap push) | S | Mencegah rilis rusak. → Masuk **0.12.0** ([SYNC.md](SYNC.md) §6) |
 | P1 | **Gambar untuk 5 gerakan sisa** & gerakan anti-rotasi (sumber berlisensi bebas lain, atau foto sendiri) | M | Detail teknik lengkap untuk prehab wajib |
 | P1 | **Program → generator**: tombol "Kerjakan sesi hari ini" yang mengisi generator lari | S | Satu tap dari rencana ke workout |
 | P1 | **Kepatuhan program**: tandai sesi rencana ✓/✕ dari aktivitas intervals.icu, tampil di kalender | M | Tahu apakah masih di jalur |
@@ -332,6 +363,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P1 | **Grafik tren** CTL/ATL/Form & km mingguan | M | Melihat kebugaran dan kelelahan jangka panjang |
 | P2 | **Kirim workout ke kalender intervals.icu** (lalu ke jam yang terhubung) | M | Workout langsung muncul di jam |
 | P2 | **Edit sisa profil di aplikasi** (target lomba, tanggal mulai blok, zona HR/RPE) | S | Tanpa edit JSON sama sekali. → Terserap ke **0.11** ([ONBOARDING.md](ONBOARDING.md) §4.5), kecuali zona HR/RPE yang tetap di backlog |
+| P2 | **Enkripsi sisi klien (opsional)**: passphrase + WebCrypto sebelum data dikirim ke database | M | Database pun tidak bisa membaca data kesehatan. Tidak di 0.12 ([SYNC.md](SYNC.md) §4, §11) |
 | P2 | **Isian awal VDOT dari lari terbaik 90 hari** di onboarding & Setting (butuh data intervals.icu di client) | S | Zona lari tepat tanpa harus ingat hasil lomba |
 | P2 | **Ambang personal** (HR berat dari zona/LTHR, baseline HRV 30 hari) | S | Saran lebih akurat |
 | P2 | **Mode offline** (service worker, cache workout terakhir) | M | Tetap bisa dibuka di gym tanpa sinyal. Relevan untuk rasa native setelah onboarding mengajak pasang ke layar utama (0.11) |
