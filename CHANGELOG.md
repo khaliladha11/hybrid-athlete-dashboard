@@ -4,6 +4,27 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.12.1] · 2026-10-23 · Sinkron antar perangkat
+
+Bagian kedua rencana [SYNC.md](docs/SYNC.md) (§4, §5 langkah 4, §7, §8).
+
+### Ditambahkan
+- **Sinkron opsional** ke Upstash Redis milik pengguna, aktif hanya bila sandi aplikasi (`APP_PASSCODE`) dan env Redis (`UPSTASH_REDIS_REST_*` atau `KV_REST_API_*`) ada. Enam bagian: profil, setting, program, preferensi (tema, blok), onboarding, log.
+  - Merge tanpa jam perangkat: perangkat mencatat kunci yang ia ubah sejak `rev` terakhir. Profil & program utuh; setting & preferensi per kunci; onboarding digabung (langkah selesai, versi disclaimer tertinggi); log per entri.
+  - Konkurensi `rev`/`baseRev` dengan tulis atomik (EVAL Lua); konflik → gabung lalu ulang, maksimal 3 kali.
+  - Pemicu: aplikasi dibuka, kembali terlihat, kembali online, 2 detik setelah perubahan, tombol **Sinkron sekarang**. Gagal kirim ditandai **belum terkirim** tanpa membuang data lokal.
+  - Aktivasi pertama: server kosong → data lokal diunggah; keduanya berisi → server menang, lokal mengisi yang kosong, log & onboarding digabung.
+- `/api/sync` (sesi wajib, body ≤ 1 MB, tiap bagian divalidasi dengan parser impor) dan `/api/status` (boolean saja). Database hanya diakses server; tanpa dependensi baru (REST lewat `fetch`).
+- **Setting › Data › Sinkron & keamanan**: status (`TERSINKRON · x menit lalu`, `BELUM TERKIRIM`, `KONFLIK`, `TIDAK AKTIF`), Sinkron sekarang, Kunci perangkat ini, dan langkah berikutnya bila belum aktif. Menggantikan kartu Keamanan 0.12.0.
+- Titik status di AppBar hanya saat konflik atau belum terkirim lebih dari 10 menit.
+- Onboarding langkah 4: status sandi aplikasi & database.
+- 49 test baru (`sync-log`, `sync-merge`, `sync-store`, `sync-client`), total 327 di 22 file. Uji ujung-ke-ujung dua browser dengan Upstash tiruan lokal.
+
+### Diubah
+- **Log ST**: entri punya `updatedAt`; entri lama tanpa `id` diberi id deterministik sekali; hapus menjadi tombstone yang tidak tampil, tidak dihitung progresi, dan tidak diekspor. Impor v1/v2/v3 tetap jalan dan tidak menghidupkan entri yang sudah dihapus.
+- `lib/redis.ts` dipakai bersama batas percobaan sandi dan sinkron; `UPSTASH_REDIS_REST_*` didahulukan seperti SDK resmi.
+- Kartu Data & cadangan dan subjudul Setting menyesuaikan saat sinkron aktif.
+
 ## [0.12.0] · 2026-10-23 · CI & sandi aplikasi
 
 Bagian pertama rencana [SYNC.md](docs/SYNC.md) (§3, §6).
@@ -292,7 +313,8 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.12.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/1c7334f...main
+[0.12.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/465da7d...main
+[0.12.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/1c7334f...465da7d
 [0.11.3]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/77815e4...49f5f14
 [0.11.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/4d0042f...77815e4
 [0.11.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ffb3a10...4d0042f

@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.12.0 (2026-10-23) |
+| **Versi saat ini** | 0.12.1 (2026-10-23) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 18 file test, 278 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
+| **Kualitas** | 22 file test, 327 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -211,7 +211,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Riwayat & tren per gerakan (halaman Strength), hapus per entri | ✅ | Pindah dari halaman Log (0.8); thumbnail & detail gerakan di daftar tren (0.9) |
 | Ekspor/impor JSON (log + Setting + program + preferensi) | ✅ | Setting › Data & cadangan (0.8) |
 | Progresi ke beban berikutnya yang bisa dirakit | ✅ | 0.8 |
-| Sinkron antar perangkat | ⬜ | Masih `localStorage` |
+| Sinkron antar perangkat | ✅ | 0.12.1: opsional ke Upstash Redis milik pengguna (butuh sandi aplikasi). Tanpa database tetap `localStorage` saja. Lihat §4.10 |
 | Milestone pull-up (band → negative → penuh) | ⬜ | |
 
 ### 4.7 Platform, UI & pengaturan
@@ -268,7 +268,7 @@ Selesai di 0.11 (0.11.0 sampai 0.11.2), spesifikasi lengkap di [ONBOARDING.md](O
 
 ### 4.10 Sinkron & keamanan
 
-Rencana 0.12 (0.12.0 selesai), spesifikasi lengkap di [SYNC.md](SYNC.md).
+Rencana 0.12 (0.12.0 dan 0.12.1 selesai), spesifikasi lengkap di [SYNC.md](SYNC.md).
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
@@ -277,12 +277,12 @@ Rencana 0.12 (0.12.0 selesai), spesifikasi lengkap di [SYNC.md](SYNC.md).
 | Sesi cookie 90 hari bertanda tangan HMAC; ganti sandi membatalkan semua sesi | ✅ | 0.12.0: `httpOnly`, `Secure`, `SameSite=Lax`; sidik jari sandi di tanda tangan; perbandingan waktu-konstan |
 | Pembatasan percobaan sandi (Redis bila ada, memori sebagai upaya terbaik) | ✅ | 0.12.0: 5 gagal per 15 menit per IP (di-hash); Upstash REST lewat `fetch`, tanpa dependensi baru |
 | Tombol **Kunci perangkat ini** di Setting | ✅ | 0.12.0: kartu Keamanan di Setting › Data, hanya saat sandi aktif |
-| Sinkron per bagian (profil, setting, program, preferensi, onboarding, log) ke Upstash Redis milik pengguna | ⬜ | 0.12.1 |
-| Log per entri: `id` stabil, migrasi entri lama, hapus memakai tombstone | ⬜ | 0.12.1 |
-| Konkurensi dengan `rev` dari server (`baseRev`, merge lalu ulang, maks 3 kali, status konflik) | ⬜ | 0.12.1 |
-| Pemicu sinkron (buka, kembali terlihat, debounce 2 detik, Sinkron sekarang) + antrean "belum terkirim" | ⬜ | 0.12.1 |
-| Setting › **Sinkron & keamanan** (status, Sinkron sekarang) + titik status di AppBar hanya saat bermasalah | ⬜ | 0.12.1 |
-| Onboarding langkah 4: status sandi aplikasi & database (endpoint status hanya boolean) | ⬜ | 0.12.1 |
+| Sinkron per bagian (profil, setting, program, preferensi, onboarding, log) ke Upstash Redis milik pengguna | ✅ | 0.12.1: `/api/sync` (sesi wajib), satu hash per bagian, baca 1 pipeline, tulis EVAL atomik; tiap bagian divalidasi dengan parser impor. Aktivasi pertama: server kosong → unggah; keduanya berisi → server menang, lokal mengisi yang kosong, log & onboarding digabung |
+| Log per entri: `id` stabil, migrasi entri lama, hapus memakai tombstone | ✅ | 0.12.1: `updatedAt`; entri tanpa `id` diberi id deterministik; tombstone tidak tampil, tidak dihitung progresi, tidak diekspor; dipadatkan setelah 90 hari |
+| Konkurensi dengan `rev` dari server (`baseRev`, merge lalu ulang, maks 3 kali, status konflik) | ✅ | 0.12.1: pemenang ditentukan oleh kunci yang diubah lokal sejak `rev` terakhir, bukan jam perangkat |
+| Pemicu sinkron (buka, kembali terlihat, debounce 2 detik, Sinkron sekarang) + antrean "belum terkirim" | ✅ | 0.12.1: juga saat kembali online. Gagal kirim tidak membuang data lokal |
+| Setting › **Sinkron & keamanan** (status, Sinkron sekarang) + titik status di AppBar hanya saat bermasalah | ✅ | 0.12.1: menggantikan kartu Keamanan 0.12.0; titik muncul saat konflik atau belum terkirim > 10 menit |
+| Onboarding langkah 4: status sandi aplikasi & database (endpoint status hanya boolean) | ✅ | 0.12.1: `/api/status` → `{ passcode, database, sync }` |
 | Cadangan otomatis harian (7 snapshot) + Riwayat cadangan & Pulihkan | ⬜ | 0.12.2 |
 | Onboarding langkah 1: **Sambungkan perangkat ini** | ⬜ | 0.12.2 |
 | Disclaimer diperbarui untuk sinkron (`TERMS_VERSION` naik) + README panduan Upstash | ⬜ | 0.12.2 |
@@ -309,7 +309,7 @@ Rencana 0.12 (0.12.0 selesai), spesifikasi lengkap di [SYNC.md](SYNC.md).
 Diurutkan dari yang paling berdampak.
 
 1. **Sandi aplikasi opsional.** Sejak 0.12.0 aplikasi bisa dikunci dengan `APP_PASSCODE`, tetapi tidak aktif bila pemilik deploy tidak mengisinya. Deploy pemilik juga dilindungi *Deployment Protection* (Vercel Authentication, cakupan **All Deployments**); *Standard Protection* tidak melindungi alamat utama `*.vercel.app`. Dianjurkan lewat README dan langkah "Amankan deploy" di onboarding.
-2. **Data di perangkat saja.** Setting, log ST, program, tema, dan toggle blok ada di `localStorage`. Hilang bila data browser dihapus, dan tidak sinkron antara HP dan laptop. Cadangan: ekspor JSON manual (kini mencakup semuanya). Makin penting sejak 0.8 karena Setting menyimpan lebih banyak data.
+2. **Sinkron opsional.** Sejak 0.12.1 data bisa disinkron ke Upstash Redis milik pengguna, tetapi hanya bila database dan sandi aplikasi dipasang; tanpa itu Setting, log, program, tema, dan toggle blok tetap hanya di `localStorage` dan hilang bila data browser dihapus. Cadangan ekspor JSON tetap ada. Butir ini dihapus saat cadangan otomatis rilis (0.12.2).
 3. **Movement library hanya dari kurasi developer.** 0.9 menambah 13 gerakan (total 40), tetapi pengguna belum bisa menambah gerakan sendiri; alat lain (mis. kettlebell) baru dicatat. 5 gerakan belum punya gambar — termasuk 2 prehab wajib (Clamshell, Tibialis Wall Raise) — dan celah anti-rotasi (Pallof, bird dog, suitcase carry) belum ada di sumber gambar. Kondisi di luar katalog hanya catatan.
 4. **Program & generator belum terhubung.** Sesi di Program tidak bisa langsung dibuka di generator, dan aktivitas aktual belum dicocokkan dengan rencana.
 5. **Ambang tetap.** HR lari berat (155), penurunan HRV (15%), dan kenaikan resting HR (5 bpm) belum dipersonalisasi.
@@ -320,6 +320,7 @@ Diurutkan dari yang paling berdampak.
 10. **Pengujian UI manual.** Belum ada test komponen/e2e maupun CI GitHub Actions. Animasi bottom sheet & crossfade 0.9 baru diverifikasi secara logika (state, posisi, reduced motion), belum di perangkat nyata.
 11. **Script media & ikon memakai `sharp` dari Next.js** (dependensi tidak langsung). Bila Next.js berhenti membawanya, `sharp` perlu ditambahkan sebagai devDependency.
 12. **Batas percobaan sandi tanpa Redis hanya upaya terbaik.** Tanpa Upstash, hitungan gagal disimpan di memori per instance serverless, jadi bisa ter-reset saat instance baru dibuat. IP diambil dari `x-forwarded-for` yang di Vercel diisi oleh platform; di hosting lain header ini bisa dipalsukan.
+13. **Sinkron bergantung pada paket gratis Upstash.** Desainnya hemat (satu baca + satu tulis per sinkron), tetapi batas perintah dan ukuran paket gratis belum dicatat di README (0.12.2). Belum ada snapshot sebelum aktivasi pertama atau Riwayat cadangan (0.12.2). Tema ikut tersinkron, jadi mengganti tema di satu perangkat mengubah semua perangkat.
 
 ## 7. Roadmap & saran pengembangan
 
@@ -410,6 +411,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.11.2 | 2026-10-22 | Tur in-app 5 sorotan + Ulangi tur; strength tanpa alat (5 gerakan cadangan, pesan alat, test semua kombinasi); screenshot onboarding |
 | 0.11.3 | 2026-10-23 | Pembaruan keamanan dependensi (Next.js 16.4.2, Vitest 5.0.5, Vite); popover tur lebih ringkas |
 | 0.12.0 | 2026-10-23 | CI GitHub Actions; sandi aplikasi opsional (proxy, `/unlock`, sesi HMAC 90 hari, batas percobaan, Kunci perangkat ini) |
+| 0.12.1 | 2026-10-23 | Sinkron opsional ke Upstash Redis milik pengguna: merge per bagian, log ber-id + tombstone, `rev`/`baseRev`, antrean belum terkirim, Setting › Sinkron & keamanan, status di AppBar & onboarding langkah 4 |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 

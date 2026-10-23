@@ -12,9 +12,13 @@ flowchart LR
     CTX["Konteks latihan<br/>readiness · coach · blok · cadence"]
     ENV --> CLIENT --> DS --> NORM --> CTX
     MOCK["lib/mock-data.ts"] -. tanpa API key .-> DS
+    PROXY["proxy.ts<br/>sandi aplikasi"]
+    SYNCAPI["/api/sync<br/>lib/sync/store.ts (server-only)"]
+    PROXY --> SYNCAPI
   end
 
   ICU[("intervals.icu API")] <--> CLIENT
+  REDIS[("Upstash Redis<br/>milik pengguna (opsional)")] <--> SYNCAPI
 
   subgraph Browser["Browser / PWA di HP"]
     GEN["lib/generator/*<br/>(modul murni)"]
@@ -27,7 +31,10 @@ flowchart LR
     GEN --> VAL --> PROG --> UI
     LOG --> PROG
     UI -- Catat sesi --> LOG
+    SYNCC["lib/sync/client.ts<br/>+ engine.ts (merge)"]
+    LOG <--> SYNCC
   end
+  SYNCC <-- sesi cookie --> PROXY
 
   PROFILE["config/athlete-profile.json<br/>(default)"] --> SET
   LOG --> SET
@@ -91,6 +98,14 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/auth/rate-limit.ts` | 5 gagal / 15 menit per IP (hash). Upstash REST lewat `fetch` bila `KV_REST_API_*` / `UPSTASH_REDIS_REST_*` ada, jatuh ke memori bila gagal | Server |
 | `lib/auth/unlock.ts`, `app/api/unlock/route.ts`, `app/api/lock/route.ts` | POST unlock (204 + cookie, 401 sisa percobaan, 429 Retry-After, 503 konfigurasi tidak lengkap) dan lock (hapus cookie) | Server |
 | `lib/auth/guard.ts` | `isRequestUnlocked()` dipanggil di awal `intervalsGet`: request tanpa sesi tidak pernah memicu panggilan intervals.icu (error `LOCKED`) | Server |
+| `lib/redis.ts` | Upstash REST lewat `fetch` (`/pipeline`), env `UPSTASH_REDIS_REST_*` lalu `KV_REST_API_*`; dipakai batas percobaan & sinkron | Server |
+| `lib/log-entries.ts` | Entri log untuk sinkron: id deterministik untuk entri lama, `updatedAt`, tombstone, `mergeLogs` per id (komutatif & idempoten), pemadatan tombstone 90 hari | Server & client (murni) |
+| `lib/sync/parts.ts` | Enam bagian (profile, settings, program, preferences, onboarding, log) ↔ key localStorage; validasi memakai parser impor | Server & client (murni) |
+| `lib/sync/merge.ts` | Merge per bagian berdasarkan kunci yang diubah lokal (bukan jam), gabungan onboarding simetris, aturan aktivasi pertama | Server & client (murni) |
+| `lib/sync/store.ts` | Satu hash Redis per bagian (`rev` + `data`); baca semua = 1 pipeline; tulis EVAL Lua atomik dengan `baseRev` | Server |
+| `lib/sync/server.ts`, `app/api/sync/route.ts`, `app/api/status/route.ts` | `/api/sync` (sandi `on` + sesi + database; body ≤ 1 MB; validasi tiap bagian) dan `/api/status` (boolean saja) | Server |
+| `lib/sync/engine.ts` | Satu putaran sinkron murni: ambil → gabung → terapkan → kirim dengan `baseRev` → ulang konflik maks 3 kali; gagal tidak membuang data | Client (murni) |
+| `lib/sync/client.ts`, `lib/local-change.ts`, `components/sync/*` | Pemicu (buka, visible, online, debounce 2 detik, manual), meta `hybrid-athlete.sync.v1`, `useSyncStatus`, `SyncAgent` di layout, titik status AppBar | Client |
 | `app/api/connection/route.ts` | `GET /api/connection` untuk onboarding langkah 3 & pengingat: `{ status, athleteName? }`, `force-dynamic`, `Cache-Control: no-store` | Server |
 | `lib/install-prompt.ts` | Tangkap `beforeinstallprompt` / `appinstalled` sejak awal, deteksi standalone & platform (`useInstallState`) | Client |
 | `scripts/make-owner-settings.mjs` | Sekali jalan: profil di JSON lama → `owner-settings.local.json` (cadangan v3 `kind: "defaults"`, tanpa log) | Node |
@@ -100,14 +115,15 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 
 ## Penyimpanan
 
-> **Catatan keputusan (2026-10-23), berlaku mulai 0.12.** Prinsip "data kesehatan tidak keluar dari HP" di bawah akan berubah. Sejak 0.12 data (log, Setting, program, profil, status onboarding) boleh disinkronkan ke **database milik pengguna sendiri** (Upstash Redis di akun Vercel-nya), **hanya bila** pengguna memasang database dan sandi aplikasi. Database diakses lewat server saja; tanpa database, aplikasi tetap lokal seperti sekarang. Tidak ada database bersama, dan enkripsi sisi klien belum termasuk 0.12. Diagram, tabel modul, dan tabel di bawah diperbarui saat rilis. Spesifikasi: [SYNC.md](SYNC.md).
+> **Keputusan privasi (2026-10-23, berlaku sejak 0.12.1).** Prinsip lama "data kesehatan tidak keluar dari HP" kini menjadi: data tetap di perangkat **kecuali** pengguna sendiri memasang database (Upstash Redis di akun Vercel-nya) dan sandi aplikasi. Bila keduanya ada, log, Setting, program, profil, preferensi, dan status onboarding disinkronkan ke database itu. Database hanya diakses server (`lib/sync/store.ts`) setelah sesi sandi diperiksa; browser tidak pernah menerima URL atau token database. Tidak ada database bersama, pemilik repo tidak menerima data siapa pun, dan enkripsi sisi klien belum termasuk 0.12 (backlog). Spesifikasi: [SYNC.md](SYNC.md).
 
 | Data | Tempat | Alasan |
 | --- | --- | --- |
 | Profil default | `config/athlete-profile.json` di repo, **netral** sejak 0.11 (tanpa nama, kondisi, alat; zona dari VDOT 30) | Fork baru tidak mewarisi data siapa pun. Movement library tetap di sini |
 | Data latihan & wellness | intervals.icu (dibaca, tidak disimpan) | Satu sumber kebenaran |
-| Log sesi ST | `localStorage` perangkat | Tanpa setup/biaya. Data kesehatan tidak keluar dari HP. Cadangan lewat ekspor JSON |
-| Setting (profil dasar, kondisi, zona, alat, gerakan), program target, tema, mode blok, status onboarding | `localStorage` perangkat | JSON netral jadi default; pengaturan perangkat menimpa. Ikut ekspor/impor JSON (format v3) |
+| Log sesi ST | `localStorage` perangkat; bila sinkron aktif juga Upstash Redis milik pengguna | Tanpa setup/biaya bila tanpa database. Entri punya `id` & `updatedAt`; hapus = tombstone. Cadangan lewat ekspor JSON |
+| Setting (profil dasar, kondisi, zona, alat, gerakan), program target, tema, mode blok, status onboarding | `localStorage` perangkat; bila sinkron aktif juga Upstash Redis | JSON netral jadi default; pengaturan perangkat menimpa. Ikut ekspor/impor JSON (format v3) |
+| Data sinkron | Upstash Redis milik pengguna (opsional): hash `ha:sync:<bagian>` dengan `rev` + `data` | Satu deploy satu database; hanya diakses `/api/sync` |
 
 Key `localStorage` (pola `hybrid-athlete.<nama>[.vN]`, di `lib/preference-keys.ts`):
 
@@ -119,12 +135,13 @@ Key `localStorage` (pola `hybrid-athlete.<nama>[.vN]`, di `lib/preference-keys.t
 | `hybrid-athlete.theme` | `light` / `dark` (kosong = sistem) |
 | `hybrid-athlete.block-enabled` | `1` / `0`; kosong = aktif hanya bila profil punya tanggal mulai blok |
 | `hybrid-athlete.onboarding.v1` | `OnboardingState` |
+| `hybrid-athlete.sync.v1` | Meta sinkron per perangkat (`rev`, kunci dirty, `gen` per bagian; status). Tidak ikut sinkron atau ekspor |
 
 **Format cadangan v3** (`lib/backup.ts`): `{ app, version: 3, kind, exportedAt, log, settings, program, preferences, onboarding }`. `kind: "backup"` menimpa bagian yang ada di file; `kind: "defaults"` (file migrasi) hanya mengisi yang masih kosong di perangkat. Log selalu digabung tanpa duplikat; file tanpa log tidak menyentuh log.
 
 **Gate onboarding** (`components/onboarding/OnboardingGate.tsx`, di dalam `<main>` layout): status hanya ada di perangkat, jadi diperiksa di client. Sebelum localStorage terbaca tampil kerangka. Pengguna baru → `/onboarding` (tanpa BottomNav); pengguna lama (punya Setting/log/program) → `migrated` + disclaimer saja sekali; `termsVersion` < `TERMS_VERSION` → disclaimer saja. Header Profil, target, dan posisi blok kini dibaca di client dari profil perangkat, bukan dari JSON di server.
 
-Keterbatasannya, log dan Setting hanya ada di satu perangkat. Jalur upgrade-nya adalah database (misalnya Upstash Redis lewat Vercel) dengan proteksi PIN/secret, karena aplikasi belum punya login.
+Tanpa database, log dan Setting hanya ada di satu perangkat. Dengan Upstash Redis + sandi aplikasi (0.12.1), data disinkron antar perangkat; snapshot harian & Riwayat cadangan menyusul di 0.12.2.
 
 ## Design system
 
@@ -156,6 +173,10 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `media.test.ts` | Setiap gerakan punya entri media, setiap path gambar ada, sumber/lisensi konsisten, gerakan baru bisa dijangkau & lolos semua aturan, titik tambat band, ★ baru mulai blok berikutnya. |
 | `skyline-scale.test.ts` | Skala tinggi Segment Skyline (min 10%, steady dari nol), deteksi segmen kerja (WORK / median, lap otomatis), tata letak bar, aturan label, stagger, ringkasan struktur & best rep. |
 | `auth.test.ts` | Konfigurasi sandi (off/misconfigured/on), sesi (90 hari, kedaluwarsa, dipalsukan, ganti sandi/secret membatalkan, cookie tanpa sandi), `timingSafeEqual` dipakai, batas percobaan (memori dengan jam tiruan, Redis REST palsu, fallback), logika unlock (6 salah → 429, respons tanpa sandi), keputusan proxy & `sanitizeNext`. |
+| `sync-log.test.ts` | Migrasi entri log (id deterministik sama di dua perangkat, `updatedAt`), tombstone lewat `remove`/`clear`, ekspor & entri hidup tanpa tombstone, impor v1/v2/v3 tetap jalan, impor tidak menghidupkan entri terhapus, gabungan idempoten/komutatif/50 urutan acak, pemadatan 90 hari. |
+| `sync-merge.test.ts` | Bagian ↔ localStorage bolak-balik, validasi payload, `changedKeys`, merge tiap bagian (dirty vs tidak, reset), hapus vs ubah Setting di dua perangkat, onboarding gabungan komutatif, aktivasi pertama. |
+| `sync-store.test.ts` | Store memori & Redis tiruan (rev/baseRev, konflik dengan data terbaru, 1 pipeline per baca), logika `/api/sync` (validasi, 413, pemadatan), route tanpa sandi/database → tidak aktif, tanpa sesi → 401, `/api/status` hanya boolean. |
+| `sync-client.test.ts` | Mesin sinkron dengan dua "perangkat": aktivasi pertama, catat di HP → laptop, hapus di laptop sementara HP offline mengubah Setting, perubahan per kunci lewat konflik, gagal kirim (dirty tetap, data utuh), konflik terus → maks 3 ulang, perubahan selama request. |
 | `auth-routes.test.ts` | Route `/api/unlock` & `/api/lock` end-to-end (atribut cookie, Retry-After, IP lain tidak terblokir), `proxy` dengan `NextRequest` (tanpa sandi identik 0.11, 307/401, aset PWA terbuka, matcher), dan `intervalsGet` tidak memanggil intervals.icu tanpa sesi. |
 | `connection.test.ts` | Pemetaan status koneksi (missing tanpa panggilan, 401/403/404/5xx/timeout/jaringan/lainnya), hanya nama atlet yang diteruskan, dan route `GET /api/connection` end-to-end dengan `fetch` palsu: respons tanpa key, athlete ID, atau email; header `no-store`; key hanya di header Authorization. |
 | `onboarding.test.ts` | Urutan & langkah otomatis 0.11.0, maju/mundur, langkah wajib memblokir, opsional dilewati, lanjut dari langkah tersimpan, state rusak, "Tidak ada kondisi" eksklusif, gate (baru/lama/versi disclaimer). |
