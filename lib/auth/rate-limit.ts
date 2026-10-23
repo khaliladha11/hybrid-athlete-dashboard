@@ -5,6 +5,7 @@
  * IP mentah tidak disimpan: kuncinya hash SHA-256.
  */
 import { createHash } from "node:crypto";
+import { redisEnv, redisPipeline, type RedisConfig } from "@/lib/redis";
 
 export const MAX_FAILS = 5;
 export const WINDOW_SEC = 15 * 60;
@@ -54,27 +55,10 @@ export function memoryStore(now: () => number = Date.now): RateStore {
   };
 }
 
-/** Env integrasi Vercel KV / Upstash; dukung kedua penamaan. */
-export function redisEnv(env: Env = process.env): { url: string; token: string } | null {
-  const url = (env.KV_REST_API_URL || env.UPSTASH_REDIS_REST_URL || "").trim();
-  const token = (env.KV_REST_API_TOKEN || env.UPSTASH_REDIS_REST_TOKEN || "").trim();
-  return url && token ? { url: url.replace(/\/+$/, ""), token } : null;
-}
+export { redisEnv };
 
-export function redisStore(cfg: { url: string; token: string }, fetchImpl: typeof fetch = fetch): RateStore {
-  const pipeline = async (commands: (string | number)[][]): Promise<unknown[]> => {
-    const res = await fetchImpl(`${cfg.url}/pipeline`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${cfg.token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(commands),
-      cache: "no-store",
-      signal: AbortSignal.timeout(3000),
-    });
-    if (!res.ok) throw new Error(`redis ${res.status}`);
-    const out = (await res.json()) as { result?: unknown; error?: string }[];
-    if (!Array.isArray(out) || out.some((r) => r?.error)) throw new Error("redis error");
-    return out.map((r) => r.result);
-  };
+export function redisStore(cfg: RedisConfig, fetchImpl: typeof fetch = fetch): RateStore {
+  const pipeline = redisPipeline(cfg, fetchImpl, 3000);
   const num = (v: unknown) => (typeof v === "number" ? v : Number(v) || 0);
   return {
     async hit(key) {
