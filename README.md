@@ -11,6 +11,7 @@ Jujur, tiap kali mau olahraga sering bingung hari ini mau latihan apa. Lari atau
 
 Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dipakai seperti aplikasi native. Tampilannya mengikuti design system **"Tag"** ([docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)): rasanya seperti tag lari yang ditempel di layar. Dark-first dengan permukaan charcoal, satu aksen oranye, judul italic condensed, label mono kecil, angka besar rata kolom, dan grafik yang menggambar bentuk latihan.
 
+[![CI](https://github.com/khaliladha11/hybrid-athlete-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/khaliladha11/hybrid-athlete-dashboard/actions/workflows/ci.yml)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38bdf8?logo=tailwindcss&logoColor=white)
