@@ -271,9 +271,12 @@ Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di pera
 | **0.9** Visual gerakan | ✅ Selesai | Gambar & detail teknik untuk 35/40 gerakan (free-exercise-db), 13 gerakan baru (stabilitas panggul, core, unilateral, soleus, bahu), toggle titik tambat band |
 | **0.10-ui** Redesign "Tag" | ✅ Selesai | Token dark-first, tipografi Archivo + Geist Mono, StatRow, Segment Skyline (rencana & selesai), Week Ledger, kontras tombol AA |
 | **0.10.1–0.10.2** Logo & data aktivitas | ✅ Selesai | Logo "Forward H", aktivitas ganda Huawei + Strava dihitung sekali, split per km yang divalidasi (GPS bila perlu), pemilih waktu & pace di Setting |
-| **0.12** Aman & tersinkron | ✅ Selesai | CI GitHub Actions, sandi aplikasi opsional, sinkron ke Upstash Redis milikmu, cadangan otomatis harian dengan Pulihkan, Sambungkan perangkat ini |
 | **0.11** Onboarding & deploy pribadi | ✅ Selesai | Wizard 10 langkah, profil di perangkat + JSON netral, cek koneksi di server, pengingat proteksi deploy, pasang ke HP, tur in-app, strength tanpa alat |
-| Berikutnya | 💡 Rencana | Proteksi akses + sinkron data, program terhubung ke generator, grafik tren, mode offline. Lihat [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
+| **0.12** Aman & tersinkron | ✅ Selesai | CI GitHub Actions, sandi aplikasi opsional, sinkron ke Upstash Redis milikmu, cadangan otomatis harian dengan Pulihkan, Sambungkan perangkat ini |
+| **0.13** Program hidup | 💡 Rencana | Program terhubung ke generator, kepatuhan rencana vs aktual, prediksi waktu lomba, sesi terlewat. Cakupan: [docs/PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) |
+| **0.14** Strength hidup | 💡 Rencana | ST mengikuti fase program, session-RPE masuk beban, mode latihan + timer, tes kekuatan. Cakupan: [docs/STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) |
+| **0.15** Insight | 💡 Rencana | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence, volume ST; check-in subjektif harian |
+| **1.0** Siap pakai penuh | 💡 Rencana | Offline, kirim workout ke intervals.icu/jam, test e2e. Detail: [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
 
 Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 

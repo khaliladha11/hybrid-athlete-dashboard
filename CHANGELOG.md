@@ -4,6 +4,9 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Dokumentasi
+- Roadmap 0.13–0.15: 0.13 Program hidup ([PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md)), 0.14 Strength hidup ([STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md)), 0.15 Insight, lalu 1.0. PRD §4, §6, §7 dan README diselaraskan.
+
 ## [0.12.2] · 2026-10-23 · Cadangan otomatis & perangkat kedua
 
 Menutup rencana [SYNC.md](docs/SYNC.md) (§4 cadangan otomatis & privasi, §5, §10).

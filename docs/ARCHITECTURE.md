@@ -143,7 +143,7 @@ Key `localStorage` (pola `hybrid-athlete.<nama>[.vN]`, di `lib/preference-keys.t
 
 **Gate onboarding** (`components/onboarding/OnboardingGate.tsx`, di dalam `<main>` layout): status hanya ada di perangkat, jadi diperiksa di client. Sebelum localStorage terbaca tampil kerangka. Pengguna baru → `/onboarding` (tanpa BottomNav); pengguna lama (punya Setting/log/program) → `migrated` + disclaimer saja sekali; `termsVersion` < `TERMS_VERSION` → disclaimer saja. Header Profil, target, dan posisi blok kini dibaca di client dari profil perangkat, bukan dari JSON di server.
 
-Tanpa database, log dan Setting hanya ada di satu perangkat. Dengan Upstash Redis + sandi aplikasi, data disinkron antar perangkat (0.12.1) dan dicadangkan otomatis tiap hari dengan Riwayat cadangan & Pulihkan (0.12.2).
+Tanpa database, log dan Setting hanya ada di satu perangkat. Dengan Upstash Redis + sandi aplikasi, data disinkron antar perangkat (0.12.1) dan dicadangkan otomatis tiap hari dengan Riwayat cadangan & Pulihkan (0.12.2). Spesifikasi: [SYNC.md](SYNC.md).
 
 ## Design system
 
