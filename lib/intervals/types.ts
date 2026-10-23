@@ -60,7 +60,8 @@ export interface Wellness {
   atl?: number;
 }
 
-export type IntervalsErrorCode = "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "SERVER_ERROR" | "NETWORK" | "UNKNOWN";
+/** `LOCKED`: sandi aplikasi aktif dan request tanpa sesi valid; intervals.icu tidak dipanggil. */
+export type IntervalsErrorCode = "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "SERVER_ERROR" | "NETWORK" | "UNKNOWN" | "LOCKED";
 
 export interface IntervalsError {
   code: IntervalsErrorCode;

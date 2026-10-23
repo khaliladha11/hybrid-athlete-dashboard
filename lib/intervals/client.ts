@@ -1,4 +1,5 @@
 import "server-only";
+import { isRequestUnlocked } from "@/lib/auth/guard";
 import type { FetchResult, IntervalsError } from "./types";
 
 const BASE_URL = "https://intervals.icu/api/v1";
@@ -31,6 +32,10 @@ export function errorFromStatus(status: number): IntervalsError {
  * Error dikembalikan sebagai objek terstruktur (tanpa stack trace / API key).
  */
 export async function intervalsGet<T = unknown>(path: string, query?: Record<string, string>): Promise<FetchResult<T>> {
+  // Sandi aplikasi aktif: periksa sesi sebelum data apa pun diambil (lapisan kedua di belakang proxy).
+  if (!(await isRequestUnlocked())) {
+    return { ok: false, error: { code: "LOCKED", status: 401, title: "Aplikasi terkunci", message: "Buka dengan sandi aplikasi." } };
+  }
   const { apiKey } = getIntervalsConfig();
   const url = new URL(BASE_URL + path);
   for (const [k, v] of Object.entries(query ?? {})) url.searchParams.set(k, v);
