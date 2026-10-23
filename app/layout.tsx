@@ -4,7 +4,11 @@ import { AppBar } from "@/components/ui/AppBar";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
 import { TourProvider } from "@/components/onboarding/Tour";
+import { SyncAgent } from "@/components/sync/SyncAgent";
 import { DemoBanner } from "@/components/ui/DemoBanner";
+import { passcodeConfig } from "@/lib/auth/config";
+import { redisEnv } from "@/lib/redis";
+import { availability } from "@/lib/sync/server";
 import { isDemoMode } from "@/lib/intervals/data-source";
 import { THEME_BOOT_SCRIPT } from "@/lib/preference-keys";
 import "./globals.css";
@@ -64,6 +68,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div aria-hidden className="fixed inset-x-0 top-0 z-30 h-[env(safe-area-inset-top)] bg-black" />
         {isDemoMode() && <DemoBanner />}
         <AppBar />
+        {/* Sinkron hanya bila server menyatakan aktif (sandi + database); browser hanya menerima boolean. */}
+        <SyncAgent enabled={availability(passcodeConfig(), redisEnv()).sync} />
         <TourProvider>
           <main className="safe-x mx-auto w-full max-w-xl pt-3 pb-[calc(7rem+env(safe-area-inset-bottom))]">
             <OnboardingGate>{children}</OnboardingGate>

@@ -6,6 +6,7 @@
  * tampil, tidak dihitung progresi, dan tidak ikut ekspor; hanya `all()` (sinkron) yang melihatnya.
  */
 import { useSyncExternalStore } from "react";
+import { emitLocalChange } from "@/lib/local-change";
 import { isLive, mergeLogs, normalizeLog, tombstone } from "@/lib/log-entries";
 import type { LogEntry } from "@/lib/progression";
 import { PREF_KEYS } from "@/lib/preference-keys";
@@ -49,6 +50,7 @@ function write(next: LogEntry[]): boolean {
   setCache(next);
   const ok = persist(next);
   listeners.forEach((l) => l());
+  emitLocalChange(KEY);
   return ok;
 }
 

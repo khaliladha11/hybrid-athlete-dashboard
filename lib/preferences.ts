@@ -5,6 +5,7 @@
  * Semua akses dibungkus try/catch: mode privat / storage diblokir → pakai default.
  */
 import { useCallback, useSyncExternalStore } from "react";
+import { emitLocalChange } from "./local-change";
 import { PREF_KEYS } from "./preference-keys";
 
 export type ThemePreference = "system" | "light" | "dark";
@@ -37,6 +38,7 @@ export function writeStored(key: string, value: string | null) {
     // Penyimpanan tidak tersedia: preferensi hanya berlaku di sesi ini.
   }
   listeners.forEach((l) => l());
+  emitLocalChange(key);
 }
 
 function subscribe(l: () => void) {
