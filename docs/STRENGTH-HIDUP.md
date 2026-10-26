@@ -1,11 +1,11 @@
 # Cakupan 0.14 Strength hidup
 
-> Status: **cakupan diperbarui 2026-10-26** (usulan pemilik digabung dengan cakupan 2026-10-23). Spesifikasi detail dan prompt menyusul setelah 0.13. Simpan di `docs/STRENGTH-HIDUP.md`.
+> Status: **cakupan diperbarui 2026-10-26** (usulan pemilik digabung dengan cakupan 2026-10-23; peta otot ditambahkan). Spesifikasi detail dan prompt menyusul setelah 0.13. Simpan di `docs/STRENGTH-HIDUP.md`.
 > Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Perubahan logika latihan wajib memperbarui TRAINING-LOGIC dan test.
 
 ## 1. Latar belakang
 
-Sampai 0.12, ST di aplikasi terutama berfungsi sebagai prehab dan pelengkap lari. Masalah nyata dari pemakaian harian: banyak gerakan sudah mentok di batas alat rumahan, sementara rentang beban per gerakan di library justru menahan progres di bawah kemampuan atlet. Contohnya PR squat yang sudah melewati batas atas rentang library, atau PR overhead press di atas beban tunggal yang tercatat di library.
+Sampai 0.12, ST di aplikasi terutama berfungsi sebagai prehab dan pelengkap lari. Masalah nyata dari pemakaian harian: banyak gerakan sudah mentok di batas alat rumahan, sementara rentang beban per gerakan di library justru menahan progres di bawah kemampuan atlet. Contohnya PR 17 kg di Barbell Squat (rentang library 10–16 kg) dan 7 kg di Seated Overhead Press (rentang 5 kg).
 
 ### Dasar riset
 - **ST memperbaiki performa lari.** Running economy membaik 2–8% di sebagian besar studi; 2–3 sesi ST per minggu dengan beragam modalitas dianjurkan (Blagrove dkk. 2018, *Sports Med* 48(5)).
@@ -83,6 +83,7 @@ Rentang beban per gerakan di library **tidak lagi menjadi plafon**, dengan syara
 | Session-RPE | RPE sesi + durasi; masuk beban 7 hari, kepatuhan program, Week Ledger |
 | ST mengikuti fase program | Base volume, Build lebih berat (sejauh alat memungkinkan), Peak maintenance, Taper ST kaki dikurangi. Detail taper dari literatur |
 | Aturan hari yang sama | Lari + ST di hari yang sama: sarankan jeda ≥ 3 jam. Aturan concurrent lama ditinjau ulang bersama test |
+| Peta otot ringkasan sesi | Di mode latihan dan setelah sesi: gabungan otot utama/sekunder dari semua gerakan sesi itu ("Hari ini melatih ..."), memakai komponen `MuscleMap` dari 0.14.2. Bila 0.14.1 dikerjakan lebih dulu, komponen dasarnya dibuat di 0.14.1 |
 
 ### 0.14.2 · Library & visual
 - **Seated DB Curl** (biceps) masuk library. Seated Single-Leg Calf Raise sudah ada sejak 0.9.
@@ -91,6 +92,15 @@ Rentang beban per gerakan di library **tidak lagi menjadi plafon**, dengan syara
 - Alur 0.9 tidak berubah: audit pencocokan free-exercise-db → usulan (tunggu persetujuan) → implementasi. Setiap gerakan baru wajib lolos syarat PRD §3 (META, alat, rentang awal, media, audit, test generator).
 - Gambar untuk 5 gerakan tanpa gambar tetap dicari (backlog P1).
 
+**Peta otot per gerakan (`MuscleMap`)**
+- Diagram tubuh depan dan belakang di bottom sheet detail gerakan, menyorot otot utama (terang) dan sekunder (redup).
+- **Sumber SVG:** poligon dari [react-body-highlighter](https://github.com/giavinh79/react-body-highlighter) (MIT, poligon asal [react-native-body-highlighter](https://github.com/HichamELBSI/react-native-body-highlighter), MIT) atau turunannya [body-highlighter](https://github.com/lahaxearnaud/body-highlighter). Alternatif lebih detail: [MuscleMapJS](https://github.com/abdofallah/MuscleMapJS) (MIT). Pilihan final setelah dicek kelengkapan region dan ukuran.
+- **Tidak dipasang sebagai dependensi.** Data poligon disalin ke `components/charts/MuscleMap.tsx` (SVG sendiri, warna dari token tema, ikut mode gelap/terang), sesuai DESIGN-SYSTEM §8. Lisensi MIT dan atribusi dicatat di `NOTICE.md`.
+- **Data otot dari kurasi kita** (`lib/movements/media.ts`), bukan mentah dari free-exercise-db, karena beberapa gambar 🟡 berbeda dari versi kita. Tambahkan pemetaan nama otot kita → ID region SVG, diuji: setiap gerakan di library punya minimal satu otot utama yang terpetakan.
+- **Celah region:** tibialis anterior dan soleus wajib dicek. Bila tidak ada di SVG sumber, region ditambah sendiri (dicatat sebagai karya turunan) atau gerakan itu menampilkan daftar teks saja dengan keterangan.
+- **Aksesibilitas:** `<svg role="img" aria-label="Otot utama: …; sekunder: …">`, daftar teks otot tetap tampil di bawah gambar. Tanpa animasi, atau fade opacity saja (reduced motion dihormati).
+- Konsep tampilan boleh terinspirasi aplikasi lain, tetapi artwork aplikasi lain tidak ditiru; gambar anatomi hanya dari sumber berlisensi bebas (PRD §3).
+
 ## 4. Turun prioritas / dipindah
 | Item | Keputusan |
 | --- | --- |
@@ -98,6 +108,7 @@ Rentang beban per gerakan di library **tidak lagi menjadi plafon**, dengan syara
 | Tes kekuatan berkala | Sebagian besar tergantikan PR. Milestone pull-up tetap |
 | Plyometric ringan | Opsional, hanya bila shin splints nonaktif, lewat aturan PRD §3 |
 | Tren volume ST, heatmap aktivitas | 0.15 Insight |
+| Heatmap otot mingguan/bulanan | 0.15 Insight: agregasi log ST per otot (frekuensi atau volume) memakai `MuscleMap` yang sama; menyorot otot yang jarang dilatih (mis. biceps, triceps, lats, betis, tibialis) |
 | Sinkron per-field | Bahan pertimbangan desain 0.12 |
 | Banner offline | 1.0 |
 
@@ -110,14 +121,17 @@ Hanya konsep (AGPL-3.0): jangan salin kode, teks, atau aset UI. Konsep yang dipa
 3. Daftar gerakan dengan batas keamanan, beserta sumbernya.
 4. Aturan concurrent lama (setelah ST kaki → lari maks Moderate): dipertahankan, dipersempit, atau diganti aturan hari yang sama.
 5. Plyometric masuk 0.14 atau ditunda.
+6. Warna peta otot. Usulan: otot utama `--brand`, sekunder `--brand-soft`, otot lain `--subtle-strong`. Perlu dicatat di DESIGN-SYSTEM karena oranye selama ini berarti "selesai"; peta otot bukan rencana maupun status selesai.
+7. Sumber SVG final (react-body-highlighter / body-highlighter / MuscleMapJS) setelah cek region tibialis & soleus.
 
 ## 7. Perkiraan dampak (dipastikan saat memeriksa kode)
 - **Logika:** `lib/equipment.ts`, `lib/progression.ts`, `lib/training-log.ts`, `lib/generator/meta.ts`, `lib/generator/strength.ts`, `lib/generator/validate.ts`, `lib/athlete-settings.ts`, `lib/sync/merge.ts`, `lib/coach.ts`.
 - **Media:** `lib/movements/media.ts`, `scripts/audit-movement-media.mjs`, `scripts/fetch-movement-media.mjs`.
-- **UI:** halaman Strength, Setting › Alat, kartu & detail gerakan, layar persetujuan perubahan batas.
+- **UI:** halaman Strength, Setting › Alat, kartu & detail gerakan, layar persetujuan perubahan batas, `components/charts/MuscleMap.tsx` (baru), `NOTICE.md` (atribusi SVG).
 - **Test:** `progression`, `settings`, `generator`, `media`, `sync`, plus test baru untuk PR, pengingat beli, dan syarat transparansi (perilaku lama sebelum persetujuan, toggle kembali).
 - **Data:** key PR baru, struktur alat diperluas + migrasi, field log tempo/varian, ekspor v4, bagian sinkron baru, status persetujuan perubahan batas.
-- **Dokumen:** PRD §3 (aturan batas beban), §4.4, §4.6, §4.8; TRAINING-LOGIC §3 & §6; DESIGN-SYSTEM §7 (nama Gita).
+- **Test:** tambahan `media.test.ts`: setiap gerakan punya pemetaan otot ke region SVG; logika murni agregasi otot sesi diuji terpisah dari komponen.
+- **Dokumen:** PRD §3 (aturan batas beban), §4.4, §4.6, §4.8, §5 (lisensi aset: tambah SVG anatomi MIT); TRAINING-LOGIC §3 & §6; DESIGN-SYSTEM §6 (komponen MuscleMap) & §7 (nama Gita); NOTICE.md.
 
 ### Usulan teks baru PRD §3
 > Beban tidak melebihi **batas alat** (beban terberat yang bisa dirakit dari alat di Setting) dan **batas keamanan** gerakan bila kondisi terkait aktif. Rentang beban di library adalah titik awal. Perilaku ini aktif setelah pengguna menyetujui pemberitahuan perubahan, dan bisa dikembalikan ke rentang library di Setting. · keputusan 2026-10-26

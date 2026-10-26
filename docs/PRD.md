@@ -193,6 +193,8 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Aturan lari + ST di hari yang sama: sarankan jeda ≥ 3 jam | ⬜ | 0.14 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) #3). Hubungannya dengan aturan concurrent yang ada diputuskan saat spesifikasi |
 | Skema "Kekuatan" 5–6 rep @ RPE 7 untuk ★ di fase Build | ⬜ | 0.14 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) #5). Tetap RPE ≤ 7; butuh persetujuan pemilik (perubahan logika) |
 | Tangga progresi saat beban mentok (bilateral → split → RFESS → satu kaki, atau tempo/jeda) | ⬜ | 0.14 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) #6) |
+| Peta otot ringkasan sesi | ⬜ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3): gabungan otot utama/sekunder semua gerakan sesi, di mode latihan dan setelah sesi |
+| Peta otot per gerakan (depan/belakang, utama/sekunder) | ⬜ | 0.14.2 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3): `MuscleMap` SVG sendiri di bottom sheet detail gerakan, data otot dari kurasi `lib/movements/media.ts` |
 | Plyometric ringan (opsional, hanya bila kondisi shin splints nonaktif) | ⬜ | 0.14 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) #8). Gerakan baru wajib lewat aturan §3; masuk 0.14 atau ditunda masih keputusan terbuka |
 
 ### 4.5 Periodisasi & program target
@@ -317,7 +319,7 @@ Selesai di 0.12 (0.12.0 sampai 0.12.2), spesifikasi lengkap di [SYNC.md](SYNC.md
 | Aksesibilitas | Kontras teks AA di kedua tema, fokus keyboard, reduced motion | 🟡 Teks ✅ semua pasangan ≥ 4.5:1. Tombol oranye baru lolos sejak 0.10.0-ui (teks gelap 5.78:1; teks putih lama hanya 3.40:1, jadi klaim AA sebelumnya keliru). Non-teks belum: border kontrol `line-strong` 1.7:1 / 1.6:1 dan isi kuning `warning` di mode terang 1.9:1 (butuh ≥ 3:1) |
 | Keandalan logika | Semua aturan latihan diuji unit test | ✅ |
 | Akurasi data aktivitas | Split per km konsisten dengan ringkasan aktivitas dan dekat dengan Strava | 🟡 Jumlah jarak & waktu split = total; hasil yang meleset > 5% jarak / 10% waktu tidak ditampilkan. Per km masih bisa beda beberapa detik dari Strava (lihat §6) |
-| Lisensi aset | Hanya aset berlisensi bebas, atribusi di `NOTICE.md` | ✅ free-exercise-db (Unlicense) |
+| Lisensi aset | Hanya aset berlisensi bebas, atribusi di `NOTICE.md` | ✅ free-exercise-db (Unlicense). Rencana 0.14.2: poligon SVG anatomi berlisensi MIT disalin (bukan dependensi), atribusi di `NOTICE.md` ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3) |
 | Ukuran aset & performa | Gambar lokal WebP ≤ 600 px, lazy loading, tanpa hotlink | ✅ 72 gambar, ±1,3 MB total |
 | Ketersediaan | Tetap jalan tanpa API key / saat intervals.icu error | ✅ |
 | Offline | Bisa dibuka tanpa sinyal | ⬜ |
@@ -352,9 +354,11 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | Usulan versi | Isi | Alasan |
 | --- | --- | --- |
 | **0.14 Strength hidup** ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md)) | ST mengikuti fase program, session-RPE masuk beban, aturan hari yang sama, mode latihan + timer, skema Kekuatan, tangga progresi, tes kekuatan, plyometric opsional | ST jadi separuh rencana yang setara: ikut dihitung sebagai beban dan punya progres yang terlihat |
-| **0.15 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence, tren volume ST; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
+| **0.15 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence, tren volume ST, heatmap otot mingguan/bulanan; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
 | **1.0 Siap pakai penuh** | Offline, kirim workout ke intervals.icu/jam, test e2e | Stabil dan mandiri tanpa edit kode |
 
+> 2026-10-26 (4): rencana **peta otot** ditambahkan ke [STRENGTH-HIDUP.md](STRENGTH-HIDUP.md): 0.14.1 ringkasan otot per sesi, 0.14.2 peta otot per gerakan (`MuscleMap`, SVG anatomi MIT disalin dengan atribusi di `NOTICE.md`), dan 0.15 Insight heatmap otot mingguan/bulanan dari log ST.
+>
 > 2026-10-26 (3): **0.13.3 Hari H** ditambahkan setelah 0.13 selesai: atlet memilih Hari H dengan saran lama program (rekomendasi umum + data long run), pre-Base untuk Hari H yang jauh, dan arsip program. Rilis berikutnya tetap **0.14 Strength hidup**.
 >
 > 2026-10-26 (2): **0.13 Program hidup selesai** (0.13.0 kepatuhan & kalender, 0.13.1 program → generator & saran tahu rencana, 0.13.2 prediksi, saran zona, geser/lewati, hitung mundur) dan pindah ke §8. Rilis berikutnya **0.14 Strength hidup**. Sumber 2 prediksi (best effort intervals.icu) tidak dipakai: endpoint `GET /api/v1/athlete/{id}/pace-curves` ada di dokumentasi resmi, tetapi satuan `values` tidak dijelaskan dan data per detik jam tidak selalu bisa dipercaya (§6), jadi masuk backlog P2. Saran update zona memakai dua hasil lomba berbeda yang terpisah ≥ 14 hari.
@@ -408,6 +412,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P2 | **Tangga progresi saat beban mentok** (bilateral → split → RFESS → satu kaki, atau tempo/jeda) | M | Progres tetap jalan walau alat terbatas. → **0.14** |
 | P2 | **Grafik cadence & pace easy run** | S | Memantau perbaikan crossover gait. → **0.15** |
 | P2 | **Tren volume ST** (set × rep × kg per pola gerakan) | S | Progres ST jangka panjang. → **0.15** |
+| P2 | **Heatmap otot dari log ST** (frekuensi atau volume per otot, mingguan/bulanan, memakai `MuscleMap` 0.14.2) | M | Melihat otot yang jarang dilatih. → **0.15** |
 | P3 | **Kalibrasi split vs Strava** (penghalusan GPS & skala jarak) dengan data mentah beberapa lari, target ±2 detik/km | S | Split sama persis dengan yang dilihat di Strava |
 | P2 | **Gerakan custom** (tambah gerakan sendiri + alat + rentang beban, tetap lewat validator) | M | Library mengikuti alat baru tanpa menunggu developer |
 | P1 | **Kontras non-teks**: `line-strong` → `#636366` (gelap) / `#959490` (terang), `warning` terang → `#B98D06` (semua ≥ 3:1) | S | Border input & bar Moderate terlihat jelas |

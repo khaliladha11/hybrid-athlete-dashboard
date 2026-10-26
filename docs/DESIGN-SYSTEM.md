@@ -176,4 +176,5 @@ Grafik bar SVG tanpa library. **Lebar bar ∝ durasi, tinggi bar ∝ kecepatan.*
 
 ## 9. Kemungkinan lanjutan (bukan bagian rilis ini)
 
+- **MuscleMap** (0.14.2, [STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3 & §6): diagram tubuh depan/belakang sebagai komponen SVG sendiri (`components/charts/MuscleMap.tsx`), warna dari token tema sehingga ikut mode gelap/terang. Keputusan terbuka: warna otot utama/sekunder (usulan `--brand` / `--brand-soft`, otot lain `--subtle-strong`) perlu dicatat di sini karena oranye selama ini berarti "selesai".
 - **Bagikan kartu story** dari `/activity/[id]`: render RunTag (komponen yang sama dengan kartu story) ke PNG transparan 1920×1280 lewat `<canvas>`. Ini fitur baru, jadi masukkan dulu ke backlog PRD §7 sebagai P2.
