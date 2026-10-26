@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { BUTTON, Card } from "@/components/ui/Card";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { Segmented } from "@/components/ui/Segmented";
@@ -8,12 +9,17 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { addDays, formatDateId, startOfWeekMonday } from "@/lib/date";
 import { DIFFICULTY_LABEL } from "@/lib/generator/types";
 import type { Activity } from "@/lib/intervals/types";
-import { PHASE_LABEL, RACES, currentWeekIndex, formatGoal, formatPaceSec, goalFromProfile, parseGoal, weekToText, type Phase, type ProgramWeek, type RaceTarget } from "@/lib/program";
+import { PHASE_LABEL, RACES, currentWeekIndex, formatGoal, formatPaceSec, goalFromProfile, parseGoal, postRaceOffer, weekToText, type Phase, type ProgramWeek, type RaceTarget } from "@/lib/program";
 import type { SessionResult } from "@/lib/program/compliance";
 import type { PlannedSession } from "@/lib/program/sessions";
+import { predictRaces } from "@/lib/program/prediction";
 import { useProgramPlan } from "@/lib/program/use-program-plan";
+import { useAthleteSettings } from "@/lib/settings-store";
 import { todaySession } from "@/lib/program/to-generator";
 import { SessionStatusChip, sessionNote } from "./SessionStatusChip";
+import { MissedSessions } from "./MissedSessions";
+import { PredictionCard } from "./PredictionCard";
+import { PostRaceOffer, RaceWeekChecklist, countdownText } from "./RaceDay";
 import { TodaySessionAction } from "./TodaySessionAction";
 
 /** Warna fase: Base hijau (ringan), Build kuning, Peak merah (paling berat), Taper biru. */
@@ -43,6 +49,16 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
   const weekSessions = (w: number) => plan.sessions.filter((s) => s.week === w);
   const doneOf = (w: number) => weekSessions(w).filter((s) => plan.results.get(s.id)?.status === "selesai").length;
   const todayS = plan.active && !plan.loading ? todaySession(plan.sessions, plan.results, today) : null;
+  const [athlete] = useAthleteSettings();
+  const prediction = useMemo(
+    () => (plan.loading ? null : predictRaces({ raceResults: athlete.raceResults, activities: plan.activities, today })),
+    [plan.loading, athlete.raceResults, plan.activities, today],
+  );
+  const predictedPace = (() => {
+    const d = program && prediction?.distances.find((x) => x.distance === program.input.race);
+    return d ? d.seconds / (d.meters / 1000) : undefined;
+  })();
+  const countdown = program && plan.saved ? countdownText(program, today) : null;
 
   return (
     <div className="space-y-4">
@@ -97,6 +113,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
 
       {program && (
         <>
+          {plan.saved && postRaceOffer(program, athlete.raceResults, today) && <PostRaceOffer program={program} />}
           <Card
             title={program.spec.label}
             action={<span className={pillClasses(current ? "success" : "danger")}>{current ? `Minggu ${current}/${program.spec.weeks}` : today < startDate ? "Belum mulai" : "Selesai"}</span>}
@@ -106,6 +123,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
               <Fact label="Race pace" value={formatPaceSec(program.racePaceSec).replace("/km", "")} sub="/km" />
               <Fact label="Durasi" value={`${program.spec.weeks}`} sub="minggu" />
             </div>
+            {countdown && <p className="t-label tabular mt-3 text-ink">{countdown}</p>}
 
             <PhaseBar weeks={program.weeks} current={current} />
 
@@ -143,10 +161,18 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
                     <TodaySessionAction session={todayS} program={program} where="program" longAdjust={todayS.kind === "long" ? longAdjust : undefined} />
                   </div>
                 )}
+                {showStatus && plan.active && (
+                  <div className="mb-4 empty:hidden">
+                    <MissedSessions plan={plan} today={today} />
+                  </div>
+                )}
                 <WeekDetail week={currentWeek} sessions={weekSessions(currentWeek.index)} results={showStatus ? plan.results : undefined} />
+                {currentWeek.raceWeek && <RaceWeekChecklist program={program} predictedPaceSec={predictedPace} />}
               </Card>
             </div>
           )}
+
+          {!plan.loading && <PredictionCard program={program} prediction={prediction} />}
 
           <Card title="Semua minggu" flush className="!pb-1">
             <ul className="divide-y divide-line">

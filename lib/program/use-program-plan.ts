@@ -15,7 +15,17 @@ import { useResolvedProfile } from "@/lib/settings-store";
 import { useTrainingLog } from "@/lib/training-log";
 import { evaluateCompliance, type SessionResult } from "./compliance";
 import { planSessions, type PlannedSession } from "./sessions";
-import { baseLongRunKm, isProgramActive, parseProgramSettings, programDataOldest, programIdOf, serializeProgramSettings, type ProgramSettings } from "./settings";
+import {
+  baseLongRunKm,
+  isProgramActive,
+  mergeOverrides,
+  parseProgramSettings,
+  programDataOldest,
+  programIdOf,
+  serializeProgramSettings,
+  type ProgramOverride,
+  type ProgramSettings,
+} from "./settings";
 
 type Fetched = { ok: true; data: Activity[] } | { ok: false; error: IntervalsError };
 const cache = new Map<string, Promise<Fetched>>();
@@ -38,6 +48,8 @@ export interface ProgramPlan {
   settings: ProgramSettings;
   /** Simpan perubahan pengaturan (override ikut dipertahankan). */
   save: (patch: Partial<ProgramSettings>) => void;
+  /** Keputusan geser/lewati satu sesi (0.13.2); digabung per sesi, keputusan terbaru menang. */
+  decide: (o: Pick<ProgramOverride, "sessionId" | "action" | "toDate">) => void;
   reset: () => void;
   program: Program | null;
   /** Program tersimpan dan hari ini di rentangnya. */
@@ -95,10 +107,14 @@ export function useProgramPlan({ activities, oldest, today }: { activities: Acti
     setRaw(serializeProgramSettings(next));
   };
 
+  const decide = (o: Pick<ProgramOverride, "sessionId" | "action" | "toDate">) =>
+    save({ overrides: mergeOverrides(settings.overrides, [{ ...o, decidedAt: new Date().toISOString() }]) });
+
   return {
     saved,
     settings,
     save,
+    decide,
     reset: () => setRaw(null),
     program,
     active: isProgramActive(raw, program, today),

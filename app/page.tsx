@@ -8,6 +8,7 @@ import { WeeklySummary } from "@/components/profile/WeeklySummary";
 import { WellnessCard } from "@/components/profile/WellnessCard";
 import { ProfileCoach } from "@/components/program/ProfileCoach";
 import { ProgramWeekSummary } from "@/components/program/ProgramWeekSummary";
+import { ZoneOffer } from "@/components/settings/ZoneOffer";
 import { todayWib } from "@/lib/date";
 import { getActivities, getWellness } from "@/lib/intervals/data-source";
 import { readinessAdvice, weeklyAdvice } from "@/lib/coach";
@@ -34,6 +35,9 @@ export default async function ProfilePage() {
 
       {/* Ringkasan minggu program (0.13): hanya bila ada program aktif di perangkat ini. */}
       <ProgramWeekSummary activities={activities.ok ? activities.data : []} oldest={oldest} today={today} />
+
+      {/* Saran update zona (0.13.2): hanya bila dua hasil lomba menunjukkan kebugaran naik. */}
+      <ZoneOffer today={today} />
 
       <ProfileCoach
         advice={[...readinessAdvice(readiness), ...(activities.ok ? weeklyAdvice(activities.data, today) : [])]}
