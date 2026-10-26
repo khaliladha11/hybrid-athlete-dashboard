@@ -10,7 +10,7 @@
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
 | **Kualitas** | 23 file test, 345 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
-| **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
+| **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
 
@@ -135,7 +135,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Target lomba | ✅ | Kondisi, zona, alat & movement library pindah ke Setting (0.8) |
 | Wellness hari ini (HRV, resting HR, tidur, CTL/ATL/Form) | ✅ | Status ✓ data hari ini / ✕ data lama |
 | Ringkasan 7 hari (km, pace, HR, long run, load, sesi) | ✅ | Plus distribusi 80/20 & tren km |
-| Kalender aktivitas bulanan + detail per tanggal | 🟡 | Hanya bulan ini & bulan lalu (data yang diambil 2 bulan). Rentang mengikuti program direncanakan 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #6) |
+| Kalender aktivitas bulanan + detail per tanggal | 🟡 | Hanya bulan ini & bulan lalu (data yang diambil 2 bulan). Rentang mengikuti program direncanakan 0.13.0 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #6) |
 | Detail aktivitas: split per km + interval / lap | ✅ | `/activity/[id]`. Split dari stream intervals.icu: jarak jam, atau GPS bila jarak hanya dibagi rata / tidak konsisten. Data bertangga diratakan, lonjakan & reset dibuang, hasil divalidasi terhadap ringkasan (0.10.2). Interval hanya tampil bila > 1 |
 | Split cocok dengan Strava | 🟡 | Contoh lari 4,4 km: total moving time sama (44:00), HR per km ±1 bpm, pace per km −9 sampai +7 detik (Strava menghitung ulang jarak 4,42 km, jam 4,44 km) |
 | Aktivitas ganda dari dua sumber (Huawei + Strava) dihitung sekali | ✅ | 0.10.1 · `lib/intervals/dedupe.ts`. Berlaku di kalender, ringkasan 7 hari, saran, dan Program |
@@ -203,17 +203,17 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Program PB 5K (8 mg), PB 10K (10), HM (12), FM (16) | ✅ | Base → Build → Peak → Taper |
 | Race pace dari target waktu, long run aman + cutback, peringatan | ✅ | |
 | Salin rencana minggu ini | ✅ | |
-| Program terhubung ke generator ("kerjakan sesi hari ini") | ⬜ | Program & generator masih terpisah. 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #1) |
-| Kepatuhan program (rencana vs aktual dari intervals.icu) | ⬜ | 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #2): selesai / sebagian / terlewat |
-| Prediksi waktu lomba dari performa terbaru | ⬜ | 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #3); usulan rumus VDOT Daniels, Riegel sebagai pembanding |
-| Saran hari ini membaca sesi rencana hari ini | ⬜ | 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #4) |
-| Sesi rencana yang akan datang di kalender (rencana = warna intensitas, selesai = oranye) | ⬜ | 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #5) |
-| Rentang kalender mengikuti panjang program (HM 12 mg, FM 16 mg) | ⬜ | 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #6) |
-| Ringkasan minggu program di Profil (minggu ke-, fase, sesi selesai, long run) | ⬜ | 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #7) |
-| Sesi ST dari program membuka Generator Strength | ⬜ | 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #8). Logika ST tidak berubah (0.14) |
-| Sesi terlewat: tawaran geser atau lewati, tetap mematuhi aturan jadwal | ⬜ | 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #9). Keputusan di tangan atlet |
-| Saran update zona saat prediksi menunjukkan kebugaran naik konsisten | ⬜ | 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #10). Tidak pernah otomatis |
-| Hitung mundur & minggu lomba (sisa hari, catatan taper, checklist hari H) | ⬜ | 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #11) |
+| Program terhubung ke generator ("kerjakan sesi hari ini") | ⬜ | Program & generator masih terpisah. 0.13.1 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #1); long run & sesi spesifik lomba tampil sebagai kartu sesi program, bukan lewat generator (D4) |
+| Kepatuhan program (rencana vs aktual dari intervals.icu) | ⬜ | 0.13.0 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #2): selesai / sebagian / terlewat / digeser / dilewati, dihitung di client (D2, D3) |
+| Prediksi waktu lomba dari performa terbaru | ⬜ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #3); VDOT Daniels, Riegel hanya pembanding (D1) |
+| Saran hari ini membaca sesi rencana hari ini | ⬜ | 0.13.1 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #4) |
+| Sesi rencana yang akan datang di kalender (rencana = warna intensitas, selesai = oranye) | ⬜ | 0.13.0 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #5) |
+| Rentang kalender mengikuti panjang program (HM 12 mg, FM 16 mg) | ⬜ | 0.13.0 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #6) |
+| Ringkasan minggu program di Profil (minggu ke-, fase, sesi selesai, long run) | ⬜ | 0.13.0 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #7) |
+| Sesi ST dari program membuka Generator Strength | ⬜ | 0.13.1 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #8). Logika ST tidak berubah (0.14) |
+| Sesi terlewat: tawaran geser atau lewati, tetap mematuhi aturan jadwal | ⬜ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #9). Keputusan di tangan atlet; tidak pernah menambah volume minggu berikutnya (D5) |
+| Saran update zona saat prediksi menunjukkan kebugaran naik konsisten | ⬜ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #10). Tidak pernah otomatis |
+| Hitung mundur & minggu lomba (sisa hari, catatan taper, checklist hari H) | ⬜ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #11) |
 
 ### 4.6 Log & progresi beban
 
@@ -328,7 +328,7 @@ Diurutkan dari yang paling berdampak.
 3. **Ambang tetap.** HR lari berat (155), penurunan HRV (15%), dan kenaikan resting HR (5 bpm) belum dipersonalisasi.
 4. **Data per detik dari jam tidak selalu bisa dipercaya.** Untuk data Huawei, intervals.icu kadang hanya punya total jarak yang dibagi rata, atau jarak bertangga (datar lalu melompat). Split lalu dihitung dari GPS dan diskalakan ke jarak jam, sehingga per km bisa beda beberapa detik dari Strava yang menghitung ulang jarak sendiri. Kalibrasi lebih lanjut butuh data mentah (lihat backlog).
 5. **Isi aktivitas Strava tidak bisa dibaca.** Kebijakan Strava melarang intervals.icu meneruskan data Strava lewat API. Salinan Strava dibuang bila ada rekaman lain; aktivitas yang hanya ada di Strava tampil sebagai "Aktivitas Strava" tanpa data.
-6. **Kalender terbatas 2 bulan.** Hanya bulan ini dan bulan lalu yang diambil dari intervals.icu. Rentang mengikuti program direncanakan 0.13 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #6).
+6. **Kalender terbatas 2 bulan.** Hanya bulan ini dan bulan lalu yang diambil dari intervals.icu. Rentang mengikuti program direncanakan 0.13.0 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #6).
 7. **Belum offline.** Belum ada service worker. Direncanakan 1.0.
 8. **Pengujian UI manual.** Belum ada test komponen/e2e (CI GitHub Actions menjalankan unit test & build sejak 0.12.0). Animasi bottom sheet & crossfade 0.9 baru diverifikasi secara logika (state, posisi, reduced motion), belum di perangkat nyata.
 9. **Script media & ikon memakai `sharp` dari Next.js** (dependensi tidak langsung). Bila Next.js berhenti membawanya, `sharp` perlu ditambahkan sebagai devDependency.
@@ -352,6 +352,8 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | **0.15 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence, tren volume ST; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
 | **1.0 Siap pakai penuh** | Offline, kirim workout ke intervals.icu/jam, test e2e | Stabil dan mandiri tanpa edit kode |
 
+> 2026-10-26: **spesifikasi 0.13 Program hidup selesai** ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md), menggantikan dokumen cakupan). Dirilis bertahap: 0.13.0 kepatuhan & kalender, 0.13.1 program → generator & saran tahu rencana, 0.13.2 prediksi, zona, geser/lewati, hitung mundur. Keputusan: **D1** prediksi memakai VDOT Daniels yang sama dengan zona, Riegel hanya pembanding. **D2** sesi selesai bila ada lari di tanggal rencana ±1 hari (WIB) dengan jenis cocok dan durasi atau jarak ≥ 80%, di bawahnya sebagian. **D3** kepatuhan dihitung di client lewat modul murni, aktivitas tetap diambil di server. **D4** long run dan sesi spesifik lomba tidak dibuat ulang lewat generator 30/45/60 menit, tetapi tampil sebagai kartu sesi program. **D5** geser/lewati tidak pernah otomatis dan tidak pernah menambah volume minggu berikutnya.
+>
 > 2026-10-23 (3): roadmap disetujui: **0.13 Program hidup**, **0.14 Strength hidup**, **0.15 Insight**, 1.0. ST dipisah menjadi rilis sendiri karena ST belum tereksplorasi untuk aplikasi hybrid athlete (masih prehab & pelengkap lari, belum dihitung sebagai beban dan belum mengikuti fase program). Insight bergeser dari 0.14 ke 0.15 dan kini mencakup tren volume ST. CI tidak lagi tercantum di 1.0 karena sudah ada sejak 0.12.0. Cakupan: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md), [STRENGTH-HIDUP.md](STRENGTH-HIDUP.md).
 >
 > 2026-10-23 (2): **0.12 Aman & tersinkron selesai** (0.12.0 CI + sandi aplikasi, 0.12.1 sinkron, 0.12.2 cadangan otomatis & perangkat kedua) dan pindah ke §8. Rilis berikutnya **0.13 Program hidup**. Enkripsi sisi klien tetap di backlog P2.
