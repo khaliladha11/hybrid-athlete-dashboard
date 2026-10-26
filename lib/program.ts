@@ -36,13 +36,19 @@ export const RACES: Record<RaceTarget, RaceSpec> = {
 
 export const PHASE_LABEL: Record<Phase, string> = { base: "Base", build: "Build", peak: "Peak", taper: "Taper" };
 
+export type SessionKind = "quality" | "easy" | "recovery" | "long" | "race";
+
 export interface ProgramSession {
   day: string;
+  /** Jenis sesi untuk kepatuhan & kalender (0.13): slot Selasa = quality walau isinya ringan (cutback/taper). */
+  kind: SessionKind;
   title: string;
   detail: string;
   intensity: Difficulty;
   /** Perkiraan jarak (km) untuk total mingguan. */
   km: number;
+  /** Durasi rencana (menit) bila sesi ditentukan oleh waktu; selain itu jarak `km` yang dipakai. */
+  minutes?: number;
   isRace?: boolean;
 }
 
@@ -189,6 +195,8 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
       day: raceWeek ? "Rabu" : "Kamis",
       title: `Easy run ${easyMin}'`,
       detail: `Z2 @ ${easy}, HR < 140. Fokus cadence 175–180.`,
+      kind: "easy",
+      minutes: easyMin,
       intensity: "easy",
       km: Math.round(easyMin * easyKmPerMin * 10) / 10,
     };
@@ -203,6 +211,8 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
         day: "Jumat",
         title: "Recovery run 25'",
         detail: `Sangat ringan @ ${easy}, HR < 135. Boleh diganti jalan cepat bila kaki berat.`,
+        kind: "recovery",
+        minutes: 25,
         intensity: "easy",
         km: Math.round(25 * easyKmPerMin * 10) / 10,
       });
@@ -213,6 +223,7 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
         day: "Minggu",
         title: `LOMBA ${spec.short} — target ${formatGoal(input.goalSec)}`,
         detail: `Race pace ${rp}. Mulai sedikit lebih lambat 1–2 km pertama, cadence 175–180.`,
+        kind: "race",
         intensity: "high",
         km: spec.km,
         isRace: true,
@@ -225,6 +236,7 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
         detail: progressive
           ? `Z2 @ ${easy}; 3 km terakhir @ race pace ${rp}. Latih minum/gel tiap 30–40 menit.`
           : `Z2 @ ${easy}, HR < 140. Boleh run-walk 4'/1' bila HR naik.`,
+        kind: "long",
         intensity: progressive ? "moderate" : "easy",
         km: longKm,
       });
@@ -306,14 +318,16 @@ function qualitySession(o: {
   const { race, phase, cutback, raceWeek, w, tempo, interval, norwegian, rp, easy } = o;
   const day = "Selasa";
   if (raceWeek) {
-    return { day, title: "Sharpener 25'", detail: `15' easy + 4×1' @ race pace ${rp} (jeda 1' jalan).`, intensity: "moderate", km: 4 };
+    return { day, kind: "quality", minutes: 25, title: "Sharpener 25'", detail: `15' easy + 4×1' @ race pace ${rp} (jeda 1' jalan).`, intensity: "moderate", km: 4 };
   }
   if (cutback || phase === "taper") {
-    return { day, title: "Easy + strides 30'", detail: `25' Z2 @ ${easy} + 4×20" strides santai-cepat.`, intensity: "easy", km: 3.5 };
+    return { day, kind: "quality", minutes: 30, title: "Easy + strides 30'", detail: `25' Z2 @ ${easy} + 4×20" strides santai-cepat.`, intensity: "easy", km: 3.5 };
   }
   if (phase === "base") {
     return {
       day,
+      kind: "quality",
+      minutes: 35,
       title: "Fartlek ringan 35'",
       detail: `10' Z2, lalu ${w % 2 ? 6 : 8}×1' agak cepat / 1' jog, 5' pendinginan. RPE 5–6.`,
       intensity: "moderate",
@@ -324,6 +338,7 @@ function qualitySession(o: {
     const reps = w % 2 ? 2 : 3;
     return {
       day,
+      kind: "quality",
       title: `Tempo ${reps}×${reps === 2 ? 10 : 8}'`,
       detail: `10' pemanasan Z2, ${reps}× ${reps === 2 ? 10 : 8}' @ ${tempo} (HR 160–170), jog 2' antar set.`,
       intensity: "moderate",
@@ -331,10 +346,10 @@ function qualitySession(o: {
     };
   }
   // Peak — spesifik jarak lomba.
-  if (race === "5k") return { day, title: "Interval 5×800 m", detail: `@ ${interval}, jog 2' antar repetisi. Pemanasan & pendinginan 10'.`, intensity: "high", km: 6.5 };
-  if (race === "10k") return { day, title: "Interval 4×1 km", detail: `@ ${interval}, jog 2'30" antar repetisi. Pemanasan & pendinginan 10'.`, intensity: "high", km: 7.5 };
-  if (race === "hm") return { day, title: "Race pace 3×2 km", detail: `@ race pace ${rp}, jog 3' antar set. Pemanasan & pendinginan 10'.`, intensity: "moderate", km: 9 };
-  return { day, title: "Norwegian 4×4", detail: `4×4' @ ${norwegian} (Z4), recovery jog 3'. Menjaga VO₂max di tengah volume tinggi.`, intensity: "high", km: 7 };
+  if (race === "5k") return { day, kind: "quality", title: "Interval 5×800 m", detail: `@ ${interval}, jog 2' antar repetisi. Pemanasan & pendinginan 10'.`, intensity: "high", km: 6.5 };
+  if (race === "10k") return { day, kind: "quality", title: "Interval 4×1 km", detail: `@ ${interval}, jog 2'30" antar repetisi. Pemanasan & pendinginan 10'.`, intensity: "high", km: 7.5 };
+  if (race === "hm") return { day, kind: "quality", title: "Race pace 3×2 km", detail: `@ race pace ${rp}, jog 3' antar set. Pemanasan & pendinginan 10'.`, intensity: "moderate", km: 9 };
+  return { day, kind: "quality", title: "Norwegian 4×4", detail: `4×4' @ ${norwegian} (Z4), recovery jog 3'. Menjaga VO₂max di tengah volume tinggi.`, intensity: "high", km: 7 };
 }
 
 /** Minggu program yang berjalan pada tanggal tertentu (1-based), atau 0 bila belum mulai / sudah selesai. */

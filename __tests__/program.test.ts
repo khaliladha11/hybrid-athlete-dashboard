@@ -146,6 +146,37 @@ describe("pace & peringatan", () => {
   });
 });
 
+describe("jenis & durasi sesi (0.13)", () => {
+  it("setiap sesi punya jenis; slot Selasa selalu quality, Minggu long atau lomba", () => {
+    for (const race of TARGETS) {
+      for (const runsPerWeek of [3, 4] as const) {
+        const p = build(race, { runsPerWeek });
+        for (const w of p.weeks) {
+          const byDay = Object.fromEntries(w.sessions.map((s) => [s.day, s]));
+          expect(byDay.Selasa.kind).toBe("quality");
+          expect(byDay.Minggu.kind).toBe(w.raceWeek ? "race" : "long");
+          if (runsPerWeek === 4 && !w.raceWeek) expect(byDay.Jumat.kind).toBe("recovery");
+          for (const s of w.sessions) expect(["quality", "easy", "recovery", "long", "race"]).toContain(s.kind);
+          expect(w.sessions.filter((s) => s.kind === "easy")).toHaveLength(1);
+        }
+      }
+    }
+  });
+
+  it("durasi hanya untuk sesi berbasis waktu dan cocok dengan judulnya", () => {
+    for (const race of TARGETS) {
+      for (const w of build(race, { runsPerWeek: 4 }).weeks) {
+        for (const s of w.sessions) {
+          if (s.kind === "long" || s.kind === "race") expect(s.minutes, s.title).toBeUndefined();
+          const m = s.title.match(/(\d+)'$/);
+          if (s.minutes !== undefined) expect(s.title, s.title).toContain(`${s.minutes}'`);
+          if (m && (s.kind === "easy" || s.kind === "recovery")) expect(s.minutes).toBe(Number(m[1]));
+        }
+      }
+    }
+  });
+});
+
 function addDaysLocal(date: string, days: number) {
   const d = new Date(`${date}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + days);
