@@ -72,6 +72,12 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/intervals/summary.ts` | Ringkasan 7 hari, rata-rata cadence | Server |
 | `lib/readiness.ts` | Sinyal HRV / resting HR / sesi kemarin | Server |
 | `lib/coach.ts` | Saran 80/20, progresi km, concurrent, + `suggestFor()` | Server & client |
+| `lib/program.ts` | Program target murni: fase, long run, sesi per minggu (dengan `kind` & `minutes` sejak 0.13) | Server & client |
+| `lib/program/settings.ts` | Pengaturan program di perangkat + `ProgramOverride`, `programIdOf`, `isProgramActive`, `baseLongRunKm` (30 hari sebelum mulai), `mergeOverrides` per sesi | Server & client (murni) |
+| `lib/program/sessions.ts` | Sesi rencana ber-id `{programId}:{minggu}:{hari}:{jenis}` termasuk ST, penerapan override move/skip | Server & client (murni) |
+| `lib/program/compliance.ts` | Pencocokan aktivitas ±1 hari & status sesi (D2), catatan lebih berat, ringkasan minggu | Server & client (murni) |
+| `lib/program/range.ts`, `app/api/activities/route.ts` | `GET /api/activities?oldest=` (maks 200 hari, `private, max-age=300`) memakai `getActivities`; sesi sandi tetap diperiksa `intervalsGet` | Server |
+| `lib/program/use-program-plan.ts` | Hook: pengaturan program + aktivitas dari server (+ satu ambilan tambahan bila program butuh data lebih lama) → program, sesi, kepatuhan di client (D3) | Client |
 | `lib/generator/block.ts` | Posisi blok & deload dari tanggal | Server |
 | `lib/generator/run.ts`, `strength.ts` | Pembuat pola | Client |
 | `lib/generator/validate.ts` | Sanitizer + validator | Client |
@@ -101,7 +107,7 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/redis.ts` | Upstash REST lewat `fetch` (`/pipeline`), env `UPSTASH_REDIS_REST_*` lalu `KV_REST_API_*`; dipakai batas percobaan & sinkron | Server |
 | `lib/log-entries.ts` | Entri log untuk sinkron: id deterministik untuk entri lama, `updatedAt`, tombstone, `mergeLogs` per id (komutatif & idempoten), pemadatan tombstone 90 hari | Server & client (murni) |
 | `lib/sync/parts.ts` | Enam bagian (profile, settings, program, preferences, onboarding, log) ↔ key localStorage; validasi memakai parser impor | Server & client (murni) |
-| `lib/sync/merge.ts` | Merge per bagian berdasarkan kunci yang diubah lokal (bukan jam), gabungan onboarding simetris, aturan aktivasi pertama | Server & client (murni) |
+| `lib/sync/merge.ts` | Merge per bagian berdasarkan kunci yang diubah lokal (bukan jam), gabungan onboarding simetris, aturan aktivasi pertama; bagian `program`: pengaturan utuh, override digabung per `sessionId` (0.13) | Server & client (murni) |
 | `lib/sync/store.ts` | Satu hash Redis per bagian (`rev`, `epoch`, `data`); baca semua (+ cek snapshot harian) = 1 pipeline; tulis EVAL Lua atomik dengan `baseRev`; pulihkan = satu EVAL untuk semua bagian (`rev` & `epoch` naik); snapshot di `ha:sync:snap:<id>` + ringkasan di hash `ha:sync:snapmeta` | Server |
 | `lib/sync/snapshots.ts` | Snapshot harian (`daily-YYYY-MM-DD`, WIB) & "sebelum pulihkan", ringkasan tanpa data mentah, retensi 7 | Server & client (murni) |
 | `lib/sync/gate.ts`, `app/api/sync/snapshots/route.ts`, `app/api/sync/restore/route.ts` | Gerbang bersama semua route sinkron (sandi `on` + database + sesi); daftar snapshot; pulihkan (snapshot keadaan sekarang dulu, onboarding tidak mundur) | Server |
@@ -171,12 +177,15 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `progression.test.ts` | Aturan 2-for-2, tahan/turun, batas library, deload, gerakan tahan & band, validasi data impor. |
 | `data.test.ts` | Tanggal WIB, normalisasi field null & cadence, ringkasan 7 hari, readiness. |
 | `activity-data.test.ts` | Dedupe Huawei + salinan Strava (urutan apa pun, tanpa pasangan, beda jenis, dua rekaman berisi), split per km (konstan, berhenti, HR berbobot, data rusak, cadence per-kaki), sumber jarak (dibagi rata, GPS, tanpa GPS), kasus tepi data jam (jarak bertangga, berhenti, lonjakan, reset, GPS hilang, validasi ringkasan, ambang lari/jalan), detail demo. |
-| `program.test.ts` | Program target: fase, long run ≤ 10%/2 km, cutback, taper, peringatan. |
+| `program.test.ts` | Program target: fase, long run ≤ 10%/2 km, cutback, taper, peringatan, `kind` & `minutes` per sesi. |
+| `program-sessions.test.ts` | Id sesi stabil (antar render & perubahan target), id baru saat program berganti, ST Senin/Rabu & taper 1×, override move/skip, parse/serialize override, gabungan override, program aktif, long run awal stabil. |
+| `compliance.test.ts` | Tepat hari & ±1 hari, < 80% → sebagian, easy berat → catatan, quality ringan → sebagian, long run & aktivitas ganda sehari, dua sesi berebut satu aktivitas, tenggang kemarin & terlewat, override, data kosong, ST dari log & dari intervals.icu, ringkasan minggu. |
+| `program-activities.test.ts` | Validasi rentang `/api/activities` dan route di Demo Mode tanpa key. |
 | `media.test.ts` | Setiap gerakan punya entri media, setiap path gambar ada, sumber/lisensi konsisten, gerakan baru bisa dijangkau & lolos semua aturan, titik tambat band, ★ baru mulai blok berikutnya. |
 | `skyline-scale.test.ts` | Skala tinggi Segment Skyline (min 10%, steady dari nol), deteksi segmen kerja (WORK / median, lap otomatis), tata letak bar, aturan label, stagger, ringkasan struktur & best rep. |
 | `auth.test.ts` | Konfigurasi sandi (off/misconfigured/on), sesi (90 hari, kedaluwarsa, dipalsukan, ganti sandi/secret membatalkan, cookie tanpa sandi), `timingSafeEqual` dipakai, batas percobaan (memori dengan jam tiruan, Redis REST palsu, fallback), logika unlock (6 salah → 429, respons tanpa sandi), keputusan proxy & `sanitizeNext`. |
 | `sync-log.test.ts` | Migrasi entri log (id deterministik sama di dua perangkat, `updatedAt`), tombstone lewat `remove`/`clear`, ekspor & entri hidup tanpa tombstone, impor v1/v2/v3 tetap jalan, impor tidak menghidupkan entri terhapus, gabungan idempoten/komutatif/50 urutan acak, pemadatan 90 hari. |
-| `sync-merge.test.ts` | Bagian ↔ localStorage bolak-balik, validasi payload, `changedKeys`, merge tiap bagian (dirty vs tidak, reset), hapus vs ubah Setting di dua perangkat, onboarding gabungan komutatif, aktivasi pertama. |
+| `sync-merge.test.ts` | Bagian ↔ localStorage bolak-balik, validasi payload, `changedKeys`, merge tiap bagian (dirty vs tidak, reset), hapus vs ubah Setting di dua perangkat, onboarding gabungan komutatif, aktivasi pertama, override program per sesi. |
 | `sync-store.test.ts` | Store memori & Redis tiruan (rev/baseRev, konflik dengan data terbaru, 1 pipeline per baca), logika `/api/sync` (validasi, 413, pemadatan), route tanpa sandi/database → tidak aktif, tanpa sesi → 401, `/api/status` hanya boolean. |
 | `sync-snapshots.test.ts` | Snapshot harian sekali per hari WIB (pergantian hari), tidak dibuat untuk server kosong, retensi 7, ringkasan tanpa data mentah, pulihkan membuat snapshot dulu & menaikkan `rev`/`epoch`, batalkan, onboarding tidak mundur, id tidak valid/tidak ada; `epoch` membuat entri terhapus hidup lagi di kedua perangkat; route tanpa sesi/database. Memori & Redis tiruan. |
 | `sync-client.test.ts` | Mesin sinkron dengan dua "perangkat": aktivasi pertama, catat di HP → laptop, hapus di laptop sementara HP offline mengubah Setting, perubahan per kunci lewat konflik, gagal kirim (dirty tetap, data utuh), konflik terus → maks 3 ulang, perubahan selama request. |

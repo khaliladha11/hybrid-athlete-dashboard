@@ -4,6 +4,24 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.13.0] · 2026-10-26 · Program hidup: kepatuhan & kalender
+
+Tahap pertama [PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) (§3, §4.1–4.3).
+
+### Ditambahkan
+- **Sesi rencana ber-id** `{programId}:{minggu}:{hari}:{jenis}`, termasuk sesi ST (Senin Lower/Full, Rabu Upper; minggu taper & lomba 1×), dan model **override** geser/lewati (UI-nya di 0.13.2). Override disinkron **per sesi**, jadi keputusan di dua perangkat sama-sama bertahan.
+- **Kepatuhan otomatis** dari aktivitas intervals.icu (sudah di-dedupe) dan log ST lokal: selesai (tanggal ±1 hari, jenis cocok, durasi atau jarak ≥ 80%), sebagian, terlewat, hari ini (kemarin masih bisa), digeser, dilewati; catatan "lebih berat" untuk easy yang dikerjakan berat (ambang yang sama dengan saran).
+- **Program**: chip status per sesi di "Minggu ini" dan "Semua minggu", jumlah sesi selesai per minggu, sesi ST ikut tampil.
+- **Kalender**: aktivitas selesai oranye, sesi rencana mendatang bercincin warna intensitas, terlewat ✕ lembut, dilewati dicoret tipis; navigasi dari awal program sampai bulan lomba; detail hari memuat sesi rencana & statusnya.
+- **Profil**: ringkasan `MINGGU 6/12 · BUILD · 3/5 SESI · LONG RUN 14 KM ✓` di atas kartu saran, hanya untuk program aktif.
+- `GET /api/activities?oldest=` (maks 200 hari, cache privat 5 menit) untuk data sebelum 2 bulan terakhir; key tetap di server.
+- 30 test baru (`program-sessions`, `compliance`, `program-activities`, tambahan `program`, `sync-merge`), total 375 di 26 file.
+
+### Diubah
+- **Long run awal program** diambil dari lari terjauh 30 hari **sebelum program mulai** (sebelumnya 30 hari terakhir), sehingga target long run minggu yang sudah lewat tidak ikut bergeser.
+- Sel kalender untuk aktivitas selesai kini oranye (sebelumnya hijau/merah menurut berat-ringan); label easy/berat tetap ada di daftar aktivitas.
+- Mengganti jarak lomba atau tanggal mulai membuang override program lama.
+
 ### Dokumentasi
 - Roadmap 0.13–0.15: 0.13 Program hidup ([PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md)), 0.14 Strength hidup ([STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md)), 0.15 Insight, lalu 1.0. PRD §4, §6, §7 dan README diselaraskan.
 
@@ -336,7 +354,8 @@ Redesign visual mengikuti [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md). Logi
 - **Readiness advisory** dari HRV, resting HR, dan sesi kemarin.
 - **PWA**: manifest, ikon, standalone, safe area. Panduan deploy Vercel & install di HP.
 
-[0.12.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ea49a56...main
+[0.13.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/4af5f60...main
+[0.12.2]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/ea49a56...4af5f60
 [0.12.1]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/465da7d...ea49a56
 [0.12.0]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/1c7334f...465da7d
 [0.11.3]: https://github.com/khaliladha11/hybrid-athlete-dashboard/compare/77815e4...49f5f14

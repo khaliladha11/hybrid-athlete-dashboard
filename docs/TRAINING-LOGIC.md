@@ -141,6 +141,24 @@ Kode: [`lib/program.ts`](../lib/program.ts). Halaman **Program**.
   - Target pace jauh lebih cepat dari zona tempo.
   - Long run puncak > 55% volume mingguan pada 3 lari/minggu (sarankan 4×).
 
+### Kepatuhan program (0.13.0)
+
+Kode: [`lib/program/compliance.ts`](../lib/program/compliance.ts), [`lib/program/sessions.ts`](../lib/program/sessions.ts). Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §3–§4.1.
+
+| Aturan | Detail |
+| --- | --- |
+| Sesi rencana | Setiap sesi punya id `{programId}:{minggu}:{hari}:{jenis}`; `programId` = jarak lomba + Senin mulai. Sesi ST mengikuti jadwal di atas: Senin Lower/Full & Rabu Upper, minggu taper & lomba hanya Rabu Upper ringan |
+| Jendela | Aktivitas di tanggal rencana ±1 hari (WIB). Satu aktivitas untuk satu sesi; pasangan diurutkan menurut selisih hari lalu kecocokan jenis. Lari lain di hari yang sama dengan aktivitas utama dijumlah |
+| Selesai | Jenis cocok dan durasi **atau** jarak ≥ 80% rencana (D2). Long run & lomba memakai jarak. Aktivitas tanpa durasi & jarak (salinan Strava kosong) dianggap memenuhi karena tidak terukur |
+| Sebagian | Ada aktivitas tapi < 80%, atau quality (selain strides/sharpener ringan) dikerjakan tanpa lari berat |
+| Lebih berat | Easy/recovery yang aktivitasnya tergolong berat (`isHardRun`, ambang yang sama dengan saran): tetap selesai, diberi catatan, dan sudah ikut hitungan 80/20 |
+| Terlewat | Tanpa aktivitas setelah tanggal + 1 hari. Kemarin tanpa aktivitas masih "bisa hari ini" |
+| ST | Selesai bila ada log ST lokal atau aktivitas strength intervals.icu di tanggal ±1 hari. Berat ringan ST dinilai di 0.14 (session-RPE) |
+| Override | `skip` → dilewati (tidak dicocokkan); `move` → dinilai di tanggal baru. Tidak pernah menambah volume minggu lain (D5) |
+| Long run awal | Lari terjauh 30 hari **sebelum program mulai**, supaya target long run minggu yang sudah lewat tidak bergeser |
+
+Referensi: Daniels J. (2014). *Daniels' Running Formula* (3rd ed.), Human Kinetics, untuk jenis sesi per fase yang dicocokkan.
+
 **Mode bebas:** program blok mingguan (bagian 4) bisa dimatikan lewat toggle. Saat mati, tidak ada minggu deload, dan gerakan utama ★ dipilih per sesi (tetap multi-joint dan tetap dicatat untuk progresi beban).
 
 ## 8. Referensi
