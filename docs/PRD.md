@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.13.2 (2026-10-26) |
+| **Versi saat ini** | 0.13.3 (2026-10-26) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 31 file test, 430 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
+| **Kualitas** | 33 file test, 458 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -201,7 +201,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | --- | --- | --- |
 | Blok 4 minggu (3 normal + 1 deload) | ✅ | Tanggal mulai blok diatur di Setting › Profil sejak 0.11.0 |
 | Toggle blok mingguan (mode bebas) | ✅ | |
-| Program PB 5K (8 mg), PB 10K (10), HM (12), FM (16) | ✅ | Base → Build → Peak → Taper |
+| Program PB 5K (8 mg), PB 10K (10), HM (12), FM (16) | ✅ | Base → Build → Peak → Taper. Sejak 0.13.3 ini panjang standar; panjang sebenarnya mengikuti Hari H |
 | Race pace dari target waktu, long run aman + cutback, peringatan | ✅ | |
 | Salin rencana minggu ini | ✅ | |
 | Program terhubung ke generator ("Kerjakan sesi hari ini") | ✅ | 0.13.1 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #1): tombol di Program › Minggu ini dan ringkasan Profil; isian generator dari rencana tetap bisa diubah, chip `DARI PROGRAM · MINGGU N` selama belum diubah, pola rencana (tempo, 4×4) lewat parameter opsional generator. Long run, lomba, Race pace & Sharpener tampil sebagai kartu sesi program dengan teks Copy Set (D4) |
@@ -215,6 +215,9 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Sesi terlewat: tawaran geser atau lewati, tetap mematuhi aturan jadwal | ✅ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #9): baris `Tempo Selasa terlewat · Geser ke Jumat · Lewati` di Program dan Profil, disimpan sebagai override (tersinkron per sesi). Geser hanya di minggu yang sama, jadi tidak pernah menambah volume minggu berikutnya (D5); long run Minggu praktis hanya bisa dilewati. Lewati dua ketukan |
 | Saran update zona saat prediksi menunjukkan kebugaran naik konsisten | ✅ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #10): di Setting › Zona dan Profil bila dua hasil lomba berbeda (terpisah ≥ 14 hari) sama-sama ≥ VDOT zona + 1. Tidak pernah otomatis; Tolak diingat sampai VDOT naik ≥ 1 lagi |
 | Hitung mundur & minggu lomba (sisa hari, catatan taper, checklist hari H) | ✅ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #11): `14 HARI LAGI · HALF MARATHON` di Program dan Profil, checklist umum H-1 dengan rencana pace dari perkiraan, dan tawaran mencatat hasil lomba H+1 sampai H+14 |
+| Hari H dipilih atlet, panjang program = minggu di antara mulai dan Hari H | ✅ | 0.13.3 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.10): kalender bulan dengan warna band (rekomendasi umum + minimum dari data long run), alasan, tanggal paling awal, ringkasan fase, long run puncak, info VDOT. Merah butuh konfirmasi, abu-abu menambah pre-Base, di bawah taper + 2 tidak bisa disusun |
+| Kesiapan HM/FM & jarak antar maraton | ✅ | 0.13.3: rata-rata km mingguan & long run terjauh, catatan maraton pertama, jarak dari FM sebelumnya. Peringatan lunak |
+| Arsip program saat Hari H/mulai/jarak diganti | ✅ | 0.13.3: riwayat sesi & override tetap terbaca di Program › Program sebelumnya dan kalender, disinkron per id. Program lama tanpa Hari H dimigrasikan tanpa perubahan |
 
 ### 4.6 Log & progresi beban
 
@@ -352,6 +355,8 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | **0.15 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence, tren volume ST; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
 | **1.0 Siap pakai penuh** | Offline, kirim workout ke intervals.icu/jam, test e2e | Stabil dan mandiri tanpa edit kode |
 
+> 2026-10-26 (3): **0.13.3 Hari H** ditambahkan setelah 0.13 selesai: atlet memilih Hari H dengan saran lama program (rekomendasi umum + data long run), pre-Base untuk Hari H yang jauh, dan arsip program. Rilis berikutnya tetap **0.14 Strength hidup**.
+>
 > 2026-10-26 (2): **0.13 Program hidup selesai** (0.13.0 kepatuhan & kalender, 0.13.1 program → generator & saran tahu rencana, 0.13.2 prediksi, saran zona, geser/lewati, hitung mundur) dan pindah ke §8. Rilis berikutnya **0.14 Strength hidup**. Sumber 2 prediksi (best effort intervals.icu) tidak dipakai: endpoint `GET /api/v1/athlete/{id}/pace-curves` ada di dokumentasi resmi, tetapi satuan `values` tidak dijelaskan dan data per detik jam tidak selalu bisa dipercaya (§6), jadi masuk backlog P2. Saran update zona memakai dua hasil lomba berbeda yang terpisah ≥ 14 hari.
 >
 > 2026-10-26: **spesifikasi 0.13 Program hidup selesai** ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md), menggantikan dokumen cakupan). Dirilis bertahap: 0.13.0 kepatuhan & kalender, 0.13.1 program → generator & saran tahu rencana, 0.13.2 prediksi, zona, geser/lewati, hitung mundur. Keputusan: **D1** prediksi memakai VDOT Daniels yang sama dengan zona, Riegel hanya pembanding. **D2** sesi selesai bila ada lari di tanggal rencana ±1 hari (WIB) dengan jenis cocok dan durasi atau jarak ≥ 80%, di bawahnya sebagian. **D3** kepatuhan dihitung di client lewat modul murni, aktivitas tetap diambil di server. **D4** long run dan sesi spesifik lomba tidak dibuat ulang lewat generator 30/45/60 menit, tetapi tampil sebagai kartu sesi program. **D5** geser/lewati tidak pernah otomatis dan tidak pernah menambah volume minggu berikutnya.
@@ -449,6 +454,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.13.0 | 2026-10-26 | Program hidup tahap 1: sesi rencana ber-id + override (disinkron per sesi), kepatuhan otomatis, rencana di kalender sepanjang program, ringkasan minggu di Profil |
 | 0.13.1 | 2026-10-26 | Program hidup tahap 2: "Kerjakan sesi hari ini" (isian generator lari & ST dari rencana, kartu sesi program untuk long run & sesi spesifik lomba), saran hari ini terhadap rencana |
 | 0.13.2 | 2026-10-26 | Program hidup selesai: perkiraan waktu lomba (VDOT, Riegel pembanding), hasil lomba tersimpan, saran update zona, geser/lewati sesi terlewat, hitung mundur & checklist minggu lomba |
+| 0.13.3 | 2026-10-26 | Hari H dipilih atlet: kalender dengan saran lama program, kesiapan HM/FM, jarak antar maraton, panjang program variabel & pre-Base, arsip program |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 

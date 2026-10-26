@@ -69,9 +69,19 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
     <td align="center"><sub>Sinkron & Riwayat cadangan</sub></td>
     <td align="center"><sub>Mode terang</sub></td>
   </tr>
+  <tr>
+    <td><img src="docs/screenshots/16-race-date.jpg" width="220" alt="Pemilih Hari H dengan warna saran lama program"></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Pilih Hari H</sub></td>
+    <td></td>
+    <td></td>
+  </tr>
 </table>
 
-<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1, onboarding & tur di 0.11.2, sinkron di 0.12.2), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
+<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1, onboarding & tur di 0.11.2, sinkron di 0.12.2, Program & Hari H di 0.13.2–0.13.3), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
 
 > **Mau memakainya dengan data latihanmu sendiri di HP?** Ikuti [Pasang di HP-mu sendiri](#pasang-di-hp-mu-sendiri): gratis, sekitar 15 menit, tanpa menulis kode.
 
@@ -103,7 +113,7 @@ Awalnya ini cuma buat saya sendiri. Tapi kondisi, alat, zona lari, dan pilihan g
 | **Detail gerakan** | Thumbnail di setiap gerakan; tap untuk bottom sheet berisi gambar posisi awal ↔ akhir (crossfade, bisa dijeda), cue teknik, otot utama/sekunder, dan catatan kondisi aktif. Gambar dari free-exercise-db (Unlicense), disimpan lokal. |
 | **Generator ST** | Full Body / Upper Push / Upper Pull / Lower. Hanya gerakan yang dipilih & bisa dilakukan dengan alat yang ada, RPE ≤ 7, beban yang benar-benar bisa dirakit dari plat, plus gerakan wajib/terlarang sesuai kondisi aktif (prehab shin, stabilitas panggul, Spine-Friendly, dll.). **Tanpa alat pun jalan**: Upper Push/Pull memakai gerakan cadangan (Push-Up, Wall/Knee Push-Up, Prone Y-T-W, Reverse Snow Angel), dan bila sesi tidak bisa disusun aplikasi menyebut alat yang dibutuhkan. |
 | **Periodisasi** | Blok 4 minggu (3 normal + 1 deload). Gerakan utama ★ dikunci per blok, sedangkan aksesori dan skema rep berputar. Bisa **dimatikan** (toggle) untuk latihan bebas tanpa jadwal blok. |
-| **Program target** | Program mingguan menuju **PB 5K, PB 10K, Half Marathon, atau Full Marathon**: fase Base → Build → Peak → Taper, long run naik ≤ 10%/minggu dengan cutback, race pace dari target waktu, dan jadwal ST yang tidak bentrok. Sejak 0.13 status sesi otomatis dari aktivitas, "Kerjakan sesi hari ini" ke generator, perkiraan waktu lomba, geser/lewati sesi terlewat, dan hitung mundur. |
+| **Program target** | Program mingguan menuju **PB 5K, PB 10K, Half Marathon, atau Full Marathon**: fase Base → Build → Peak → Taper, long run naik ≤ 10%/minggu dengan cutback, race pace dari target waktu, dan jadwal ST yang tidak bentrok. Sejak 0.13.3 kamu memilih Hari H di kalender yang diwarnai saran lama program (rekomendasi umum + data long run-mu). Sejak 0.13 status sesi otomatis dari aktivitas, "Kerjakan sesi hari ini" ke generator, perkiraan waktu lomba, geser/lewati sesi terlewat, dan hitung mundur. |
 | **Saran hari ini** | Menggabungkan readiness (HRV, resting HR, sesi kemarin), distribusi 80/20, kenaikan km mingguan, dan jarak antara ST kaki dan lari berat. Sarannya bisa diterapkan dengan satu tap. |
 | **Progresi beban** | Catat sesi, lalu beban berikutnya disesuaikan otomatis (aturan "2-for-2" NSCA) ke beban berikutnya yang bisa dirakit, tanpa pernah melewati batas library. Riwayatnya ada di halaman Strength. |
 | **Salin cepat** | Workout ST sebagai teks ringkas; workout lari lewat tombol **Copy Set** (format "Set" Huawei Health). |
@@ -284,7 +294,7 @@ Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 
 - **Next.js 16** (App Router, Server Components) + **React 19** + **TypeScript**
 - **Tailwind CSS 4** dengan token semantik di [`app/globals.css`](app/globals.css). Dark mode mengikuti pengaturan sistem.
-- **Vitest**: 31 file test, 430 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
+- **Vitest**: 33 file test, 458 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
 - **intervals.icu REST API** (aktivitas, wellness, stream per detik), dipanggil hanya dari server
 - Grafik SVG buatan sendiri (Segment Skyline), tanpa library chart
 - Tanpa database. Profil default disimpan di JSON; Setting, log sesi, dan program di localStorage perangkat (bisa diekspor/impor).

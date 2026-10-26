@@ -4,6 +4,24 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.13.3] · 2026-10-26 · Hari H & saran lama program
+
+[PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) §4.10.
+
+### Ditambahkan
+- **Hari H** dipilih atlet: panjang program = minggu di antara tanggal mulai dan Hari H (berbasis Senin). Kalender bulan buatan sendiri di Program › Target, setiap tanggal diwarnai: merah (di bawah minimum), kuning (di bawah rekomendasi), hijau, abu-abu (ditambah pre-Base); tanggal paling awal yang bisa disusun diberi cincin, dan tanggal terpilih membawa alasannya.
+- **Saran lama program**: tabel rekomendasi umum per jarak, minimum dari data (kenaikan long run dengan aturan program dari long run terjauh asli), kesiapan HM/FM (rata-rata km mingguan, long run terjauh, catatan maraton pertama), jarak dari maraton sebelumnya, ringkasan fase (`BASE 4 · BUILD 5 · PEAK 4 · TAPER 3 MINGGU`), long run puncak, dan VDOT target vs perkiraan. Tidak memblokir; tanggal merah butuh "Saya mengerti risikonya", di bawah taper + 2 minggu tidak bisa disusun.
+- **Panjang program variabel**: lebih pendek memangkas Base lalu Build (Peak & taper utuh, puncak yang tidak tercapai diberi peringatan); lebih dari maksimum ditambah **pre-Base**. Hari H boleh hari apa saja.
+- **Arsip program**: mengganti Hari H, mulai, atau jarak di tengah program mengarsipkan program lama beserta override-nya (Program › Program sebelumnya dan kalender), lalu program baru berjalan mulai minggu ini. Arsip disinkron per id.
+- Target waktu memakai pemilih jam/menit/detik.
+- 28 test baru (`program-baseline` dengan 112 hash dari kode sebelum perubahan, `timeline`, tambahan `program`, `program-sessions`, `sync-merge`), total 458 di 33 file.
+
+### Diubah
+- Program lama tanpa Hari H dimigrasikan ke mulai + panjang lamanya dengan id lama, jadi isi, status, dan override tidak berubah.
+
+### Dokumentasi
+- PROGRAM-HIDUP §4.10, TRAINING-LOGIC §7 (tabel rekomendasi umum + referensi), PRD, ARCHITECTURE, README, screenshot pemilih Hari H.
+
 ## [0.13.2] · 2026-10-26 · Program hidup: prediksi, zona, geser/lewati, hitung mundur
 
 Tahap terakhir [PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) (§4.6–§4.9, D1, D5). 0.13 Program hidup selesai.

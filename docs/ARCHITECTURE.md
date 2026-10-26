@@ -73,13 +73,14 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/readiness.ts` | Sinyal HRV / resting HR / sesi kemarin | Server |
 | `lib/coach.ts` | Saran 80/20, progresi km, concurrent, + `suggestFor()` | Server & client |
 | `lib/program.ts` | Program target murni: fase, long run, sesi per minggu (dengan `kind` & `minutes` sejak 0.13) | Server & client |
-| `lib/program/settings.ts` | Pengaturan program di perangkat + `ProgramOverride`, `programIdOf`, `isProgramActive`, `baseLongRunKm` (30 hari sebelum mulai), `mergeOverrides` per sesi | Server & client (murni) |
+| `lib/program/settings.ts` | Pengaturan program di perangkat + `ProgramOverride`, `programIdOf`, `isProgramActive`, `baseLongRunKm` (30 hari sebelum mulai), `mergeOverrides` per sesi. Sejak 0.13.3: Hari H, migrasi program lama, `createProgram` (arsip + program baru), `ArchivedProgram`, `mergeArchived`, `routeOverrides` | Server & client (murni) |
 | `lib/program/sessions.ts` | Sesi rencana ber-id `{programId}:{minggu}:{hari}:{jenis}` termasuk ST, penerapan override move/skip | Server & client (murni) |
 | `lib/program/compliance.ts` | Pencocokan aktivitas ±1 hari & status sesi (D2), catatan lebih berat, ringkasan minggu | Server & client (murni) |
 | `lib/program/range.ts`, `app/api/activities/route.ts` | `GET /api/activities?oldest=` (maks 200 hari, `private, max-age=300`) memakai `getActivities`; sesi sandi tetap diperiksa `intervalsGet` | Server |
 | `lib/program/to-generator.ts` | Pemetaan sesi rencana → isian generator lari/ST atau kartu sesi program (0.13.1), teks salin kartu, query prefill & parser-nya, `todaySession`, `planToday` | Server & client (murni) |
 | `lib/program/prediction.ts` | Perkiraan waktu lomba (0.13.2): sumber VDOT (hasil lomba 90 hari, lalu lari utuh ≥ 3 km), invers VDOT per jarak, keyakinan, Riegel, `targetGap`, `zoneOffer` | Server & client (murni) |
 | `lib/program/reschedule.ts` | Opsi geser/lewati untuk sesi terlewat (0.13.2), selalu di minggu yang sama (D5), `missedSessions` | Server & client (murni) |
+| `lib/program/timeline.ts` | Hari H & saran lama program (0.13.3): tabel rekomendasi umum, `weeksBetween`, minimum data (`nextLongRun` dari `lib/program.ts`), band + alasan + tanggal paling awal, `programShape` (inti + pre-Base), ringkasan fase, kesiapan HM/FM, jarak antar maraton, selisih VDOT | Server & client (murni) |
 | `lib/program/use-program-plan.ts` | Hook: pengaturan program + aktivitas dari server (+ satu ambilan tambahan bila program butuh data lebih lama) → program, sesi, kepatuhan di client (D3); `decide()` menyimpan keputusan geser/lewati sebagai override | Client |
 | `lib/generator/block.ts` | Posisi blok & deload dari tanggal | Server |
 | `lib/generator/run.ts`, `strength.ts` | Pembuat pola | Client |
@@ -142,7 +143,7 @@ Key `localStorage` (pola `hybrid-athlete.<nama>[.vN]`, di `lib/preference-keys.t
 | --- | --- |
 | `hybrid-athlete.settings.v1` | `AthleteSettings`: `profile` (override per field), `conditions` & `equipment` (nilai penuh begitu disimpan), `runZones` & `movements` (override), `raceResults` (hasil lomba, maks 20) & `zoneOfferDismissedVdot` sejak 0.13.2. Semua kunci selain `profile` disinkron per kunci |
 | `hybrid-athlete.log.v1` | Log sesi ST |
-| `hybrid-athlete.program` | Program target |
+| `hybrid-athlete.program` | Program target: `race`, `goal`, `startDate`, `raceDate` (0.13.3), `runsPerWeek`, `id`, `activeFrom`, `riskAckAt`, `completedBefore`, `overrides`, `archived`. Bagian sinkron `program`: pengaturan utuh (dirty menang), override per sesi, arsip per id |
 | `hybrid-athlete.theme` | `light` / `dark` (kosong = sistem) |
 | `hybrid-athlete.block-enabled` | `1` / `0`; kosong = aktif hanya bila profil punya tanggal mulai blok |
 | `hybrid-athlete.onboarding.v1` | `OnboardingState` |
@@ -180,13 +181,15 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `progression.test.ts` | Aturan 2-for-2, tahan/turun, batas library, deload, gerakan tahan & band, validasi data impor. |
 | `data.test.ts` | Tanggal WIB, normalisasi field null & cadence, ringkasan 7 hari, readiness. |
 | `activity-data.test.ts` | Dedupe Huawei + salinan Strava (urutan apa pun, tanpa pasangan, beda jenis, dua rekaman berisi), split per km (konstan, berhenti, HR berbobot, data rusak, cadence per-kaki), sumber jarak (dibagi rata, GPS, tanpa GPS), kasus tepi data jam (jarak bertangga, berhenti, lonjakan, reset, GPS hilang, validasi ringkasan, ambang lari/jalan), detail demo. |
-| `program.test.ts` | Program target: fase, long run ≤ 10%/2 km, cutback, taper, peringatan, `kind` & `minutes` per sesi, hitung mundur, checklist H-1, tawaran catat hasil H+1 sampai H+14. |
+| `program.test.ts` | Program target: fase, long run ≤ 10%/2 km, cutback, taper, peringatan, `kind` & `minutes` per sesi, hitung mundur, checklist H-1, tawaran catat hasil H+1 sampai H+14. 0.13.3: panjang standar + Hari H Minggu identik, urutan pemangkasan (Base lalu Build, Peak & taper utuh), aturan kenaikan di semua panjang, peringatan puncak dibatasi, pre-Base, Hari H selain Minggu. |
+| `program-baseline.test.ts` | 112 hash `buildProgram` + `planSessions` panjang tetap (dibuat dari kode sebelum 0.13.3): 4 jarak × 3/4 lari × long run awal × target. |
+| `timeline.test.ts` | Minggu berbasis Senin, batas teknis & tanggal paling awal, band per jarak, toggle FM 16 → 12, panjang standar tetap hijau, minimum data (0 / 8 km / dekat puncak), alasan tanpa dash, ringkasan fase, kesiapan HM/FM, pernah menyelesaikan jarak, jarak antar maraton, selisih VDOT. |
 | `run-baseline.test.ts` | 108 hash keluaran generator lari tanpa `pattern` (dibuat dari kode sebelum 0.13.1) untuk menjamin parameter opsional tidak mengubah keluaran lama. |
 | `run-pattern.test.ts` | Pola lari yang diminta benar-benar terpilih bila cocok dengan level/durasi, pola tidak cocok diabaikan, 15/15 tidak pernah muncul dengan Achilles. |
 | `to-generator.test.ts` | Pemetaan semua jenis sesi × fase × jarak × 3/4 lari, durasi 30/45/60, kartu tanpa em/en dash, query prefill bolak-balik & rusak, `todaySession`, `planToday`. |
 | `prediction.test.ts` | Prioritas sumber & jendela 90 hari, filter lari latihan, waktu = invers VDOT, keyakinan FM, Riegel, `targetGap`, saran update zona (satu hasil, < 14 hari, ≥ 14 hari, ditolak lalu naik lagi). |
 | `reschedule.test.ts` | Aturan geser/lewati §4.8 (quality dengan & tanpa kandidat, 48 jam, lari tercatat, long run, easy, ST, lomba, sesi belum terlewat), `missedSessions`, dan D5 untuk semua program × sesi × hari: geser tidak mengubah sesi/km minggu lain. |
-| `program-sessions.test.ts` | Id sesi stabil (antar render & perubahan target), id baru saat program berganti, ST Senin/Rabu & taper 1×, override move/skip, parse/serialize override, gabungan override, program aktif, long run awal stabil. |
+| `program-sessions.test.ts` | Id sesi stabil (antar render & perubahan target), id baru saat program berganti, ST Senin/Rabu & taper 1×, override move/skip, parse/serialize override, gabungan override, program aktif, long run awal stabil. 0.13.3: migrasi tanpa Hari H identik, arsip saat Hari H diganti (riwayat sama, id baru, sesi mulai hari ini), tanpa arsip bila belum mulai, akhiran id, konfirmasi risiko, gabungan arsip per id. |
 | `compliance.test.ts` | Tepat hari & ±1 hari, < 80% → sebagian, easy berat → catatan, quality ringan → sebagian, long run & aktivitas ganda sehari, dua sesi berebut satu aktivitas, tenggang kemarin & terlewat, override, data kosong, ST dari log & dari intervals.icu, ringkasan minggu. |
 | `program-activities.test.ts` | Validasi rentang `/api/activities` dan route di Demo Mode tanpa key. |
 | `media.test.ts` | Setiap gerakan punya entri media, setiap path gambar ada, sumber/lisensi konsisten, gerakan baru bisa dijangkau & lolos semua aturan, titik tambat band, ★ baru mulai blok berikutnya. |

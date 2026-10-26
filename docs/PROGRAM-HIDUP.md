@@ -125,6 +125,47 @@ Catatan tambahan per sesi: `lebih-berat` bila rencana easy tapi aktivitas tergol
 - Minggu lomba: catatan taper dari program, sesi sharpener, dan checklist umum H-1 (tidur cukup, sepatu yang sudah dipakai latihan, makan yang sudah biasa, rencana pace dari prediksi). Bukan saran medis.
 - Setelah tanggal lomba: tawaran mencatat hasil lomba di Setting › Zona (memperkuat sumber 1 prediksi).
 
+### 4.10 Hari H & saran lama program (0.13.3)
+
+Atlet memilih **tanggal mulai** dan **Hari H**; panjang program = jumlah minggu di antaranya (berbasis Senin, dari minggu mulai sampai minggu yang berisi Hari H, inklusif). Hari H boleh hari apa saja: sesi lomba di hari itu, dan sesi lain di minggu lomba hanya yang jatuh sebelum Hari H. Saran tidak pernah memblokir (PRD §3); hanya batas teknis yang membuat program tidak bisa disusun.
+
+**A. Tabel rekomendasi umum** (bukan bukti klinis):
+
+| Jarak | Batas teknis | Minimum | Rekomendasi | Maksimum (lebih = pre-Base) | Taper |
+| --- | --- | --- | --- | --- | --- |
+| 5K | taper + 2 (3) | 6 | 8–10 | 12 | 1 |
+| 10K | taper + 2 (3) | 8 | 10–12 | 14 | 1 |
+| HM | taper + 2 (4) | 10 | 12–16 | 20 | 2 |
+| FM | taper + 2 (5) | 16, atau 12 bila sudah pernah menyelesaikan FM | 16–20 | 24 | 3 |
+
+"Pernah menyelesaikan jarak ini" terisi dari data (hasil lomba jarak itu, atau lari ≥ 90% jarak dalam data yang diambil) dan bisa diubah atlet lewat toggle.
+
+**B. Minimum dari data.** Kenaikan long run disimulasikan dengan aturan program yang sama (≤ 10% dan ≤ 2 km per minggu, cutback tiap minggu ke-4) dari long run terjauh 30 hari terakhir **yang sebenarnya** sampai **long run puncak program standar** (5K 8,5 · 10K 10 · HM 18 · FM 25 km; puncak nominal 10/14/30 km tidak tercapai di panjang standar), ditambah taper. Di bawah 5 km dihitung dari 5 km (kenaikan 10% di bawahnya belum sampai 0,5 km). Tanpa data dihitung dari long run awal default program. Minimum efektif = max(minimum tabel, minimum data).
+
+**C. Band tanggal:**
+
+| Band | Syarat | Akibat |
+| --- | --- | --- |
+| Tidak bisa disusun | < taper + 2 minggu | Program tidak dibuat; tanggal paling awal ditandai |
+| Merah | < minimum efektif | Boleh setelah centang "Saya mengerti risikonya" (disimpan bersama program) |
+| Kuning | minimum efektif sampai < rekomendasi bawah | Base dipersingkat |
+| Hijau | rekomendasi bawah (atau minimum efektif bila lebih besar) sampai maksimum | Program biasa |
+| Abu-abu | > maksimum | Minggu pre-Base sebelum program maksimum, tanpa konfirmasi |
+
+Setiap band membawa alasan, mis. "Long run terjauhmu 8 km. Untuk mencapai long run puncak 25 km dengan kenaikan aman ditambah taper 3 minggu, butuh minimal 24 minggu."
+
+**D. Kesiapan** (peringatan lunak di bawah pemilih): HM rata-rata ≥ 25 km/minggu (4 minggu terakhir) dan long run terjauh 30 hari ≥ 10 km; FM ≥ 24 km/minggu (ideal 32–48 km) dan ≥ 10 km, plus catatan satu tahun lari rutin bila belum pernah HM/FM; 5K/10K tanpa syarat. Bila tidak terpenuhi: saran Hari H lebih jauh atau pre-Base.
+
+**E. Jarak antar lomba** (hanya aturan FM yang punya sumber jelas): FM sebelumnya < 2 minggu sebelum program mulai → 1–2 minggu pemulihan dulu; FM lagi < 12 minggu setelah FM sebelumnya → umumnya 8–12 minggu untuk target waktu, ≥ 12 minggu bagi yang belum berpengalaman.
+
+**F. Panjang tidak standar.** Lebih pendek: Base dipangkas dulu, lalu Build; Peak tetap sepanjang standar (2 minggu, FM 3) kecuali pra-taper lebih pendek; taper tidak pernah dipangkas; aturan kenaikan long run tidak berubah, dan puncak yang tidak tercapai diberi peringatan dengan angka yang tercapai. Di antara panjang standar dan maksimum: rumus proporsional yang sama. Lebih dari maksimum: minggu pre-Base (easy + strides, long run naik pelan dari terjauh asli sampai titik awal program inti), lalu program sepanjang maksimum dengan cutback dihitung dari minggu pertama program inti. Panjang standar dengan Hari H Minggu menghasilkan program yang identik dengan sebelum 0.13.3.
+
+**G. Target waktu:** VDOT yang dibutuhkan target vs VDOT perkiraan sekarang (0.13.2) dan minggu tersedia. Informasi saja, tanpa label realistis/tidak.
+
+**I. Ganti Hari H, mulai, atau jarak di tengah program:** program lama diarsipkan (pengaturan beku termasuk long run awal, override, tanggal berakhir) dan tetap terbaca di Program › Program sebelumnya dan kalender; program baru dimulai minggu ini dengan sesi mulai hari ini dan id `{jarak}-{Senin mulai}-{Hari H}`. Arsip disinkron dan digabung per id tanpa kehilangan override.
+
+**J. Migrasi:** program tanpa Hari H mendapat Hari H = mulai + panjang lama − 1 hari dengan id lama, jadi status & override tidak berubah.
+
 ## 5. Tampilan
 
 - Ikuti DESIGN-SYSTEM: satu Display per layar, StatRow untuk angka, label mono, copy tanpa em dash/en dash dan tanpa tanda seru.
@@ -141,6 +182,7 @@ Catatan tambahan per sesi: `lebih-berat` bila rencana easy tapi aktivitas tergol
 | `lib/program/to-generator.ts` | Pemetaan sesi → isian generator / kartu sesi | Client |
 | `lib/program/prediction.ts` | VDOT dari sumber, invers, keyakinan, Riegel | Server & client |
 | `lib/program/reschedule.ts` | Opsi geser/lewati | Server & client |
+| `lib/program/timeline.ts` | Saran lama program dari Hari H (0.13.3): tabel, minimum data, band, kesiapan, jarak antar lomba | Server & client |
 | `lib/coach.ts` | `suggestFor()` menerima sesi rencana | Server & client |
 | Data source intervals | Rentang aktivitas mengikuti program | Server |
 
@@ -152,6 +194,8 @@ Semua modul baru murni (tanpa I/O, tanggal dari parameter, WIB lewat `lib/date.t
 - `compliance.test.ts`: tepat hari, ±1 hari, dua sesi berebut satu aktivitas, aktivitas ganda sehari, < 80% → sebagian, easy dikerjakan berat → catatan, terlewat setelah tenggat, ST dari log lokal dan dari intervals.icu, data kosong/null aman.
 - `prediction.test.ts`: invers VDOT cocok dengan tabel Daniels (contoh TRAINING-LOGIC: 5K 30:40 → VDOT ±30), prioritas sumber, keyakinan FM turun bila long run pendek, Riegel pembanding.
 - `reschedule.test.ts`: semua aturan §4.8, tidak pernah menambah volume minggu berikutnya, tanpa kandidat → hanya lewati.
+- `timeline.test.ts` (0.13.3): batas band per jarak, toggle FM 16 → 12, minimum data (0 / 8 km / dekat puncak), batas teknis & tanggal paling awal, kesiapan, jarak antar lomba, data kosong.
+- `program-baseline.test.ts` (0.13.3): program panjang tetap identik dengan sebelum 0.13.3 (hash).
 - `coach.test.ts` (tambahan): saran terhadap rencana hanya menurunkan, tidak berantai, long run dipendekkan, tanpa rencana perilaku lama tetap.
 - `program.test.ts` (tambahan): pemetaan to-generator untuk setiap jenis sesi dan fase.
 - `sync.test.ts` (tambahan): override digabung per entri.
@@ -163,6 +207,7 @@ Semua modul baru murni (tanpa I/O, tanggal dari parameter, WIB lewat `lib/date.t
 | **0.13.0** | Sesi ber-id + override (model data & sinkron), kepatuhan, rencana di kalender, rentang mengikuti program, ringkasan minggu |
 | **0.13.1** | Program → generator (lari & ST) + kartu sesi program, saran hari ini tahu rencana |
 | **0.13.2** | Prediksi, saran update zona, sesi terlewat (geser/lewati), hitung mundur & minggu lomba |
+| **0.13.3** | Hari H dipilih atlet dengan saran lama program, pre-Base, arsip program saat Hari H diganti (§4.10) |
 
 ## 9. Di luar cakupan
 - Semua logika ST baru (fase ST, session-RPE, mode latihan, progresi alat terbatas): **0.14**.

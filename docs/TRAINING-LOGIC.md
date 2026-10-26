@@ -142,12 +142,14 @@ Rekomendasi diterapkan ke workout lalu **tetap di-clamp ke rentang library**, se
 
 Kode: [`lib/program.ts`](../lib/program.ts). Halaman **Program**.
 
-| Target | Lama | Taper | Long run puncak | Quality fase Peak |
+| Target | Panjang standar | Taper | Long run puncak | Quality fase Peak |
 | --- | --- | --- | --- | --- |
 | PB 5K | 8 minggu | 1 minggu | 10 km | Interval 5×800 m @ pace mini interval |
 | PB 10K | 10 minggu | 1 minggu | 14 km | Interval 4×1 km @ pace mini interval |
 | Half Marathon | 12 minggu | 2 minggu | 18 km | Race pace 3×2 km |
 | Full Marathon | 16 minggu | 3 minggu | 30 km | Norwegian 4×4 + long run dengan 3 km terakhir di race pace |
+
+Sejak 0.13.3 panjang program mengikuti Hari H yang dipilih atlet (lihat "Hari H & saran lama program" di bawah); panjang standar adalah titik acuan dan tetap menghasilkan program yang sama seperti sebelumnya.
 
 - **Fase:** Base (fartlek ringan) → Build (tempo) → Peak (spesifik lomba) → Taper (strides, volume turun). Minggu terakhir adalah minggu lomba dengan sesi sharpener.
 - **Long run:** naik ≤ 10% **dan** ≤ 2 km per minggu. Setiap minggu ke-4 ada cutback ±75% tanpa sesi berat. Long run awal diambil dari long run terjauh 30 hari terakhir di intervals.icu (maksimal 75% puncak).
@@ -198,6 +200,46 @@ Kode: [`lib/program/to-generator.ts`](../lib/program/to-generator.ts). Spesifika
 - **Pola rencana** (`RunInput.pattern`, opsional) hanya dipakai selama isian sama dengan rencana. Generator tetap memanggil `rng.pick` yang sama, sehingga tanpa `pattern` keluarannya identik dengan sebelum 0.13.1 (dijaga test hash `run-baseline`). Pola yang tidak cocok dengan level diabaikan; 15/15 tetap dilarang bila Achilles aktif.
 - **Kartu sesi program**: jarak, detail rencana, cue kondisi aktif (cadence, rel kereta, catatan kondisi), dan teks salin format Copy Set, misalnya `Run [14 km, Pace 7:20–8:43]`. Long run FM dengan 3 km race pace dipecah (km − 3 easy, lalu 3 km race pace). Long run yang dipendekkan saran menampilkan jarak baru dan jarak rencana.
 - **Quality spesifik lomba yang diturunkan saran** dikerjakan sebagai lari biasa di generator dengan durasi rencana (Race pace 3×2 km = 60', Sharpener = 30').
+
+### Hari H & saran lama program (0.13.3)
+
+Kode: [`lib/program/timeline.ts`](../lib/program/timeline.ts), panjang variabel di [`lib/program.ts`](../lib/program.ts). Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.10. Semua saran tidak memblokir; hanya batas teknis (taper + 2 minggu) yang membuat program tidak bisa disusun.
+
+**Rekomendasi umum** (bukan bukti klinis):
+
+| Jarak | Batas teknis | Minimum | Rekomendasi | Maksimum (lebih = pre-Base) | Taper |
+| --- | --- | --- | --- | --- | --- |
+| 5K | taper + 2 (3) | 6 | 8–10 | 12 | 1 |
+| 10K | taper + 2 (3) | 8 | 10–12 | 14 | 1 |
+| HM | taper + 2 (4) | 10 | 12–16 | 20 | 2 |
+| FM | taper + 2 (5) | 16, atau 12 bila sudah pernah menyelesaikan FM | 16–20 | 24 | 3 |
+
+| Aturan | Detail |
+| --- | --- |
+| Minggu tersedia | Berbasis Senin: dari minggu mulai sampai minggu yang berisi Hari H, inklusif. Hari H boleh hari apa saja |
+| Minimum dari data | Simulasi kenaikan long run program (≤ 10%, ≤ 2 km, cutback tiap minggu ke-4) dari long run terjauh 30 hari yang sebenarnya (paling rendah 5 km) sampai puncak program standar (5K 8,5 · 10K 10 · HM 18 · FM 25 km), ditambah taper. Tanpa data: dari long run awal default |
+| Minimum efektif | max(minimum tabel, minimum data). FM: minimum tabel 12 bila sudah pernah menyelesaikan FM |
+| Band | Merah < minimum efektif (butuh konfirmasi), kuning sampai < rekomendasi bawah, hijau sampai maksimum, abu-abu > maksimum (pre-Base) |
+| Lebih pendek | Base dipangkas dulu, lalu Build. Peak tetap 2 minggu (FM 3), taper utuh, aturan kenaikan tidak berubah; puncak yang tidak tercapai diberi peringatan dengan angka yang tercapai |
+| Lebih panjang | Sampai maksimum: rumus proporsional yang sama (Base 40%, Build 35%). Lebih dari maksimum: pre-Base (easy + strides, long run naik pelan dari terjauh asli sampai titik awal program inti), lalu program sepanjang maksimum |
+| Kesiapan HM | Rata-rata ≥ 25 km/minggu (4 minggu) dan long run terjauh 30 hari ≥ 10 km |
+| Kesiapan FM | ≥ 24 km/minggu (ideal 32–48 km) dan ≥ 10 km; belum pernah HM/FM → catatan satu tahun lari rutin |
+| Jarak antar lomba | Hanya FM: FM sebelumnya < 2 minggu sebelum mulai → 1–2 minggu pemulihan dulu; FM lagi < 12 minggu setelahnya → 8–12 minggu untuk target waktu, ≥ 12 minggu bagi yang belum berpengalaman |
+| Target waktu | VDOT yang dibutuhkan vs VDOT perkiraan sekarang, tanpa penilaian |
+| Ganti Hari H/mulai/jarak | Program lama diarsipkan dengan riwayatnya, program baru mulai minggu ini (sesi mulai hari ini) |
+
+Catatan: dengan aturan kenaikan yang ada, program panjang standar hanya mencapai puncak nominal untuk HM (5K 8,5 dari 10, 10K 10 dari 14, FM 25 dari 30 km). Karena itu minimum data memakai puncak program standar, dan program yang lebih panjang tetap boleh naik sampai puncak nominal.
+
+Referensi rekomendasi umum:
+- Hal Higdon, jarak mingguan sebelum program maraton (TrainingPeaks): https://www.trainingpeaks.com/blog/weekly-mileage-before-starting-a-marathon-training-program/
+- REI, How to Train for a Marathon: https://www.rei.com/learn/expert-advice/training-for-your-first-marathon.html
+- Active.com, Are You Ready to Run a Marathon: https://origin-a3.active.com/running/articles/are-you-ready-to-run-a-marathon-8598743
+- Runner's World SA, program half marathon pemula 12 minggu (prasyarat): https://www.runnersworld.co.za/training/12-week-half-marathon-plan-beginners/
+- Marathon Handbook, program half marathon (≥ 12 minggu dengan latar belakang lari): https://marathonhandbook.com/trainingplans/half-marathon-training-plans/
+- Peloton, berapa lama latihan untuk maraton: https://www.onepeloton.com/en-GB/blog/how-long-does-it-take-to-train-for-a-marathon
+- iRunFar, pemulihan di antara lomba: https://www.irunfar.com/quick-turnarounds-recover-and-train-during-a-full-race-season
+- Panduan Pfitzinger tentang 8–12 minggu di antara maraton (sebagaimana dikutip): https://www.chiacharge.co.uk/blogs/news/how-long-should-you-rest-between-marathons
+- Active.com, program 5K menengah 7 minggu: https://www.active.com/running/articles/intermediate-5k-training-plan-7-weeks
 
 ### Perkiraan waktu lomba (0.13.2)
 
