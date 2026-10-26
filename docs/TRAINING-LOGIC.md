@@ -102,6 +102,23 @@ Kode: [`lib/coach.ts`](../lib/coach.ts) dan [`lib/readiness.ts`](../lib/readines
 
 Kartu "7 hari terakhir" di halaman Profil juga menampilkan bar distribusi easy/berat (dengan garis acuan 80%) dan persentase perubahan km.
 
+### Saran terhadap sesi rencana (0.13.1)
+
+Bila ada program aktif dan sesi lari hari ini, saran dihitung **terhadap rencana**, bukan terhadap pilihan di generator ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.5). Karena basisnya tetap rencana, menerapkan saran tidak membuatnya turun lagi (tidak berantai). Hasilnya hanya berisi nilai yang lebih ringan dari rencana; tanpa rencana, aturan di atas berlaku persis seperti sebelumnya.
+
+| Pemicu | Sesi rencana | Saran |
+| --- | --- | --- |
+| Readiness rendah | Quality | Turun satu level, durasi sama |
+| Readiness rendah | Easy / recovery | Tidak ada (easy tidak diturunkan) |
+| Readiness rendah | Long run | ±75% jarak rencana (dibulatkan 0,5 km), seluruhnya pace easy |
+| 80/20 terlampaui | Quality | Easy |
+| Kenaikan km > 30% | Lari 30/45/60' | Maksimal 30' |
+| Kenaikan km > 30% | Long run | Ditahan di jarak long run minggu lalu bila lebih pendek |
+| Setelah ST kaki | Quality High | Maksimal Moderate |
+| Apa pun | Lomba | Tidak ada saran |
+
+Beberapa pemicu sekaligus → yang paling ringan. Kartu saran di Profil menulis `Rencana: Tempo 45'. Saran: Easy 30'.` dengan alasan di dropdown; **Terapkan** membuka generator dengan versi yang diturunkan, atau kartu long run dengan jarak yang dipendekkan. Strip saran di Generator Lari (bila dibuka dari program) memakai aturan yang sama, dan tombol **Gunakan** hanya menurunkan isian saat ini.
+
 ## 6. Progresi beban
 
 Kode: [`lib/progression.ts`](../lib/progression.ts). Penyimpanan: [`lib/training-log.ts`](../lib/training-log.ts).
@@ -158,6 +175,29 @@ Kode: [`lib/program/compliance.ts`](../lib/program/compliance.ts), [`lib/program
 | Long run awal | Lari terjauh 30 hari **sebelum program mulai**, supaya target long run minggu yang sudah lewat tidak bergeser |
 
 Referensi: Daniels J. (2014). *Daniels' Running Formula* (3rd ed.), Human Kinetics, untuk jenis sesi per fase yang dicocokkan.
+
+### Sesi rencana → generator (0.13.1)
+
+Kode: [`lib/program/to-generator.ts`](../lib/program/to-generator.ts). Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.4, D4. Tombol **Kerjakan sesi hari ini** di Program › Minggu ini dan ringkasan Profil membuka sesi hari ini yang belum selesai atau dilewati (lari didahulukan).
+
+| Sesi | Tujuan |
+| --- | --- |
+| Easy / recovery | Lari Easy, menit dibulatkan ke 30/45/60 terdekat (seri → yang lebih pendek) |
+| Quality Base: Fartlek | Moderate |
+| Quality Build: Tempo | Moderate, pola tempo |
+| Quality cutback/taper: Easy + strides | Easy 30' |
+| Quality Peak 5K/10K: Interval | High |
+| Quality Peak FM: Norwegian 4×4 | High, pola 4×4, minimal 45' |
+| Quality Peak HM: Race pace 3×2 km · minggu lomba: Sharpener | Kartu sesi program |
+| Long run · lomba | Kartu sesi program |
+| ST Senin | Strength Lower 45' |
+| ST Rabu | Strength Upper Pull (minggu ganjil) / Upper Push (genap) 45'; taper & minggu lomba Easy |
+
+- **Durasi quality** tanpa menit tertulis = km × 7,5 menit (termasuk pemanasan & pendinginan), lalu dibulatkan. Judul yang tidak dikenali menjadi kartu, tidak pernah dipaksa masuk generator.
+- **Isian generator** lewat query (`/run?src=program&w=6&k=quality&d=45&lvl=moderate&p=tempo&t=Tempo`). Nilai yang tidak dikenal dibuang, jadi query yang diubah tidak bisa menyuntik isi. Isian tetap bisa diubah; chip `DARI PROGRAM · MINGGU N` tampil selama isian sama dengan rencana (atau dengan versi saran, ditambah `· DISESUAIKAN SARAN`).
+- **Pola rencana** (`RunInput.pattern`, opsional) hanya dipakai selama isian sama dengan rencana. Generator tetap memanggil `rng.pick` yang sama, sehingga tanpa `pattern` keluarannya identik dengan sebelum 0.13.1 (dijaga test hash `run-baseline`). Pola yang tidak cocok dengan level diabaikan; 15/15 tetap dilarang bila Achilles aktif.
+- **Kartu sesi program**: jarak, detail rencana, cue kondisi aktif (cadence, rel kereta, catatan kondisi), dan teks salin format Copy Set, misalnya `Run [14 km, Pace 7:20–8:43]`. Long run FM dengan 3 km race pace dipecah (km − 3 easy, lalu 3 km race pace). Long run yang dipendekkan saran menampilkan jarak baru dan jarak rencana.
+- **Quality spesifik lomba yang diturunkan saran** dikerjakan sebagai lari biasa di generator dengan durasi rencana (Race pace 3×2 km = 60', Sharpener = 30').
 
 **Mode bebas:** program blok mingguan (bagian 4) bisa dimatikan lewat toggle. Saat mati, tidak ada minggu deload, dan gerakan utama ★ dipilih per sesi (tetap multi-joint dan tetap dicatat untuk progresi beban).
 

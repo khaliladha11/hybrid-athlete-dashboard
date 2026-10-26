@@ -4,6 +4,20 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.13.1] · 2026-10-26 · Program hidup: program → generator & saran tahu rencana
+
+Tahap kedua [PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) (§4.4, §4.5, D4).
+
+### Ditambahkan
+- **Kerjakan sesi hari ini** di Program › Minggu ini dan ringkasan minggu di Profil. Sesi lari & ST membuka generator dengan isian dari rencana (tetap bisa diubah); long run, lomba, Race pace 3×2 km, dan Sharpener tampil sebagai **kartu sesi program** dengan jarak, cue kondisi aktif, dan teks **Copy Set**.
+- Chip `DARI PROGRAM · MINGGU N` di Generator Lari & ST selama isian belum diubah (`· DISESUAIKAN SARAN` bila sama dengan versi saran).
+- **Saran hari ini terhadap rencana**: kartu saran di Profil menulis `Rencana: Tempo 45'. Saran: Easy 30'.`, alasan tetap di dropdown, dan **Terapkan** membuka generator versi turun atau kartu long run yang dipendekkan (±75%, pace easy). Strip saran di Generator Lari yang dibuka dari program memakai aturan yang sama. Hanya menurunkan, tidak berantai, tidak memblokir; tanpa program perilakunya sama seperti sebelumnya.
+- `RunInput.pattern` (opsional) di generator lari untuk pola rencana (tempo, cruise, progression, 4×4, 15/15, varian easy). Tanpa parameter ini keluaran identik dengan sebelumnya.
+- 23 test baru (`run-baseline` dengan 108 hash keluaran generator dari kode sebelum perubahan, `run-pattern`, `to-generator`, tambahan `coach`), total 398 di 29 file.
+
+### Dokumentasi
+- PRD §4.2, §4.5, §6 (keterbatasan "Program & generator belum terhubung" dihapus), §8; TRAINING-LOGIC §5 (saran terhadap rencana) dan §7 (pemetaan sesi → generator); README.
+
 ## [0.13.0] · 2026-10-26 · Program hidup: kepatuhan & kalender
 
 Tahap pertama [PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) (§3, §4.1–4.3).

@@ -273,7 +273,7 @@ Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di pera
 | **0.10.1–0.10.2** Logo & data aktivitas | ✅ Selesai | Logo "Forward H", aktivitas ganda Huawei + Strava dihitung sekali, split per km yang divalidasi (GPS bila perlu), pemilih waktu & pace di Setting |
 | **0.11** Onboarding & deploy pribadi | ✅ Selesai | Wizard 10 langkah, profil di perangkat + JSON netral, cek koneksi di server, pengingat proteksi deploy, pasang ke HP, tur in-app, strength tanpa alat |
 | **0.12** Aman & tersinkron | ✅ Selesai | CI GitHub Actions, sandi aplikasi opsional, sinkron ke Upstash Redis milikmu, cadangan otomatis harian dengan Pulihkan, Sambungkan perangkat ini |
-| **0.13** Program hidup | 🟡 Berjalan | 0.13.0 selesai: kepatuhan rencana vs aktual, rencana di kalender, ringkasan minggu di Profil. Berikutnya: program → generator, prediksi waktu lomba, sesi terlewat. Spesifikasi: [docs/PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) |
+| **0.13** Program hidup | 🟡 Berjalan | 0.13.0 & 0.13.1 selesai: kepatuhan rencana vs aktual, rencana di kalender, ringkasan minggu di Profil, "Kerjakan sesi hari ini" ke generator, saran tahu rencana. Berikutnya: prediksi waktu lomba, sesi terlewat, hitung mundur. Spesifikasi: [docs/PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) |
 | **0.14** Strength hidup | 💡 Rencana | ST mengikuti fase program, session-RPE masuk beban, mode latihan + timer, tes kekuatan. Cakupan: [docs/STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) |
 | **0.15** Insight | 💡 Rencana | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence, volume ST; check-in subjektif harian |
 | **1.0** Siap pakai penuh | 💡 Rencana | Offline, kirim workout ke intervals.icu/jam, test e2e. Detail: [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
@@ -284,7 +284,7 @@ Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 
 - **Next.js 16** (App Router, Server Components) + **React 19** + **TypeScript**
 - **Tailwind CSS 4** dengan token semantik di [`app/globals.css`](app/globals.css). Dark mode mengikuti pengaturan sistem.
-- **Vitest**: 26 file test, 375 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
+- **Vitest**: 29 file test, 398 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
 - **intervals.icu REST API** (aktivitas, wellness, stream per detik), dipanggil hanya dari server
 - Grafik SVG buatan sendiri (Segment Skyline), tanpa library chart
 - Tanpa database. Profil default disimpan di JSON; Setting, log sesi, dan program di localStorage perangkat (bisa diekspor/impor).
