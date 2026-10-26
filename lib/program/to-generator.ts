@@ -100,6 +100,9 @@ export interface RunPrefill {
   label: string;
   /** Isian sudah diturunkan oleh saran. */
   adjusted?: boolean;
+  /** Level & durasi menurut rencana (berbeda dari isian bila `adjusted`). */
+  planDifficulty: Difficulty;
+  planDuration: Duration;
 }
 
 export interface StrengthPrefill {
@@ -126,7 +129,11 @@ export function generatorHref(s: PlannedSession, t: GeneratorTarget, override: {
     q.set("lvl", difficulty);
     if (t.pattern && difficulty === t.difficulty) q.set("p", t.pattern);
     q.set("t", shortTitle(s.title));
-    if (override.difficulty || override.duration) q.set("adj", "1");
+    if (override.difficulty || override.duration) {
+      q.set("adj", "1");
+      q.set("plvl", t.difficulty);
+      q.set("pd", String(t.duration));
+    }
     return `/run?${q.toString()}`;
   }
   q.set("type", t.type);
@@ -152,7 +159,11 @@ export function parseRunPrefill(params: Params): RunPrefill | null {
   const kind = one(params.k) as PlanKind;
   if (!b || !KINDS.includes(kind) || !isRunKind(kind)) return null;
   const p = one(params.p);
-  return { ...b, kind, ...(isRunPattern(p) ? { pattern: p } : {}), ...(one(params.adj) === "1" ? { adjusted: true } : {}) };
+  const adjusted = one(params.adj) === "1";
+  const planDifficulty = one(params.plvl) as Difficulty;
+  const planDuration = Number(one(params.pd)) as Duration;
+  const plan = adjusted && DIFFICULTIES.includes(planDifficulty) && DURATIONS.includes(planDuration) ? { planDifficulty, planDuration } : { planDifficulty: b.difficulty, planDuration: b.duration };
+  return { ...b, kind, ...(isRunPattern(p) ? { pattern: p } : {}), ...(adjusted ? { adjusted: true } : {}), ...plan };
 }
 
 export function parseStrengthPrefill(params: Params): StrengthPrefill | null {

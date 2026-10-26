@@ -99,9 +99,9 @@ describe("prefill generator lewat query", () => {
     const tempo = hm.find((s) => s.title.startsWith("Tempo"))!;
     const href = generatorHref(tempo, toGenerator(tempo))!;
     expect(href.startsWith("/run?")).toBe(true);
-    expect(parseRunPrefill(params(href))).toEqual({ week: tempo.week, kind: "quality", duration: 45, difficulty: "moderate", pattern: "tempo", label: "Tempo" });
+    expect(parseRunPrefill(params(href))).toEqual({ week: tempo.week, kind: "quality", duration: 45, difficulty: "moderate", pattern: "tempo", label: "Tempo", planDifficulty: "moderate", planDuration: 45 });
     const lowered = parseRunPrefill(params(generatorHref(tempo, toGenerator(tempo), { difficulty: "easy" })!));
-    expect(lowered).toEqual({ week: tempo.week, kind: "quality", duration: 45, difficulty: "easy", label: "Tempo", adjusted: true });
+    expect(lowered).toEqual({ week: tempo.week, kind: "quality", duration: 45, difficulty: "easy", label: "Tempo", adjusted: true, planDifficulty: "moderate", planDuration: 45 });
   });
 
   it("strength: bolak-balik; kartu tidak punya tautan", () => {
@@ -116,7 +116,9 @@ describe("prefill generator lewat query", () => {
     expect(parseRunPrefill({ src: "program", w: "5", k: "quality", d: "50", lvl: "moderate" })).toBeNull();
     expect(parseRunPrefill({ src: "program", w: "5", k: "st-lower", d: "45", lvl: "moderate" })).toBeNull();
     expect(parseRunPrefill({ src: "program", w: "0", k: "easy", d: "45", lvl: "easy" })).toBeNull();
-    expect(parseRunPrefill({ src: "program", w: "5", k: "easy", d: "45", lvl: "easy", p: "jalan", t: "<script>" })).toEqual({ week: 5, kind: "easy", duration: 45, difficulty: "easy", label: "Sesi program" });
+    expect(parseRunPrefill({ src: "program", w: "5", k: "easy", d: "45", lvl: "easy", p: "jalan", t: "<script>" })).toEqual({ week: 5, kind: "easy", duration: 45, difficulty: "easy", label: "Sesi program", planDifficulty: "easy", planDuration: 45 });
+    // Rencana asli rusak → dianggap sama dengan isian.
+    expect(parseRunPrefill({ src: "program", w: "5", k: "quality", d: "45", lvl: "easy", adj: "1", plvl: "brutal", pd: "99" })).toMatchObject({ adjusted: true, planDifficulty: "easy", planDuration: 45 });
     expect(parseStrengthPrefill({ src: "program", w: "5", type: "legs", d: "45", lvl: "easy" })).toBeNull();
   });
 
