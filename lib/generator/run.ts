@@ -54,7 +54,20 @@ export interface RunInput {
   free?: boolean;
   /** Cadence rata-rata lari terakhir (SPM total) untuk target personal. */
   cadenceSpm?: number;
+  /**
+   * Pola yang diminta (mis. dari sesi program, 0.13.1). Hanya dipakai bila cocok dengan level/durasi;
+   * tanpa parameter ini keluaran identik dengan sebelumnya (rng dipanggil sama persis).
+   */
+  pattern?: RunPattern;
 }
+
+export const RUN_PATTERNS = ["continuous", "runWalk", "cadenceDrill", "tempo", "cruise", "progression", "4x4", "15/15"] as const;
+export type RunPattern = (typeof RUN_PATTERNS)[number];
+export const isRunPattern = (x: unknown): x is RunPattern => typeof x === "string" && (RUN_PATTERNS as readonly string[]).includes(x);
+
+const EASY_VARIANTS = ["continuous", "runWalk", "cadenceDrill"] as const;
+type EasyVariant = (typeof EASY_VARIANTS)[number];
+const isEasyVariant = (x: unknown): x is EasyVariant => typeof x === "string" && (EASY_VARIANTS as readonly string[]).includes(x);
 
 const fmtWork = (min: number) => (min < 1 ? `${Math.round(min * 60)}"` : `${min}'`);
 
@@ -83,6 +96,17 @@ const MODERATE_OPTIONS: Record<Duration, ModerateOption[]> = {
     { kind: "progression", wu: 10, z2: 22, tempo: 18 },
   ],
 };
+
+/** Opsi Moderate yang sesuai pola: tempo (satu blok atau jeda > 1'), cruise (berseri, jeda ≤ 1'), progression. */
+function moderateFits(o: ModerateOption, pattern?: RunPattern): boolean {
+  if (pattern === "progression") return o.kind === "progression";
+  if (o.kind !== "tempo") return false;
+  const cruise = o.reps > 1 && o.rest <= 1;
+  return pattern === "cruise" ? cruise : pattern === "tempo" ? !cruise : false;
+}
+
+/** Pola High 45'/60' yang diminta menggantikan hasil acak; 15/15 tetap dibatalkan bila sprint dilarang. */
+const pickHigh = (picked: "4x4" | "15/15", pattern?: RunPattern) => (pattern === "4x4" || pattern === "15/15" ? pattern : picked);
 
 const MINI_PATTERNS = [
   { work: 1, rest: 1, max: 8 },
@@ -131,7 +155,8 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
 
   if (difficulty === "easy") {
     const main = duration - 10;
-    const variant = rng.pick(["continuous", "runWalk", "cadenceDrill"] as const);
+    const picked = rng.pick(EASY_VARIANTS);
+    const variant = isEasyVariant(input.pattern) ? input.pattern : picked;
     const warmup = block("warmup", "Pemanasan", [walk(5, "Jalan cepat + dynamic drill ringan")]);
     const cooldown = block("cooldown", "Pendinginan", [walk(5, "Jalan santai + calf stretch")]);
     if (variant === "continuous") {
@@ -161,7 +186,8 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
     }
     notes.push("Jaga HR < 140. Kalau HR naik, perlambat atau jalan sampai turun.");
   } else if (difficulty === "moderate") {
-    const o = rng.pick(MODERATE_OPTIONS[duration]);
+    const fits = MODERATE_OPTIONS[duration].filter((x) => moderateFits(x, input.pattern));
+    const o = rng.pick(fits.length ? fits : MODERATE_OPTIONS[duration]);
     const warmup = block("warmup", "Pemanasan Z2", [easyRun(o.wu, "Easy jog Z2 (2 menit terakhir naik bertahap)")]);
     if (o.kind === "progression") {
       const cd = duration - o.wu - o.z2 - o.tempo;
@@ -208,7 +234,7 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
       block("cooldown", "Pendinginan", [jog(cd, "Jog/jalan santai")]),
     ];
     notes.push("Kalau form mulai rusak (cadence turun, kaki menyilang), hentikan repetisi.");
-  } else if (rng.pick(["4x4", "15/15"] as const) === "4x4" || p.rules.avoidSprints) {
+  } else if (pickHigh(rng.pick(["4x4", "15/15"] as const), input.pattern) === "4x4" || p.rules.avoidSprints) {
     // Kondisi tendon (Achilles) → tanpa sprint 15/15; 4×4 tetap dipakai.
     // Norwegian 4x4 (Helgerud dkk. 2007): 4×(4' kerja + 3' recovery jog) = 28 menit.
     const wu = duration === 45 ? 10 : 12;
