@@ -164,3 +164,43 @@ describe("aktivasi pertama", () => {
     expect(mergePart("program", null, "p", [], true)).toBe("p");
   });
 });
+
+describe("program: override digabung per sesi (0.13)", () => {
+  const ov = (sessionId: string, decidedAt: string, action: "move" | "skip" = "skip", toDate?: string) => ({ sessionId, action, decidedAt, ...(toDate ? { toDate } : {}) });
+  const prog = (goal: string, overrides: unknown[] = []) => JSON.stringify({ race: "hm", goal, startDate: "2026-01-05", runsPerWeek: 3, ...(overrides.length ? { overrides } : {}) });
+  const parsed = (s: string | null) => JSON.parse(s ?? "null");
+
+  it("kunci berubah dipisah: pengaturan vs override", () => {
+    expect(changedKeys("program", prog("2:30:00"), prog("2:20:00"))).toEqual(["settings"]);
+    expect(changedKeys("program", prog("2:30:00"), prog("2:30:00", [ov("s1", "2026-01-06T00:00:00Z")]))).toEqual(["overrides"]);
+    // Urutan kunci JSON tidak dianggap perubahan.
+    expect(changedKeys("program", prog("2:30:00"), JSON.stringify({ runsPerWeek: 3, startDate: "2026-01-05", goal: "2:30:00", race: "hm" }))).toEqual([]);
+  });
+
+  it("override dari dua perangkat sama-sama bertahan; pengaturan mengikuti aturan dirty", () => {
+    const server = prog("2:20:00", [ov("s1", "2026-01-06T00:00:00Z")]); // HP: target baru + lewati s1
+    const local = prog("2:30:00", [ov("s2", "2026-01-07T00:00:00Z", "move", "2026-01-09")]); // laptop: geser s2
+    const m = parsed(mergePart("program", server, local, ["overrides"]));
+    expect(m.goal).toBe("2:20:00");
+    expect(m.overrides.map((o: { sessionId: string }) => o.sessionId)).toEqual(["s1", "s2"]);
+    expect(parsed(mergePart("program", server, local, ["settings", "overrides"])).goal).toBe("2:30:00");
+  });
+
+  it("keputusan terbaru untuk sesi yang sama menang; komutatif & idempoten", () => {
+    const a = prog("2:30:00", [ov("s1", "2026-01-06T00:00:00Z")]);
+    const b = prog("2:30:00", [ov("s1", "2026-01-08T00:00:00Z", "move", "2026-01-09")]);
+    const ab = mergePart("program", a, b, ["overrides"]);
+    expect(parsed(ab).overrides).toEqual([ov("s1", "2026-01-08T00:00:00Z", "move", "2026-01-09")]);
+    expect(parsed(mergePart("program", b, a, ["overrides"])).overrides).toEqual(parsed(ab).overrides);
+    expect(mergePart("program", ab, ab, ["overrides"])).toBe(ab);
+  });
+
+  it("aktivasi pertama: pengaturan server menang, override tetap digabung; reset lokal menghapus", () => {
+    const server = prog("2:20:00", [ov("s1", "2026-01-06T00:00:00Z")]);
+    const local = prog("2:30:00", [ov("s2", "2026-01-07T00:00:00Z")]);
+    const m = parsed(mergePart("program", server, local, [], true));
+    expect(m.goal).toBe("2:20:00");
+    expect(m.overrides).toHaveLength(2);
+    expect(mergePart("program", server, null, [WHOLE])).toBeNull();
+  });
+});

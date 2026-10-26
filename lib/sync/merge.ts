@@ -4,12 +4,14 @@
  * - profile & program: utuh; lokal menang bila dirty, selain itu server;
  * - settings & preferences: per sub-bagian / kunci dengan aturan yang sama;
  * - onboarding: gabungan simetris (langkah selesai = gabungan, versi disclaimer = maksimum);
- * - log: per entri lewat `mergeLogs` (tombstone menang, komutatif & idempoten).
+ * - log: per entri lewat `mergeLogs` (tombstone menang, komutatif & idempoten);
+ * - program (0.13): pengaturan utuh dengan aturan dirty, override sesi digabung per `sessionId`.
  * Aktivasi pertama (perangkat belum pernah sinkron): server menang untuk bagian utuh & per kunci,
  * lokal hanya mengisi yang kosong; log & onboarding tetap digabung.
  */
 import { mergeLogs } from "@/lib/log-entries";
 import { STEPS, type OnboardingState } from "@/lib/onboarding";
+import { isOverride, mergeOverrides, type ProgramOverride } from "@/lib/program/settings";
 import { PREFERENCE_KEYS, SETTINGS_KEYS, type PartData, type PartName } from "./parts";
 
 export const WHOLE = "*";
@@ -26,7 +28,42 @@ export function changedKeys<K extends PartName>(name: K, prev: PartData[K], next
     const n = next as Record<string, unknown>;
     return keys.filter((k) => !same(p[k], n[k]));
   }
+  if (name === "program") {
+    const p = parseProgram(prev as string);
+    const n = parseProgram(next as string);
+    if (!p || !n) return [WHOLE];
+    return [...(same(p.settings, n.settings) ? [] : [PROGRAM_SETTINGS]), ...(same(p.overrides, n.overrides) ? [] : [PROGRAM_OVERRIDES])];
+  }
   return [WHOLE];
+}
+
+export const PROGRAM_SETTINGS = "settings";
+export const PROGRAM_OVERRIDES = "overrides";
+
+/** String program di perangkat → pengaturan + override (urut per sesi). Rusak → null. */
+function parseProgram(raw: string | null): { settings: Record<string, unknown>; overrides: ProgramOverride[] } | null {
+  if (!raw) return null;
+  try {
+    const v = JSON.parse(raw) as unknown;
+    if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+    const { overrides, ...rest } = v as Record<string, unknown>;
+    const settings = Object.fromEntries(Object.keys(rest).sort().map((k) => [k, rest[k]]));
+    return { settings, overrides: mergeOverrides(Array.isArray(overrides) ? overrides.filter(isOverride) : []) };
+  } catch {
+    return null;
+  }
+}
+
+/** Gabungan bagian program: pengaturan utuh (dirty → lokal), override per sesi selalu digabung. */
+function mergeProgram(server: string | null, local: string | null, dirty: string[], first: boolean): string | null {
+  if (server === null) return local;
+  if (local === null) return !first && dirty.length ? null : server;
+  const s = parseProgram(server);
+  const l = parseProgram(local);
+  if (!s || !l) return first ? server : dirty.length ? local : server;
+  const useLocal = !first && (dirty.includes(WHOLE) || dirty.includes(PROGRAM_SETTINGS));
+  const overrides = mergeOverrides(s.overrides, l.overrides);
+  return JSON.stringify({ ...(useLocal ? l.settings : s.settings), ...(overrides.length ? { overrides } : {}) });
 }
 
 const minIso = (a?: string, b?: string) => (a && b ? (a < b ? a : b) : a ?? b);
@@ -89,8 +126,10 @@ export function mergePart<K extends PartName>(name: K, server: PartData[K], loca
       return mergeKeyed(server as Record<string, unknown> | null, local as Record<string, unknown> | null, SETTINGS_KEYS, dirty, first) as PartData[K];
     case "preferences":
       return (mergeKeyed(server as Record<string, unknown>, local as Record<string, unknown>, PREFERENCE_KEYS, dirty, first) ?? {}) as PartData[K];
+    case "program":
+      return mergeProgram(server as string | null, local as string | null, dirty, first) as PartData[K];
     default:
-      // profile & program: bagian utuh.
+      // profile: bagian utuh.
       if (first) return (server ?? local) as PartData[K];
       return (dirty.length ? local : server) as PartData[K];
   }
