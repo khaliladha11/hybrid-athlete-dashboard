@@ -169,6 +169,18 @@ export interface Suggestion {
   type?: StrengthType;
 }
 
+/** Sesi lari rencana hari ini dari program (0.13.1), untuk saran terhadap rencana. */
+export interface PlanToday {
+  kind: "quality" | "easy" | "recovery" | "long" | "race";
+  /** Level & durasi isian generator untuk sesi ini (long run & lomba: tanpa durasi). */
+  difficulty: Difficulty;
+  duration?: Duration;
+  /** Jarak rencana (km). */
+  km?: number;
+  /** Long run minggu sebelumnya (km), untuk menahan jarak saat kenaikan km terlalu besar. */
+  prevLongKm?: number;
+}
+
 /**
  * Hitung tindakan yang disarankan dari pilihan user saat ini (hanya jika lebih ringan).
  * `ignoreLowerBy`: saran "turun satu level" sudah diterapkan — jangan turunkan lagi.
