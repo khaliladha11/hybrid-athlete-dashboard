@@ -153,4 +153,12 @@ describe("sesi hari ini & rencana untuk saran", () => {
     expect(planToday(long, hm)).toEqual({ kind: "long", difficulty: long.intensity, km: long.km, prevLongKm: prev.km });
     expect(planToday(hm.find((s) => s.kind === "st-lower")!, hm)).toBeNull();
   });
+
+  it("planToday: quality spesifik lomba (kartu) tetap punya level & durasi rencana", () => {
+    const rp = hm.find((s) => s.title.startsWith("Race pace"))!;
+    expect(toGenerator(rp).to).toBe("card");
+    expect(planToday(rp, hm)).toMatchObject({ kind: "quality", difficulty: "moderate", duration: 60 });
+    const sharp = hm.find((s) => s.title.startsWith("Sharpener"))!;
+    expect(planToday(sharp, hm)).toMatchObject({ kind: "quality", difficulty: "moderate", duration: 30 });
+  });
 });

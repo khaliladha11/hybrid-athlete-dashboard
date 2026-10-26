@@ -186,10 +186,12 @@ export function planToday(s: PlannedSession, sessions: PlannedSession[]): PlanTo
   if (!isRunKind(s.kind)) return null;
   const t = toGenerator(s);
   const prevLong = sessions.find((x) => x.week === s.week - 1 && (x.kind === "long" || x.kind === "race"));
+  // Quality spesifik lomba (kartu) tetap punya durasi rencana, supaya saran bisa menurunkannya ke generator.
+  const duration = t.to === "run" ? t.duration : s.kind === "quality" ? nearestDuration(s.minutes ?? (s.km ?? 6) * QUALITY_MIN_PER_KM) : undefined;
   return {
     kind: s.kind as PlanToday["kind"],
     difficulty: t.to === "run" ? t.difficulty : s.intensity,
-    ...(t.to === "run" ? { duration: t.duration } : {}),
+    ...(duration !== undefined ? { duration } : {}),
     ...(s.km !== undefined ? { km: s.km } : {}),
     ...(prevLong?.km !== undefined ? { prevLongKm: prevLong.km } : {}),
   };
