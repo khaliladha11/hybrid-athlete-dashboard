@@ -4,8 +4,13 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { addDays, formatTimeOfDay, startOfWeekMonday } from "@/lib/date";
 import { CATEGORY_LABEL, formatDuration, formatPace } from "@/lib/intervals/summary";
+import { SessionStatusChip, sessionNote } from "@/components/program/SessionStatusChip";
+import { INTENSITY_TONE, TONES } from "@/components/ui/tones";
 import { isHardRun } from "@/lib/coach";
 import type { Activity, ActivityCategory } from "@/lib/intervals/types";
+import type { SessionResult } from "@/lib/program/compliance";
+import type { PlannedSession } from "@/lib/program/sessions";
+import { useProgramPlan } from "@/lib/program/use-program-plan";
 
 /** Ikon garis 24×24 per kategori. */
 const CATEGORY_ICON: Record<ActivityCategory, string> = {
@@ -16,10 +21,22 @@ const CATEGORY_ICON: Record<ActivityCategory, string> = {
   other: "M12 4v4m0 8v4M4 12h4m8 0h4M6.5 6.5l2.5 2.5m6 6 2.5 2.5m0-11L15 9m-6 6-2.5 2.5",
 };
 
-/** Lari diwarnai menurut intensitas (easy hijau / berat merah); kategori lain netral. */
-function dayFill(a: Activity): string {
-  if (a.category === "run") return isHardRun(a) ? "bg-danger text-bg" : "bg-success text-bg";
-  return "bg-ink text-bg";
+/** Aktivitas selesai = oranye (aturan "rencana = warna intensitas, selesai = oranye"). */
+const DONE_FILL = "bg-brand text-on-brand";
+const STRENGTH_ICON = "M3 10v4m3-6v8m0-4h12m0-4v8m3-6v4";
+
+/** Tampilan sel untuk hari tanpa aktivitas tetapi ada sesi rencana. */
+function planCell(s: PlannedSession, r: SessionResult | undefined): { className: string; mark?: "x" | "done" } {
+  switch (r?.status) {
+    case "selesai":
+      return { className: DONE_FILL, mark: "done" };
+    case "terlewat":
+      return { className: "bg-danger-soft text-danger-ink", mark: "x" };
+    case "dilewati":
+      return { className: "border border-line text-faint line-through" };
+    default:
+      return { className: `border-2 ${s.kind.startsWith("st-") ? "border-line-strong" : TONES[INTENSITY_TONE[s.intensity]].border} text-ink` };
+  }
 }
 
 const WEEKDAYS = ["S", "S", "R", "K", "J", "S", "M"];
@@ -43,7 +60,18 @@ function monthWeeks(month: string): string[][] {
   return weeks;
 }
 
-export function ActivityCalendar({ activities, today, oldest }: { activities: Activity[]; today: string; oldest: string }) {
+export function ActivityCalendar({ activities: serverActivities, today, oldest }: { activities: Activity[]; today: string; oldest: string }) {
+  // Program tersimpan: aktivitas sejak awal program (diambil sekali bila perlu) + sesi rencana & statusnya.
+  const plan = useProgramPlan({ activities: serverActivities, oldest, today });
+  const activities = plan.activities;
+  const showPlan = plan.saved && !!plan.program && !plan.loading;
+  const planByDate = useMemo(() => {
+    const map = new Map<string, PlannedSession[]>();
+    if (!showPlan) return map;
+    for (const s of plan.sessions) map.set(s.date, [...(map.get(s.date) ?? []), s]);
+    return map;
+  }, [showPlan, plan.sessions]);
+
   const byDate = useMemo(() => {
     const map = new Map<string, Activity[]>();
     for (const a of activities) {
@@ -56,7 +84,11 @@ export function ActivityCalendar({ activities, today, oldest }: { activities: Ac
   }, [activities]);
 
   const currentMonth = `${today.slice(0, 7)}-01`;
-  const firstMonth = `${oldest.slice(0, 7)}-01`;
+  // Navigasi sepanjang rentang program (awal program sampai bulan lomba), minimal 2 bulan terakhir.
+  const programStart = showPlan ? `${plan.program!.input.startDate.slice(0, 7)}-01` : null;
+  const raceMonth = showPlan ? `${plan.program!.raceDate.slice(0, 7)}-01` : null;
+  const firstMonth = programStart && programStart < `${oldest.slice(0, 7)}-01` ? programStart : `${oldest.slice(0, 7)}-01`;
+  const lastMonth = raceMonth && raceMonth > currentMonth ? raceMonth : currentMonth;
   const [month, setMonth] = useState(currentMonth);
   // Default: hari ini bila ada aktivitas, kalau tidak hari terakhir yang ada aktivitasnya.
   const [selected, setSelected] = useState(() => {
@@ -69,13 +101,15 @@ export function ActivityCalendar({ activities, today, oldest }: { activities: Ac
   const monthActs = activities.filter((a) => a.date && inMonth(a.date));
   const runKm = monthActs.filter((a) => a.category === "run").reduce((s, a) => s + (a.distanceKm ?? 0), 0);
   const selectedList = byDate.get(selected) ?? [];
+  const selectedPlan = planByDate.get(selected) ?? [];
 
   const go = (delta: number) => {
     const next = shiftMonth(month, delta);
     setMonth(next);
     // Pilih hari terakhir yang ada aktivitas di bulan baru (atau tanggal 1).
     const days = [...byDate.keys()].filter((d) => d.slice(0, 7) === next.slice(0, 7) && d <= today).sort();
-    setSelected(days.at(-1) ?? (next.slice(0, 7) === today.slice(0, 7) ? today : next));
+    const planned = [...planByDate.keys()].filter((d) => d.slice(0, 7) === next.slice(0, 7)).sort();
+    setSelected(days.at(-1) ?? (next.slice(0, 7) === today.slice(0, 7) ? today : (planned[0] ?? next)));
   };
 
   return (
@@ -84,7 +118,7 @@ export function ActivityCalendar({ activities, today, oldest }: { activities: Ac
         <h2 className="text-base font-semibold capitalize">{MONTH_FMT.format(utc(month))}</h2>
         <div className="flex gap-1">
           <MonthButton label="Bulan sebelumnya" disabled={month <= firstMonth} onClick={() => go(-1)} d="m15 6-6 6 6 6" />
-          <MonthButton label="Bulan berikutnya" disabled={month >= currentMonth} onClick={() => go(1)} d="m9 6 6 6-6 6" />
+          <MonthButton label="Bulan berikutnya" disabled={month >= lastMonth} onClick={() => go(1)} d="m9 6 6 6-6 6" />
         </div>
       </header>
 
@@ -117,24 +151,38 @@ export function ActivityCalendar({ activities, today, oldest }: { activities: Ac
           return (
             <div key={week[0]} className="contents" role="row">
               {week.map((d) => {
-                const list = byDate.get(d) ?? [];
-                const own = inMonth(d);
                 const future = d > today;
+                const list = future ? [] : (byDate.get(d) ?? []);
+                const planned = planByDate.get(d) ?? [];
+                const own = inMonth(d);
                 const isSel = d === selected;
                 const first = list[0];
+                const cell = !first && planned[0] ? planCell(planned[0], plan.results.get(planned[0].id)) : null;
+                const label = [
+                  list.length ? `${list.length} aktivitas` : future ? null : "tidak ada aktivitas",
+                  planned.length ? `rencana: ${planned.map((p) => p.title).join(", ")}` : null,
+                ].filter(Boolean);
                 return (
                   <div key={d} role="gridcell" className="flex justify-center">
-                    {own && !future ? (
+                    {own && (!future || planned.length > 0) ? (
                       <button
                         type="button"
                         onClick={() => setSelected(d)}
                         aria-pressed={isSel}
-                        aria-label={`${DAY_TITLE_FMT.format(utc(d))}: ${list.length ? `${list.length} aktivitas` : "tidak ada aktivitas"}`}
+                        aria-label={`${DAY_TITLE_FMT.format(utc(d))}: ${label.join("; ")}`}
                         className={`pressable relative flex h-9 w-9 items-center justify-center rounded-full text-[14px] tabular ${
-                          first ? dayFill(first) : "bg-subtle text-ink"
+                          first ? DONE_FILL : cell ? cell.className : "bg-subtle text-ink"
                         } ${d === today ? "ring-2 ring-brand" : ""} ${isSel ? "outline-2 outline-offset-2 outline-ink" : ""}`}
                       >
-                        {first ? <Icon d={CATEGORY_ICON[first.category]} className="h-5 w-5" /> : Number(d.slice(8))}
+                        {first ? (
+                          <Icon d={CATEGORY_ICON[first.category]} className="h-5 w-5" />
+                        ) : cell?.mark === "done" ? (
+                          <Icon d={STRENGTH_ICON} className="h-5 w-5" />
+                        ) : cell?.mark === "x" ? (
+                          <Icon d="M8 8l8 8M16 8l-8 8" className="h-4 w-4" strokeWidth={2.4} />
+                        ) : (
+                          Number(d.slice(8))
+                        )}
                         {list.length > 1 && (
                           <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-on-brand ring-2 ring-surface">
                             {list.length}
@@ -169,15 +217,37 @@ export function ActivityCalendar({ activities, today, oldest }: { activities: Ac
       </div>
 
       <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted">
-        <Legend className="bg-success" label="Lari easy" />
-        <Legend className="bg-danger" label="Lari berat" />
-        <Legend className="bg-ink" label="Lainnya" />
+        <Legend className="bg-brand" label="Selesai" />
+        {showPlan && (
+          <>
+            <Legend className="border-2 border-success" label="Rencana easy" />
+            <Legend className="border-2 border-warning" label="Moderate" />
+            <Legend className="border-2 border-danger" label="High" />
+            <Legend className="bg-danger-soft" label="Terlewat" />
+          </>
+        )}
       </div>
 
       <div className="mt-4 border-t border-line pt-3">
         <p className="text-[13px] font-semibold text-muted">{DAY_TITLE_FMT.format(utc(selected))}</p>
+        {selectedPlan.length > 0 && (
+          <ul className="mt-2 space-y-1.5">
+            {selectedPlan.map((s) => {
+              const r = plan.results.get(s.id);
+              const note = sessionNote(r);
+              return (
+                <li key={s.id} className="flex flex-wrap items-center gap-2 text-[14px]">
+                  <span className="t-label">Rencana</span>
+                  <span className="font-semibold">{s.title}</span>
+                  <SessionStatusChip session={s} result={r} />
+                  {note && <span className="text-[12px] text-muted">{note}</span>}
+                </li>
+              );
+            })}
+          </ul>
+        )}
         {selectedList.length === 0 ? (
-          <p className="mt-1 text-body text-faint">Tidak ada aktivitas. Hari istirahat.</p>
+          selectedPlan.length === 0 && <p className="mt-1 text-body text-faint">{selected > today ? "Belum ada rencana." : "Tidak ada aktivitas. Hari istirahat."}</p>
         ) : (
           <ul key={selected} className="swap-in -mx-5 mt-1 divide-y divide-line">
             {selectedList.map((a) => (
@@ -204,7 +274,7 @@ function ActivityRow({ a }: { a: Activity }) {
   return (
     <li>
       <Link href={`/activity/${encodeURIComponent(a.id)}`} className="flex items-center gap-3 px-5 py-3 hover:bg-subtle">
-        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${dayFill(a)}`} aria-hidden>
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${DONE_FILL}`} aria-hidden>
           <Icon d={CATEGORY_ICON[a.category]} className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">

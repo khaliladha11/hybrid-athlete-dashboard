@@ -1,36 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
 import { BUTTON, Card } from "@/components/ui/Card";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { Segmented } from "@/components/ui/Segmented";
 import { INTENSITY_TONE, TONES, pillClasses, type Tone } from "@/components/ui/tones";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { addDays, formatDateId, startOfWeekMonday } from "@/lib/date";
 import { DIFFICULTY_LABEL } from "@/lib/generator/types";
-import { PREF_KEYS } from "@/lib/preference-keys";
-import { useStoredString } from "@/lib/preferences";
-import { useResolvedProfile } from "@/lib/settings-store";
-import {
-  PHASE_LABEL,
-  RACES,
-  buildProgram,
-  currentWeekIndex,
-  formatGoal,
-  formatPaceSec,
-  goalFromProfile,
-  parseGoal,
-  weekToText,
-  type Phase,
-  type ProgramWeek,
-  type RaceTarget,
-} from "@/lib/program";
-
-interface Settings {
-  race: RaceTarget;
-  goal: string;
-  startDate: string;
-  runsPerWeek: 3 | 4;
-}
+import type { Activity } from "@/lib/intervals/types";
+import { PHASE_LABEL, RACES, currentWeekIndex, formatGoal, formatPaceSec, goalFromProfile, parseGoal, weekToText, type Phase, type ProgramWeek, type RaceTarget } from "@/lib/program";
+import type { SessionResult } from "@/lib/program/compliance";
+import type { PlannedSession } from "@/lib/program/sessions";
+import { useProgramPlan } from "@/lib/program/use-program-plan";
+import { SessionStatusChip, sessionNote } from "./SessionStatusChip";
 
 /** Warna fase: Base hijau (ringan), Build kuning, Peak merah (paling berat), Taper biru. */
 const PHASE_STYLE: Record<Phase, { fill: string; text: string }> = {
@@ -45,43 +27,19 @@ const DAY_MONTH = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "sho
 const WEEKDAY = new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "UTC" });
 const weekdayYear = (d: Date) => `${WEEKDAY.format(d)}, ${d.getUTCFullYear()}`;
 
-function defaults(today: string, race: RaceTarget = "10k"): Settings {
-  return { race, goal: formatGoal(goalFromProfile(race)), startDate: startOfWeekMonday(today), runsPerWeek: 3 };
-}
-
-function parseSettings(raw: string, today: string): Settings {
-  try {
-    const s = JSON.parse(raw) as Partial<Settings>;
-    const base = defaults(today, s.race && s.race in RACES ? s.race : "10k");
-    return {
-      race: base.race,
-      goal: typeof s.goal === "string" ? s.goal : base.goal,
-      startDate: typeof s.startDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s.startDate) ? s.startDate : base.startDate,
-      runsPerWeek: s.runsPerWeek === 4 ? 4 : 3,
-    };
-  } catch {
-    return defaults(today);
-  }
-}
-
-export function ProgramView({ today, currentLongRunKm }: { today: string; currentLongRunKm?: number }) {
-  const [raw, setRaw] = useStoredString(PREF_KEYS.program, "");
-  const settings = useMemo(() => parseSettings(raw, today), [raw, today]);
-  const save = (patch: Partial<Settings>) => setRaw(JSON.stringify({ ...settings, ...patch }));
-
-  const p = useResolvedProfile();
+/** Halaman Program: pengaturan target, status sesi per minggu dari aktivitas (0.13), dan rencana semua minggu. */
+export function ProgramView({ today, activities, oldest }: { today: string; activities: Activity[]; oldest: string }) {
+  const plan = useProgramPlan({ activities, oldest, today });
+  const { settings, save, program } = plan;
   const goalSec = parseGoal(settings.goal);
   // Tanggal mulai selalu dinormalkan ke Senin.
   const startDate = startOfWeekMonday(settings.startDate);
-  const program = useMemo(
-    () =>
-      goalSec
-        ? buildProgram({ race: settings.race, goalSec, startDate, runsPerWeek: settings.runsPerWeek, currentLongRunKm }, p)
-        : null,
-    [settings.race, goalSec, startDate, settings.runsPerWeek, currentLongRunKm, p],
-  );
   const current = program ? currentWeekIndex(program, today) : 0;
   const currentWeek = program?.weeks.find((w) => w.index === current);
+  // Status hanya ditampilkan untuk program tersimpan dan setelah data aktivitas lengkap.
+  const showStatus = plan.saved && !plan.loading;
+  const weekSessions = (w: number) => plan.sessions.filter((s) => s.week === w);
+  const doneOf = (w: number) => weekSessions(w).filter((s) => plan.results.get(s.id)?.status === "selesai").length;
 
   return (
     <div className="space-y-4">
@@ -128,7 +86,7 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
               { value: 4, label: "4× lari" },
             ]}
           />
-          <button type="button" onClick={() => setRaw(null)} className={`${BUTTON.base} ${BUTTON.secondary} w-full text-body`}>
+          <button type="button" onClick={plan.reset} className={`${BUTTON.base} ${BUTTON.secondary} w-full text-body`}>
             Reset ke target profil
           </button>
         </div>
@@ -161,17 +119,25 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
               </ul>
             )}
             <p className="mt-3 text-[12px] text-faint">
-              Long run awal {currentLongRunKm ? `dari data terakhirmu (${currentLongRunKm} km terjauh 30 hari)` : "memakai default program"}.
+              Long run awal {plan.baseLongRunKm ? `dari lari terjauh 30 hari sebelum program mulai (${plan.baseLongRunKm} km)` : "memakai default program"}.
+              {!plan.saved && " Ubah salah satu isian di atas untuk menyimpan program dan melihat status sesi."}
             </p>
+            {plan.error && (
+              <div className="mt-3">
+                <ErrorState error={plan.error} compact />
+              </div>
+            )}
           </Card>
 
           {currentWeek && (
-            <Card
-              title={`Minggu ini · ${PHASE_LABEL[currentWeek.phase]}`}
-              action={<CopyButton text={weekToText(program, currentWeek)} label="Copy" className={`${BUTTON.secondary} min-h-9 px-3 text-[13px]`} />}
-            >
-              <WeekDetail week={currentWeek} />
-            </Card>
+            <div id="minggu-ini" className="scroll-mt-4">
+              <Card
+                title={`Minggu ini · ${PHASE_LABEL[currentWeek.phase]}`}
+                action={<CopyButton text={weekToText(program, currentWeek)} label="Copy" className={`${BUTTON.secondary} min-h-9 px-3 text-[13px]`} />}
+              >
+                <WeekDetail week={currentWeek} sessions={weekSessions(currentWeek.index)} results={showStatus ? plan.results : undefined} />
+              </Card>
+            </div>
           )}
 
           <Card title="Semua minggu" flush className="!pb-1">
@@ -189,6 +155,12 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
                         <p className="text-[13px] text-muted">
                           <span className={`font-semibold ${PHASE_STYLE[w.phase].text}`}>{PHASE_LABEL[w.phase]}</span>
                           {w.cutback && " · cutback"} · {formatDateId(w.start)} · ±{w.totalKm} km
+                          {showStatus && w.start <= today && (
+                            <span className="tabular">
+                              {" "}
+                              · {doneOf(w.index)}/{weekSessions(w.index).length} selesai
+                            </span>
+                          )}
                         </p>
                       </div>
                       <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
@@ -196,7 +168,7 @@ export function ProgramView({ today, currentLongRunKm }: { today: string; curren
                       </span>
                     </summary>
                     <div className="details-body px-5 pb-4">
-                      <WeekDetail week={w} />
+                      <WeekDetail week={w} sessions={weekSessions(w.index)} results={showStatus ? plan.results : undefined} />
                     </div>
                   </details>
                 </li>
@@ -253,25 +225,38 @@ function PhaseBar({ weeks, current }: { weeks: ProgramWeek[]; current: number })
   );
 }
 
-function WeekDetail({ week }: { week: ProgramWeek }) {
+function WeekDetail({ week, sessions, results }: { week: ProgramWeek; sessions: PlannedSession[]; results?: Map<string, SessionResult> }) {
   return (
     <div className="space-y-2">
       <p className="text-[13px] text-muted">{week.focus}</p>
       <ul className="space-y-2">
-        {week.sessions.map((s) => {
+        {sessions.map((s) => {
           const tone: Tone = INTENSITY_TONE[s.intensity];
+          const r = results?.get(s.id);
+          const note = sessionNote(r);
+          const st = s.kind === "st-lower" || s.kind === "st-upper";
           return (
-            <li key={s.day + s.title} className="flex gap-3 rounded-inner bg-subtle px-3 py-2.5">
-              <span className={`w-1 shrink-0 self-stretch rounded-full ${TONES[tone].fill}`} aria-hidden />
+            <li key={s.id} className="flex gap-3 rounded-inner bg-subtle px-3 py-2.5">
+              <span className={`w-1 shrink-0 self-stretch rounded-full ${st ? "bg-line-strong" : TONES[tone].fill}`} aria-hidden />
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-body font-semibold">
                     <span className="text-muted">{s.day} · </span>
                     {s.title}
                   </p>
-                  <span className={`shrink-0 ${pillClasses(tone)}`}>{s.isRace ? "Lomba" : DIFFICULTY_LABEL[s.intensity]}</span>
+                  {st ? (
+                    <span className="t-label shrink-0 pt-1">Strength</span>
+                  ) : (
+                    <span className={`shrink-0 ${pillClasses(tone)}`}>{s.kind === "race" ? "Lomba" : DIFFICULTY_LABEL[s.intensity]}</span>
+                  )}
                 </div>
-                <p className="mt-0.5 text-[13px] text-muted">{s.detail}</p>
+                {s.detail && <p className="mt-0.5 text-[13px] text-muted">{s.detail}</p>}
+                {results && (r?.status !== "mendatang" || note) && (
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    <SessionStatusChip session={s} result={r} />
+                    {note && <span className="text-[12px] text-muted">{note}</span>}
+                  </div>
+                )}
               </div>
             </li>
           );

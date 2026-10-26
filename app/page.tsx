@@ -7,6 +7,7 @@ import { ProfileHeader, TargetsCard } from "@/components/profile/ProfileDetails"
 import { WeeklySummary } from "@/components/profile/WeeklySummary";
 import { WellnessCard } from "@/components/profile/WellnessCard";
 import { CoachCard } from "@/components/generator/CoachCard";
+import { ProgramWeekSummary } from "@/components/program/ProgramWeekSummary";
 import { todayWib } from "@/lib/date";
 import { getActivities, getWellness } from "@/lib/intervals/data-source";
 import { readinessAdvice, weeklyAdvice } from "@/lib/coach";
@@ -30,6 +31,9 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-4">
       <ProfileHeader />
+
+      {/* Ringkasan minggu program (0.13): hanya bila ada program aktif di perangkat ini. */}
+      <ProgramWeekSummary activities={activities.ok ? activities.data : []} oldest={oldest} today={today} />
 
       <CoachCard id="saran" tour="saran" advice={[...readinessAdvice(readiness), ...(activities.ok ? weeklyAdvice(activities.data, today) : [])]} />
 

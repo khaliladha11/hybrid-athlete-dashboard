@@ -88,7 +88,12 @@ export function useProgramPlan({ activities, oldest, today }: { activities: Acti
   const logDates = useMemo(() => log.map((e) => e.date), [log]);
   const results = useMemo(() => evaluateCompliance(sessions, all, logDates, today), [sessions, all, logDates, today]);
 
-  const save = (patch: Partial<ProgramSettings>) => setRaw(serializeProgramSettings({ ...settings, ...patch }));
+  const save = (patch: Partial<ProgramSettings>) => {
+    const next = { ...settings, ...patch };
+    // Program baru (jarak / tanggal mulai berganti): override program lama tidak berlaku lagi.
+    if (programIdOf(next) !== programIdOf(settings)) next.overrides = [];
+    setRaw(serializeProgramSettings(next));
+  };
 
   return {
     saved,
