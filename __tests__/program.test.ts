@@ -9,6 +9,9 @@ import {
   longRunPlan,
   parseGoal,
   phaseOf,
+  postRaceOffer,
+  raceCountdown,
+  raceWeekChecklist,
   weekToText,
   type RaceTarget,
 } from "@/lib/program";
@@ -176,6 +179,37 @@ describe("jenis & durasi sesi (0.13)", () => {
     }
   });
 });
+
+describe("hitung mundur & minggu lomba (0.13.2)", () => {
+  const p = build("hm");
+
+  it("sisa hari ke lomba; 0 di hari lomba; null setelahnya", () => {
+    expect(raceCountdown(p, addDaysLocal(p.raceDate, -14))).toEqual({ days: 14 });
+    expect(raceCountdown(p, p.raceDate)).toEqual({ days: 0 });
+    expect(raceCountdown(p, addDaysLocal(p.raceDate, 1))).toBeNull();
+  });
+
+  it("checklist H-1: umum, rencana pace dari perkiraan bila berbeda, tanpa em dash", () => {
+    const plain = raceWeekChecklist({ racePaceSec: p.racePaceSec });
+    expect(plain).toHaveLength(4);
+    expect(plain[3]).toContain(formatPaceSecLocal(p.racePaceSec));
+    const pred = raceWeekChecklist({ racePaceSec: 341, predictedPaceSec: 355 });
+    expect(pred[3]).toContain("perkiraan 5:55/km (target 5:41/km)");
+    for (const line of [...plain, ...pred]) expect(line).not.toMatch(/—|!/);
+  });
+
+  it("tawaran catat hasil: H+1 sampai H+14, hilang setelah dicatat atau lewat dua minggu", () => {
+    expect(postRaceOffer(p, [], p.raceDate)).toBe(false);
+    expect(postRaceOffer(p, [], addDaysLocal(p.raceDate, 1))).toBe(true);
+    expect(postRaceOffer(p, [], addDaysLocal(p.raceDate, 14))).toBe(true);
+    expect(postRaceOffer(p, [], addDaysLocal(p.raceDate, 15))).toBe(false);
+    expect(postRaceOffer(p, [{ distance: "hm", date: p.raceDate }], addDaysLocal(p.raceDate, 1))).toBe(false);
+    // Hasil jarak lain atau sebelum lomba tidak menghapus tawaran.
+    expect(postRaceOffer(p, [{ distance: "10k", date: p.raceDate }, { distance: "hm", date: addDaysLocal(p.raceDate, -30) }], addDaysLocal(p.raceDate, 1))).toBe(true);
+  });
+});
+
+const formatPaceSecLocal = (sec: number) => `${Math.floor(Math.round(sec) / 60)}:${String(Math.round(sec) % 60).padStart(2, "0")}/km`;
 
 function addDaysLocal(date: string, days: number) {
   const d = new Date(`${date}T00:00:00Z`);

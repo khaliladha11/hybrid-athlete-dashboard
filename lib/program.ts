@@ -371,3 +371,35 @@ export function weekToText(program: Program, week: ProgramWeek): string {
   ];
   return lines.join("\n");
 }
+
+// ---------- hitung mundur & minggu lomba (0.13.2, PROGRAM-HIDUP §4.9) ----------
+
+const dayDiff = (a: string, b: string) => Math.round((Date.parse(`${a}T00:00:00Z`) - Date.parse(`${b}T00:00:00Z`)) / 86_400_000);
+
+/** Sisa hari ke lomba (0 = hari ini); null setelah hari lomba. */
+export function raceCountdown(program: Pick<Program, "raceDate">, today: string): { days: number } | null {
+  const days = dayDiff(program.raceDate, today);
+  return days >= 0 ? { days } : null;
+}
+
+/** Checklist umum H-1 (bukan saran medis). Rencana pace dari perkiraan bila ada, selain itu race pace target. */
+export function raceWeekChecklist({ racePaceSec, predictedPaceSec }: { racePaceSec: number; predictedPaceSec?: number }): string[] {
+  const plan =
+    predictedPaceSec !== undefined && Math.round(predictedPaceSec) !== Math.round(racePaceSec)
+      ? `Rencana pace dari perkiraan ${formatPaceSec(predictedPaceSec)} (target ${formatPaceSec(racePaceSec)}). Mulai sedikit lebih lambat di 1–2 km pertama.`
+      : `Rencana pace ${formatPaceSec(racePaceSec)}. Mulai sedikit lebih lambat di 1–2 km pertama.`;
+  return [
+    "Tidur cukup dua malam terakhir sebelum lomba.",
+    "Pakai sepatu yang sudah dipakai latihan, bukan sepatu baru.",
+    "Makan dan minum yang sudah biasa. Hindari menu baru di hari lomba.",
+    plan,
+  ];
+}
+
+/** Hari ke-1 sampai ke-14 setelah lomba yang hasilnya belum dicatat untuk jarak ini. */
+export const POST_RACE_DAYS = 14;
+export function postRaceOffer(program: Pick<Program, "raceDate" | "input">, raceResults: { distance: string; date: string }[], today: string): boolean {
+  const after = dayDiff(today, program.raceDate);
+  if (after < 1 || after > POST_RACE_DAYS) return false;
+  return !raceResults.some((r) => r.distance === program.input.race && r.date >= program.raceDate);
+}
