@@ -8,8 +8,10 @@ import {
   isCutback,
   longRunPlan,
   parseGoal,
+  phaseCounts,
   phaseOf,
   postRaceOffer,
+  preBaseLongRuns,
   raceCountdown,
   raceWeekChecklist,
   weekToText,
@@ -177,6 +179,88 @@ describe("jenis & durasi sesi (0.13)", () => {
         }
       }
     }
+  });
+});
+
+describe("panjang program dari Hari H (0.13.3)", () => {
+  const MAX: Record<RaceTarget, number> = { "5k": 12, "10k": 14, hm: 20, fm: 24 };
+  const sunday = (weeks: number) => addDaysLocal(START, weeks * 7 - 1);
+
+  it("panjang standar dengan Hari H Minggu identik dengan program tanpa Hari H", () => {
+    for (const race of TARGETS) {
+      for (const currentLongRunKm of [undefined, 8, 15]) {
+        const old = build(race, { currentLongRunKm });
+        const now = build(race, { currentLongRunKm, weeks: RACES[race].weeks, raceDate: sunday(RACES[race].weeks) });
+        expect({ ...now, input: old.input }).toEqual(old);
+      }
+    }
+  });
+
+  it("memendekkan: Base dulu, lalu Build; Peak & taper tidak pernah dipangkas", () => {
+    for (const race of TARGETS) {
+      const spec = RACES[race];
+      const std = phaseCounts(spec);
+      let prev = std;
+      for (let weeks = spec.weeks - 1; weeks >= spec.taperWeeks + 2; weeks--) {
+        const c = phaseCounts(spec, weeks);
+        expect(c.base + c.build + c.peak + c.taper).toBe(weeks);
+        expect(c.taper).toBe(spec.taperWeeks);
+        expect(c.peak).toBe(Math.min(std.peak, weeks - spec.taperWeeks));
+        if (c.build < std.build) expect(c.base).toBe(0); // Build baru dipangkas setelah Base habis
+        expect(c.base).toBeLessThanOrEqual(prev.base);
+        prev = c;
+      }
+    }
+  });
+
+  it("aturan kenaikan long run tidak pernah dilanggar di panjang apa pun; puncak yang tidak tercapai diberi peringatan", () => {
+    for (const race of TARGETS) {
+      const spec = RACES[race];
+      for (let weeks = spec.taperWeeks + 2; weeks <= MAX[race]; weeks++) {
+        for (const currentLongRunKm of [undefined, 9, 20]) {
+          const p = build(race, { weeks, raceDate: sunday(weeks), currentLongRunKm });
+          expect(p.weeks).toHaveLength(weeks);
+          expect(p.weeks.filter((w) => w.phase === "taper")).toHaveLength(spec.taperWeeks);
+          const levels = p.weeks.filter((w) => w.phase !== "taper" && !w.cutback).map((w) => w.longRunKm);
+          for (let i = 1; i < levels.length; i++) {
+            expect(levels[i] - levels[i - 1]).toBeLessThanOrEqual(Math.min(levels[i - 1] * 0.1, 2) + 1e-9);
+            expect(levels[i]).toBeGreaterThanOrEqual(levels[i - 1]);
+          }
+          const reached = Math.max(...p.weeks.map((w) => w.longRunKm));
+          const standard = Math.max(...longRunPlan(spec, currentLongRunKm));
+          const warned = p.warnings.some((w) => w.startsWith("Program lebih pendek dari standar"));
+          expect(warned).toBe(weeks < spec.weeks && reached < standard);
+          if (warned) expect(p.warnings.join(" ")).toContain(`${reached} km`);
+        }
+      }
+    }
+  });
+
+  it("pre-Base: program inti identik dengan program sepanjang Max, long run naik pelan sampai titik awal inti", () => {
+    for (const race of TARGETS) {
+      const main = MAX[race];
+      const inti = build(race, { weeks: main, raceDate: sunday(main) });
+      const p = build(race, { weeks: main, preBaseWeeks: 6, rawLongestKm: 4, raceDate: sunday(main + 6) });
+      expect(p.weeks).toHaveLength(main + 6);
+      expect(p.weeks.slice(0, 6).every((w) => w.phase === "prebase")).toBe(true);
+      // Program inti: isi minggu sama, hanya nomor & tanggal minggu yang bergeser.
+      expect(p.weeks.slice(6).map((w) => ({ ...w, index: 0, start: "" }))).toEqual(inti.weeks.map((w) => ({ ...w, index: 0, start: "" })));
+      const pre = p.weeks.slice(0, 6);
+      expect(pre.every((w) => w.sessions.every((s) => s.intensity === "easy"))).toBe(true);
+      expect(Math.max(...pre.map((w) => w.longRunKm))).toBeLessThanOrEqual(inti.weeks[0].longRunKm);
+      expect(pre[0].longRunKm).toBe(5); // terjauh 4 km → mulai dari 5 km (kenaikan 10% di bawahnya < 0,5 km)
+    }
+    expect(preBaseLongRuns(8, 8, 12)).toEqual([8, 8.5, 9, 6.5, 9.5, 10, 11, 8]);
+  });
+
+  it("Hari H selain Minggu: sesi lomba di hari itu, sesi minggu lomba sesudahnya tidak dibuat", () => {
+    const sat = addDaysLocal(START, 12 * 7 - 2);
+    const p = build("hm", { weeks: 12, raceDate: sat });
+    expect(p.raceDate).toBe(sat);
+    const last = p.weeks.at(-1)!;
+    expect(last.sessions.map((s) => s.day)).toEqual(["Selasa", "Rabu", "Sabtu"]);
+    const tue = build("10k", { weeks: 10, raceDate: addDaysLocal(START, 9 * 7 + 1) }).weeks.at(-1)!;
+    expect(tue.sessions.map((s) => `${s.day}:${s.kind}`)).toEqual(["Selasa:race"]);
   });
 });
 

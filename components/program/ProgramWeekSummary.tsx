@@ -33,7 +33,7 @@ export function ProgramWeekSummary({ activities, oldest, today }: { activities: 
   const longText = long
     ? `${week.raceWeek ? "Lomba" : "Long run"} ${long.km ?? "·"} km${long.status === "selesai" ? " ✓" : long.status === "terlewat" ? " ✕" : long.status === "sebagian" ? " · sebagian" : ""}`
     : null;
-  const parts = [`Minggu ${index}/${program.spec.weeks}`, PHASE_LABEL[week.phase], `${sum.done}/${sum.total} sesi`, longText].filter(Boolean);
+  const parts = [`Minggu ${index}/${program.weeks.length}`, PHASE_LABEL[week.phase], `${sum.done}/${sum.total} sesi`, longText].filter(Boolean);
   const countdown = countdownText(program, today);
   const todayS = todaySession(plan.sessions, plan.results, today);
   return (

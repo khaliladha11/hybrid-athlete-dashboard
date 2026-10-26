@@ -24,6 +24,7 @@ import { TodaySessionAction } from "./TodaySessionAction";
 
 /** Warna fase: Base hijau (ringan), Build kuning, Peak merah (paling berat), Taper biru. */
 const PHASE_STYLE: Record<Phase, { fill: string; text: string }> = {
+  prebase: { fill: "bg-line-strong", text: "text-muted" },
   base: { fill: "bg-success", text: "text-success-ink" },
   build: { fill: "bg-warning", text: "text-warning-ink" },
   peak: { fill: "bg-danger", text: "text-danger-ink" },
@@ -116,12 +117,12 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
           {plan.saved && postRaceOffer(program, athlete.raceResults, today) && <PostRaceOffer program={program} />}
           <Card
             title={program.spec.label}
-            action={<span className={pillClasses(current ? "success" : "danger")}>{current ? `Minggu ${current}/${program.spec.weeks}` : today < startDate ? "Belum mulai" : "Selesai"}</span>}
+            action={<span className={pillClasses(current ? "success" : "danger")}>{current ? `Minggu ${current}/${program.weeks.length}` : today < startDate ? "Belum mulai" : "Selesai"}</span>}
           >
             <div className="grid grid-cols-3 gap-x-3 gap-y-3">
               <Fact label="Hari lomba" value={DAY_MONTH.format(new Date(`${program.raceDate}T00:00:00Z`))} sub={weekdayYear(new Date(`${program.raceDate}T00:00:00Z`))} />
               <Fact label="Race pace" value={formatPaceSec(program.racePaceSec).replace("/km", "")} sub="/km" />
-              <Fact label="Durasi" value={`${program.spec.weeks}`} sub="minggu" />
+              <Fact label="Durasi" value={`${program.weeks.length}`} sub="minggu" />
             </div>
             {countdown && <p className="t-label tabular mt-3 text-ink">{countdown}</p>}
 

@@ -12,7 +12,8 @@ import type { Difficulty } from "@/lib/generator/types";
 import { profile, type AthleteProfile } from "@/lib/profile";
 
 export type RaceTarget = "5k" | "10k" | "hm" | "fm";
-export type Phase = "base" | "build" | "peak" | "taper";
+/** `prebase` (0.13.3): minggu easy sebelum program inti bila Hari H lebih jauh dari panjang maksimal. */
+export type Phase = "prebase" | "base" | "build" | "peak" | "taper";
 
 export interface RaceSpec {
   label: string;
@@ -34,7 +35,7 @@ export const RACES: Record<RaceTarget, RaceSpec> = {
   fm: { label: "Full Marathon", short: "FM 42K", km: 42.195, weeks: 16, taperWeeks: 3, peakLongKm: 30, startLongKm: 12, defaultGoalSec: 6 * 3600 + 15 * 60 },
 };
 
-export const PHASE_LABEL: Record<Phase, string> = { base: "Base", build: "Build", peak: "Peak", taper: "Taper" };
+export const PHASE_LABEL: Record<Phase, string> = { prebase: "Pre-Base", base: "Base", build: "Build", peak: "Peak", taper: "Taper" };
 
 export type SessionKind = "quality" | "easy" | "recovery" | "long" | "race";
 
@@ -72,6 +73,14 @@ export interface ProgramInput {
   runsPerWeek: 3 | 4;
   /** Long run terjauh 30 hari terakhir (dari intervals.icu), bila ada. */
   currentLongRunKm?: number;
+  /** Panjang program inti termasuk taper (0.13.3); kosong = panjang standar jarak itu. */
+  weeks?: number;
+  /** Minggu pre-Base sebelum program inti (0.13.3), bila Hari H lebih jauh dari panjang maksimal. */
+  preBaseWeeks?: number;
+  /** Long run terjauh asli (tanpa batas bawah default), titik awal pre-Base. */
+  rawLongestKm?: number;
+  /** Hari H (YYYY-MM-DD, 0.13.3); kosong = Minggu minggu terakhir. */
+  raceDate?: string;
 }
 
 export interface Program {
@@ -131,42 +140,95 @@ const floorHalf = (km: number) => Math.floor(km * 2) / 2;
 
 // ---------- fase & long run ----------
 
-export function phaseOf(week: number, spec: RaceSpec): Phase {
-  const pre = spec.weeks - spec.taperWeeks;
-  if (week > pre) return "taper";
-  const base = Math.max(2, Math.round(pre * 0.4));
-  const build = Math.max(2, Math.round(pre * 0.35));
-  if (week <= base) return "base";
-  if (week <= base + build) return "build";
+export interface PhaseCounts {
+  base: number;
+  build: number;
+  peak: number;
+  taper: number;
+}
+
+/**
+ * Minggu per fase untuk program inti sepanjang `weeks` (termasuk taper).
+ * - ≥ panjang standar: rumus proporsional yang sama (Base 40%, Build 35%, sisanya Peak).
+ * - Lebih pendek (0.13.3): mulai dari alokasi standar, Base dipangkas dulu lalu Build. Peak tetap sepanjang
+ *   standar (2 minggu, FM 3) kecuali pra-taper lebih pendek; taper tidak pernah dipangkas.
+ */
+export function phaseCounts(spec: RaceSpec, weeks: number = spec.weeks): PhaseCounts {
+  const taper = spec.taperWeeks;
+  const prop = (pre: number) => {
+    const base = Math.max(2, Math.round(pre * 0.4));
+    const build = Math.max(2, Math.round(pre * 0.35));
+    return { base, build, peak: pre - base - build };
+  };
+  if (weeks >= spec.weeks) return { ...prop(weeks - taper), taper };
+  const std = prop(spec.weeks - taper);
+  const pre = Math.max(0, weeks - taper);
+  const peak = Math.min(std.peak, pre);
+  const rest = pre - peak;
+  const base = Math.max(0, rest - std.build);
+  return { base, build: rest - base, peak, taper };
+}
+
+export function phaseOf(week: number, spec: RaceSpec, weeks: number = spec.weeks): Phase {
+  const c = phaseCounts(spec, weeks);
+  if (week > weeks - c.taper) return "taper";
+  if (week <= c.base) return "base";
+  if (week <= c.base + c.build) return "build";
   return "peak";
 }
 
 /** Minggu cutback: setiap minggu ke-4 sebelum taper (bukan minggu terakhir pra-taper). */
-export function isCutback(week: number, spec: RaceSpec): boolean {
-  const pre = spec.weeks - spec.taperWeeks;
+export function isCutback(week: number, spec: RaceSpec, weeks: number = spec.weeks): boolean {
+  const pre = weeks - spec.taperWeeks;
   return week % 4 === 0 && week < pre;
 }
 
-export function longRunPlan(spec: RaceSpec, currentLongRunKm?: number): number[] {
-  const pre = spec.weeks - spec.taperWeeks;
-  const start = floorHalf(Math.min(spec.peakLongKm * 0.75, Math.max(spec.startLongKm, currentLongRunKm ?? 0)));
+/** Satu langkah kenaikan long run: ≤ 10% dan ≤ 2 km dari level sebelumnya, maksimal `peak`. */
+export const nextLongRun = (level: number, peak: number) => Math.min(peak, floorHalf(Math.min(level * 1.1, level + 2)));
+
+/** Long run awal program: max(awal default, terjauh 30 hari), maksimal 75% puncak. */
+export const startLongRun = (spec: RaceSpec, currentLongRunKm?: number) =>
+  floorHalf(Math.min(spec.peakLongKm * 0.75, Math.max(spec.startLongKm, currentLongRunKm ?? 0)));
+
+export function longRunPlan(spec: RaceSpec, currentLongRunKm?: number, weeks: number = spec.weeks): number[] {
+  const pre = weeks - spec.taperWeeks;
+  const start = startLongRun(spec, currentLongRunKm);
   const plan: number[] = [];
   let level = start; // level progresi (tanpa cutback)
-  for (let w = 1; w <= spec.weeks; w++) {
+  for (let w = 1; w <= weeks; w++) {
     if (w > pre) {
       // Taper: turun bertahap dari puncak; minggu lomba = lomba itu sendiri.
       const t = w - pre;
-      plan.push(w === spec.weeks ? 0 : floorHalf(level * (t === 1 ? 0.65 : t === 2 ? 0.5 : 0.4)));
+      plan.push(w === weeks ? 0 : floorHalf(level * (t === 1 ? 0.65 : t === 2 ? 0.5 : 0.4)));
       continue;
     }
-    if (w > 1 && !isCutback(w, spec)) {
-      // Naik ≤ 10% dan ≤ 2 km dari level sebelumnya, maksimal puncak.
-      level = Math.min(spec.peakLongKm, floorHalf(Math.min(level * 1.1, level + 2)));
-    }
-    plan.push(isCutback(w, spec) ? floorHalf(level * 0.75) : level);
+    // Naik ≤ 10% dan ≤ 2 km dari level sebelumnya, maksimal puncak.
+    if (w > 1 && !isCutback(w, spec, weeks)) level = nextLongRun(level, spec.peakLongKm);
+    plan.push(isCutback(w, spec, weeks) ? floorHalf(level * 0.75) : level);
   }
   return plan;
 }
+
+/** Di bawah 5 km kenaikan 10% belum sampai 0,5 km (pembulatan), jadi pre-Base & simulasi mulai paling rendah dari sini. */
+export const MIN_RAMP_KM = 5;
+
+/**
+ * Long run pre-Base (0.13.3): mulai dari long run terjauh asli (paling rendah 5 km), naik dengan aturan yang sama,
+ * cutback tiap minggu ke-4, dan berhenti di titik awal program inti.
+ */
+export function preBaseLongRuns(weeks: number, rawLongestKm: number | undefined, capKm: number): number[] {
+  let level = Math.min(capKm, floorHalf(Math.max(MIN_RAMP_KM, rawLongestKm ?? 0)));
+  const out: number[] = [];
+  for (let w = 1; w <= weeks; w++) {
+    if (w > 1 && w % 4 !== 0) level = nextLongRun(level, capKm);
+    out.push(w % 4 === 0 ? floorHalf(level * 0.75) : level);
+  }
+  return out;
+}
+
+const DAY_NAMES = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+/** Nama hari (Senin..Minggu) dari tanggal YYYY-MM-DD. */
+export const dayNameOf = (date: string) => DAY_NAMES[(new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7];
 
 // ---------- sesi ----------
 
@@ -178,15 +240,23 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
   const interval = zone(p, "miniInterval", "5:15–5:35/km");
   const norwegian = zone(p, "norwegian4x4", "5:50/km");
   const rp = formatPaceSec(racePaceSec);
-  const longs = longRunPlan(spec, input.currentLongRunKm);
+  // 0.13.3: panjang program inti dari Hari H, ditambah minggu pre-Base bila Hari H jauh. Tanpa itu = panjang standar.
+  const main = input.weeks ?? spec.weeks;
+  const preBase = Math.max(0, input.preBaseWeeks ?? 0);
+  const total = preBase + main;
+  const longs = longRunPlan(spec, input.currentLongRunKm, main);
+  const preLongs = preBaseLongRuns(preBase, input.rawLongestKm, longs[0]);
+  const raceDay = input.raceDate ? dayNameOf(input.raceDate) : "Minggu";
   const easyKmPerMin = 1 / 8.5; // ±8:30/km untuk estimasi jarak sesi easy
 
   const weeks: ProgramWeek[] = [];
-  for (let w = 1; w <= spec.weeks; w++) {
-    const phase = phaseOf(w, spec);
-    const cutback = isCutback(w, spec);
-    const raceWeek = w === spec.weeks;
-    const longKm = longs[w - 1];
+  for (let w = 1; w <= total; w++) {
+    // Indeks minggu di program inti (≤ 0 = pre-Base), supaya program inti sama dengan program tanpa pre-Base.
+    const m = w - preBase;
+    const phase: Phase = m <= 0 ? "prebase" : phaseOf(m, spec, main);
+    const cutback = m <= 0 ? w % 4 === 0 : isCutback(m, spec, main);
+    const raceWeek = w === total;
+    const longKm = m <= 0 ? preLongs[w - 1] : longs[m - 1];
     const sessions: ProgramSession[] = [];
 
     // Sesi easy (Kamis): durasi mengikuti fase, dipangkas saat cutback/taper.
@@ -202,9 +272,11 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
     };
 
     // Sesi quality (Selasa) sesuai fase & jarak lomba.
-    const quality = qualitySession({ race: input.race, phase, cutback, raceWeek, w, tempo, interval, norwegian, rp, easy });
+    const quality = qualitySession({ race: input.race, phase, cutback, raceWeek, w: m <= 0 ? w : m, tempo, interval, norwegian, rp, easy });
 
-    sessions.push(quality, easySession);
+    // Minggu lomba: hanya sesi yang jatuh sebelum Hari H.
+    const beforeRace = (s: ProgramSession) => !raceWeek || DAY_NAMES.indexOf(s.day) < DAY_NAMES.indexOf(raceDay);
+    sessions.push(...[quality, easySession].filter(beforeRace));
 
     if (input.runsPerWeek === 4 && !raceWeek) {
       sessions.push({
@@ -220,7 +292,7 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
 
     if (raceWeek) {
       sessions.push({
-        day: "Minggu",
+        day: raceDay,
         title: `LOMBA ${spec.short} — target ${formatGoal(input.goalSec)}`,
         detail: `Race pace ${rp}. Mulai sedikit lebih lambat 1–2 km pertama, cadence 175–180.`,
         kind: "race",
@@ -270,6 +342,11 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
       `Dengan 3 lari/minggu, long run puncak (${peakWeek.longRunKm} km) > 55% volume mingguan. Pilih 4 lari/minggu supaya beban lebih merata.`,
     );
   }
+  if (main < spec.weeks) {
+    const reached = Math.max(...longs);
+    const standard = Math.max(...longRunPlan(spec, input.currentLongRunKm));
+    if (reached < standard) warnings.push(`Program lebih pendek dari standar, jadi long run puncak hanya ${reached} km (program standar ${standard} km).`);
+  }
   const tempoFast = paceRangeFastSec(tempo);
   if (tempoFast && racePaceSec < tempoFast - 30 && input.race !== "5k") {
     warnings.push(`Target race pace ${rp} jauh lebih cepat dari zona tempo-mu (${tempo}). Target mungkin terlalu ambisius.`);
@@ -278,7 +355,7 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
   return {
     input,
     spec,
-    raceDate: addDays(input.startDate, spec.weeks * 7 - 1),
+    raceDate: input.raceDate ?? addDays(input.startDate, total * 7 - 1),
     racePaceSec,
     weeks,
     warnings,
@@ -294,8 +371,10 @@ function paceRangeFastSec(range: string): number | undefined {
 
 function focusText(phase: Phase, cutback: boolean, raceWeek: boolean): string {
   if (raceWeek) return "Minggu lomba — segarkan kaki, tidur cukup, jangan coba hal baru.";
+  if (phase === "prebase") return "Pre-Base: lari easy rutin dan long run naik pelan sebelum program inti dimulai.";
   if (cutback) return "Cutback — volume turun ±25% supaya tubuh beradaptasi (sejalan minggu deload blok).";
   return {
+    prebase: "",
     base: "Bangun basis aerobik: mayoritas Z2, kenalkan kecepatan ringan.",
     build: "Naikkan ambang (tempo) sambil memperpanjang long run.",
     peak: "Spesifik lomba: interval & race pace, long run terjauh.",
@@ -320,7 +399,7 @@ function qualitySession(o: {
   if (raceWeek) {
     return { day, kind: "quality", minutes: 25, title: "Sharpener 25'", detail: `15' easy + 4×1' @ race pace ${rp} (jeda 1' jalan).`, intensity: "moderate", km: 4 };
   }
-  if (cutback || phase === "taper") {
+  if (cutback || phase === "taper" || phase === "prebase") {
     return { day, kind: "quality", minutes: 30, title: "Easy + strides 30'", detail: `25' Z2 @ ${easy} + 4×20" strides santai-cepat.`, intensity: "easy", km: 3.5 };
   }
   if (phase === "base") {
@@ -362,7 +441,7 @@ export function currentWeekIndex(program: Program, today: string): number {
 
 export function weekToText(program: Program, week: ProgramWeek): string {
   const lines = [
-    `${program.spec.label} · Minggu ${week.index}/${program.spec.weeks} (${PHASE_LABEL[week.phase]}${week.cutback ? ", cutback" : ""})`,
+    `${program.spec.label} · Minggu ${week.index}/${program.weeks.length} (${PHASE_LABEL[week.phase]}${week.cutback ? ", cutback" : ""})`,
     week.focus,
     "",
     ...week.sessions.map((s) => `- ${s.day}: ${s.title} — ${s.detail}`),
