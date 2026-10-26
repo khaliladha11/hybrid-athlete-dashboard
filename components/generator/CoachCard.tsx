@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { suggestFor, type Advice, type AdviceTarget, type Suggestion } from "@/lib/coach";
 import { DIFFICULTY_LABEL, STRENGTH_TYPE_LABEL, type Difficulty, type Duration, type StrengthType } from "@/lib/generator/types";
@@ -16,6 +17,7 @@ export function CoachCard({
   onApply,
   id,
   tour,
+  planLine,
 }: {
   advice: Advice[];
   /** Anchor (mis. "saran") supaya bisa ditautkan dari halaman generator. */
@@ -25,6 +27,8 @@ export function CoachCard({
   target?: AdviceTarget;
   current?: { difficulty: Difficulty; duration: Duration; type?: StrengthType };
   onApply?: (s: Suggestion) => void;
+  /** "Rencana: … Saran: …" dari sesi program hari ini (0.13.1); `href` = Terapkan ke generator/kartu. */
+  planLine?: { text: string; href?: string };
 }) {
   // Level hasil menerapkan saran; selama user tetap di level ini, "turun satu level"
   // tidak ditawarkan lagi (supaya tidak turun berantai High → Moderate → Easy).
@@ -68,6 +72,19 @@ export function CoachCard({
             </button>
           ))}
       </div>
+      {planLine && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-inner bg-subtle px-3 py-2">
+          <p className="min-w-0 flex-1 text-[14px] font-semibold text-ink">{planLine.text}</p>
+          {planLine.href && (
+            <Link
+              href={planLine.href}
+              className="pressable relative min-h-8 shrink-0 rounded-control bg-brand px-3 py-1.5 text-[13px] font-semibold text-on-brand after:absolute after:-inset-1.5 after:content-[''] hover:bg-brand-hover"
+            >
+              Terapkan
+            </Link>
+          )}
+        </div>
+      )}
       <ul className="mt-2 -mx-1 divide-y divide-line">
         {relevant.map((a) => {
           const recs = recommendations(a);

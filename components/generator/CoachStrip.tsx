@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { suggestFor, type Advice, type AdviceTarget, type Suggestion } from "@/lib/coach";
-import { DIFFICULTY_LABEL, type Difficulty, type Duration } from "@/lib/generator/types";
+import { suggestFor, type Advice, type AdviceTarget, type PlanToday, type Suggestion } from "@/lib/coach";
+import { DIFFICULTIES, DIFFICULTY_LABEL, type Difficulty, type Duration } from "@/lib/generator/types";
+import { planLabel } from "@/components/program/planText";
 import { suggestionSeverity } from "./coach-severity";
 
 /**
@@ -15,23 +16,35 @@ export function CoachStrip({
   target,
   current,
   onApply,
+  plan,
 }: {
   advice: Advice[];
   target: AdviceTarget;
   current: { difficulty: Difficulty; duration: Duration };
   onApply: (s: Suggestion) => void;
+  /** Sesi program yang mengisi generator (0.13.1): saran dihitung terhadap rencana, bukan pilihan saat ini. */
+  plan?: { label: string; plan: PlanToday };
 }) {
   // Sama seperti CoachCard: "turun satu level" tidak ditawarkan berantai.
   const [appliedLevel, setAppliedLevel] = useState<Difficulty | null>(null);
   const relevant = advice.filter((a) => a.targets.includes(target));
   if (!relevant.length) return null;
 
-  const s = suggestFor(advice, target, current, { ignoreLowerBy: appliedLevel === current.difficulty });
-  const actionable = !!(s.difficulty || s.duration);
-  const difficulty = s.difficulty ?? current.difficulty;
-  const duration = s.duration ?? current.duration;
+  const s = plan ? suggestFor(advice, target, current, { plan: plan.plan }) : suggestFor(advice, target, current, { ignoreLowerBy: appliedLevel === current.difficulty });
+  const difficulty = s.difficulty ?? (plan ? plan.plan.difficulty : current.difficulty);
+  const duration = s.duration ?? (plan ? (plan.plan.duration ?? current.duration) : current.duration);
+  // Dengan rencana: Gunakan hanya menurunkan isian saat ini ke versi saran, tidak pernah menaikkannya.
+  const lowered = plan
+    ? {
+        difficulty: DIFFICULTIES.indexOf(difficulty) < DIFFICULTIES.indexOf(current.difficulty) ? difficulty : undefined,
+        duration: duration < current.duration ? duration : undefined,
+      }
+    : { difficulty: s.difficulty, duration: s.duration };
+  const actionable = !!(s.difficulty || s.duration) && !!(lowered.difficulty || lowered.duration);
   // Ringkas supaya muat satu baris di layar 360px: "Moderate · 30'".
-  const summary = `${DIFFICULTY_LABEL[difficulty]} · ${duration}'`;
+  const summary = plan
+    ? `Rencana ${planLabel(plan.label, plan.plan)} · ${s.difficulty || s.duration ? `saran ${DIFFICULTY_LABEL[difficulty]} ${duration}'` : "sesuai"}`
+    : `${DIFFICULTY_LABEL[difficulty]} · ${duration}'`;
   const spoken = `${DIFFICULTY_LABEL[difficulty]} ${duration} menit`;
   const severity = suggestionSeverity(s);
 
@@ -68,7 +81,7 @@ export function CoachStrip({
           aria-label={`Gunakan saran ini: ${spoken}`}
           onClick={() => {
             if (s.difficulty) setAppliedLevel(s.difficulty);
-            onApply({ difficulty: s.difficulty, duration: s.duration });
+            onApply(lowered);
           }}
           className="pressable relative ml-0.5 min-h-8 shrink-0 rounded-control bg-brand px-2.5 text-[13px] font-semibold text-on-brand after:absolute after:-inset-1.5 after:content-[''] hover:bg-brand-hover"
         >

@@ -12,7 +12,9 @@ import { PHASE_LABEL, RACES, currentWeekIndex, formatGoal, formatPaceSec, goalFr
 import type { SessionResult } from "@/lib/program/compliance";
 import type { PlannedSession } from "@/lib/program/sessions";
 import { useProgramPlan } from "@/lib/program/use-program-plan";
+import { todaySession } from "@/lib/program/to-generator";
 import { SessionStatusChip, sessionNote } from "./SessionStatusChip";
+import { TodaySessionAction } from "./TodaySessionAction";
 
 /** Warna fase: Base hijau (ringan), Build kuning, Peak merah (paling berat), Taper biru. */
 const PHASE_STYLE: Record<Phase, { fill: string; text: string }> = {
@@ -28,7 +30,7 @@ const WEEKDAY = new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "U
 const weekdayYear = (d: Date) => `${WEEKDAY.format(d)}, ${d.getUTCFullYear()}`;
 
 /** Halaman Program: pengaturan target, status sesi per minggu dari aktivitas (0.13), dan rencana semua minggu. */
-export function ProgramView({ today, activities, oldest }: { today: string; activities: Activity[]; oldest: string }) {
+export function ProgramView({ today, activities, oldest, longAdjust }: { today: string; activities: Activity[]; oldest: string; longAdjust?: { km: number; easy: boolean } }) {
   const plan = useProgramPlan({ activities, oldest, today });
   const { settings, save, program } = plan;
   const goalSec = parseGoal(settings.goal);
@@ -40,6 +42,7 @@ export function ProgramView({ today, activities, oldest }: { today: string; acti
   const showStatus = plan.saved && !plan.loading;
   const weekSessions = (w: number) => plan.sessions.filter((s) => s.week === w);
   const doneOf = (w: number) => weekSessions(w).filter((s) => plan.results.get(s.id)?.status === "selesai").length;
+  const todayS = plan.active && !plan.loading ? todaySession(plan.sessions, plan.results, today) : null;
 
   return (
     <div className="space-y-4">
@@ -135,6 +138,11 @@ export function ProgramView({ today, activities, oldest }: { today: string; acti
                 title={`Minggu ini · ${PHASE_LABEL[currentWeek.phase]}`}
                 action={<CopyButton text={weekToText(program, currentWeek)} label="Copy" className={`${BUTTON.secondary} min-h-9 px-3 text-[13px]`} />}
               >
+                {todayS && program && (
+                  <div className="mb-4">
+                    <TodaySessionAction session={todayS} program={program} where="program" longAdjust={todayS.kind === "long" ? longAdjust : undefined} />
+                  </div>
+                )}
                 <WeekDetail week={currentWeek} sessions={weekSessions(currentWeek.index)} results={showStatus ? plan.results : undefined} />
               </Card>
             </div>

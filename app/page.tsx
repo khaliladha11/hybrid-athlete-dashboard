@@ -6,7 +6,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { ProfileHeader, TargetsCard } from "@/components/profile/ProfileDetails";
 import { WeeklySummary } from "@/components/profile/WeeklySummary";
 import { WellnessCard } from "@/components/profile/WellnessCard";
-import { CoachCard } from "@/components/generator/CoachCard";
+import { ProfileCoach } from "@/components/program/ProfileCoach";
 import { ProgramWeekSummary } from "@/components/program/ProgramWeekSummary";
 import { todayWib } from "@/lib/date";
 import { getActivities, getWellness } from "@/lib/intervals/data-source";
@@ -35,7 +35,12 @@ export default async function ProfilePage() {
       {/* Ringkasan minggu program (0.13): hanya bila ada program aktif di perangkat ini. */}
       <ProgramWeekSummary activities={activities.ok ? activities.data : []} oldest={oldest} today={today} />
 
-      <CoachCard id="saran" tour="saran" advice={[...readinessAdvice(readiness), ...(activities.ok ? weeklyAdvice(activities.data, today) : [])]} />
+      <ProfileCoach
+        advice={[...readinessAdvice(readiness), ...(activities.ok ? weeklyAdvice(activities.data, today) : [])]}
+        activities={activities.ok ? activities.data : []}
+        oldest={oldest}
+        today={today}
+      />
 
       <div className="grid grid-cols-2 gap-2">
         <Link

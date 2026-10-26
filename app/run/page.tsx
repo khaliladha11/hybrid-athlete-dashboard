@@ -3,12 +3,15 @@ import { RunGenerator } from "@/components/generator/RunGenerator";
 import { BlockBadge } from "@/components/generator/BlockBadge";
 import { randomSeed } from "@/lib/generator/rng";
 import { getTrainingContext } from "@/lib/intervals/data-source";
+import { parseRunPrefill } from "@/lib/program/to-generator";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Generator Lari · Hybrid Athlete" };
 
-export default async function RunPage() {
-  const ctx = await getTrainingContext();
+export default async function RunPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [ctx, params] = await Promise.all([getTrainingContext(), searchParams]);
+  // Isian dari program ("Kerjakan sesi hari ini"); query yang tidak valid diabaikan.
+  const prefill = parseRunPrefill(params);
   return (
     <div className="space-y-4">
       <header className="flex items-start justify-between gap-3">
@@ -18,7 +21,7 @@ export default async function RunPage() {
         </div>
         <BlockBadge />
       </header>
-      <RunGenerator advice={ctx.advice} cadenceSpm={ctx.cadenceSpm} initialSeed={randomSeed()} />
+      <RunGenerator advice={ctx.advice} cadenceSpm={ctx.cadenceSpm} initialSeed={randomSeed()} prefill={prefill} />
     </div>
   );
 }

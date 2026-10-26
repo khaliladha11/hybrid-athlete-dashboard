@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { BUTTON } from "@/components/ui/Card";
+import { BUTTON, Chip } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
 import { Switch } from "@/components/ui/Switch";
 import { INTENSITY_TONE } from "@/components/ui/tones";
@@ -26,6 +26,7 @@ import {
   type StrengthType,
   type StrengthWorkout,
 } from "@/lib/generator";
+import type { StrengthPrefill } from "@/lib/program/to-generator";
 import type { Advice } from "@/lib/coach";
 import { sessionCoverage } from "@/lib/athlete-settings";
 import { baseProfile, type Movement, type ResolvedProfile } from "@/lib/profile";
@@ -61,13 +62,17 @@ function restLabel(sec: number) {
 export function StrengthGenerator({
   advice,
   initialSeed,
+  prefill,
 }: {
   advice: Advice[];
   initialSeed: number;
+  /** Isian dari sesi ST program (0.13.1); tetap bisa diubah. */
+  prefill?: StrengthPrefill | null;
 }) {
-  const [type, setType] = useState<StrengthType>("fullBody");
-  const [duration, setDuration] = useState<Duration>(45);
-  const [difficulty, setDifficulty] = useState<Difficulty>("moderate");
+  const [type, setType] = useState<StrengthType>(prefill?.type ?? "fullBody");
+  const [duration, setDuration] = useState<Duration>(prefill?.duration ?? 45);
+  const [difficulty, setDifficulty] = useState<Difficulty>(prefill?.difficulty ?? "moderate");
+  const fromPlan = !!prefill && type === prefill.type && duration === prefill.duration && difficulty === prefill.difficulty;
   const [seed, setSeed] = useState(initialSeed);
 
   const [logging, setLogging] = useState(false);
@@ -106,6 +111,7 @@ export function StrengthGenerator({
   return (
     <div className="space-y-4">
       <div className="space-y-4 rounded-card border border-line bg-surface p-5 shadow-card">
+        {prefill && fromPlan && <Chip tone="accent">Dari program · Minggu {prefill.week}</Chip>}
         <Segmented
           label="Tipe"
           wrap

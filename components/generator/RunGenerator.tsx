@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { SegmentSkyline } from "@/components/charts/SegmentSkyline";
 import { planSegments } from "@/components/charts/skyline-scale";
-import { StatRow } from "@/components/ui/Card";
+import { Chip, StatRow } from "@/components/ui/Card";
 import { formatPaceTag } from "@/components/ui/format";
 import { Segmented } from "@/components/ui/Segmented";
 import { Switch } from "@/components/ui/Switch";
@@ -23,7 +23,8 @@ import {
   type Duration,
   type RunStep,
 } from "@/lib/generator";
-import type { Advice } from "@/lib/coach";
+import { suggestFor, type Advice, type PlanToday } from "@/lib/coach";
+import type { RunPrefill } from "@/lib/program/to-generator";
 import { parseRange } from "@/lib/run-zones";
 import { useBlockContext, useBlockMode, useResolvedProfile } from "@/lib/settings-store";
 import { CoachStrip } from "./CoachStrip";
@@ -50,13 +51,16 @@ export function RunGenerator({
   advice,
   cadenceSpm,
   initialSeed,
+  prefill,
 }: {
   advice: Advice[];
   cadenceSpm?: number;
   initialSeed: number;
+  /** Isian dari sesi program (0.13.1); tetap bisa diubah. */
+  prefill?: RunPrefill | null;
 }) {
-  const [duration, setDuration] = useState<Duration>(45);
-  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
+  const [duration, setDuration] = useState<Duration>(prefill?.duration ?? 45);
+  const [difficulty, setDifficulty] = useState<Difficulty>(prefill?.difficulty ?? "easy");
   const [seed, setSeed] = useState(initialSeed);
   const [blockEnabled, setBlockEnabled] = useBlockMode();
   const block = useBlockContext();
@@ -64,17 +68,25 @@ export function RunGenerator({
 
   const p = useResolvedProfile();
 
+  // Dari program: isian sama dengan rencana (pola rencana dipakai) atau sama dengan versi saran.
+  const plan: PlanToday | undefined = prefill ? { kind: prefill.kind as PlanToday["kind"], difficulty: prefill.planDifficulty, duration: prefill.planDuration } : undefined;
+  const fromPlan = !!prefill && duration === prefill.planDuration && difficulty === prefill.planDifficulty;
+  const planSug = plan ? suggestFor(advice, "run", { difficulty, duration }, { plan }) : {};
+  const fromSuggestion =
+    !!plan && !fromPlan && !!(planSug.difficulty || planSug.duration) && difficulty === (planSug.difficulty ?? plan.difficulty) && duration === (planSug.duration ?? plan.duration);
+  const pattern = fromPlan ? prefill?.pattern : undefined;
+
   const workout = useMemo(
-    () => generateRunWorkout({ duration, difficulty, seed, block, cadenceSpm, free }, p),
-    [duration, difficulty, seed, block, cadenceSpm, free, p],
+    () => generateRunWorkout({ duration, difficulty, seed, block, cadenceSpm, free, pattern }, p),
+    [duration, difficulty, seed, block, cadenceSpm, free, pattern, p],
   );
   // Tampilan Set Huawei disembunyikan sementara; tombol "Copy Set" tetap menyalin format set-nya.
   const setText = useMemo(() => runToHuaweiSets(workout), [workout]);
   const outputRef = useRef<HTMLElement>(null);
 
   const render = useCallback(
-    (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm, free }, p)),
-    [duration, difficulty, block, cadenceSpm, free, p],
+    (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm, free, pattern }, p)),
+    [duration, difficulty, block, cadenceSpm, free, pattern, p],
   );
   const canRegenerate = useMemo(() => hasVariations(render), [render]);
   const regenerate = () => {
@@ -102,12 +114,19 @@ export function RunGenerator({
         advice={advice}
         target="run"
         current={{ difficulty, duration }}
+        plan={prefill && plan ? { label: prefill.label, plan } : undefined}
         onApply={(s) => {
           if (s.difficulty) setDifficulty(s.difficulty);
           if (s.duration) setDuration(s.duration);
         }}
       />
       <div className="space-y-4 rounded-card border border-line bg-surface p-5 shadow-card">
+        {prefill && (fromPlan || fromSuggestion) && (
+          <Chip tone="accent">
+            Dari program · Minggu {prefill.week}
+            {fromSuggestion ? " · disesuaikan saran" : ""}
+          </Chip>
+        )}
         <Segmented label="Durasi" value={duration} onChange={setDuration} options={DURATIONS.map((d) => ({ value: d, label: `${d}'` }))} />
         <Segmented
           label="Kesulitan"
