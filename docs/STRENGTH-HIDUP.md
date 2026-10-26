@@ -1,44 +1,123 @@
 # Cakupan 0.14 Strength hidup
 
-> Status: **cakupan disetujui 2026-10-23**, spesifikasi detail menyusul setelah 0.13. Simpan di `docs/STRENGTH-HIDUP.md`.
+> Status: **cakupan diperbarui 2026-10-26** (usulan pemilik digabung dengan cakupan 2026-10-23). Spesifikasi detail dan prompt menyusul setelah 0.13. Simpan di `docs/STRENGTH-HIDUP.md`.
 > Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Perubahan logika latihan wajib memperbarui TRAINING-LOGIC dan test.
 
-## Latar belakang
+## 1. Latar belakang
 
-Sampai 0.12, ST di aplikasi berfungsi terutama sebagai prehab dan pelengkap lari. Untuk aplikasi hybrid athlete, ST perlu menjadi separuh rencana yang setara: ikut dihitung sebagai beban, mengikuti fase program, punya progres yang terlihat, dan nyaman dikerjakan di rumah.
+Sampai 0.12, ST di aplikasi terutama berfungsi sebagai prehab dan pelengkap lari. Masalah nyata dari pemakaian harian: banyak gerakan sudah mentok di batas alat rumahan, sementara rentang beban per gerakan di library justru menahan progres di bawah kemampuan atlet. Contohnya PR squat yang sudah melewati batas atas rentang library, atau PR overhead press di atas beban tunggal yang tercatat di library.
 
 ### Dasar riset
 - **ST memperbaiki performa lari.** Running economy membaik 2–8% di sebagian besar studi; 2–3 sesi ST per minggu dengan beragam modalitas dianjurkan (Blagrove dkk. 2018, *Sports Med* 48(5)).
-- **Jenis ST menentukan.** Beban tinggi, plyometric, dan kombinasinya memperbaiki running economy; beban submaksimal dan isometrik kurang efektif (Llanos-Lagos dkk. 2024, *Sports Med*, meta-analisis, doi 10.1007/s40279-023-01978-y).
+- **Jenis ST menentukan.** Beban tinggi, plyometric, dan kombinasinya memperbaiki running economy; beban submaksimal dan isometrik kurang efektif (Llanos-Lagos dkk. 2024, *Sports Med*, doi 10.1007/s40279-023-01978-y).
 - **Interferensi kecil untuk kekuatan maksimal dan hipertrofi**; yang terganggu kekuatan eksplosif, terutama bila lari dan ST di sesi yang sama dengan jeda < 3 jam (Schumann dkk. 2022, *Sports Med* 52:601–612).
-- **Session-RPE (RPE × durasi) valid untuk latihan beban** dan bisa disatukan dengan beban lari (Foster dkk. 2001; tinjauan Haddad dkk. 2017, *Front Neurosci*).
+- **Session-RPE (RPE × durasi) valid untuk latihan beban** (Foster dkk. 2001; tinjauan Haddad dkk. 2017, *Front Neurosci*).
 
-## Celah sekarang
-| Celah | Dampak |
+## 2. Keputusan pemilik
+
+### 2026-10-26 · Rentang library menjadi titik awal
+Rentang beban per gerakan di library **tidak lagi menjadi plafon**, dengan syarat pengguna tahu perubahan ini.
+
+**Model batas beban:**
+- **Batas alat:** beban terberat yang bisa dirakit dari alat di Setting (per tangan untuk dumbbell, total untuk barbell).
+- **Batas keamanan:** hanya untuk gerakan sensitif, dan aktif mengikuti kondisi di Setting. Contohnya Barbell Squat saat Spine-Friendly aktif, atau gerakan overhead saat nyeri bahu aktif (yang sudah dilarang tetap dilarang). Daftar final ditetapkan saat spesifikasi, dengan sumber.
+- **Beban resep** = min(batas alat, batas keamanan bila ada).
+- **Rentang library** = titik awal untuk gerakan yang belum punya log atau PR, dan acuan level Easy/Moderate/High.
+- Kenaikan tetap satu langkah ke beban berikutnya yang bisa dirakit. Saat aturan baru aktif, beban awal diambil dari log atau PR terakhir, tidak melompat.
+
+**Syarat transparansi (wajib, diuji):**
+1. **Persetujuan sekali.** Setelah update, layar "Perubahan batas beban" menjelaskan perubahan dengan bahasa sederhana. Sampai pengguna menekan **Saya mengerti, aktifkan**, generator memakai perilaku lama (rentang library sebagai plafon).
+2. **Bisa kembali.** Toggle di Setting › Alat: **Batasi ke rentang awal library**. Bila nyala, perilaku lama berlaku.
+3. **Penanda di kartu gerakan.** Bila beban resep di atas rentang awal, kartu menampilkan label kecil, misalnya `DI ATAS RENTANG AWAL`, dan detail gerakan menjelaskan alasannya (PR / log dan batas alat).
+4. **Terdokumentasi.** TRAINING-LOGIC dan halaman detail aturan di Setting menjelaskan model batas ini.
+
+### Keputusan sebelumnya yang tetap
+- RPE ≤ 7, hanya gerakan dari library, kondisi mengikuti toggle Setting, saran tidak memblokir.
+- ★ dikunci per blok.
+- Gambar hanya dari free-exercise-db (Unlicense). Tanpa padanan → "Gambar belum tersedia".
+
+## 3. Cakupan
+
+### 0.14.0 · Progresi dengan alat terbatas
+
+**a. Pengaturan alat (diperluas, satu sumber data)**
+- Tetap satu data dan satu komponen dengan Setting › Alat; tab Strength mendapat jalan pintas ke sana, bukan pengaturan kedua.
+- Baru: daftar alat yang bisa ditambah, diubah, dan dihapus; item berbobot tetap (DB fixed, kettlebell) di samping model handle + plat yang sudah ada.
+- Kettlebell hanya tercatat sampai library punya gerakan kettlebell.
+- Data alat lama dimigrasi otomatis ke struktur baru.
+
+**b. PR kemampuan**
+- Entri: gerakan (hanya dari library), beban, set, rep, tanggal, `sumber: manual | log`.
+- PR manual = baseline yang diinput; PR dari log terdeteksi otomatis saat sesi mengalahkan PR sebelumnya.
+- Riwayat PR per gerakan; edit dan hapus untuk entri yang salah.
+- PR menjadi acuan target dan progresi, bukan hanya catatan.
+- Ikut ekspor/impor (format v4) dan sinkron 0.12 (bagian baru).
+
+**c. Double progression saat mentok**
+- Gerakan yang sudah di batas beban (alat atau keamanan) keluar dari rotasi skema rep dan memakai **rentang rep tetap**.
+- Urutan progresi:
+  1. Naikkan rep sampai ujung atas rentang (mis. 8 → 10 → 12).
+  2. Tambah tempo atau jeda 1–2 detik.
+  3. Varian satu sisi (satu kaki / satu tangan).
+- Varian lewat relasi "varian lebih sulit" di META gerakan, hanya ke gerakan yang ada di library dan lolos filter kondisi.
+- Tempo/jeda boleh di tengah blok. Ganti ke varian satu sisi untuk gerakan ★ berlaku **mulai blok berikutnya** (mode bebas: langsung).
+- Log mendapat field baru: tempo/jeda dan level varian.
+- Bila alat bertambah, gerakan yang mentok otomatis bisa naik beban lagi.
+
+**d. Saran Gita (coach) yang menjelaskan alasannya**
+- Syarat naik memakai RPE relatif: **RPE ≤ target sesi − 1**.
+- Jenis saran: naik rep/set; naik beban bila alat lebih berat tersedia; naik tempo atau varian bila rep di ujung atas dan beban tidak bisa naik.
+- Setiap saran menyebut alasannya, misalnya "2 sesi terakhir RPE 5 di 12 rep, beban sudah di batas alat."
+- Tidak pernah memblokir.
+
+**e. Pengingat beli beban**
+- Dihitung per area tubuh (lower, upper push, upper pull), bukan dinyatakan di spesifikasi.
+- Syarat: ≥ X% gerakan aktif di area itu berada di batas alat selama 2 sesi berturut-turut, dengan RPE ≤ target − 1 dan rep di ujung atas rentang. Usulan X = 80%.
+- Isi saran: **plat yang membuka progresi paling banyak**, misalnya "Sepasang plat 2,5 kg membuka progresi untuk 4 gerakan lower." Tanpa tautan toko.
+- Menghormati sikap pemilik: beli hanya bila hampir semua gerakan sudah mentok.
+
+### 0.14.1 · Sesi ST
+| Fitur | Ringkas |
 | --- | --- |
-| ST tidak masuk beban 7 hari (coach hanya membaca nama aktivitas intervals.icu) | Saran lari bisa keliru setelah sesi ST berat yang tidak tercatat di jam |
-| ST tidak mengikuti fase program lari | ST kaki tetap sama saat Peak/Taper |
-| Skema rep hanya 8–15 | Manfaat beban relatif tinggi tidak didapat |
-| Hanya gerakan ★ yang dicatat | Tidak tahu sesi mana yang benar-benar dikerjakan |
-| Tidak ada mode saat latihan | Perlu timer lain, mencatat belakangan |
-| Tidak ada tolok ukur kekuatan | Progres ST tidak terlihat seperti pace/VDOT di lari |
+| Mode latihan + timer istirahat | Layar fullscreen: gerakan per gerakan, timer istirahat dan hitung mundur tahan, centang per set langsung tercatat (termasuk tempo/varian) |
+| Session-RPE | RPE sesi + durasi; masuk beban 7 hari, kepatuhan program, Week Ledger |
+| ST mengikuti fase program | Base volume, Build lebih berat (sejauh alat memungkinkan), Peak maintenance, Taper ST kaki dikurangi. Detail taper dari literatur |
+| Aturan hari yang sama | Lari + ST di hari yang sama: sarankan jeda ≥ 3 jam. Aturan concurrent lama ditinjau ulang bersama test |
 
-## Cakupan
+### 0.14.2 · Library & visual
+- **Seated DB Curl** (biceps) masuk library. Seated Single-Leg Calf Raise sudah ada sejak 0.9.
+- Gerakan pengisi celah: **biceps, triceps, lats, betis, tibialis**, sesuai kondisi aktif dan alat. Ingat: pull-up bar sudah ada di daftar alat (Dead Hang, Negative Pull-Up untuk lats).
+- Varian satu sisi untuk gerakan yang mentok (mis. single-leg hip thrust bila tersedia di sumber dan lolos filter kondisi).
+- Alur 0.9 tidak berubah: audit pencocokan free-exercise-db → usulan (tunggu persetujuan) → implementasi. Setiap gerakan baru wajib lolos syarat PRD §3 (META, alat, rentang awal, media, audit, test generator).
+- Gambar untuk 5 gerakan tanpa gambar tetap dicari (backlog P1).
 
-| # | Fitur | Ukuran | Ringkas |
-| --- | --- | --- | --- |
-| 1 | ST mengikuti fase program | M | Base volume, Build lebih berat, Peak maintenance, Taper ST kaki dikurangi. Detail taper dari literatur saat spesifikasi |
-| 2 | Session-RPE untuk ST | S | RPE sesi + durasi setelah sesi; masuk beban 7 hari, kepatuhan program, Week Ledger |
-| 3 | Aturan hari yang sama | S | Lari + ST di hari yang sama: sarankan jeda ≥ 3 jam |
-| 4 | Mode latihan | M | Layar fullscreen: gerakan per gerakan, timer istirahat & hitung mundur tahan, centang per set langsung tercatat |
-| 5 | Skema "Kekuatan" 5–6 rep @ RPE 7 | S | Untuk ★ di fase Build. Tetap RPE ≤ 7. **Butuh persetujuan pemilik** (perubahan logika) |
-| 6 | Tangga progresi saat beban mentok | M | Bilateral → split → RFESS → satu kaki, atau tempo/jeda, saat beban di batas library |
-| 7 | Tes kekuatan berkala | S–M | Di minggu deload: maks push-up, tahan side plank, single-leg calf raise, milestone pull-up |
-| 8 | Plyometric ringan (opsional) | M | Hanya bila kondisi shin splints nonaktif, progresi bertahap. Gerakan baru wajib lewat aturan PRD §3 (sumber, test, keputusan pemilik) |
+## 4. Turun prioritas / dipindah
+| Item | Keputusan |
+| --- | --- |
+| Skema "Kekuatan" 5–6 rep | Turun prioritas: dengan alat mentok, rep rendah tidak bisa dibuat lebih berat. Ditinjau lagi bila alat bertambah |
+| Tes kekuatan berkala | Sebagian besar tergantikan PR. Milestone pull-up tetap |
+| Plyometric ringan | Opsional, hanya bila shin splints nonaktif, lewat aturan PRD §3 |
+| Tren volume ST, heatmap aktivitas | 0.15 Insight |
+| Sinkron per-field | Bahan pertimbangan desain 0.12 |
+| Banner offline | 1.0 |
 
-Tren volume ST (set × rep × kg per pola) masuk **0.15 Insight**.
+## 5. Referensi konsep openGym
+Hanya konsep (AGPL-3.0): jangan salin kode, teks, atau aset UI. Konsep yang dipakai di 0.14: double progression dengan rentang rep terlihat, timer istirahat, target yang menjelaskan alasannya. Progresi "tambah waktu" untuk gerakan tahan sudah ada (+5 detik, maks 60).
 
-## Keputusan terbuka
-1. Tujuan ST pemilik: mendukung lari, atau seimbang. Menentukan bobot #5 dan #7.
-2. Apakah #8 masuk 0.14 atau ditunda.
-3. Aturan concurrent yang ada (setelah ST kaki → lari maks Moderate) dipertahankan, dipersempit, atau diganti #3. Wajib disertai test.
+## 6. Keputusan terbuka
+1. **Gita:** nama coach di UI. Bila disetujui, dicatat di DESIGN-SYSTEM §7 dan dipakai konsisten.
+2. Ambang pengingat beli (usulan 80%) dan rentang rep tetap per level (usulan Easy 10–15, Moderate 8–12, High 6–10, tetap RPE ≤ 7).
+3. Daftar gerakan dengan batas keamanan, beserta sumbernya.
+4. Aturan concurrent lama (setelah ST kaki → lari maks Moderate): dipertahankan, dipersempit, atau diganti aturan hari yang sama.
+5. Plyometric masuk 0.14 atau ditunda.
+
+## 7. Perkiraan dampak (dipastikan saat memeriksa kode)
+- **Logika:** `lib/equipment.ts`, `lib/progression.ts`, `lib/training-log.ts`, `lib/generator/meta.ts`, `lib/generator/strength.ts`, `lib/generator/validate.ts`, `lib/athlete-settings.ts`, `lib/sync/merge.ts`, `lib/coach.ts`.
+- **Media:** `lib/movements/media.ts`, `scripts/audit-movement-media.mjs`, `scripts/fetch-movement-media.mjs`.
+- **UI:** halaman Strength, Setting › Alat, kartu & detail gerakan, layar persetujuan perubahan batas.
+- **Test:** `progression`, `settings`, `generator`, `media`, `sync`, plus test baru untuk PR, pengingat beli, dan syarat transparansi (perilaku lama sebelum persetujuan, toggle kembali).
+- **Data:** key PR baru, struktur alat diperluas + migrasi, field log tempo/varian, ekspor v4, bagian sinkron baru, status persetujuan perubahan batas.
+- **Dokumen:** PRD §3 (aturan batas beban), §4.4, §4.6, §4.8; TRAINING-LOGIC §3 & §6; DESIGN-SYSTEM §7 (nama Gita).
+
+### Usulan teks baru PRD §3
+> Beban tidak melebihi **batas alat** (beban terberat yang bisa dirakit dari alat di Setting) dan **batas keamanan** gerakan bila kondisi terkait aktif. Rentang beban di library adalah titik awal. Perilaku ini aktif setelah pengguna menyetujui pemberitahuan perubahan, dan bisa dikembalikan ke rentang library di Setting. · keputusan 2026-10-26
