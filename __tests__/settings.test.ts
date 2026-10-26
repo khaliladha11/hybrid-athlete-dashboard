@@ -277,6 +277,43 @@ describe("parseSettings tahan data rusak", () => {
     expect(parsed.runZones).toEqual({ easy: "7:30–8:10/km" });
     expect(parsed.movements).toEqual({ "Floor Press": false });
   });
+
+  it("hasil lomba (0.13.2): yang rusak dibuang, satu per jarak + tanggal, terbaru dulu, maksimal 20", () => {
+    const ok = { distance: "5k", seconds: 1500, date: "2026-02-01" };
+    const parsed = parseSettings(
+      {
+        raceResults: [
+          ok,
+          { distance: "5k", seconds: 1480, date: "2026-02-01" }, // tanggal & jarak sama: yang belakangan menang
+          { distance: "hm", seconds: 7200, date: "2026-03-01" },
+          { distance: "5k", seconds: 300, date: "2026-03-02" }, // pace 1:00/km
+          { distance: "50k", seconds: 18000, date: "2026-03-03" },
+          { distance: "10k", seconds: 3300, date: "1 Maret" },
+          { distance: "10k", seconds: 3300.5, date: "2026-03-04" },
+          "rusak",
+        ],
+        zoneOfferDismissedVdot: 33.456,
+      },
+      baseProfile,
+    );
+    expect(parsed.raceResults).toEqual([
+      { distance: "hm", seconds: 7200, date: "2026-03-01" },
+      { distance: "5k", seconds: 1480, date: "2026-02-01" },
+    ]);
+    expect(parsed.zoneOfferDismissedVdot).toBe(33.5);
+    const many = Array.from({ length: 30 }, (_, i) => ({ distance: "10k", seconds: 3300, date: `2026-01-${String(i + 1).padStart(2, "0")}` }));
+    const capped = parseSettings({ raceResults: many }, baseProfile).raceResults;
+    expect(capped).toHaveLength(20);
+    expect(capped[0].date).toBe("2026-01-30");
+  });
+
+  it("pengaturan lama tanpa hasil lomba tetap terbaca; nilai tolak yang tidak masuk akal dibuang", () => {
+    const old = parseSettings({ conditions: ["shin"] }, baseProfile);
+    expect(old.raceResults).toEqual([]);
+    expect(old).not.toHaveProperty("zoneOfferDismissedVdot");
+    expect(parseSettings({ zoneOfferDismissedVdot: 500 }, baseProfile)).not.toHaveProperty("zoneOfferDismissedVdot");
+    expect(parseSettings({ zoneOfferDismissedVdot: "40" }, baseProfile)).not.toHaveProperty("zoneOfferDismissedVdot");
+  });
 });
 
 describe("profil dasar di Setting (0.11)", () => {

@@ -115,6 +115,17 @@ describe("impor", () => {
     expect(st.theme).toBe("light");
   });
 
+  it('kind "defaults": hasil lomba digabung, hasil di perangkat menang untuk jarak & tanggal yang sama (0.13.2)', () => {
+    const device = parseSettings({ raceResults: [{ distance: "5k", seconds: 1500, date: "2026-02-01" }] }, baseProfile);
+    const { st, store } = memStore({ settings: JSON.stringify(device) });
+    const file = { version: 3, kind: "defaults", settings: { raceResults: [{ distance: "5k", seconds: 1600, date: "2026-02-01" }, { distance: "10k", seconds: 3300, date: "2026-01-10" }] } };
+    applyBackup(parseBackup(file)!, store, baseProfile);
+    expect(parseSettings(st.settings, baseProfile).raceResults).toEqual([
+      { distance: "5k", seconds: 1500, date: "2026-02-01" },
+      { distance: "10k", seconds: 3300, date: "2026-01-10" },
+    ]);
+  });
+
   it('kind "defaults" di perangkat kosong mengisi semuanya', () => {
     const { st, store } = memStore();
     applyBackup(parseBackup({ version: 3, kind: "defaults", settings: { conditions: ["apt"], profile: { name: "Atlet Contoh" } }, preferences: { blockEnabled: true } })!, store, baseProfile);

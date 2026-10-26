@@ -30,6 +30,7 @@ const settings = (patch: Partial<SettingsPart> = {}): SettingsPart => ({
   runZones: d.runZones,
   equipment: d.equipment,
   movements: d.movements,
+  raceResults: d.raceResults,
   ...patch,
 });
 const done = (patch: Partial<OnboardingState> = {}): OnboardingState => ({
@@ -120,6 +121,17 @@ describe("merge per bagian", () => {
     expect(mergePart("log", serverLog, hpLog, []).map((e) => [e.id, !!e.deletedAt])).toEqual([["a", true], ["b", false]]);
     const s = mergePart("settings", settings(), settings({ conditions: ["lbp"] }), ["conditions"]);
     expect(s?.conditions).toEqual(["lbp"]);
+  });
+
+  it("hasil lomba & tawaran zona yang ditolak ikut sinkron per kunci (0.13.2)", () => {
+    const race = { distance: "10k" as const, seconds: 3300, date: "2026-02-01" };
+    const server = settings({ conditions: ["shin"] });
+    const local = settings({ raceResults: [race], zoneOfferDismissedVdot: 33.4 });
+    const m = mergePart("settings", server, local, ["raceResults", "zoneOfferDismissedVdot"]);
+    expect(m).toMatchObject({ conditions: ["shin"], raceResults: [race], zoneOfferDismissedVdot: 33.4 });
+    // Tolak dibatalkan di perangkat lain (kunci dihapus) ikut terhapus.
+    expect(mergePart("settings", m, settings({ raceResults: [race] }), ["zoneOfferDismissedVdot"])).not.toHaveProperty("zoneOfferDismissedVdot");
+    expect(validatePart("settings", { ...local, raceResults: [race, { distance: "10k", seconds: 60, date: "2026-02-02" }] }, baseProfile)?.raceResults).toEqual([race]);
   });
 
   it("idempoten: merge hasil merge dengan server yang sama tidak berubah", () => {

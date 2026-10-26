@@ -13,7 +13,7 @@ export const PART_NAMES = ["profile", "settings", "program", "preferences", "onb
 export type PartName = (typeof PART_NAMES)[number];
 export const isPartName = (x: unknown): x is PartName => typeof x === "string" && (PART_NAMES as readonly string[]).includes(x);
 
-export const SETTINGS_KEYS = ["conditions", "customConditions", "runZones", "equipment", "movements"] as const;
+export const SETTINGS_KEYS = ["conditions", "customConditions", "runZones", "equipment", "movements", "raceResults", "zoneOfferDismissedVdot"] as const;
 export type SettingsPart = Pick<AthleteSettings, (typeof SETTINGS_KEYS)[number]>;
 export const PREFERENCE_KEYS = ["theme", "blockEnabled"] as const;
 /** Kunci tidak ada = default (tema sistem; blok mengikuti profil). */
@@ -46,6 +46,8 @@ const pickSettings = (s: AthleteSettings): SettingsPart => ({
   runZones: s.runZones,
   equipment: s.equipment,
   movements: s.movements,
+  raceResults: s.raceResults,
+  ...(s.zoneOfferDismissedVdot !== undefined ? { zoneOfferDismissedVdot: s.zoneOfferDismissedVdot } : {}),
 });
 
 export function partsFromLocal(raw: LocalRaw, log: LogEntry[], base: AthleteProfile): PartData {

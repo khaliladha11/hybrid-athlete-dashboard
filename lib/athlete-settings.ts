@@ -16,7 +16,7 @@ import {
   type Equipment,
 } from "./equipment";
 import { STABILITY_HIP } from "./generator/meta";
-import { formatRange, parseRange, ZONE_KEYS, type ZoneKey } from "./run-zones";
+import { formatRange, parseRange, RACE_DISTANCES, ZONE_KEYS, type RaceDistanceKey, type ZoneKey } from "./run-zones";
 import type { AthleteProfile, Movement, MovementCategory, MovementLibrary } from "./profile";
 
 export const MOVEMENT_CATEGORIES: MovementCategory[] = ["upperPush", "upperPull", "lower", "stabilityAndCore", "prehab"];
@@ -51,6 +51,39 @@ export interface AthleteSettings {
   equipment: Equipment;
   /** Pilihan gerakan; kunci yang tidak ada = default (available di profil). */
   movements: Record<string, boolean>;
+  /** Hasil lomba / time trial dari Setting › Zona (0.13.2), terbaru dulu. Sumber utama prediksi & saran zona. */
+  raceResults: RaceResult[];
+  /** VDOT tawaran update zona yang terakhir ditolak; tawaran baru butuh VDOT ≥ nilai ini + 1. */
+  zoneOfferDismissedVdot?: number;
+}
+
+export interface RaceResult {
+  distance: RaceDistanceKey;
+  /** Waktu tempuh (detik). */
+  seconds: number;
+  /** YYYY-MM-DD (WIB). */
+  date: string;
+}
+
+export const MAX_RACE_RESULTS = 20;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Hasil lomba valid: jarak dikenal, tanggal benar, pace 2:30–15:00/km (rentang yang sama dengan kalkulator VDOT). */
+export function isRaceResult(x: unknown): x is RaceResult {
+  if (!x || typeof x !== "object") return false;
+  const r = x as Record<string, unknown>;
+  const dist = RACE_DISTANCES.find((d) => d.key === r.distance);
+  if (!dist || typeof r.seconds !== "number" || !Number.isInteger(r.seconds) || r.seconds <= 0) return false;
+  if (typeof r.date !== "string" || !DATE_RE.test(r.date) || Number.isNaN(Date.parse(r.date))) return false;
+  const pace = r.seconds / (dist.meters / 1000);
+  return pace >= 150 && pace <= 900;
+}
+
+/** Gabungan daftar hasil: satu per jarak + tanggal (yang belakangan menang), terbaru dulu, maksimal 20. */
+export function mergeRaceResults(...lists: RaceResult[][]): RaceResult[] {
+  const by = new Map<string, RaceResult>();
+  for (const list of lists) for (const r of list) by.set(`${r.date}:${r.distance}`, { distance: r.distance, seconds: r.seconds, date: r.date });
+  return [...by.values()].sort((a, b) => b.date.localeCompare(a.date) || a.distance.localeCompare(b.distance)).slice(0, MAX_RACE_RESULTS);
 }
 
 /** Status gerakan setelah pilihan, alat, dan kondisi diterapkan. */
@@ -96,6 +129,7 @@ export function defaultSettings(base: AthleteProfile): AthleteSettings {
     runZones: {},
     equipment: normalizeEquipment(base.equipment, FALLBACK_EQUIPMENT),
     movements: {},
+    raceResults: [],
   };
 }
 
@@ -160,6 +194,10 @@ export function parseSettings(raw: unknown, base: AthleteProfile): AthleteSettin
     runZones: zones,
     equipment: normalizeEquipment(s.equipment, d.equipment),
     movements,
+    raceResults: Array.isArray(s.raceResults) ? mergeRaceResults(s.raceResults.filter(isRaceResult)) : [],
+    ...(typeof s.zoneOfferDismissedVdot === "number" && s.zoneOfferDismissedVdot >= 10 && s.zoneOfferDismissedVdot <= 90
+      ? { zoneOfferDismissedVdot: Math.round(s.zoneOfferDismissedVdot * 10) / 10 }
+      : {}),
   };
 }
 

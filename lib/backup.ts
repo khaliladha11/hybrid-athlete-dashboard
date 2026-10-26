@@ -11,7 +11,7 @@
  *
  * Log selalu digabung (`mergeLog`), tidak pernah dihapus: file tanpa log tidak menyentuh log.
  */
-import { parseProfileSettings, parseSettings, type AthleteSettings } from "./athlete-settings";
+import { mergeRaceResults, parseProfileSettings, parseSettings, type AthleteSettings } from "./athlete-settings";
 import { parseOnboardingState, type OnboardingState } from "./onboarding";
 import type { AthleteProfile } from "./profile";
 import { ZONE_KEYS } from "./run-zones";
@@ -114,6 +114,8 @@ export function fillSettings(current: AthleteSettings, fileRaw: Record<string, u
   }
   for (const k of ZONE_KEYS) if (!next.runZones[k] && file.runZones[k]) next.runZones[k] = file.runZones[k];
   for (const [name, on] of Object.entries(file.movements)) if (!(name in next.movements)) next.movements[name] = on;
+  // Hasil lomba: gabungan; yang sudah ada di perangkat menang untuk jarak + tanggal yang sama.
+  next.raceResults = mergeRaceResults(file.raceResults, current.raceResults);
   if (!deviceHadSettings) {
     if ("conditions" in fileRaw) next.conditions = file.conditions;
     if ("customConditions" in fileRaw) next.customConditions = file.customConditions;
