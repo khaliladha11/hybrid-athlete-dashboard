@@ -3,13 +3,12 @@
 import { useMemo } from "react";
 import { BUTTON, Card } from "@/components/ui/Card";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { Segmented } from "@/components/ui/Segmented";
 import { INTENSITY_TONE, TONES, pillClasses, type Tone } from "@/components/ui/tones";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { addDays, formatDateId, startOfWeekMonday } from "@/lib/date";
 import { DIFFICULTY_LABEL } from "@/lib/generator/types";
 import type { Activity } from "@/lib/intervals/types";
-import { PHASE_LABEL, RACES, currentWeekIndex, formatGoal, formatPaceSec, goalFromProfile, parseGoal, postRaceOffer, weekToText, type Phase, type ProgramWeek, type RaceTarget } from "@/lib/program";
+import { PHASE_LABEL, currentWeekIndex, formatPaceSec, postRaceOffer, weekToText, type Phase, type ProgramWeek } from "@/lib/program";
 import type { SessionResult } from "@/lib/program/compliance";
 import type { PlannedSession } from "@/lib/program/sessions";
 import { predictRaces } from "@/lib/program/prediction";
@@ -20,6 +19,7 @@ import { SessionStatusChip, sessionNote } from "./SessionStatusChip";
 import { MissedSessions } from "./MissedSessions";
 import { PredictionCard } from "./PredictionCard";
 import { PostRaceOffer, RaceWeekChecklist, countdownText } from "./RaceDay";
+import { TargetForm } from "./TargetForm";
 import { TodaySessionAction } from "./TodaySessionAction";
 
 /** Warna fase: Base hijau (ringan), Build kuning, Peak merah (paling berat), Taper biru. */
@@ -31,7 +31,6 @@ const PHASE_STYLE: Record<Phase, { fill: string; text: string }> = {
   taper: { fill: "bg-info", text: "text-info" },
 };
 
-const RACE_OPTIONS: RaceTarget[] = ["5k", "10k", "hm", "fm"];
 const DAY_MONTH = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
 const WEEKDAY = new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "UTC" });
 const weekdayYear = (d: Date) => `${WEEKDAY.format(d)}, ${d.getUTCFullYear()}`;
@@ -39,8 +38,7 @@ const weekdayYear = (d: Date) => `${WEEKDAY.format(d)}, ${d.getUTCFullYear()}`;
 /** Halaman Program: pengaturan target, status sesi per minggu dari aktivitas (0.13), dan rencana semua minggu. */
 export function ProgramView({ today, activities, oldest, longAdjust }: { today: string; activities: Activity[]; oldest: string; longAdjust?: { km: number; easy: boolean } }) {
   const plan = useProgramPlan({ activities, oldest, today });
-  const { settings, save, program } = plan;
-  const goalSec = parseGoal(settings.goal);
+  const { settings, program } = plan;
   // Tanggal mulai selalu dinormalkan ke Senin.
   const startDate = startOfWeekMonday(settings.startDate);
   const current = program ? currentWeekIndex(program, today) : 0;
@@ -63,54 +61,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
 
   return (
     <div className="space-y-4">
-      <Card title="Target" tour="program-target">
-        <div className="space-y-4">
-          <Segmented
-            label="Program"
-            value={settings.race}
-            onChange={(race) => save({ race, goal: formatGoal(goalFromProfile(race)) })}
-            options={RACE_OPTIONS.map((r) => ({ value: r, label: r === "hm" ? "HM" : r === "fm" ? "FM" : RACES[r].short }))}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <label className="text-[12px] text-muted">
-              Target waktu
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder={settings.race === "5k" ? "mm:ss" : "h:mm:ss"}
-                value={settings.goal}
-                onChange={(e) => save({ goal: e.target.value })}
-                aria-invalid={!goalSec}
-                className={`mt-1 block min-h-11 w-full rounded-control border bg-surface px-3 text-base text-ink tabular ${
-                  goalSec ? "border-line-strong focus:border-brand" : "border-danger"
-                }`}
-              />
-            </label>
-            <label className="text-[12px] text-muted">
-              Mulai (Senin)
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => e.target.value && save({ startDate: startOfWeekMonday(e.target.value) })}
-                className="mt-1 block min-h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
-              />
-            </label>
-          </div>
-          {!goalSec && <p className="text-[13px] font-semibold text-danger-ink">✕ Format waktu tidak valid. Contoh: 28:30 atau 2:45:00.</p>}
-          <Segmented
-            label="Lari per minggu"
-            value={settings.runsPerWeek}
-            onChange={(runsPerWeek) => save({ runsPerWeek })}
-            options={[
-              { value: 3, label: "3× lari" },
-              { value: 4, label: "4× lari" },
-            ]}
-          />
-          <button type="button" onClick={plan.reset} className={`${BUTTON.base} ${BUTTON.secondary} w-full text-body`}>
-            Reset ke target profil
-          </button>
-        </div>
-      </Card>
+      <TargetForm key={`${plan.saved}-${settings.id ?? ""}-${settings.race}-${settings.startDate}-${settings.raceDate}`} plan={plan} today={today} />
 
       {program && (
         <>
@@ -142,7 +93,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
             )}
             <p className="mt-3 text-[12px] text-faint">
               Long run awal {plan.baseLongRunKm ? `dari lari terjauh 30 hari sebelum program mulai (${plan.baseLongRunKm} km)` : "memakai default program"}.
-              {!plan.saved && " Ubah salah satu isian di atas untuk menyimpan program dan melihat status sesi."}
+              {!plan.saved && " Ini pratinjau. Pilih Hari H lalu Buat program untuk menyimpan program dan melihat status sesi."}
             </p>
             {plan.error && (
               <div className="mt-3">
@@ -210,6 +161,44 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
               ))}
             </ul>
           </Card>
+
+          {plan.archived.length > 0 && showStatus && (
+            <Card title="Program sebelumnya" flush className="!pb-1">
+              <ul className="divide-y divide-line">
+                {[...plan.archived].reverse().map((a) => {
+                  const weeks = a.program.weeks.filter((w) => a.sessions.some((s) => s.week === w.index));
+                  const done = a.sessions.filter((s) => plan.results.get(s.id)?.status === "selesai").length;
+                  return (
+                    <li key={a.archive.id}>
+                      <details className="group">
+                        <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-5 py-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-body font-semibold">{a.program.spec.label}</p>
+                            <p className="tabular text-[13px] text-muted">
+                              {formatDateId(a.archive.startDate)} sampai {formatDateId(addDays(a.archive.endedAt, -1))} · Hari H {formatDateId(a.archive.raceDate)} · {done}/{a.sessions.length} selesai
+                            </p>
+                          </div>
+                          <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
+                            ›
+                          </span>
+                        </summary>
+                        <div className="details-body space-y-4 px-5 pb-4">
+                          {weeks.map((w) => (
+                            <div key={w.index}>
+                              <p className="t-label mb-2">
+                                Minggu {w.index} · {PHASE_LABEL[w.phase]}
+                              </p>
+                              <WeekDetail week={w} sessions={a.sessions.filter((s) => s.week === w.index)} results={plan.results} />
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Card>
+          )}
 
           <Card title="Kombinasi dengan strength">
             <p className="text-[14px] text-ink">{program.strengthNote}</p>

@@ -68,9 +68,10 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
   const planByDate = useMemo(() => {
     const map = new Map<string, PlannedSession[]>();
     if (!showPlan) return map;
-    for (const s of plan.sessions) map.set(s.date, [...(map.get(s.date) ?? []), s]);
+    // Sesi arsip (0.13.3) ikut tampil sebagai riwayat.
+    for (const s of [...plan.archived.flatMap((a) => a.sessions), ...plan.sessions]) map.set(s.date, [...(map.get(s.date) ?? []), s]);
     return map;
-  }, [showPlan, plan.sessions]);
+  }, [showPlan, plan.sessions, plan.archived]);
 
   const byDate = useMemo(() => {
     const map = new Map<string, Activity[]>();
@@ -85,7 +86,7 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
 
   const currentMonth = `${today.slice(0, 7)}-01`;
   // Navigasi sepanjang rentang program (awal program sampai bulan lomba), minimal 2 bulan terakhir.
-  const programStart = showPlan ? `${plan.program!.input.startDate.slice(0, 7)}-01` : null;
+  const programStart = showPlan ? `${[plan.program!.input.startDate, ...plan.archived.map((a) => a.archive.startDate)].sort()[0].slice(0, 7)}-01` : null;
   const raceMonth = showPlan ? `${plan.program!.raceDate.slice(0, 7)}-01` : null;
   const firstMonth = programStart && programStart < `${oldest.slice(0, 7)}-01` ? programStart : `${oldest.slice(0, 7)}-01`;
   const lastMonth = raceMonth && raceMonth > currentMonth ? raceMonth : currentMonth;
