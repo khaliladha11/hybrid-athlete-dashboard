@@ -77,7 +77,10 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/program/sessions.ts` | Sesi rencana ber-id `{programId}:{minggu}:{hari}:{jenis}` termasuk ST, penerapan override move/skip | Server & client (murni) |
 | `lib/program/compliance.ts` | Pencocokan aktivitas ±1 hari & status sesi (D2), catatan lebih berat, ringkasan minggu | Server & client (murni) |
 | `lib/program/range.ts`, `app/api/activities/route.ts` | `GET /api/activities?oldest=` (maks 200 hari, `private, max-age=300`) memakai `getActivities`; sesi sandi tetap diperiksa `intervalsGet` | Server |
-| `lib/program/use-program-plan.ts` | Hook: pengaturan program + aktivitas dari server (+ satu ambilan tambahan bila program butuh data lebih lama) → program, sesi, kepatuhan di client (D3) | Client |
+| `lib/program/to-generator.ts` | Pemetaan sesi rencana → isian generator lari/ST atau kartu sesi program (0.13.1), teks salin kartu, query prefill & parser-nya, `todaySession`, `planToday` | Server & client (murni) |
+| `lib/program/prediction.ts` | Perkiraan waktu lomba (0.13.2): sumber VDOT (hasil lomba 90 hari, lalu lari utuh ≥ 3 km), invers VDOT per jarak, keyakinan, Riegel, `targetGap`, `zoneOffer` | Server & client (murni) |
+| `lib/program/reschedule.ts` | Opsi geser/lewati untuk sesi terlewat (0.13.2), selalu di minggu yang sama (D5), `missedSessions` | Server & client (murni) |
+| `lib/program/use-program-plan.ts` | Hook: pengaturan program + aktivitas dari server (+ satu ambilan tambahan bila program butuh data lebih lama) → program, sesi, kepatuhan di client (D3); `decide()` menyimpan keputusan geser/lewati sebagai override | Client |
 | `lib/generator/block.ts` | Posisi blok & deload dari tanggal | Server |
 | `lib/generator/run.ts`, `strength.ts` | Pembuat pola | Client |
 | `lib/generator/validate.ts` | Sanitizer + validator | Client |
@@ -86,7 +89,7 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/progression.ts` | Aturan 2-for-2, penerapan ke workout | Client |
 | `lib/training-log.ts` | Penyimpanan log (localStorage) + ekspor/impor | Client |
 | `lib/conditions.ts` | Katalog kondisi berbasis riset → aturan generator | Server & client |
-| `lib/run-zones.ts` | Rumus VDOT Daniels, parser & format pace | Client |
+| `lib/run-zones.ts` | Rumus VDOT Daniels, invers (`timeForVdot`) & VDOT zona tersimpan (`zoneVdot`, 0.13.2), parser & format pace | Server & client |
 | `lib/equipment.ts` | Kebutuhan alat per gerakan, beban yang bisa dirakit dari plat | Server & client |
 | `lib/athlete-settings.ts` | Pengaturan Setting (termasuk profil dasar sejak 0.11) + `resolveProfile()` → profil efektif (JSON netral + pengaturan perangkat), format target lomba, gerakan cadangan (`fallback`) aktif otomatis bila kategorinya kosong, `sessionCoverage()` untuk pesan alat di Strength | Server & client |
 | `lib/settings-store.ts` | Hook `useAthleteSettings` / `useResolvedProfile`, `useBlockMode` / `useBlockContext` (blok dihitung dari profil perangkat), `useIsClient` | Client |
@@ -137,7 +140,7 @@ Key `localStorage` (pola `hybrid-athlete.<nama>[.vN]`, di `lib/preference-keys.t
 
 | Key | Isi |
 | --- | --- |
-| `hybrid-athlete.settings.v1` | `AthleteSettings`: `profile` (override per field), `conditions` & `equipment` (nilai penuh begitu disimpan), `runZones` & `movements` (override) |
+| `hybrid-athlete.settings.v1` | `AthleteSettings`: `profile` (override per field), `conditions` & `equipment` (nilai penuh begitu disimpan), `runZones` & `movements` (override), `raceResults` (hasil lomba, maks 20) & `zoneOfferDismissedVdot` sejak 0.13.2. Semua kunci selain `profile` disinkron per kunci |
 | `hybrid-athlete.log.v1` | Log sesi ST |
 | `hybrid-athlete.program` | Program target |
 | `hybrid-athlete.theme` | `light` / `dark` (kosong = sistem) |
@@ -177,7 +180,12 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `progression.test.ts` | Aturan 2-for-2, tahan/turun, batas library, deload, gerakan tahan & band, validasi data impor. |
 | `data.test.ts` | Tanggal WIB, normalisasi field null & cadence, ringkasan 7 hari, readiness. |
 | `activity-data.test.ts` | Dedupe Huawei + salinan Strava (urutan apa pun, tanpa pasangan, beda jenis, dua rekaman berisi), split per km (konstan, berhenti, HR berbobot, data rusak, cadence per-kaki), sumber jarak (dibagi rata, GPS, tanpa GPS), kasus tepi data jam (jarak bertangga, berhenti, lonjakan, reset, GPS hilang, validasi ringkasan, ambang lari/jalan), detail demo. |
-| `program.test.ts` | Program target: fase, long run ≤ 10%/2 km, cutback, taper, peringatan, `kind` & `minutes` per sesi. |
+| `program.test.ts` | Program target: fase, long run ≤ 10%/2 km, cutback, taper, peringatan, `kind` & `minutes` per sesi, hitung mundur, checklist H-1, tawaran catat hasil H+1 sampai H+14. |
+| `run-baseline.test.ts` | 108 hash keluaran generator lari tanpa `pattern` (dibuat dari kode sebelum 0.13.1) untuk menjamin parameter opsional tidak mengubah keluaran lama. |
+| `run-pattern.test.ts` | Pola lari yang diminta benar-benar terpilih bila cocok dengan level/durasi, pola tidak cocok diabaikan, 15/15 tidak pernah muncul dengan Achilles. |
+| `to-generator.test.ts` | Pemetaan semua jenis sesi × fase × jarak × 3/4 lari, durasi 30/45/60, kartu tanpa em/en dash, query prefill bolak-balik & rusak, `todaySession`, `planToday`. |
+| `prediction.test.ts` | Prioritas sumber & jendela 90 hari, filter lari latihan, waktu = invers VDOT, keyakinan FM, Riegel, `targetGap`, saran update zona (satu hasil, < 14 hari, ≥ 14 hari, ditolak lalu naik lagi). |
+| `reschedule.test.ts` | Aturan geser/lewati §4.8 (quality dengan & tanpa kandidat, 48 jam, lari tercatat, long run, easy, ST, lomba, sesi belum terlewat), `missedSessions`, dan D5 untuk semua program × sesi × hari: geser tidak mengubah sesi/km minggu lain. |
 | `program-sessions.test.ts` | Id sesi stabil (antar render & perubahan target), id baru saat program berganti, ST Senin/Rabu & taper 1×, override move/skip, parse/serialize override, gabungan override, program aktif, long run awal stabil. |
 | `compliance.test.ts` | Tepat hari & ±1 hari, < 80% → sebagian, easy berat → catatan, quality ringan → sebagian, long run & aktivitas ganda sehari, dua sesi berebut satu aktivitas, tenggang kemarin & terlewat, override, data kosong, ST dari log & dari intervals.icu, ringkasan minggu. |
 | `program-activities.test.ts` | Validasi rentang `/api/activities` dan route di Demo Mode tanpa key. |
@@ -192,10 +200,10 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `auth-routes.test.ts` | Route `/api/unlock` & `/api/lock` end-to-end (atribut cookie, Retry-After, IP lain tidak terblokir), `proxy` dengan `NextRequest` (tanpa sandi identik 0.11, 307/401, aset PWA terbuka, matcher), dan `intervalsGet` tidak memanggil intervals.icu tanpa sesi. |
 | `connection.test.ts` | Pemetaan status koneksi (missing tanpa panggilan, 401/403/404/5xx/timeout/jaringan/lainnya), hanya nama atlet yang diteruskan, dan route `GET /api/connection` end-to-end dengan `fetch` palsu: respons tanpa key, athlete ID, atau email; header `no-store`; key hanya di header Authorization. |
 | `onboarding.test.ts` | Urutan & langkah otomatis 0.11.0, maju/mundur, langkah wajib memblokir, opsional dilewati, lanjut dari langkah tersimpan, state rusak, "Tidak ada kondisi" eksklusif, gate (baru/lama/versi disclaimer). |
-| `backup.test.ts` | Ekspor v3, impor v1/v2/v3, impor tanpa log tidak menghapus log, log tanpa duplikat, `kind: "defaults"` tidak menimpa kustomisasi perangkat. |
+| `backup.test.ts` | Ekspor v3, impor v1/v2/v3, impor tanpa log tidak menghapus log, log tanpa duplikat, `kind: "defaults"` tidak menimpa kustomisasi perangkat dan menggabungkan hasil lomba. |
 | `neutral-profile.test.ts` | JSON netral tanpa data pribadi, zona = `zonesFromVdot(30)`, semua kombinasi lari valid dengan profil netral, ST bodyweight-only: semua jenis × durasi × kesulitan × 25 seed × blok/deload/bebas tidak error, lolos aturan wajib, dan Upper Push/Pull berisi gerakan kategorinya. |
 | `tour.test.ts` | Urutan & rute langkah tur, teks tanpa dash/seru, `placePopover` (bawah, atas, elemen setinggi layar, tanpa elemen, layar lebar), `holeRect`, `tourCompletedAt` tersimpan. |
 | `tour-targets.test.ts` | Setiap target `data-tour` benar-benar dipasang di komponen. |
-| `settings.test.ts` | Setiap kondisi mengubah generator sesuai aturannya, kombinasi semua kondisi tetap valid, beban selalu bisa dirakit dari alat, gerakan tidak dipilih tidak pernah muncul, rumus VDOT vs tabel Daniels, parser pengaturan tahan data rusak. |
+| `settings.test.ts` | Setiap kondisi mengubah generator sesuai aturannya, kombinasi semua kondisi tetap valid, beban selalu bisa dirakit dari alat, gerakan tidak dipilih tidak pernah muncul, rumus VDOT & inversnya vs tabel Daniels, VDOT zona, parser pengaturan tahan data rusak, hasil lomba (validasi, unik per jarak + tanggal, maks 20). |
 
 Generator diuji secara menyeluruh (setiap kombinasi × banyak seed), bukan hanya dengan beberapa contoh. Bug yang ditemukan saat pengembangan, seperti deload yang gagal memenuhi durasi atau beban yang terbulatkan salah, selalu disertai test baru.

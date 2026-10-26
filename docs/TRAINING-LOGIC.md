@@ -199,6 +199,50 @@ Kode: [`lib/program/to-generator.ts`](../lib/program/to-generator.ts). Spesifika
 - **Kartu sesi program**: jarak, detail rencana, cue kondisi aktif (cadence, rel kereta, catatan kondisi), dan teks salin format Copy Set, misalnya `Run [14 km, Pace 7:20–8:43]`. Long run FM dengan 3 km race pace dipecah (km − 3 easy, lalu 3 km race pace). Long run yang dipendekkan saran menampilkan jarak baru dan jarak rencana.
 - **Quality spesifik lomba yang diturunkan saran** dikerjakan sebagai lari biasa di generator dengan durasi rencana (Race pace 3×2 km = 60', Sharpener = 30').
 
+### Perkiraan waktu lomba (0.13.2)
+
+Kode: [`lib/program/prediction.ts`](../lib/program/prediction.ts), invers di [`lib/run-zones.ts`](../lib/run-zones.ts). Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.6, D1.
+
+| Aturan | Detail |
+| --- | --- |
+| Rumus | VDOT Daniels & Gilbert yang sama dengan zona. Waktu per jarak = waktu yang menghasilkan VDOT sama (`timeForVdot`, bisection), cocok dengan tabel Daniels dalam 0,5%: VDOT 30 → 5K 30:40, 10K 63:46, HM 2:21:04, FM 4:49:17 |
+| Sumber 1 | Hasil lomba / time trial di Setting › Zona dalam 90 hari terakhir; yang terbaru dipakai. Keyakinan **tinggi** |
+| Sumber 2 | Best effort intervals.icu: belum dipakai (satuan kurva pace tidak dijelaskan di dokumentasi API, data per detik jam tidak selalu bisa dipercaya). Backlog |
+| Sumber 3 | Lari utuh ≥ 3 km dalam 90 hari (pace wajar 2:30–15:00/km, bukan salinan kosong); VDOT tertinggi. Keyakinan **rendah**: lari latihan biasanya lebih lambat dari kemampuan lomba, jadi perkiraannya cenderung hati-hati |
+| Maraton | Selalu diberi catatan volume long run. Bila long run terjauh 30 hari < 12 km, keyakinan FM paling tinggi rendah |
+| Target | `di jalur` bila perkiraan ≤ target; selain itu `perlu N"/km lebih cepat` (dibulatkan ke atas) |
+| Pembanding | Riegel: T2 = T1 × (D2/D1)^1,06 dari performa sumber, hanya di detail. Riegel cenderung terlalu optimis untuk jarak jauh pada volume rendah, jadi bukan angka utama (D1) |
+
+Copy selalu "perkiraan", bukan janji: cuaca, rute, dan kondisi hari lomba ikut menentukan.
+
+### Saran update zona (0.13.2)
+
+Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.7. VDOT zona sekarang dibaca dari zona tempo tersimpan (batas cepat di 88%, batas lambat di 83% VDOT, dirata-rata).
+
+- Tawaran muncul di Setting › Zona dan Profil bila ada **dua hasil lomba berbeda** dalam 90 hari, tanggalnya terpisah **≥ 14 hari**, dan keduanya **≥ VDOT zona + 1**. Zona baru dihitung dari hasil terbaru.
+- Tidak pernah otomatis. **Perbarui** menulis keempat zona dari VDOT itu; **Tolak** mengingat VDOT-nya, dan tawaran baru muncul hanya bila hasil terbaru ≥ VDOT yang ditolak + 1.
+- Lari latihan (sumber 3) tidak pernah memicu saran.
+
+### Sesi terlewat: geser atau lewati (0.13.2)
+
+Kode: [`lib/program/reschedule.ts`](../lib/program/reschedule.ts). Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.8, D5. Hanya untuk sesi berstatus terlewat (lewat tanggal + 1 hari tanpa aktivitas) yang belum diputuskan, dalam 7 hari terakhir. Paling banyak satu tanggal geser ditawarkan (yang paling awal), selalu ≥ hari ini dan **di minggu program yang sama**.
+
+| Sesi | Opsi |
+| --- | --- |
+| Quality | Geser ke hari tanpa lari (rencana atau tercatat), bukan sehari sebelum quality/long run/lomba, dan ≥ 48 jam dari quality sebelumnya. Tanpa kandidat → hanya lewati |
+| Long run | Geser +1 atau +2 hari dengan syarat yang sama, bukan hari quality atau sehari sebelumnya. Long run program selalu Minggu dan baru terlewat Selasa, jadi praktis hanya lewati |
+| Easy / recovery | Hanya lewati |
+| ST | Geser ke hari tanpa sesi apa pun, bukan sehari sebelum quality/long run |
+| Lomba | Tidak ada opsi |
+
+Keputusan disimpan sebagai override program (tersinkron per sesi). Geser tidak pernah membuat sesi atau km baru dan tidak pernah menyentuh minggu lain (D5, dijaga test untuk semua program); tidak ada "membayar utang" latihan.
+
+### Hitung mundur & minggu lomba (0.13.2)
+
+- Program dan ringkasan Profil menampilkan `14 HARI LAGI · HALF MARATHON` (`HARI INI` di hari lomba).
+- Minggu lomba: catatan taper dan sesi sharpener dari program, plus checklist umum H-1: tidur cukup dua malam terakhir, sepatu yang sudah dipakai latihan, makan dan minum yang sudah biasa, rencana pace dari perkiraan (bila berbeda dari target) dengan awal sedikit lebih lambat. Bukan saran medis.
+- Hari ke-1 sampai ke-14 setelah lomba: tawaran mencatat hasil di Setting › Zona (memperkuat sumber 1), hilang setelah hasil jarak itu dicatat.
+
 **Mode bebas:** program blok mingguan (bagian 4) bisa dimatikan lewat toggle. Saat mati, tidak ada minggu deload, dan gerakan utama ★ dipilih per sesi (tetap multi-joint dan tetap dicatat untuk progresi beban).
 
 ## 8. Referensi
@@ -207,9 +251,11 @@ Buku:
 - Bompa, T. O. & Buzzichelli, C. A. — *Periodization: Theory and Methodology of Training* (ed. 6). Human Kinetics. Dasar struktur blok dan deload.
 - NSCA — *Essentials of Strength Training and Conditioning* (ed. 5). Human Kinetics. Gerakan multi-joint sebagai fondasi, urutan latihan, dan progresi beban "2-for-2".
 - Zatsiorsky, V. M., Kraemer, W. J. & Fry, A. C. — *Science and Practice of Strength Training* (ed. 3). Human Kinetics. Prinsip bahwa tidak ada satu program untuk semua orang.
-- Daniels, J. — *Daniels' Running Formula* (ed. 4). Human Kinetics. Kategori pace (Easy, Threshold, Interval) sebagai kerangka perpustakaan pola lari.
+- Daniels, J. — *Daniels' Running Formula* (ed. 4). Human Kinetics. Kategori pace (Easy, Threshold, Interval) sebagai kerangka perpustakaan pola lari, dan tabel VDOT untuk perkiraan waktu lomba.
+- Daniels, J. & Gilbert, J. (1979). *Oxygen Power: Performance Tables for Distance Runners*. Rumus VDOT (VO2 dari kecepatan, %VO2max dari durasi) untuk zona dan perkiraan waktu lomba.
 
 Studi:
+- Riegel, P. S. (1981). Athletic records and human endurance. *American Scientist*, 69(3), 285–290. Rumus T2 = T1 × (D2/D1)^1,06, dipakai hanya sebagai pembanding perkiraan.
 - Helgerud dkk. (2007). Aerobic high-intensity intervals improve VO₂max more than moderate training. *Med Sci Sports Exerc*, 39(4), 665–671. Dasar Norwegian 4×4 & 15/15.
 - Seiler, S. Distribusi intensitas polarisasi pada atlet endurance ([Frontiers in Physiology](https://www.frontiersin.org/articles/10.3389/fphys.2015.00295/full)). Dasar aturan 80/20.
 - Nielsen dkk. (2014). Excessive progression in weekly running distance and risk of running-related injuries. *JOSPT* ([tautan](https://www.jospt.org/doi/10.2519/jospt.2014.5164)). Kenaikan > 30% dikaitkan dengan shin splints dan cedera gluteus medius.
@@ -259,6 +305,8 @@ Pace bisa diisi manual per zona, atau dihitung dari hasil lomba/time trial denga
 | Norwegian 4×4 | 88–92% VDOT | Helgerud 2007: 90–95% HRmax, di antara Threshold & Interval |
 
 Contoh: 5K 30:40 → VDOT ±30 → tempo ±6:24–6:42/km (sesuai tabel Daniels).
+
+Sejak 0.13.2 hasil yang dihitung bisa disimpan (jarak, waktu, tanggal) dengan atau tanpa mengubah zona. Hasil 90 hari terakhir menjadi sumber utama perkiraan waktu lomba dan saran update zona (bagian 7).
 
 ### Alat & beban
 

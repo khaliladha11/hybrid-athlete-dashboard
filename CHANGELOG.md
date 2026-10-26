@@ -4,6 +4,27 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.13.2] · 2026-10-26 · Program hidup: prediksi, zona, geser/lewati, hitung mundur
+
+Tahap terakhir [PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) (§4.6–§4.9, D1, D5). 0.13 Program hidup selesai.
+
+### Ditambahkan
+- **Perkiraan waktu lomba** di Program: 5K/10K/HM/FM dari VDOT Daniels (invers rumus yang sama dengan zona), keyakinan tinggi (hasil lomba 90 hari) atau rendah (lari utuh ≥ 3 km), selisih terhadap target (`di jalur` atau `perlu N"/km lebih cepat`), dan detail sumber dengan pembanding Riegel. FM maksimal rendah bila long run terjauh 30 hari < 12 km.
+- **Hasil lomba tersimpan** di Setting › Zona: kalkulator VDOT kini punya tanggal, "Terapkan ke semua zona" ikut menyimpan hasil, ada "Simpan hasil saja", daftar hasil bisa dihapus. Disinkron per kunci dan ikut cadangan.
+- **Saran update zona** di Setting › Zona dan Profil bila dua hasil lomba berbeda (terpisah ≥ 14 hari) sama-sama ≥ VDOT zona + 1. Tidak pernah otomatis; Tolak diingat sampai VDOT naik ≥ 1 lagi.
+- **Geser atau lewati sesi terlewat**: baris `Tempo Selasa terlewat · Geser ke Jumat · Lewati` di Program dan Profil (maks. 2). Geser hanya di minggu yang sama dan tidak pernah menambah volume minggu berikutnya; Lewati dua ketukan. Disimpan sebagai override program (sudah tersinkron sejak 0.13.0).
+- **Hitung mundur** `48 HARI LAGI · HALF MARATHON` di Program dan Profil, **checklist H-1** di minggu lomba dengan rencana pace dari perkiraan, dan tawaran **Catat hasil lomba** H+1 sampai H+14 yang membuka kalkulator dengan jarak & tanggal terisi.
+- 32 test baru (`prediction`, `reschedule`, tambahan `settings`, `program`, `sync-merge`, `backup`), total 430 di 31 file.
+
+### Diubah
+- Halaman Program mengambil 90 hari aktivitas di server (sebelumnya 30) untuk perkiraan waktu lomba.
+
+### Tidak dipakai
+- Best effort intervals.icu (`pace-curves`): ada di dokumentasi resmi, tetapi satuan `values` tidak dijelaskan dan data per detik jam tidak selalu bisa dipercaya. Masuk backlog P2.
+
+### Dokumentasi
+- PRD (§4.5 semua baris 0.13 ✅, §4.8, §7 0.13 selesai, backlog, §8), TRAINING-LOGIC §7 (perkiraan, saran zona, geser/lewati, hitung mundur) & §8 (Daniels & Gilbert 1979, Riegel 1981), ARCHITECTURE (modul & test 0.13.1–0.13.2), README, screenshot Program.
+
 ## [0.13.1] · 2026-10-26 · Program hidup: program → generator & saran tahu rencana
 
 Tahap kedua [PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) (§4.4, §4.5, D4).

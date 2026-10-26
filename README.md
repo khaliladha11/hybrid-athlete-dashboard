@@ -32,7 +32,7 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
   <tr>
     <td><img src="docs/screenshots/02-weekly-summary.jpg" width="220" alt="Ringkasan 7 hari dengan StatRow, 80/20, dan Week Ledger"></td>
     <td><img src="docs/screenshots/06-activity.jpg" width="220" alt="Detail aktivitas Norwegian 4x4 dengan kartu tag dan split per km"></td>
-    <td><img src="docs/screenshots/08-program.jpg" width="220" alt="Program target 10K dengan fase dan minggu ini"></td>
+    <td><img src="docs/screenshots/08-program.jpg" width="220" alt="Program Half Marathon dengan perkiraan waktu lomba dan detail sumbernya"></td>
   </tr>
   <tr>
     <td align="center"><sub>7 hari terakhir + Week Ledger</sub></td>
@@ -103,7 +103,7 @@ Awalnya ini cuma buat saya sendiri. Tapi kondisi, alat, zona lari, dan pilihan g
 | **Detail gerakan** | Thumbnail di setiap gerakan; tap untuk bottom sheet berisi gambar posisi awal ↔ akhir (crossfade, bisa dijeda), cue teknik, otot utama/sekunder, dan catatan kondisi aktif. Gambar dari free-exercise-db (Unlicense), disimpan lokal. |
 | **Generator ST** | Full Body / Upper Push / Upper Pull / Lower. Hanya gerakan yang dipilih & bisa dilakukan dengan alat yang ada, RPE ≤ 7, beban yang benar-benar bisa dirakit dari plat, plus gerakan wajib/terlarang sesuai kondisi aktif (prehab shin, stabilitas panggul, Spine-Friendly, dll.). **Tanpa alat pun jalan**: Upper Push/Pull memakai gerakan cadangan (Push-Up, Wall/Knee Push-Up, Prone Y-T-W, Reverse Snow Angel), dan bila sesi tidak bisa disusun aplikasi menyebut alat yang dibutuhkan. |
 | **Periodisasi** | Blok 4 minggu (3 normal + 1 deload). Gerakan utama ★ dikunci per blok, sedangkan aksesori dan skema rep berputar. Bisa **dimatikan** (toggle) untuk latihan bebas tanpa jadwal blok. |
-| **Program target** | Program mingguan menuju **PB 5K, PB 10K, Half Marathon, atau Full Marathon**: fase Base → Build → Peak → Taper, long run naik ≤ 10%/minggu dengan cutback, race pace dari target waktu, dan jadwal ST yang tidak bentrok. |
+| **Program target** | Program mingguan menuju **PB 5K, PB 10K, Half Marathon, atau Full Marathon**: fase Base → Build → Peak → Taper, long run naik ≤ 10%/minggu dengan cutback, race pace dari target waktu, dan jadwal ST yang tidak bentrok. Sejak 0.13 status sesi otomatis dari aktivitas, "Kerjakan sesi hari ini" ke generator, perkiraan waktu lomba, geser/lewati sesi terlewat, dan hitung mundur. |
 | **Saran hari ini** | Menggabungkan readiness (HRV, resting HR, sesi kemarin), distribusi 80/20, kenaikan km mingguan, dan jarak antara ST kaki dan lari berat. Sarannya bisa diterapkan dengan satu tap. |
 | **Progresi beban** | Catat sesi, lalu beban berikutnya disesuaikan otomatis (aturan "2-for-2" NSCA) ke beban berikutnya yang bisa dirakit, tanpa pernah melewati batas library. Riwayatnya ada di halaman Strength. |
 | **Salin cepat** | Workout ST sebagai teks ringkas; workout lari lewat tombol **Copy Set** (format "Set" Huawei Health). |
@@ -273,7 +273,7 @@ Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di pera
 | **0.10.1–0.10.2** Logo & data aktivitas | ✅ Selesai | Logo "Forward H", aktivitas ganda Huawei + Strava dihitung sekali, split per km yang divalidasi (GPS bila perlu), pemilih waktu & pace di Setting |
 | **0.11** Onboarding & deploy pribadi | ✅ Selesai | Wizard 10 langkah, profil di perangkat + JSON netral, cek koneksi di server, pengingat proteksi deploy, pasang ke HP, tur in-app, strength tanpa alat |
 | **0.12** Aman & tersinkron | ✅ Selesai | CI GitHub Actions, sandi aplikasi opsional, sinkron ke Upstash Redis milikmu, cadangan otomatis harian dengan Pulihkan, Sambungkan perangkat ini |
-| **0.13** Program hidup | 🟡 Berjalan | 0.13.0 & 0.13.1 selesai: kepatuhan rencana vs aktual, rencana di kalender, ringkasan minggu di Profil, "Kerjakan sesi hari ini" ke generator, saran tahu rencana. Berikutnya: prediksi waktu lomba, sesi terlewat, hitung mundur. Spesifikasi: [docs/PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) |
+| **0.13** Program hidup | ✅ Selesai | Kepatuhan rencana vs aktual, rencana di kalender, ringkasan minggu di Profil, "Kerjakan sesi hari ini" ke generator, saran tahu rencana, perkiraan waktu lomba, saran update zona, geser/lewati sesi terlewat, hitung mundur. Spesifikasi: [docs/PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) |
 | **0.14** Strength hidup | 💡 Rencana | ST mengikuti fase program, session-RPE masuk beban, mode latihan + timer, tes kekuatan. Cakupan: [docs/STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) |
 | **0.15** Insight | 💡 Rencana | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence, volume ST; check-in subjektif harian |
 | **1.0** Siap pakai penuh | 💡 Rencana | Offline, kirim workout ke intervals.icu/jam, test e2e. Detail: [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
@@ -284,7 +284,7 @@ Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 
 - **Next.js 16** (App Router, Server Components) + **React 19** + **TypeScript**
 - **Tailwind CSS 4** dengan token semantik di [`app/globals.css`](app/globals.css). Dark mode mengikuti pengaturan sistem.
-- **Vitest**: 29 file test, 398 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
+- **Vitest**: 31 file test, 430 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
 - **intervals.icu REST API** (aktivitas, wellness, stream per detik), dipanggil hanya dari server
 - Grafik SVG buatan sendiri (Segment Skyline), tanpa library chart
 - Tanpa database. Profil default disimpan di JSON; Setting, log sesi, dan program di localStorage perangkat (bisa diekspor/impor).
