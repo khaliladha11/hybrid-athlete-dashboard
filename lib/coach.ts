@@ -167,7 +167,14 @@ export interface Suggestion {
   difficulty?: Difficulty;
   duration?: Duration;
   type?: StrengthType;
+  /** Long run dari program yang disarankan lebih pendek (km). */
+  longRunKm?: number;
+  /** Long run disarankan seluruhnya di pace easy (tanpa bagian race pace). */
+  longRunEasy?: boolean;
 }
+
+/** Long run dipendekkan ke ±75% saat readiness rendah (dibulatkan ke 0,5 km). */
+export const LONG_RUN_REDUCTION = 0.75;
 
 /** Sesi lari rencana hari ini dari program (0.13.1), untuk saran terhadap rencana. */
 export interface PlanToday {
@@ -189,8 +196,9 @@ export function suggestFor(
   advice: Advice[],
   target: AdviceTarget,
   current: { difficulty: Difficulty; duration: Duration; type?: StrengthType },
-  opts: { ignoreLowerBy?: boolean } = {},
+  opts: { ignoreLowerBy?: boolean; plan?: PlanToday } = {},
 ): Suggestion {
+  if (opts.plan && target === "run") return suggestForPlan(advice, opts.plan);
   const relevant = advice.filter((a) => a.targets.includes(target));
   const cur = DIFFICULTIES.indexOf(current.difficulty);
   let idx = cur;
@@ -206,5 +214,39 @@ export function suggestFor(
     ...(idx < cur ? { difficulty: DIFFICULTIES[idx] } : {}),
     ...(duration ? { duration } : {}),
     ...(type ? { type } : {}),
+  };
+}
+
+/**
+ * Saran terhadap sesi rencana hari ini (PROGRAM-HIDUP §4.5). Basisnya rencana, bukan pilihan saat ini,
+ * sehingga menerapkan saran tidak membuatnya turun lagi (tidak berantai). Hanya menurunkan, tidak memblokir:
+ * - readiness rendah + quality → turun satu level, durasi sama;
+ * - 80/20 terlampaui + quality → Easy (batas `maxDifficulty` lain, mis. setelah ST kaki, tetap berlaku);
+ * - kenaikan km > 30% → durasi maks dari saran (sesi generator) atau long run ditahan ke jarak minggu lalu;
+ * - readiness rendah + long run → ±75% jarak, seluruhnya pace easy.
+ * Lomba tidak pernah diturunkan otomatis.
+ */
+function suggestForPlan(advice: Advice[], plan: PlanToday): Suggestion {
+  const relevant = advice.filter((a) => a.targets.includes("run"));
+  if (plan.kind === "race") return {};
+  if (plan.kind === "long") {
+    if (!plan.km) return {};
+    const readiness = relevant.some((a) => a.lowerBy);
+    let km = plan.km;
+    if (readiness) km = Math.min(km, Math.round(plan.km * LONG_RUN_REDUCTION * 2) / 2);
+    if (relevant.some((a) => a.maxDuration) && plan.prevLongKm !== undefined && plan.prevLongKm < km) km = plan.prevLongKm;
+    return km < plan.km ? { longRunKm: km, ...(readiness ? { longRunEasy: true } : {}) } : {};
+  }
+  const cur = DIFFICULTIES.indexOf(plan.difficulty);
+  let idx = cur;
+  let duration: Duration | undefined;
+  for (const a of relevant) {
+    if (a.lowerBy && plan.kind === "quality") idx = Math.min(idx, Math.max(0, cur - a.lowerBy));
+    if (a.maxDifficulty) idx = Math.min(idx, DIFFICULTIES.indexOf(a.maxDifficulty));
+    if (a.maxDuration && plan.duration && a.maxDuration < plan.duration) duration = Math.min(duration ?? a.maxDuration, a.maxDuration) as Duration;
+  }
+  return {
+    ...(idx < cur ? { difficulty: DIFFICULTIES[idx] } : {}),
+    ...(duration ? { duration } : {}),
   };
 }

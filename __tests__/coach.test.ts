@@ -141,3 +141,62 @@ describe("saran relatif tidak berantai", () => {
     expect(suggestFor(withPolarized, "run", { difficulty: "moderate", duration: 45 }, { ignoreLowerBy: true }).difficulty).toBe("easy");
   });
 });
+
+describe("saran terhadap rencana hari ini (0.13.1, PROGRAM-HIDUP §4.5)", () => {
+  const readiness: Advice = { id: "readiness", targets: ["run", "strength"], title: "HRV di bawah rata-rata", message: "x", lowerBy: 1 };
+  const polarized: Advice = { id: "polarized", targets: ["run"], title: "3 lari berat", message: "x", maxDifficulty: "easy" };
+  const volume: Advice = { id: "volume", targets: ["run"], title: "Jarak naik 40%", message: "x", maxDuration: 30 };
+  const legSt: Advice = { id: "after-leg-st", targets: ["run"], title: "Kemarin ST kaki", message: "x", maxDifficulty: "moderate" };
+  const quality = { kind: "quality" as const, difficulty: "moderate" as const, duration: 45 as const };
+  const high = { kind: "quality" as const, difficulty: "high" as const, duration: 45 as const };
+  const long = { kind: "long" as const, difficulty: "easy" as const, km: 14, prevLongKm: 12 };
+  const cur = { difficulty: "moderate" as const, duration: 45 as const };
+
+  it("readiness rendah + quality → turun satu level, durasi sama", () => {
+    expect(suggestFor([readiness], "run", cur, { plan: quality })).toEqual({ difficulty: "easy" });
+    expect(suggestFor([readiness], "run", { difficulty: "high", duration: 45 }, { plan: high })).toEqual({ difficulty: "moderate" });
+  });
+
+  it("80/20 terlampaui + quality → Easy; batas lain yang ada tetap berlaku terhadap rencana", () => {
+    expect(suggestFor([polarized], "run", { difficulty: "high", duration: 45 }, { plan: high })).toEqual({ difficulty: "easy" });
+    expect(suggestFor([legSt], "run", { difficulty: "high", duration: 45 }, { plan: high })).toEqual({ difficulty: "moderate" });
+    expect(suggestFor([volume], "run", cur, { plan: quality })).toEqual({ duration: 30 });
+  });
+
+  it("readiness rendah + long run → ±75% jarak, pace easy; kenaikan km > 30% → tahan jarak minggu lalu", () => {
+    expect(suggestFor([readiness], "run", cur, { plan: long })).toEqual({ longRunKm: 10.5, longRunEasy: true });
+    expect(suggestFor([volume], "run", cur, { plan: long })).toEqual({ longRunKm: 12 });
+    // Keduanya: ambil yang lebih pendek.
+    expect(suggestFor([readiness, volume], "run", cur, { plan: { ...long, prevLongKm: 9 } })).toEqual({ longRunKm: 9, longRunEasy: true });
+    // Minggu lalu lebih panjang (cutback minggu ini) → tidak ditahan.
+    expect(suggestFor([volume], "run", cur, { plan: { ...long, prevLongKm: 16 } })).toEqual({});
+  });
+
+  it("hanya menurunkan: rencana easy + readiness → tidak ada saran; lomba tidak pernah diturunkan", () => {
+    expect(suggestFor([readiness], "run", { difficulty: "easy", duration: 45 }, { plan: { kind: "easy", difficulty: "easy", duration: 45 } })).toEqual({});
+    expect(suggestFor([readiness, volume, polarized], "run", cur, { plan: { kind: "race", difficulty: "high", km: 21.1 } })).toEqual({});
+  });
+
+  it("tidak berantai: basis rencana, jadi setelah diturunkan saran tetap sama", () => {
+    const first = suggestFor([readiness], "run", cur, { plan: quality });
+    const afterApply = suggestFor([readiness], "run", { difficulty: first.difficulty!, duration: 45 }, { plan: quality });
+    expect(afterApply).toEqual(first);
+    // ignoreLowerBy tidak relevan untuk saran berbasis rencana.
+    expect(suggestFor([readiness], "run", { difficulty: "easy", duration: 45 }, { plan: quality, ignoreLowerBy: true })).toEqual(first);
+  });
+
+  it("tanpa rencana perilaku lama identik; target strength mengabaikan rencana", () => {
+    const sets = [[readiness], [polarized], [volume], [legSt], [readiness, polarized, volume, legSt]];
+    for (const advice of sets) {
+      for (const difficulty of ["easy", "moderate", "high"] as const) {
+        for (const duration of [30, 45, 60] as const) {
+          for (const ignoreLowerBy of [false, true]) {
+            const a = suggestFor(advice, "run", { difficulty, duration }, { ignoreLowerBy });
+            expect(suggestFor(advice, "run", { difficulty, duration }, { ignoreLowerBy, plan: undefined })).toEqual(a);
+          }
+        }
+      }
+    }
+    expect(suggestFor([readiness], "strength", { difficulty: "high", duration: 45, type: "lower" }, { plan: quality })).toEqual({ difficulty: "moderate" });
+  });
+});
