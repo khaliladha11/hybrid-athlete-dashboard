@@ -7,6 +7,7 @@
  * dengan modul murni; API key tidak pernah keluar dari server.
  */
 import { useEffect, useMemo, useState } from "react";
+import { addDays } from "@/lib/date";
 import type { Activity, IntervalsError } from "@/lib/intervals/types";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import { useStoredString } from "@/lib/preferences";
@@ -15,14 +16,18 @@ import { useResolvedProfile } from "@/lib/settings-store";
 import { useTrainingLog } from "@/lib/training-log";
 import { evaluateCompliance, type SessionResult } from "./compliance";
 import { planSessions, type PlannedSession } from "./sessions";
+import { programShape } from "./timeline";
 import {
   baseLongRunKm,
+  createProgram,
   isProgramActive,
   mergeOverrides,
   parseProgramSettings,
   programDataOldest,
   programIdOf,
   serializeProgramSettings,
+  type ArchivedProgram,
+  type ProgramDraft,
   type ProgramOverride,
   type ProgramSettings,
 } from "./settings";
@@ -50,6 +55,10 @@ export interface ProgramPlan {
   save: (patch: Partial<ProgramSettings>) => void;
   /** Keputusan geser/lewati satu sesi (0.13.2); digabung per sesi, keputusan terbaru menang. */
   decide: (o: Pick<ProgramOverride, "sessionId" | "action" | "toDate">) => void;
+  /** "Buat program" (0.13.3): program lama yang punya riwayat diarsipkan. */
+  create: (draft: ProgramDraft) => void;
+  /** Program arsip (riwayat): sesi sebelum program berikutnya berlaku, statusnya ada di `results`. */
+  archived: { archive: ArchivedProgram; program: Program; sessions: PlannedSession[] }[];
   reset: () => void;
   program: Program | null;
   /** Program tersimpan dan hari ini di rentangnya. */
@@ -69,7 +78,10 @@ export function useProgramPlan({ activities, oldest, today }: { activities: Acti
   const log = useTrainingLog();
   const saved = !!raw;
 
-  const needOldest = saved ? programDataOldest(settings.startDate) : null;
+  // Data cukup untuk program sekarang dan arsip (dasar long run 30 hari sebelum mulai), maksimal 200 hari.
+  const floorDate = addDays(today, -199);
+  const wanted = saved ? [settings.startDate, ...settings.archived.map((a) => a.startDate)].map(programDataOldest).sort()[0] : null;
+  const needOldest = wanted ? (wanted < floorDate ? floorDate : wanted) : null;
   const needFetch = needOldest !== null && needOldest < oldest;
   const [extra, setExtra] = useState<{ key: string; result: Fetched } | null>(null);
   useEffect(() => {
@@ -92,13 +104,58 @@ export function useProgramPlan({ activities, oldest, today }: { activities: Acti
 
   const base = useMemo(() => baseLongRunKm(all, settings.startDate, today), [all, settings.startDate, today]);
   const goalSec = parseGoal(settings.goal);
-  const program = useMemo(
-    () => (goalSec ? buildProgram({ race: settings.race, goalSec, startDate: settings.startDate, runsPerWeek: settings.runsPerWeek, currentLongRunKm: base }, p) : null),
-    [goalSec, settings.race, settings.startDate, settings.runsPerWeek, base, p],
-  );
-  const sessions = useMemo(() => (program ? planSessions(program, programIdOf(settings), settings.overrides) : []), [program, settings]);
+  const program = useMemo(() => {
+    const shape = programShape(settings.race, settings.startDate, settings.raceDate);
+    if (!goalSec || !shape) return null;
+    return buildProgram(
+      {
+        race: settings.race,
+        goalSec,
+        startDate: settings.startDate,
+        runsPerWeek: settings.runsPerWeek,
+        currentLongRunKm: base,
+        weeks: shape.mainWeeks,
+        preBaseWeeks: shape.preBaseWeeks,
+        rawLongestKm: base,
+        raceDate: settings.raceDate,
+      },
+      p,
+    );
+  }, [goalSec, settings.race, settings.startDate, settings.raceDate, settings.runsPerWeek, base, p]);
+  const sessions = useMemo(() => (program ? planSessions(program, programIdOf(settings), settings.overrides, settings.activeFrom) : []), [program, settings]);
   const logDates = useMemo(() => log.map((e) => e.date), [log]);
-  const results = useMemo(() => evaluateCompliance(sessions, all, logDates, today), [sessions, all, logDates, today]);
+
+  // Arsip: dibangun ulang dari pengaturan beku, hanya sesi sebelum program berikutnya berlaku.
+  const archived = useMemo(
+    () =>
+      settings.archived.flatMap((a) => {
+        const g = parseGoal(a.goal);
+        const shape = programShape(a.race, a.startDate, a.raceDate);
+        if (!g || !shape) return [];
+        const prog = buildProgram(
+          {
+            race: a.race,
+            goalSec: g,
+            startDate: a.startDate,
+            runsPerWeek: a.runsPerWeek,
+            currentLongRunKm: a.baseLongRunKm,
+            weeks: shape.mainWeeks,
+            preBaseWeeks: shape.preBaseWeeks,
+            rawLongestKm: a.baseLongRunKm,
+            raceDate: a.raceDate,
+          },
+          p,
+        );
+        return [{ archive: a, program: prog, sessions: planSessions(prog, a.id, a.overrides, a.activeFrom).filter((s) => s.plannedDate < a.endedAt) }];
+      }),
+    [settings.archived, p],
+  );
+  const results = useMemo(() => {
+    const m = evaluateCompliance(sessions, all, logDates, today);
+    // Arsip dinilai terpisah supaya aktivitas program sekarang tidak "dicuri" sesi arsip.
+    for (const a of archived) for (const [k, v] of evaluateCompliance(a.sessions, all, logDates, today)) m.set(k, v);
+    return m;
+  }, [sessions, archived, all, logDates, today]);
 
   const save = (patch: Partial<ProgramSettings>) => {
     const next = { ...settings, ...patch };
@@ -110,14 +167,24 @@ export function useProgramPlan({ activities, oldest, today }: { activities: Acti
   const decide = (o: Pick<ProgramOverride, "sessionId" | "action" | "toDate">) =>
     save({ overrides: mergeOverrides(settings.overrides, [{ ...o, decidedAt: new Date().toISOString() }]) });
 
+  const active = isProgramActive(raw, program, today);
+  const create = (draft: ProgramDraft) =>
+    setRaw(
+      serializeProgramSettings(
+        createProgram(saved ? settings : null, draft, { today, active, hasHistory: saved && sessions.some((s) => s.plannedDate < today), baseLongRunKm: base }),
+      ),
+    );
+
   return {
     saved,
     settings,
     save,
     decide,
+    create,
+    archived,
     reset: () => setRaw(null),
     program,
-    active: isProgramActive(raw, program, today),
+    active,
     sessions,
     results,
     activities: all,

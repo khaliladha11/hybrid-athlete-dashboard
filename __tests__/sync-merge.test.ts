@@ -198,6 +198,27 @@ describe("program: override digabung per sesi (0.13)", () => {
     expect(parsed(mergePart("program", server, local, ["settings", "overrides"])).goal).toBe("2:30:00");
   });
 
+  it("program arsip (0.13.3): digabung per id dua sisi, override perangkat lama masuk ke arsipnya", () => {
+    const arch = (id: string, overrides: unknown[] = []) => ({ id, race: "hm", goal: "2:00:00", startDate: "2026-01-05", raceDate: "2026-03-29", runsPerWeek: 3, overrides, endedAt: "2026-02-04" });
+    const withArch = (goal: string, archived: unknown[], overrides: unknown[] = []) =>
+      JSON.stringify({ race: "hm", goal, startDate: "2026-02-02", raceDate: "2026-05-10", runsPerWeek: 3, id: "hm-2026-02-02-2026-05-10", ...(overrides.length ? { overrides } : {}), archived });
+    expect(changedKeys("program", withArch("2:00:00", [arch("a")]), withArch("2:00:00", [arch("a"), arch("b")]))).toEqual(["archived"]);
+    // HP membuat program baru (arsip "hm-2026-01-05"); laptop offline masih melewati sesi program lama.
+    const hp = withArch("2:00:00", [arch("hm-2026-01-05", [ov("hm-2026-01-05:4:selasa:quality", "2026-02-03T00:00:00Z")])]);
+    const laptop = prog("2:00:00", [ov("hm-2026-01-05:5:selasa:quality", "2026-02-05T00:00:00Z")]);
+    const m = parsed(mergePart("program", hp, laptop, ["overrides"]));
+    expect(m.id).toBe("hm-2026-02-02-2026-05-10");
+    expect(m.overrides).toBeUndefined();
+    expect(m.archived[0].overrides.map((o: { sessionId: string }) => o.sessionId)).toEqual(["hm-2026-01-05:4:selasa:quality", "hm-2026-01-05:5:selasa:quality"]);
+    // Dua perangkat mengarsipkan program berbeda: keduanya bertahan, komutatif & idempoten.
+    const x = withArch("2:00:00", [arch("a")]);
+    const y = withArch("2:00:00", [arch("b")]);
+    const xy = mergePart("program", x, y, ["archived"]);
+    expect(parsed(xy).archived.map((a: { id: string }) => a.id)).toEqual(["a", "b"]);
+    expect(parsed(mergePart("program", y, x, ["archived"])).archived).toEqual(parsed(xy).archived);
+    expect(mergePart("program", xy, xy, ["archived"])).toBe(xy);
+  });
+
   it("keputusan terbaru untuk sesi yang sama menang; komutatif & idempoten", () => {
     const a = prog("2:30:00", [ov("s1", "2026-01-06T00:00:00Z")]);
     const b = prog("2:30:00", [ov("s1", "2026-01-08T00:00:00Z", "move", "2026-01-09")]);

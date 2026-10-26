@@ -2,15 +2,20 @@ import { describe, expect, it } from "vitest";
 import type { Activity } from "@/lib/intervals/types";
 import { buildProgram, RACES, type RaceTarget } from "@/lib/program";
 import { planSessions, sessionId } from "@/lib/program/sessions";
+import { programShape } from "@/lib/program/timeline";
 import {
   baseLongRunKm,
+  createProgram,
   isProgramActive,
+  mergeArchived,
   mergeOverrides,
   parseProgramSettings,
   programDataOldest,
   programIdOf,
   serializeProgramSettings,
+  type ArchivedProgram,
   type ProgramOverride,
+  type ProgramSettings,
 } from "@/lib/program/settings";
 
 // Program & aktivitas fiktif.
@@ -78,7 +83,8 @@ describe("pengaturan program", () => {
     const s = parseProgramSettings(raw, "2026-01-10");
     expect(s.overrides.map((o) => o.sessionId)).toEqual(["a"]);
     expect(serializeProgramSettings(s)).toBe(
-      '{"race":"hm","goal":"2:30:00","startDate":"2026-01-05","runsPerWeek":4,"overrides":[{"sessionId":"a","action":"skip","decidedAt":"2026-01-06T00:00:00Z"}]}',
+      // Hari H hasil migrasi (0.13.3): Minggu terakhir program HM 12 minggu.
+      '{"race":"hm","goal":"2:30:00","startDate":"2026-01-05","raceDate":"2026-03-29","runsPerWeek":4,"overrides":[{"sessionId":"a","action":"skip","decidedAt":"2026-01-06T00:00:00Z"}]}',
     );
     expect(serializeProgramSettings({ ...s, overrides: [] })).not.toContain("overrides");
     expect(parseProgramSettings("rusak", "2026-01-10").race).toBe("10k");
@@ -114,3 +120,117 @@ describe("pengaturan program", () => {
     expect(programDataOldest(START)).toBe("2025-12-06");
   });
 });
+
+// Program seperti yang dibangun hook (0.13.3): bentuk dari mulai & Hari H.
+const fromSettings = (st: ProgramSettings, currentLongRunKm?: number) => {
+  const shape = programShape(st.race, st.startDate, st.raceDate)!;
+  const p = buildProgram({
+    race: st.race,
+    goalSec: RACES[st.race].defaultGoalSec,
+    startDate: st.startDate,
+    runsPerWeek: st.runsPerWeek,
+    currentLongRunKm,
+    weeks: shape.mainWeeks,
+    preBaseWeeks: shape.preBaseWeeks,
+    rawLongestKm: currentLongRunKm,
+    raceDate: st.raceDate,
+  });
+  return planSessions(p, programIdOf(st), st.overrides, st.activeFrom);
+};
+
+describe("Hari H, migrasi, arsip (0.13.3)", () => {
+  it("migrasi: program tanpa Hari H → Minggu terakhir panjang lama, id lama, sesi & override identik", () => {
+    for (const race of ["5k", "10k", "hm", "fm"] as RaceTarget[]) {
+      const legacyId = `${race}-${START}`;
+      const skip = ov(`${legacyId}:2:selasa:quality`, "2026-01-14T00:00:00Z");
+      const st = parseProgramSettings(JSON.stringify({ race, goal: "1:00:00", startDate: START, runsPerWeek: 3, overrides: [skip] }), "2026-01-20");
+      expect(st.raceDate).toBe(addDaysLocal(START, RACES[race].weeks * 7 - 1));
+      expect(st.id).toBeUndefined();
+      expect(programIdOf(st)).toBe(legacyId);
+      const before = planSessions(build(race, { currentLongRunKm: 9 }), legacyId, [skip]);
+      expect(fromSettings(st, 9)).toEqual(before);
+    }
+  });
+
+  it("ganti Hari H di tengah program: program lama diarsipkan dengan riwayatnya, program baru mulai hari ini dengan id baru", () => {
+    const today = "2026-02-04"; // Rabu minggu ke-5
+    const old = parseProgramSettings(JSON.stringify({ race: "hm", goal: "2:00:00", startDate: START, runsPerWeek: 3, overrides: [ov(`hm-${START}:2:selasa:quality`, "2026-01-14T00:00:00Z")] }), today);
+    const oldSessions = fromSettings(old, 9);
+    const next = createProgram(old, { race: "hm", goal: "2:00:00", startDate: START, raceDate: "2026-05-10", runsPerWeek: 3 }, { today, active: true, hasHistory: true, baseLongRunKm: 9 });
+    expect(next.startDate).toBe("2026-02-02");
+    expect(next.activeFrom).toBe(today);
+    expect(next.id).toBe("hm-2026-02-02-2026-05-10");
+    expect(next.overrides).toEqual([]);
+    expect(next.archived).toHaveLength(1);
+    const a = next.archived[0];
+    expect(a).toMatchObject({ id: `hm-${START}`, raceDate: "2026-03-29", endedAt: today, baseLongRunKm: 9 });
+    expect(a.overrides).toEqual(old.overrides);
+    // Riwayat: sesi arsip sebelum tanggal ganti sama persis dengan sebelum diarsipkan.
+    const archivedSessions = planSessions(
+      buildProgram({ race: a.race, goalSec: RACES.hm.defaultGoalSec, startDate: a.startDate, runsPerWeek: a.runsPerWeek, currentLongRunKm: a.baseLongRunKm, weeks: 12, raceDate: a.raceDate }),
+      a.id,
+      a.overrides,
+    ).filter((x) => x.plannedDate < a.endedAt);
+    expect(archivedSessions).toEqual(oldSessions.filter((x) => x.plannedDate < today));
+    // Program baru: tidak ada sesi sebelum hari ini; id tidak bertabrakan dengan arsip.
+    const fresh = fromSettings(serializeAndParse(next, today));
+    expect(fresh.every((x) => x.plannedDate >= today)).toBe(true);
+    expect(fresh.every((x) => x.id.startsWith("hm-2026-02-02-2026-05-10:"))).toBe(true);
+  });
+
+  it("program yang belum mulai diganti tanpa arsip; id yang sudah dipakai arsip diberi akhiran", () => {
+    const today = "2026-01-02";
+    const old = parseProgramSettings(JSON.stringify({ race: "10k", goal: "55:00", startDate: START, runsPerWeek: 3 }), today);
+    const next = createProgram(old, { race: "10k", goal: "55:00", startDate: START, raceDate: "2026-03-22", runsPerWeek: 4 }, { today, active: false, hasHistory: false });
+    expect(next.archived).toEqual([]);
+    expect(next.startDate).toBe(START);
+    expect(next.activeFrom).toBeUndefined();
+    const again = createProgram(
+      { ...next, archived: [{ ...arch("10k-2026-01-05-2026-03-22"), endedAt: "2026-01-01" }] },
+      { race: "10k", goal: "55:00", startDate: START, raceDate: "2026-03-22", runsPerWeek: 4 },
+      { today, active: false, hasHistory: false },
+    );
+    expect(again.id).toBe("10k-2026-01-05-2026-03-22-2");
+  });
+
+  it("konfirmasi risiko & pilihan pengalaman tersimpan; arsip & Hari H bolak-balik parse/serialize", () => {
+    const next = createProgram(null, { race: "fm", goal: "4:30:00", startDate: START, raceDate: "2026-04-12", runsPerWeek: 4, riskAckAt: "2026-01-02T03:00:00.000Z", completedBefore: false }, { today: "2026-01-02", active: false, hasHistory: false });
+    const round = serializeAndParse({ ...next, archived: [arch("hm-2025-09-01")] }, "2026-01-02");
+    expect(round).toMatchObject({ raceDate: "2026-04-12", riskAckAt: "2026-01-02T03:00:00.000Z", completedBefore: false, id: next.id });
+    expect(round.archived.map((a) => a.id)).toEqual(["hm-2025-09-01"]);
+    // Arsip rusak dibuang.
+    const broken = parseProgramSettings(JSON.stringify({ ...JSON.parse(serializeProgramSettings(round)), archived: [{ id: "x" }, arch("ok")] }), "2026-01-02");
+    expect(broken.archived.map((a) => a.id)).toEqual(["ok"]);
+  });
+
+  it("sesi sebelum activeFrom dan sesudah Hari H di minggu lomba tidak dibuat", () => {
+    const st = parseProgramSettings(JSON.stringify({ race: "hm", goal: "2:00:00", startDate: START, raceDate: "2026-03-28", runsPerWeek: 4, activeFrom: "2026-01-08", id: "hm-x" }), "2026-01-08");
+    const list = fromSettings(st);
+    expect(list.every((x) => x.plannedDate >= "2026-01-08" && x.plannedDate <= "2026-03-28")).toBe(true);
+    expect(list.at(-1)).toMatchObject({ kind: "race", plannedDate: "2026-03-28", day: "Sabtu" });
+  });
+
+  it("gabungan arsip per id: override digabung, endedAt paling awal, komutatif & idempoten", () => {
+    const a1 = { ...arch("p1"), overrides: [ov("p1:1:selasa:quality", "2026-01-06T00:00:00Z")] };
+    const a2 = { ...arch("p1"), endedAt: "2026-02-01", overrides: [ov("p1:2:selasa:quality", "2026-01-13T00:00:00Z")] };
+    const m = mergeArchived([a1], [a2, arch("p2")]);
+    expect(m.map((x) => x.id)).toEqual(["p1", "p2"]);
+    const p1 = m.find((x) => x.id === "p1")!;
+    expect(p1.endedAt).toBe("2025-11-10");
+    expect(p1.overrides.map((o) => o.sessionId)).toEqual(["p1:1:selasa:quality", "p1:2:selasa:quality"]);
+    expect(mergeArchived([a2, arch("p2")], [a1])).toEqual(m);
+    expect(mergeArchived(m, m)).toEqual(m);
+  });
+});
+
+function arch(id: string): ArchivedProgram {
+  return { id, race: "hm", goal: "2:00:00", startDate: "2025-09-01", raceDate: "2025-11-23", runsPerWeek: 3, overrides: [], endedAt: "2025-11-10" };
+}
+function serializeAndParse(st: ProgramSettings, today: string) {
+  return parseProgramSettings(serializeProgramSettings(st), today);
+}
+function addDaysLocal(date: string, days: number) {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}

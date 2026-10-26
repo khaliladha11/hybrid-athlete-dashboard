@@ -222,3 +222,11 @@ export function vdotGap(race: RaceTarget, goalSec: number, currentVdot: number |
   const required = vdot(RACES[race].km * 1000, goalSec);
   return currentVdot === undefined ? { required } : { required, current: currentVdot };
 }
+
+/** Bentuk program dari mulai & Hari H: panjang inti + pre-Base (> Max). `null` bila di bawah batas teknis. */
+export function programShape(race: RaceTarget, startDate: string, raceDate: string): { weeks: number; mainWeeks: number; preBaseWeeks: number } | null {
+  const weeks = weeksBetween(startDate, raceDate);
+  if (weeks < hardFloor(race)) return null;
+  const preBaseWeeks = Math.max(0, weeks - TIMELINE[race].max);
+  return { weeks, mainWeeks: weeks - preBaseWeeks, preBaseWeeks };
+}

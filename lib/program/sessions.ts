@@ -36,10 +36,15 @@ const DAY_OFFSET: Record<string, number> = { Senin: 0, Selasa: 1, Rabu: 2, Kamis
 
 export const sessionId = (programId: string, week: number, day: string, kind: PlanKind) => `${programId}:${week}:${day.toLowerCase()}:${kind}`;
 
-export function planSessions(program: Program, programId: string, overrides: ProgramOverride[] = []): PlannedSession[] {
+/**
+ * `activeFrom` (0.13.3): sesi sebelum tanggal itu tidak dibuat (program baru yang dimulai di tengah minggu).
+ * Sesi setelah Hari H di minggu lomba juga tidak dibuat.
+ */
+export function planSessions(program: Program, programId: string, overrides: ProgramOverride[] = [], activeFrom?: string): PlannedSession[] {
   const byId = new Map(overrides.map((o) => [o.sessionId, o]));
   const out: PlannedSession[] = [];
   const push = (s: Omit<PlannedSession, "id" | "date" | "override">) => {
+    if ((activeFrom && s.plannedDate < activeFrom) || s.plannedDate > program.raceDate) return;
     const id = sessionId(programId, s.week, s.day, s.kind);
     const override = byId.get(id);
     out.push({ ...s, id, date: override?.action === "move" && override.toDate ? override.toDate : s.plannedDate, ...(override ? { override } : {}) });
