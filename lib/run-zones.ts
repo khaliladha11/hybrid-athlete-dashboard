@@ -54,6 +54,32 @@ export function vdot(meters: number, seconds: number): number {
   return vo2AtSpeed(meters / t) / fractionSustainable(t);
 }
 
+/**
+ * Waktu (detik) untuk jarak `meters` pada VDOT tertentu: kebalikan `vdot()` lewat bisection.
+ * VDOT turun monoton terhadap waktu di rentang pace 2:00–20:00/km, jadi hasilnya tunggal.
+ */
+export function timeForVdot(meters: number, vdotValue: number): number {
+  let lo = (meters / 1000) * 120;
+  let hi = (meters / 1000) * 1200;
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (vdot(meters, mid) > vdotValue) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+/** VDOT yang membuat `secPerKm` jatuh di persentase VDOT `fraction` (kebalikan `paceAtFraction`). */
+export function vdotAtPace(secPerKm: number, fraction: number): number {
+  return vo2AtSpeed(60000 / secPerKm) / fraction;
+}
+
+/** VDOT yang setara dengan zona tempo tersimpan: batas cepat di 88%, batas lambat di 83%, dirata-rata. */
+export function zoneVdot(tempo: PaceRange): number {
+  const [slow, fast] = ZONE_INTENSITY.tempo;
+  return (vdotAtPace(tempo.fast, fast) + vdotAtPace(tempo.slow, slow)) / 2;
+}
+
 /** Pace (detik/km) pada persentase VDOT tertentu. */
 export function paceAtFraction(vdotValue: number, fraction: number): number {
   const target = vdotValue * fraction;

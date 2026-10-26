@@ -15,7 +15,7 @@ import {
 import { STABILITY_HIP } from "@/lib/generator/meta";
 import { recommend, type LogEntry } from "@/lib/progression";
 import { baseProfile, findMovement } from "@/lib/profile";
-import { formatPace, formatRange, paceAtFraction, parseDuration, parseRange, vdot, zonesFromVdot } from "@/lib/run-zones";
+import { formatPace, formatRange, paceAtFraction, parseDuration, parseRange, timeForVdot, vdot, vdotAtPace, zoneVdot, zonesFromVdot } from "@/lib/run-zones";
 
 // Test aturan memakai profil contoh (kondisi + home gym lengkap), bukan JSON netral di repo.
 vi.mock("@/config/athlete-profile.json", async () => ({ default: (await import("./fixtures/example-athlete.json")).default }));
@@ -207,6 +207,32 @@ describe("zona lari: VDOT Daniels", () => {
   it("pace threshold sesuai tabel Daniels (VDOT 50 → ±4:15/km, VDOT 30 → ±6:24/km)", () => {
     expect(formatPace(paceAtFraction(50, 0.88))).toBe("4:15");
     expect(formatPace(paceAtFraction(30, 0.88))).toBe("6:24");
+  });
+
+  it("invers VDOT cocok dengan tabel Daniels (±0,5%)", () => {
+    const table: [number, number[]][] = [
+      [30, [30 * 60 + 40, 63 * 60 + 46, 2 * 3600 + 21 * 60 + 4, 4 * 3600 + 49 * 60 + 17]],
+      [50, [19 * 60 + 57, 41 * 60 + 21, 3600 + 31 * 60 + 35, 3 * 3600 + 10 * 60 + 49]],
+    ];
+    const meters = [5000, 10000, 21097.5, 42195];
+    for (const [v, times] of table) times.forEach((t, i) => expect(Math.abs(timeForVdot(meters[i], v) - t) / t).toBeLessThan(0.005));
+  });
+
+  it("timeForVdot kebalikan vdot; vdotAtPace kebalikan paceAtFraction", () => {
+    for (const [m, s] of [
+      [5000, 1500],
+      [10000, 3300],
+      [21097.5, 7800],
+      [42195, 16200],
+    ]) {
+      expect(timeForVdot(m, vdot(m, s))).toBeCloseTo(s, 0);
+    }
+    expect(vdotAtPace(paceAtFraction(42, 0.8), 0.8)).toBeCloseTo(42, 6);
+  });
+
+  it("VDOT zona: zona default (VDOT 30) dan zona dari VDOT lain kembali ke angkanya", () => {
+    expect(zoneVdot(parseRange("6:24–6:42/km")!)).toBeCloseTo(30, 0);
+    for (const v of [35, 45, 55]) expect(Math.abs(zoneVdot(zonesFromVdot(v).tempo) - v)).toBeLessThan(0.15);
   });
 
   it("urutan zona: interval < 4×4 < tempo < easy (makin lambat)", () => {
