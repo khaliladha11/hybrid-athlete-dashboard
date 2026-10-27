@@ -52,7 +52,9 @@ async function main() {
         skipped++;
         continue;
       }
-      const size = await convert(`${IMAGE_BASE}${m.sourceId}/${n}.jpg`, dest);
+      // `reversed`: posisi awal kita = gambar akhir sumber (mis. Negative Pull-Up).
+      const src = m.reversed ? 1 - n : n;
+      const size = await convert(`${IMAGE_BASE}${m.sourceId}/${src}.jpg`, dest);
       bytes += size;
       fetched++;
       console.log(`✓ ${name} → movements/${m.slug}/${n}.webp (${Math.round(size / 1024)} KB)`);

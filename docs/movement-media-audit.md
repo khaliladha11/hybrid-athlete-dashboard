@@ -4,14 +4,14 @@
 
 - **Sumber:** [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (876 gerakan), lisensi **Unlicense** (public domain).
 - **Data:** `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json`
-- **Diperiksa:** 2026-10-22 · 45 gerakan (40 gerakan inti + 5 pemanasan/pendinginan).
+- **Diperiksa:** 2026-10-27 · 56 gerakan (51 gerakan inti + 5 pemanasan/pendinginan).
 - **Cara menilai:** instruksi setiap kandidat dibaca, dan gambar dicek untuk kasus yang meragukan. Cocok persis = posisi tubuh, alat, dan pola gerak sama.
 
 ## Ringkasan
 
-- ✅ Cocok persis: **24**
-- 🟡 Mirip tapi berbeda: **14** — default **tidak dipakai** sampai disetujui
-- ⬜ Tidak ada: **7** — akan tampil "Gambar belum tersedia"
+- ✅ Cocok persis: **31**
+- 🟡 Mirip tapi berbeda: **17** — default **tidak dipakai** sampai disetujui
+- ⬜ Tidak ada: **8** — akan tampil "Gambar belum tersedia"
 
 ## Upper Push
 
@@ -53,17 +53,36 @@
 - ⬜ **Wall Push-Up** (Bodyweight)
   - Catatan: Tidak ada push-up ke dinding; Incline_Push-Up memakai bangku. Tanpa gambar.
   - Hasil pencarian nama lain (tidak dipilih): `Pushups`, `Drop_Push`, `Sled_Push`, `Push_Press`
+- ✅ **Lying DB Triceps Extension** (2–5 kg/tangan)
+  - ID: `Lying_Dumbbell_Tricep_Extension`
+  - Data: alat `dumbbell`, level `intermediate`, otot utama triceps
+  - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Dumbbell_Tricep_Extension/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Lying_Dumbbell_Tricep_Extension/1.jpg)
+  - Catatan: Berbaring di bench datar, dua dumbbell turun ke samping kepala.
+- ✅ **Close-Grip Push-Up** (Bodyweight)
+  - ID: `Push-Ups_-_Close_Triceps_Position`
+  - Data: alat `body only`, level `intermediate`, otot utama triceps
+  - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Push-Ups_-_Close_Triceps_Position/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Push-Ups_-_Close_Triceps_Position/1.jpg)
+  - Catatan: Push-up tangan rapat, siku menempel badan.
+- 🟡 **Single-Arm DB Floor Press** (10–14 kg)
+  - ID: `Dumbbell_Floor_Press`
+  - Data: alat `dumbbell`, level `intermediate`, otot utama triceps
+  - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Floor_Press/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Floor_Press/1.jpg)
+  - Catatan: Posisi berbaring & pola dorong sama, tetapi gambar memakai dua dumbbell; kita satu dumbbell.
+  - Hasil pencarian nama lain (tidak dipilih): `Floor_Press`, `One_Arm_Floor_Press`, `Leg-Over_Floor_Press`
 
 ## Upper Pull
 
-- ⬜ **Dead Hang** (Bodyweight)
-  - Catatan: Tidak ada dead hang dua tangan menggantung penuh. Terdekat ditolak: One_Handed_Hang (satu tangan, kaki tetap di lantai), Scapular_Pull-Up (gerakan aktif scapula, bukan menggantung diam).
+- 🟡 **Dead Hang** (Bodyweight)
+  - ID: `Scapular_Pull-Up`
+  - Data: alat `—`, level `beginner`, otot utama traps
+  - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Scapular_Pull-Up/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Scapular_Pull-Up/1.jpg)
+  - Catatan: Tidak ada dead hang diam di database. Scapular_Pull-Up: gambar 1 menggantung pasif, gambar 2 menggantung dengan bahu ditarik turun, sama dengan cue "bahu aktif" kita (0.14.2). One_Handed_Hang ditolak (satu tangan, kaki di lantai).
   - Hasil pencarian nama lain (tidak dipilih): `Dead_Bug`, `Hang_Clean`, `Hang_Snatch`, `Car_Deadlift`
 - 🟡 **Negative Pull-Up** (Bodyweight) · _belum aktif_
   - ID: `Pullups`
   - Data: alat `body only`, level `beginner`, otot utama lats
   - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pullups/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pullups/1.jpg)
-  - Catatan: Gambar pull-up penuh (naik dari bawah). Negative kita: mulai di atas, turun 3–5 detik — posisi sama tetapi urutan awal/akhir terbalik.
+  - Catatan: Gambar pull-up penuh (naik dari bawah). Negative kita: mulai di atas, turun 3–5 detik. Posisi sama, urutan awal/akhir terbalik; sejak 0.14.2 dipakai dengan urutan dibalik.
   - Hasil pencarian nama lain (tidak dipilih): `Rocky_Pull-Ups_Pulldowns`, `Face_Pull`, `Clean_Pull`
 - 🟡 **DB Farmer's Hold** (10–16 kg/tangan)
   - ID: `Farmers_Walk`
@@ -110,6 +129,26 @@
 - ⬜ **Prone Reverse Snow Angel** (Bodyweight)
   - Catatan: Tidak ada reverse snow angel di database; Superman (lumbar extension) sengaja tidak dipakai (Spine-Friendly). Tanpa gambar.
   - Hasil pencarian nama lain (tidak dipilih): `Reverse_Flyes`, `Reverse_Crunch`, `Sled_Reverse_Flye`, `Reverse_Cable_Curl`
+- ✅ **Seated DB Curl** (4.5–6 kg/tangan)
+  - ID: `Seated_Dumbbell_Curl`
+  - Data: alat `dumbbell`, level `beginner`, otot utama biceps
+  - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Dumbbell_Curl/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Dumbbell_Curl/1.jpg)
+  - Catatan: Duduk di bench bersandaran, dua dumbbell. Instruksi sumber memutar telapak dari netral ke depan; cue kita mengizinkannya.
+- ✅ **Hammer Curl** (4.5–6 kg/tangan)
+  - ID: `Hammer_Curls`
+  - Data: alat `dumbbell`, level `beginner`, otot utama biceps
+  - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hammer_Curls/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hammer_Curls/1.jpg)
+  - Catatan: Berdiri, genggaman netral, dua dumbbell.
+- ✅ **Scapular Pull-Up** (Bodyweight)
+  - ID: `Scapular_Pull-Up`
+  - Data: alat `—`, level `beginner`, otot utama traps
+  - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Scapular_Pull-Up/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Scapular_Pull-Up/1.jpg)
+  - Catatan: Menggantung lalu menarik tulang belikat turun, sama persis.
+- ✅ **Band-Assisted Pull-Up** (Heavy Band)
+  - ID: `Band_Assisted_Pull-Up`
+  - Data: alat `other`, level `beginner`, otot utama lats
+  - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Band_Assisted_Pull-Up/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Band_Assisted_Pull-Up/1.jpg)
+  - Catatan: Band loop di palang, satu lutut di loop. Butuh band tebal (Heavy).
 
 ## Lower
 
@@ -166,6 +205,15 @@
   - Data: alat `other`, level `beginner`, otot utama hamstrings
   - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Band_Hamstring_Curl/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Band_Hamstring_Curl/1.jpg)
   - Catatan: Ditambahkan dari database (0.9).
+- 🟡 **Single-Leg DB RDL** (6–10 kg)
+  - ID: `Kettlebell_One-Legged_Deadlift`
+  - Data: alat `kettlebells`, level `intermediate`, otot utama hamstrings
+  - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_One-Legged_Deadlift/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_One-Legged_Deadlift/1.jpg)
+  - Catatan: Hinge satu kaki yang sama, tetapi memakai kettlebell dan tanpa tumpuan tangan; kita satu dumbbell + tangan di dinding.
+  - Hasil pencarian nama lain (tidak dipilih): `Single-Leg_Leg_Extension`, `Leg_Lift`, `Leg_Press`, `Leg_Pull-In`
+- ⬜ **Single-Leg Hip Thrust** (4–8 kg)
+  - Catatan: Tidak ada hip thrust satu kaki. Barbell_Hip_Thrust (dua kaki, barbell) dan Single_Leg_Glute_Bridge (punggung di lantai) ditolak. wger punya entri tanpa gambar.
+  - Hasil pencarian nama lain (tidak dipilih): `Barbell_Hip_Thrust`, `Single-Leg_Leg_Extension`, `Leg_Lift`, `Leg_Press`
 
 ## Stabilitas & Core
 
@@ -224,6 +272,14 @@
   - Data: alat `bands`, level `beginner`, otot utama shoulders
   - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/External_Rotation_with_Band/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/External_Rotation_with_Band/1.jpg)
   - Catatan: Ditambahkan dari database (0.9).
+- ✅ **Standing DB Calf Raise** (6–9 kg/tangan)
+  - ID: `Standing_Dumbbell_Calf_Raise`
+  - Data: alat `dumbbell`, level `intermediate`, otot utama calves
+  - Gambar: [awal](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Dumbbell_Calf_Raise/0.jpg) · [akhir](https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Dumbbell_Calf_Raise/1.jpg)
+  - Catatan: Dua dumbbell, ujung kaki di pijakan, sama persis.
+- ⬜ **Seated Band Tibialis Raise** (Light/Medium Band)
+  - Catatan: Tidak ada penguatan tibialis di database (hanya Anterior_Tibialis-SMR, foam rolling). wger "Tibialis raises" tanpa gambar.
+  - Hasil pencarian nama lain (tidak dipilih): `Calf_Raises_-_With_Bands`, `Lateral_Raise_-_With_Bands`, `Dumbbell_Raise`, `Shoulder_Raise`
 
 ## Pemanasan & Pendinginan
 
@@ -256,11 +312,13 @@
 
 ## Keputusan pemilik (gerakan 🟡)
 
-Diputuskan 2026-10-12. ✓ = gambar kandidat dipakai; ✕ = ditolak, tampil "Gambar belum tersedia".
+Diputuskan 2026-10-12; Dead Hang, Negative Pull-Up (urutan dibalik), Single-Arm DB Floor Press, dan Single-Leg DB RDL diputuskan 2026-10-27 (0.14.2). ✓ = gambar kandidat dipakai; ✕ = ditolak, tampil "Gambar belum tersedia".
 
 - ✓ **Overhead Triceps Extension** → `Seated_Triceps_Press`
 - ✓ **High-Incline Push-Up** → `Incline_Push-Up`
-- ✕ **Negative Pull-Up** → tanpa gambar
+- ✓ **Single-Arm DB Floor Press** → `Dumbbell_Floor_Press`
+- ✓ **Dead Hang** → `Scapular_Pull-Up`
+- ✓ **Negative Pull-Up** → `Pullups`
 - ✓ **DB Farmer's Hold** → `Farmers_Walk`
 - ✕ **Seated DB Scapular Retraction** → tanpa gambar
 - ✓ **Supported Single-Arm Row** → `One-Arm_Dumbbell_Row`
@@ -269,11 +327,12 @@ Diputuskan 2026-10-12. ✓ = gambar kandidat dipakai; ✕ = ditolak, tampil "Gam
 - ✓ **Barbell Sumo Deadlift / Hip Thrust** → `Barbell_Hip_Thrust`
 - ✓ **Barbell Squat** → `Barbell_Squat`
 - ✓ **DB RDL Wall-Tap Method** → `Stiff-Legged_Dumbbell_Deadlift`
+- ✓ **Single-Leg DB RDL** → `Kettlebell_One-Legged_Deadlift`
 - ✓ **Lateral Band Walk** → `Monster_Walk`
 - ✓ **Eccentric Calf Raise** → `Standing_Dumbbell_Calf_Raise`
 - ✓ **Cat-Cow** → `Cat_Stretch`
 
 ## Hasil akhir untuk Fase 3
 
-- Dengan gambar: **36** gerakan
-- Tanpa gambar ("Gambar belum tersedia"): **9** — Knee Push-Up, Wall Push-Up, Dead Hang, Negative Pull-Up, Seated DB Scapular Retraction, Prone Y-T-W Raise, Prone Reverse Snow Angel, Clamshell, Tibialis Wall Raise
+- Dengan gambar: **47** gerakan
+- Tanpa gambar ("Gambar belum tersedia"): **9** — Knee Push-Up, Wall Push-Up, Seated DB Scapular Retraction, Prone Y-T-W Raise, Prone Reverse Snow Angel, Single-Leg Hip Thrust, Clamshell, Tibialis Wall Raise, Seated Band Tibialis Raise

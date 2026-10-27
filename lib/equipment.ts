@@ -110,6 +110,18 @@ export const MOVEMENT_EQUIPMENT: Record<string, EquipmentNeed[]> = {
   "DB Scaption": ["dumbbell"],
   "Band External Rotation": ["band", "bandAnchor"],
   "Quadruped Hip Circles": [],
+  // 0.14.2: gerakan baru dari free-exercise-db (lihat docs/movement-library-proposal-0.14.md).
+  "Seated DB Curl": ["dumbbell", "bench"],
+  "Hammer Curl": ["dumbbell"],
+  "Lying DB Triceps Extension": ["dumbbell", "bench"],
+  "Close-Grip Push-Up": [],
+  "Scapular Pull-Up": ["pullUpBar"],
+  "Band-Assisted Pull-Up": ["pullUpBar", "band"],
+  "Standing DB Calf Raise": ["dumbbell"],
+  "Seated Band Tibialis Raise": ["band", "bandAnchor"],
+  "Single-Leg DB RDL": ["dumbbell"],
+  "Single-Leg Hip Thrust": ["dumbbell", "bench"],
+  "Single-Arm DB Floor Press": ["dumbbell"],
   // Pemanasan & pendinginan tanpa alat.
   "Kneeling Hip Flexor Stretch": [],
   "Cat-Cow": [],

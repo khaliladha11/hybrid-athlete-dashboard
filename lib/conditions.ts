@@ -186,9 +186,9 @@ export const CONDITIONS: Record<ConditionId, ConditionDef> = {
   shoulder: {
     id: "shoulder",
     label: "Nyeri bahu (subacromial pain / impingement)",
-    effect: "Tanpa gerakan overhead (Seated Overhead Press, Overhead Triceps Extension, DB Floor Pullover); latihan scapula tetap jalan.",
+    effect: "Tanpa gerakan overhead (Seated Overhead Press, Overhead Triceps Extension, DB Floor Pullover) dan Close-Grip Push-Up; latihan scapula tetap jalan.",
     rules: {
-      exclude: ["Seated Overhead Press", "Overhead Triceps Extension", "DB Floor Pullover"],
+      exclude: ["Seated Overhead Press", "Overhead Triceps Extension", "DB Floor Pullover", "Close-Grip Push-Up"],
       strengthNotes: ["Bahu: hindari posisi lengan di atas kepala yang memicu nyeri; fokus kontrol scapula (retraction, face pull). Dead Hang dihentikan bila nyeri."],
     },
     sources: [

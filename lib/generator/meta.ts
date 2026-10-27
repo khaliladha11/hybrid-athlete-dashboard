@@ -30,11 +30,11 @@ export const META: Record<string, MovementMeta> = {
     cue: "Lutut depan searah jari kaki, jangan collapse ke dalam.",
     harderVariant: "Rear-Foot-Elevated Split Squat",
   },
-  "Barbell Sumo Deadlift / Hip Thrust": { cue: "Utamakan varian Hip Thrust dengan hip pad; posterior pelvic tilt di puncak." },
+  "Barbell Sumo Deadlift / Hip Thrust": { cue: "Utamakan varian Hip Thrust dengan hip pad; posterior pelvic tilt di puncak.", harderVariant: "Single-Leg Hip Thrust" },
   "Barbell Squat": { cue: "Beban ringan, tulang belakang netral, rib cage turun. Jangan hiperlordosis.", harderVariant: "Rear-Foot-Elevated Split Squat" },
-  "DB RDL Wall-Tap Method": { cue: "Hip hinge sampai pantat menyentuh dinding, punggung netral." },
+  "DB RDL Wall-Tap Method": { cue: "Hip hinge sampai pantat menyentuh dinding, punggung netral.", harderVariant: "Single-Leg DB RDL" },
   "Glute Bridge": { reps: { easy: "12", moderate: "12–15", high: "15" }, cue: "Tahan 2 detik di atas, tekan pinggul tanpa melengkungkan punggung." },
-  "Floor Press": { cue: "Siku ±45°, punggung bawah tetap menempel lantai." },
+  "Floor Press": { cue: "Siku ±45°, punggung bawah tetap menempel lantai.", harderVariant: "Single-Arm DB Floor Press" },
   "Seated Overhead Press": { cue: "Duduk bersandar, jangan melengkungkan punggung bawah." },
   "High-Incline Push-Up": { reps: { easy: "10", moderate: "12", high: "12–15" }, cue: "Badan lurus seperti papan, glute aktif." },
   // 0.11.2 — gerakan tanpa alat untuk Upper Push/Pull (profil tanpa alat). Progresi: Wall → Knee → Push-Up.
@@ -53,7 +53,31 @@ export const META: Record<string, MovementMeta> = {
   "Single-Leg Glute Bridge": { reps: { easy: "8/sisi", moderate: "10/sisi", high: "12/sisi" }, unilateral: true, cue: "Panggul tetap rata kiri–kanan, punggung bawah tidak melengkung di atas." },
   "Rear-Foot-Elevated Split Squat": { reps: { easy: "8/kaki", moderate: "8–10/kaki", high: "10/kaki" }, unilateral: true, cue: "Kaki belakang di kursi, turun lurus ke bawah; lutut depan searah jari kaki." },
   "DB Step-Up": { reps: { easy: "8/kaki", moderate: "8–10/kaki", high: "10/kaki" }, unilateral: true, cue: "Dorong lewat tumit kaki di atas pijakan, jangan menolak dengan kaki bawah." },
-  "DB Plié Squat": { cue: "Kaki lebar, jari kaki serong keluar; dumbbell menggantung di tengah, dada tegak." },
+  "DB Plié Squat": { cue: "Kaki lebar, jari kaki serong keluar; dumbbell menggantung di tengah, dada tegak.", harderVariant: "Rear-Foot-Elevated Split Squat" },
+  // 0.14.2: bisep, trisep, lats, betis, tibialis, dan varian satu sisi (docs/movement-library-proposal-0.14.md).
+  "Seated DB Curl": { cue: "Duduk bersandar, siku tetap di samping badan; boleh mulai netral lalu putar telapak ke depan." },
+  "Hammer Curl": { cue: "Genggaman netral (ibu jari di atas), siku diam, tanpa mengayun badan." },
+  "Lying DB Triceps Extension": { cue: "Lengan atas tegak dan diam; turunkan dumbbell ke samping kepala, punggung bawah menempel bench." },
+  "Close-Grip Push-Up": { reps: { easy: "5", moderate: "6–8", high: "8–10" }, cue: "Tangan selebar bahu atau lebih rapat, siku menempel badan; badan lurus dari kepala ke tumit." },
+  "Scapular Pull-Up": { reps: { easy: "5", moderate: "6–8", high: "8–10" }, cue: "Lengan tetap lurus; tarik tulang belikat turun sampai badan naik sedikit, tahan 2 detik." },
+  "Band-Assisted Pull-Up": { reps: { easy: "3–4", moderate: "4–6", high: "6–8" }, cue: "Lutut di loop band, tarik dada ke palang tanpa mengayun; turun terkontrol." },
+  "Standing DB Calf Raise": { reps: "12–15 (turun 3 detik)", cue: "Ujung kaki di pijakan, tumit turun di bawah pijakan lalu naik setinggi mungkin; pegang dinding bila perlu." },
+  "Seated Band Tibialis Raise": { reps: "15–20/kaki", unilateral: true, cue: "Duduk kaki lurus, band di punggung kaki ditambatkan di depan; tarik ujung kaki ke tulang kering, turun 2 detik." },
+  "Single-Leg DB RDL": {
+    reps: { easy: "8/kaki", moderate: "8–10/kaki", high: "10/kaki" },
+    unilateral: true,
+    cue: "Dumbbell di tangan berlawanan, tangan lain bertumpu di dinding; hinge dari pinggul, punggung netral, panggul sejajar.",
+  },
+  "Single-Leg Hip Thrust": {
+    reps: { easy: "8/kaki", moderate: "8–10/kaki", high: "10–12/kaki" },
+    unilateral: true,
+    cue: "Punggung atas di bench, dumbbell di pinggul; posterior pelvic tilt di puncak, rib cage turun.",
+  },
+  "Single-Arm DB Floor Press": {
+    reps: { easy: "8/sisi", moderate: "8–10/sisi", high: "10/sisi" },
+    unilateral: true,
+    cue: "Satu dumbbell, siku ±45°; tahan badan agar tidak berputar, punggung bawah menempel lantai.",
+  },
   "Seated Band Hamstring Curl": { reps: "12–15", cue: "Tarik tumit ke bawah kursi, kembalikan perlahan melawan band." },
   "Side Plank": { holdSec: { easy: 20, moderate: 30, high: 40 }, unilateral: true, cue: "Siku tepat di bawah bahu, badan lurus kepala–kaki; panggul jangan turun." },
   "Standing Band Hip Abduction": { reps: "12–15/sisi", unilateral: true, cue: "Badan tegak, angkat kaki ke samping tanpa memiringkan badan." },
@@ -64,7 +88,7 @@ export const META: Record<string, MovementMeta> = {
 };
 
 /** Prehab tungkai (shin, betis, Achilles) — untuk sesi Lower/Full Body. */
-export const LOWER_PREHAB = ["Tibialis Wall Raise", "Eccentric Calf Raise", "Seated Single-Leg Calf Raise"];
+export const LOWER_PREHAB = ["Tibialis Wall Raise", "Eccentric Calf Raise", "Seated Single-Leg Calf Raise", "Standing DB Calf Raise", "Seated Band Tibialis Raise"];
 /** Prehab bahu — diutamakan untuk sesi Upper. */
 export const SHOULDER_PREHAB = ["DB Scaption", "Band External Rotation"];
 
@@ -110,6 +134,9 @@ export const COMPOUND_MOVEMENTS = [
   "Rear-Foot-Elevated Split Squat",
   "DB Step-Up",
   "DB Plié Squat",
+  "Single-Leg DB RDL",
+  "Single-Leg Hip Thrust",
+  "Single-Arm DB Floor Press",
 ];
 
 /**
@@ -121,4 +148,8 @@ export const ANCHOR_SINCE: Record<string, string> = {
   "DB Step-Up": "2026-10-12",
   "DB Plié Squat": "2026-10-12",
   "Push-Up": "2026-10-22",
+  // 0.14.2: ★ baru hanya di blok yang dimulai setelah persetujuan.
+  "Single-Leg DB RDL": "2026-10-27",
+  "Single-Leg Hip Thrust": "2026-10-27",
+  "Single-Arm DB Floor Press": "2026-10-27",
 };

@@ -77,6 +77,19 @@
         "name": "Wall Push-Up",
         "weight": "Bodyweight",
         "fallback": true
+      },
+      {
+        "name": "Lying DB Triceps Extension",
+        "weight": "2–5 kg/tangan"
+      },
+      {
+        "name": "Close-Grip Push-Up",
+        "weight": "Bodyweight",
+        "fallback": true
+      },
+      {
+        "name": "Single-Arm DB Floor Press",
+        "weight": "10–14 kg"
       }
     ],
     "upperPull": [
@@ -126,6 +139,22 @@
         "name": "Prone Reverse Snow Angel",
         "weight": "Bodyweight",
         "fallback": true
+      },
+      {
+        "name": "Seated DB Curl",
+        "weight": "4.5–6 kg/tangan"
+      },
+      {
+        "name": "Hammer Curl",
+        "weight": "4.5–6 kg/tangan"
+      },
+      {
+        "name": "Scapular Pull-Up",
+        "weight": "Bodyweight"
+      },
+      {
+        "name": "Band-Assisted Pull-Up",
+        "weight": "Heavy Band"
       }
     ],
     "lower": [
@@ -168,6 +197,14 @@
       {
         "name": "Seated Band Hamstring Curl",
         "weight": "Light/Medium Band"
+      },
+      {
+        "name": "Single-Leg DB RDL",
+        "weight": "6–10 kg"
+      },
+      {
+        "name": "Single-Leg Hip Thrust",
+        "weight": "4–8 kg"
       }
     ],
     "stabilityAndCore": [
@@ -216,6 +253,14 @@
       {
         "name": "Band External Rotation",
         "weight": "Light Band"
+      },
+      {
+        "name": "Standing DB Calf Raise",
+        "weight": "6–9 kg/tangan"
+      },
+      {
+        "name": "Seated Band Tibialis Raise",
+        "weight": "Light/Medium Band"
       }
     ],
     "warmupAndCooldown": [

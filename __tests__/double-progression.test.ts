@@ -130,9 +130,10 @@ describe("double progression saat mentok", () => {
   });
 
   it("tanpa varian di library (atau varian tidak lolos kondisi/alat): tetap tempo dan bilang begitu", () => {
-    const rdl = ms.get("DB RDL Wall-Tap Method")!;
-    const capRdl = rdl.cap!.kg;
-    const r = recommend(rdl, two("DB RDL Wall-Tap Method", capRdl, 12, 5, { tempo: true }), { deload: false, ctx: ctxOf(p, { free: true }) });
+    // DB Step-Up tidak punya varian lebih sulit (DB RDL punya sejak 0.14.2).
+    const step = ms.get("DB Step-Up")!;
+    const capStep = step.cap!.kg;
+    const r = recommend(step, two("DB Step-Up", capStep, 12, 5, { tempo: true }), { deload: false, ctx: ctxOf(p, { free: true }) });
     expect(r).toMatchObject({ tempo: true });
     expect(r?.kind === "load" && r.reason).toMatch(/Belum ada varian lebih sulit di library, tetap tempo dan jeda\.$/);
     const noBench = make({ equipment: { ...SMALL, bench: false }, loadRule: ACCEPTED });

@@ -21,6 +21,8 @@ export interface MovementMedia {
   license: "Unlicense" | null;
   /** Perbedaan gambar dengan versi kita (untuk gerakan 🟡 yang disetujui). */
   imageNote?: string;
+  /** 0.14.2: urutan gambar sumber dibalik (gambar 1 sumber = posisi awal kita), mis. Negative Pull-Up. */
+  reversed?: boolean;
   /** 2–3 cue teknik singkat. */
   cues: string[];
   primaryMuscles: string[];
@@ -86,6 +88,26 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     secondaryMuscles: ["Bahu depan", "Trisep"],
     conditionNotes: { apt: "Panggul jangan turun. Jaga posterior pelvic tilt ringan." },
   }),
+  // 0.14.2
+  fromDb("Lying DB Triceps Extension", "Lying_Dumbbell_Tricep_Extension", {
+    cues: ["Berbaring di bench, lengan lurus ke atas, telapak saling berhadapan.", "Tekuk siku, turunkan dumbbell ke samping kepala; lengan atas tetap diam."],
+    primaryMuscles: ["Trisep"],
+    secondaryMuscles: ["Dada", "Bahu depan"],
+    conditionNotes: { shoulder: "Batasi rentang; hentikan bila nyeri.", apt: "Punggung bawah menempel bench; kaki boleh di atas bench." },
+  }),
+  fromDb("Close-Grip Push-Up", "Push-Ups_-_Close_Triceps_Position", {
+    cues: ["Tangan selebar bahu atau lebih rapat, siku menempel badan.", "Turun sampai dada dekat lantai, badan lurus dari kepala ke tumit."],
+    primaryMuscles: ["Trisep"],
+    secondaryMuscles: ["Dada", "Bahu depan", "Core"],
+    conditionNotes: { apt: "Glute dan perut aktif, panggul tidak turun." },
+  }),
+  fromDb("Single-Arm DB Floor Press", "Dumbbell_Floor_Press", {
+    imageNote: "Gambar memakai dua dumbbell; versi kita satu dumbbell, tangan lain di lantai atau di perut.",
+    cues: ["Berbaring di lantai, satu dumbbell, siku ±45° dari badan.", "Dorong ke atas tanpa badan berputar; punggung bawah tetap menempel lantai."],
+    primaryMuscles: ["Dada", "Trisep"],
+    secondaryMuscles: ["Bahu depan", "Perut (oblique)"],
+    conditionNotes: { shoulder: "Siku ±45°, hentikan bila nyeri." },
+  }),
   // ---------------- Upper Pull ----------------
   // 0.11.2 — tanpa alat. Push-Up dari free-exercise-db; empat lainnya tidak ada padanannya.
   fromDb("Push-Up", "Pushups", {
@@ -105,13 +127,16 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     primaryMuscles: ["Dada", "Trisep"],
     secondaryMuscles: ["Bahu depan"],
   }),
-  noImage("Dead Hang", {
+  fromDb("Dead Hang", "Scapular_Pull-Up", {
+    imageNote: "Gambar pertama = menggantung sebelum bahu diaktifkan; tahan di posisi gambar kedua (tulang belikat ditarik turun).",
     cues: ["Pegang palang selebar bahu, menggantung dengan kaki lepas dari lantai.", "Bahu aktif: tarik tulang belikat sedikit ke bawah, jangan menggantung pasif."],
     primaryMuscles: ["Lengan bawah (grip)", "Latissimus"],
     secondaryMuscles: ["Bahu"],
     conditionNotes: { shoulder: "Hentikan bila nyeri di bahu." },
   }),
-  noImage("Negative Pull-Up", {
+  fromDb("Negative Pull-Up", "Pullups", {
+    imageNote: "Urutan gambar dibalik dari sumber: mulai di atas palang, turun perlahan sampai lengan lurus.",
+    reversed: true,
     cues: ["Lompat/naik ke posisi dagu di atas palang.", "Turun perlahan 3–5 detik sampai lengan lurus."],
     primaryMuscles: ["Latissimus"],
     secondaryMuscles: ["Bisep", "Punggung tengah"],
@@ -175,6 +200,31 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     secondaryMuscles: ["Punggung tengah"],
     conditionNotes: { shoulder: "Hentikan bila nyeri; kurangi lebar gerakan." },
   }),
+  // 0.14.2
+  fromDb("Seated DB Curl", "Seated_Dumbbell_Curl", {
+    cues: ["Duduk bersandar, dumbbell menggantung di samping, siku menempel badan.", "Angkat sampai setinggi bahu tanpa mengayun, turun perlahan."],
+    primaryMuscles: ["Bisep"],
+    secondaryMuscles: ["Lengan bawah (grip)"],
+    conditionNotes: { apt: "Punggung tetap menempel sandaran, jangan mengayun.", lbp: "Duduk bersandar; jangan condong ke belakang saat mengangkat." },
+  }),
+  fromDb("Hammer Curl", "Hammer_Curls", {
+    cues: ["Genggaman netral, ibu jari di atas.", "Angkat sampai setinggi bahu, siku diam di samping badan; turun perlahan."],
+    primaryMuscles: ["Bisep"],
+    secondaryMuscles: ["Lengan bawah (grip)"],
+    conditionNotes: { apt: "Rib cage turun, jangan mengayun; boleh duduk bersandar." },
+  }),
+  fromDb("Scapular Pull-Up", "Scapular_Pull-Up", {
+    cues: ["Menggantung dengan lengan lurus, genggaman selebar bahu.", "Tarik tulang belikat turun sampai badan naik sedikit, tahan 2 detik, turun perlahan."],
+    primaryMuscles: ["Punggung atas (trapezius tengah & bawah)", "Latissimus"],
+    secondaryMuscles: ["Punggung tengah", "Lengan bawah (grip)"],
+    conditionNotes: { shoulder: "Hentikan bila nyeri di bahu." },
+  }),
+  fromDb("Band-Assisted Pull-Up", "Band_Assisted_Pull-Up", {
+    cues: ["Band loop dililit di palang, satu lutut di dalam loop.", "Tarik dada ke palang tanpa mengayun, turun terkontrol sampai lengan lurus."],
+    primaryMuscles: ["Latissimus"],
+    secondaryMuscles: ["Bisep", "Punggung tengah", "Core"],
+    conditionNotes: { shoulder: "Hentikan bila nyeri di bahu." },
+  }),
   // ---------------- Lower ----------------
   fromDb("Barbell Sumo Deadlift / Hip Thrust", "Barbell_Hip_Thrust", {
     imageNote: "Gambar menunjukkan varian Hip Thrust (varian yang diutamakan).",
@@ -237,6 +287,20 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     cues: ["Band ditambatkan rendah, dililit di belakang pergelangan kaki.", "Tarik tumit ke bawah kursi, kembalikan perlahan."],
     primaryMuscles: ["Hamstring"],
     secondaryMuscles: [],
+  }),
+  // 0.14.2: varian satu sisi yang lebih sulit
+  fromDb("Single-Leg DB RDL", "Kettlebell_One-Legged_Deadlift", {
+    imageNote: "Gambar memakai kettlebell tanpa tumpuan tangan; versi kita satu dumbbell, tangan lain bertumpu di dinding.",
+    cues: ["Dumbbell di tangan berlawanan dengan kaki tumpu, tangan lain di dinding.", "Hinge dari pinggul, kaki belakang lurus ke belakang; berhenti saat hamstring meregang."],
+    primaryMuscles: ["Hamstring", "Gluteus"],
+    secondaryMuscles: ["Gluteus medius", "Punggung bawah (stabilisasi)"],
+    conditionNotes: { apt: "Punggung netral, jangan membungkuk mengejar kedalaman.", lbp: "Tumpuan tangan wajib; berhenti bila punggung bawah ikut menekuk." },
+  }),
+  noImage("Single-Leg Hip Thrust", {
+    cues: ["Punggung atas di tepi bench, satu kaki di lantai, dumbbell di pinggul.", "Dorong lewat tumit sampai pinggul lurus, posterior pelvic tilt di puncak."],
+    primaryMuscles: ["Gluteus"],
+    secondaryMuscles: ["Hamstring", "Gluteus medius"],
+    conditionNotes: { apt: "Rib cage turun, jangan melengkungkan punggung di puncak." },
   }),
   // ---------------- Stabilitas & core ----------------
   fromDb("Lateral Band Walk", "Monster_Walk", {
@@ -305,6 +369,19 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     cues: ["Band ditambatkan setinggi siku, siku menempel di samping badan 90°.", "Putar lengan bawah keluar, kembali perlahan."],
     primaryMuscles: ["Rotator cuff"],
     secondaryMuscles: ["Bahu belakang"],
+  }),
+  // 0.14.2
+  fromDb("Standing DB Calf Raise", "Standing_Dumbbell_Calf_Raise", {
+    cues: ["Ujung kaki di pijakan setinggi 5–8 cm, dumbbell di samping badan.", "Naik setinggi mungkin, turun 3 detik sampai tumit di bawah pijakan."],
+    primaryMuscles: ["Betis"],
+    secondaryMuscles: ["Betis (soleus)"],
+    conditionNotes: { shin: "Penguatan betis bagian dari prehab shin splints.", achilles: "Turun perlahan; nyeri ≤ 5/10." },
+  }),
+  noImage("Seated Band Tibialis Raise", {
+    cues: ["Duduk kaki lurus, band melingkar di punggung kaki dan ditambatkan rendah di depan.", "Tarik ujung kaki ke arah tulang kering, turun 2 detik."],
+    primaryMuscles: ["Tulang kering (tibialis anterior)"],
+    secondaryMuscles: [],
+    conditionNotes: { shin: "Progresi berbeban dari Tibialis Wall Raise." },
   }),
   // ---------------- Pemanasan & pendinginan ----------------
   fromDb("Kneeling Hip Flexor Stretch", "Kneeling_Hip_Flexor", {

@@ -52,14 +52,14 @@ const AUDIT = {
   },
   // ---------- Upper Pull ----------
   "Dead Hang": {
-    verdict: "none",
-    ids: [],
-    note: "Tidak ada dead hang dua tangan menggantung penuh. Terdekat ditolak: One_Handed_Hang (satu tangan, kaki tetap di lantai), Scapular_Pull-Up (gerakan aktif scapula, bukan menggantung diam).",
+    verdict: "similar",
+    ids: ["Scapular_Pull-Up"],
+    note: "Tidak ada dead hang diam di database. Scapular_Pull-Up: gambar 1 menggantung pasif, gambar 2 menggantung dengan bahu ditarik turun, sama dengan cue \"bahu aktif\" kita (0.14.2). One_Handed_Hang ditolak (satu tangan, kaki di lantai).",
   },
   "Negative Pull-Up": {
     verdict: "similar",
     ids: ["Pullups"],
-    note: "Gambar pull-up penuh (naik dari bawah). Negative kita: mulai di atas, turun 3–5 detik — posisi sama tetapi urutan awal/akhir terbalik.",
+    note: "Gambar pull-up penuh (naik dari bawah). Negative kita: mulai di atas, turun 3–5 detik. Posisi sama, urutan awal/akhir terbalik; sejak 0.14.2 dipakai dengan urutan dibalik.",
   },
   "DB Farmer's Hold": {
     verdict: "similar",
@@ -153,16 +153,44 @@ const AUDIT = {
   "Wall Push-Up": { verdict: "none", ids: [], note: "Tidak ada push-up ke dinding; Incline_Push-Up memakai bangku. Tanpa gambar." },
   "Prone Y-T-W Raise": { verdict: "none", ids: [], note: "Tidak ada gerakan Y/T/W tengkurap tanpa alat di database. Tanpa gambar." },
   "Prone Reverse Snow Angel": { verdict: "none", ids: [], note: "Tidak ada reverse snow angel di database; Superman (lumbar extension) sengaja tidak dipakai (Spine-Friendly). Tanpa gambar." },
+  // ---------- 0.14.2 · docs/movement-library-proposal-0.14.md ----------
+  "Seated DB Curl": { verdict: "exact", ids: ["Seated_Dumbbell_Curl"], note: "Duduk di bench bersandaran, dua dumbbell. Instruksi sumber memutar telapak dari netral ke depan; cue kita mengizinkannya." },
+  "Hammer Curl": { verdict: "exact", ids: ["Hammer_Curls"], note: "Berdiri, genggaman netral, dua dumbbell." },
+  "Lying DB Triceps Extension": { verdict: "exact", ids: ["Lying_Dumbbell_Tricep_Extension"], note: "Berbaring di bench datar, dua dumbbell turun ke samping kepala." },
+  "Close-Grip Push-Up": { verdict: "exact", ids: ["Push-Ups_-_Close_Triceps_Position"], note: "Push-up tangan rapat, siku menempel badan." },
+  "Single-Arm DB Floor Press": {
+    verdict: "similar",
+    ids: ["Dumbbell_Floor_Press"],
+    note: "Posisi berbaring & pola dorong sama, tetapi gambar memakai dua dumbbell; kita satu dumbbell.",
+  },
+  "Scapular Pull-Up": { verdict: "exact", ids: ["Scapular_Pull-Up"], note: "Menggantung lalu menarik tulang belikat turun, sama persis." },
+  "Band-Assisted Pull-Up": { verdict: "exact", ids: ["Band_Assisted_Pull-Up"], note: "Band loop di palang, satu lutut di loop. Butuh band tebal (Heavy)." },
+  "Single-Leg DB RDL": {
+    verdict: "similar",
+    ids: ["Kettlebell_One-Legged_Deadlift"],
+    note: "Hinge satu kaki yang sama, tetapi memakai kettlebell dan tanpa tumpuan tangan; kita satu dumbbell + tangan di dinding.",
+  },
+  "Single-Leg Hip Thrust": {
+    verdict: "none",
+    ids: [],
+    note: "Tidak ada hip thrust satu kaki. Barbell_Hip_Thrust (dua kaki, barbell) dan Single_Leg_Glute_Bridge (punggung di lantai) ditolak. wger punya entri tanpa gambar.",
+  },
+  "Standing DB Calf Raise": { verdict: "exact", ids: ["Standing_Dumbbell_Calf_Raise"], note: "Dua dumbbell, ujung kaki di pijakan, sama persis." },
+  "Seated Band Tibialis Raise": {
+    verdict: "none",
+    ids: [],
+    note: "Tidak ada penguatan tibialis di database (hanya Anterior_Tibialis-SMR, foam rolling). wger \"Tibialis raises\" tanpa gambar.",
+  },
 };
 
 /**
- * Keputusan pemilik untuk gerakan 🟡 (2026-10-12): ID yang disetujui, atau null = ditolak
+ * Keputusan pemilik untuk gerakan 🟡 (2026-10-12, tambahan 0.14.2 2026-10-27): ID yang disetujui, atau null = ditolak
  * (tampil "Gambar belum tersedia"). Gerakan 🟡 tanpa entri di sini = belum diputuskan → tidak dipakai.
  */
 const DECISIONS = {
   "Overhead Triceps Extension": "Seated_Triceps_Press",
   "High-Incline Push-Up": "Incline_Push-Up",
-  "Negative Pull-Up": null,
+  "Negative Pull-Up": "Pullups",
   "DB Farmer's Hold": "Farmers_Walk",
   "Seated DB Scapular Retraction": null,
   "Supported Single-Arm Row": "One-Arm_Dumbbell_Row",
@@ -174,6 +202,10 @@ const DECISIONS = {
   "Lateral Band Walk": "Monster_Walk",
   "Eccentric Calf Raise": "Standing_Dumbbell_Calf_Raise",
   "Cat-Cow": "Cat_Stretch",
+  // 0.14.2 (2026-10-27)
+  "Dead Hang": "Scapular_Pull-Up",
+  "Single-Arm DB Floor Press": "Dumbbell_Floor_Press",
+  "Single-Leg DB RDL": "Kettlebell_One-Legged_Deadlift",
 };
 
 /** ID gambar final per gerakan: cocok persis, atau 🟡 yang disetujui. null = tanpa gambar. */
@@ -302,7 +334,7 @@ async function main() {
   lines.push(
     "## Keputusan pemilik (gerakan 🟡)",
     "",
-    "Diputuskan 2026-10-12. ✓ = gambar kandidat dipakai; ✕ = ditolak, tampil \"Gambar belum tersedia\".",
+    "Diputuskan 2026-10-12; Dead Hang, Negative Pull-Up (urutan dibalik), Single-Arm DB Floor Press, dan Single-Leg DB RDL diputuskan 2026-10-27 (0.14.2). ✓ = gambar kandidat dipakai; ✕ = ditolak, tampil \"Gambar belum tersedia\".",
     "",
     ...similar.map((r) => {
       const d = DECISIONS[r.name];
