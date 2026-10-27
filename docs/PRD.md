@@ -92,7 +92,8 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 **Latihan — aturan umum (selalu berlaku, tidak bisa dimatikan)**
 - ST hanya memakai gerakan dari movement library yang dipilih di Setting.
 - **RPE ≤ 7** untuk semua set.
-- Beban tidak melebihi batas library, dan (bila alat sudah diisi) selalu bisa dirakit dari plat yang dimiliki.
+- Beban tidak melebihi **batas alat** (beban terberat yang bisa dirakit dari alat di Setting) dan **batas keamanan** gerakan bila kondisi terkait aktif. Rentang beban di library adalah titik awal. Perilaku ini aktif setelah pengguna menyetujui pemberitahuan perubahan, dan bisa dikembalikan ke rentang library di Setting. · keputusan 2026-10-26
+- Bila alat sudah diisi, beban yang diresepkan selalu bisa dirakit dari alat yang dimiliki.
 - Upper Pull diawali progresi pull-up (Dead Hang → Negative) selama gerakannya tersedia.
 - Long run program naik ≤ 10% dan ≤ 2 km per minggu; peringatan kenaikan km > 30%; distribusi 80/20.
 - Saran **tidak memblokir**: atlet tetap bebas memilih.

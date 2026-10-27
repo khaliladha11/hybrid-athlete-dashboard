@@ -91,13 +91,15 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/training-log.ts` | Penyimpanan log (localStorage) + ekspor/impor | Client |
 | `lib/conditions.ts` | Katalog kondisi berbasis riset → aturan generator | Server & client |
 | `lib/run-zones.ts` | Rumus VDOT Daniels, invers (`timeForVdot`) & VDOT zona tersimpan (`zoneVdot`, 0.13.2), parser & format pace | Server & client |
-| `lib/equipment.ts` | Kebutuhan alat per gerakan, beban yang bisa dirakit dari plat | Server & client |
+| `lib/equipment.ts` | Kebutuhan alat per gerakan, beban yang bisa dirakit dari plat dan item berbobot tetap (dumbbell fixed, kettlebell; 0.14.0), `buildableLoads`, `equipmentCap` | Server & client |
+| `lib/load-bounds.ts` | Batas beban 0.14.0: persetujuan & toggle (`loadRule`), batas keamanan per kondisi, `loadBounds` = min(alat, keamanan), `aboveLibrary` | Server & client (murni) |
+| `lib/prs.ts`, `lib/pr-store.ts` | PR kemampuan: validasi, gabungan per id dengan tombstone, PR terbaik/terbaru, deteksi dari log; penyimpanan perangkat (`hybrid-athlete.prs.v1`) | Murni / client |
 | `lib/athlete-settings.ts` | Pengaturan Setting (termasuk profil dasar sejak 0.11) + `resolveProfile()` → profil efektif (JSON netral + pengaturan perangkat), format target lomba, gerakan cadangan (`fallback`) aktif otomatis bila kategorinya kosong, `sessionCoverage()` untuk pesan alat di Strength | Server & client |
 | `lib/settings-store.ts` | Hook `useAthleteSettings` / `useResolvedProfile`, `useBlockMode` / `useBlockContext` (blok dihitung dari profil perangkat), `useIsClient` | Client |
 | `lib/onboarding.ts` | State machine onboarding murni: langkah, syarat lanjut, lewati, lanjut dari langkah tersimpan, pengguna lama (`migrated`), versi disclaimer, `gateDecision`, langkah pasang otomatis selesai saat standalone, `confirmProtection`, `pendingReminders`, `completeTour` | Server & client |
 | `lib/tour.ts` | Langkah tur in-app (rute + target `data-tour`), `placePopover` (bawah → atas → sisi lebih lega, dijepit ke viewport & safe area), `holeRect` | Server & client (murni) |
 | `lib/onboarding-store.ts` | Hook status onboarding + deteksi data sebelum 0.11 | Client |
-| `lib/backup.ts` | Format cadangan v3 murni (`buildBackup`, `parseBackup`, `applyBackup`); v1/v2 tetap diterima | Server & client |
+| `lib/backup.ts` | Format cadangan v4 murni (`buildBackup`, `parseBackup`, `applyBackup`) dengan PR; v1/v2/v3 tetap diterima | Server & client |
 | `lib/backup-store.ts` | `BackupStore` di atas localStorage, ekspor/impor file | Client |
 | `components/onboarding/*` | `OnboardingGate` (di layout), `OnboardingWizard` (`/onboarding`, memakai ulang komponen Setting), `TermsStep`, `ConnectionStep`, `ProtectStep`, `InstallStep` (juga dipakai `components/settings/PendingCard.tsx`), `Tour` (`TourProvider` di layout: spotlight, pindah tab, `useTour().start` dari ringkasan onboarding & Setting) | Client |
 | `lib/intervals/connection.ts` | Pemetaan hasil `GET /athlete/{id}` → status koneksi (`ok`, `missing`, `unauthorized`, `forbidden`, `not_found`, `network`) + nama atlet saja | Server & client (murni) |
@@ -127,7 +129,7 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 
 ## Penyimpanan
 
-> **Keputusan privasi (2026-10-23, berlaku sejak 0.12.1).** Prinsip lama "data kesehatan tidak keluar dari HP" kini menjadi: data tetap di perangkat **kecuali** pengguna sendiri memasang database (Upstash Redis di akun Vercel-nya) dan sandi aplikasi. Bila keduanya ada, log, Setting, program, profil, preferensi, dan status onboarding disinkronkan ke database itu. Database hanya diakses server (`lib/sync/store.ts`) setelah sesi sandi diperiksa; browser tidak pernah menerima URL atau token database. Tidak ada database bersama, pemilik repo tidak menerima data siapa pun, dan enkripsi sisi klien belum termasuk 0.12 (backlog). Spesifikasi: [SYNC.md](SYNC.md).
+> **Keputusan privasi (2026-10-23, berlaku sejak 0.12.1).** Prinsip lama "data kesehatan tidak keluar dari HP" kini menjadi: data tetap di perangkat **kecuali** pengguna sendiri memasang database (Upstash Redis di akun Vercel-nya) dan sandi aplikasi. Bila keduanya ada, log, PR kemampuan (bagian `prs` sejak 0.14.0, digabung per entri dengan tombstone seperti log), Setting, program, profil, preferensi, dan status onboarding disinkronkan ke database itu. Database hanya diakses server (`lib/sync/store.ts`) setelah sesi sandi diperiksa; browser tidak pernah menerima URL atau token database. Tidak ada database bersama, pemilik repo tidak menerima data siapa pun, dan enkripsi sisi klien belum termasuk 0.12 (backlog). Spesifikasi: [SYNC.md](SYNC.md).
 
 | Data | Tempat | Alasan |
 | --- | --- | --- |
@@ -143,13 +145,14 @@ Key `localStorage` (pola `hybrid-athlete.<nama>[.vN]`, di `lib/preference-keys.t
 | --- | --- |
 | `hybrid-athlete.settings.v1` | `AthleteSettings`: `profile` (override per field), `conditions` & `equipment` (nilai penuh begitu disimpan), `runZones` & `movements` (override), `raceResults` (hasil lomba, maks 20) & `zoneOfferDismissedVdot` sejak 0.13.2. Semua kunci selain `profile` disinkron per kunci |
 | `hybrid-athlete.log.v1` | Log sesi ST |
+| `hybrid-athlete.prs.v1` | PR kemampuan (0.14.0), termasuk tombstone untuk sinkron |
 | `hybrid-athlete.program` | Program target: `race`, `goal`, `startDate`, `raceDate` (0.13.3), `runsPerWeek`, `id`, `activeFrom`, `riskAckAt`, `completedBefore`, `overrides`, `archived`. Bagian sinkron `program`: pengaturan utuh (dirty menang), override per sesi, arsip per id |
 | `hybrid-athlete.theme` | `light` / `dark` (kosong = sistem) |
 | `hybrid-athlete.block-enabled` | `1` / `0`; kosong = aktif hanya bila profil punya tanggal mulai blok |
 | `hybrid-athlete.onboarding.v1` | `OnboardingState` |
 | `hybrid-athlete.sync.v1` | Meta sinkron per perangkat (`rev`, kunci dirty, `gen` per bagian; status). Tidak ikut sinkron atau ekspor |
 
-**Format cadangan v3** (`lib/backup.ts`): `{ app, version: 3, kind, exportedAt, log, settings, program, preferences, onboarding }`. `kind: "backup"` menimpa bagian yang ada di file; `kind: "defaults"` (file migrasi) hanya mengisi yang masih kosong di perangkat. Log selalu digabung tanpa duplikat; file tanpa log tidak menyentuh log.
+**Format cadangan v4** (`lib/backup.ts`, 0.14.0): `{ app, version: 4, kind, exportedAt, log, settings, program, preferences, onboarding, prs }`. File v1/v2/v3 tetap bisa diimpor. `kind: "backup"` menimpa bagian yang ada di file; `kind: "defaults"` (file migrasi) hanya mengisi yang masih kosong di perangkat. Log selalu digabung tanpa duplikat; file tanpa log tidak menyentuh log.
 
 **Gate onboarding** (`components/onboarding/OnboardingGate.tsx`, di dalam `<main>` layout): status hanya ada di perangkat, jadi diperiksa di client. Sebelum localStorage terbaca tampil kerangka. Pengguna baru → `/onboarding` (tanpa BottomNav); pengguna lama (punya Setting/log/program) → `migrated` + disclaimer saja sekali; `termsVersion` < `TERMS_VERSION` → disclaimer saja. Header Profil, target, dan posisi blok kini dibaca di client dari profil perangkat, bukan dari JSON di server.
 
@@ -203,7 +206,10 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `auth-routes.test.ts` | Route `/api/unlock` & `/api/lock` end-to-end (atribut cookie, Retry-After, IP lain tidak terblokir), `proxy` dengan `NextRequest` (tanpa sandi identik 0.11, 307/401, aset PWA terbuka, matcher), dan `intervalsGet` tidak memanggil intervals.icu tanpa sesi. |
 | `connection.test.ts` | Pemetaan status koneksi (missing tanpa panggilan, 401/403/404/5xx/timeout/jaringan/lainnya), hanya nama atlet yang diteruskan, dan route `GET /api/connection` end-to-end dengan `fetch` palsu: respons tanpa key, athlete ID, atau email; header `no-store`; key hanya di header Authorization. |
 | `onboarding.test.ts` | Urutan & langkah otomatis 0.11.0, maju/mundur, langkah wajib memblokir, opsional dilewati, lanjut dari langkah tersimpan, state rusak, "Tidak ada kondisi" eksklusif, gate (baru/lama/versi disclaimer). |
-| `backup.test.ts` | Ekspor v3, impor v1/v2/v3, impor tanpa log tidak menghapus log, log tanpa duplikat, `kind: "defaults"` tidak menimpa kustomisasi perangkat dan menggabungkan hasil lomba. |
+| `equipment.test.ts` | Migrasi alat lama, dumbbell fixed (sepasang butuh 2), kettlebell hanya dicatat, batas alat & sepasang plat 2,5 kg, beban yang bisa dirakit sampai batas baru. |
+| `load-bounds.test.ts` | Persetujuan & toggle, `loadRule` tersimpan & sinkron, batas keamanan hanya saat kondisi aktif, aturan min(), profil efektif, progresi dari log terakhir tanpa lompatan, alasan batas, generator semua kombinasi ≤ batas & bisa dirakit, label di atas rentang awal. |
+| `prs.test.ts` | Validasi & gabungan PR dengan tombstone, PR terbaik/terbaru/riwayat, deteksi dari log, PR sebagai titik awal (hanya aturan baru, dibulatkan ke bawah), sinkron bagian `prs`. |
+| `backup.test.ts` | Ekspor v4 (dengan PR), impor v1/v2/v3/v4, impor tanpa log tidak menghapus log, log tanpa duplikat, `kind: "defaults"` tidak menimpa kustomisasi perangkat dan menggabungkan hasil lomba. |
 | `neutral-profile.test.ts` | JSON netral tanpa data pribadi, zona = `zonesFromVdot(30)`, semua kombinasi lari valid dengan profil netral, ST bodyweight-only: semua jenis × durasi × kesulitan × 25 seed × blok/deload/bebas tidak error, lolos aturan wajib, dan Upper Push/Pull berisi gerakan kategorinya. |
 | `tour.test.ts` | Urutan & rute langkah tur, teks tanpa dash/seru, `placePopover` (bawah, atas, elemen setinggi layar, tanpa elemen, layar lebar), `holeRect`, `tourCompletedAt` tersimpan. |
 | `tour-targets.test.ts` | Setiap target `data-tour` benar-benar dipasang di komponen. |

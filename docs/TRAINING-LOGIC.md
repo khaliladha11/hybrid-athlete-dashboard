@@ -60,7 +60,7 @@ Kode: [`lib/generator/strength.ts`](../lib/generator/strength.ts). Validator: [`
 | Aturan | Detail |
 | --- | --- |
 | Intensitas | Easy RPE 5 · Moderate RPE 6 · High RPE 7. **RPE tidak pernah > 7.** |
-| Beban | Easy = sepertiga bawah rentang library, Moderate = tengah, High = sepertiga atas. Tidak pernah melebihi batas atas. |
+| Beban | Easy = sepertiga bawah rentang library, Moderate = tengah, High = sepertiga atas. Rentang library adalah **titik awal**; batas atasnya = batas atas library (aturan lama) atau, sejak 0.14.0 setelah persetujuan, min(batas alat, batas keamanan). Lihat bagian 9 "Batas beban". |
 | Lower & Full Body | Gerakan wajib dari kondisi aktif (default: Tibialis Wall Raise + Eccentric Calf Raise + Dead Bug + stabilitas panggul). |
 | Upper Pull | Selalu diawali progresi pull-up (Dead Hang, lalu Negative Pull-Up jika sudah diaktifkan) selagi grip masih segar. |
 | Durasi | Jumlah gerakan dan set diatur supaya estimasi waktu ±2 menit dari target. Waktu yang tersisa diisi gerakan stabilitas/prehab. Bila gerakan wajib membuat sesi terlalu padat, aksesori boleh tinggal 1 set. Bila gerakan aktif di Setting terlalu sedikit untuk mengisi durasi, sesi ditandai **lebih pendek** (tidak diisi volume berlebih). |
@@ -131,12 +131,14 @@ Setelah sesi ST, atlet mencatat **beban, rep set terakhir (atau detik), dan RPE*
 | Baru 1 sesi tuntas | Tahan ("1/2 sesi tuntas") |
 | RPE di atas target | Tahan |
 | RPE > target + 1 | **Turun** satu langkah |
-| Sudah di batas atas library | Tahan. Progresi dilanjutkan lewat tempo lebih lambat. |
+| Sudah di batas atas (library, alat, atau keamanan) | Tahan, dengan alasan batas mana yang menahan. Progresi dilanjutkan lewat rep atau tempo. |
 | Gerakan tahan (Dead Hang, Farmer's Hold) | +5 detik, maksimal 60 |
 | Gerakan band | Naik ke band berikutnya (Light → Medium) |
 | Minggu deload | Progresi ditunda. Sesi deload tidak dipakai sebagai basis. |
 
-Rekomendasi diterapkan ke workout lalu **tetap di-clamp ke rentang library**, sehingga aturan beban maksimal tidak pernah bisa dilanggar. Data log disimpan di localStorage perangkat dan bisa diekspor/diimpor sebagai JSON.
+Rekomendasi diterapkan ke workout lalu **tetap di-clamp ke batas atas yang berlaku** (rentang library, atau sejak 0.14.0 min(batas alat, batas keamanan)), sehingga aturan beban maksimal tidak pernah bisa dilanggar. Beban terakhir dari log dipakai apa adanya dan naik satu langkah beban yang bisa dirakit, jadi tidak ada lompatan saat aturan baru aktif. Gerakan ★ tanpa log memakai **PR terbaru** sebagai titik awal (beban yang bisa dirakit ≤ PR). Data log dan PR disimpan di localStorage perangkat, ikut cadangan v4, dan disinkron per entri.
+
+**PR kemampuan (0.14.0):** entri gerakan library, beban, set & rep (boleh tidak diketahui), tanggal, sumber manual atau log. PR dari log terdeteksi otomatis saat sesi mengalahkan PR terbaik (beban, lalu rep).
 
 ## 7. Program target (5K / 10K / HM / FM)
 
@@ -356,6 +358,32 @@ Sejak 0.13.2 hasil yang dihitung bisa disimpan (jarak, waktu, tanggal) dengan at
 - Setelah berat handle dumbbell / batang barbell diisi, beban yang diresepkan **hanya dari kombinasi yang bisa dirakit**: plat dipasang berpasangan (kiri–kanan), sepasang dumbbell butuh dua kali jumlah plat, dan plat kecil boleh dipegang langsung. Kombinasi tetap dibatasi rentang movement library.
 - Progresi beban naik/turun ke beban **berikutnya yang bisa dirakit**, bukan sekadar +1/0,5/0,25 kg.
 - Gerakan yang rentang bebannya tidak bisa dirakit sama sekali otomatis tidak dipakai, dengan alasan yang tampil di Setting.
+- Sejak 0.14.0: **item berbobot tetap** (dumbbell fixed, kettlebell) di samping model handle + plat. Dumbbell fixed ikut beban dumbbell (sepasang butuh 2 buah); kettlebell hanya dicatat karena library belum punya gerakan kettlebell. Data alat lama dimigrasi otomatis (daftar item kosong).
+
+### Batas beban (0.14.0, keputusan pemilik 2026-10-26)
+
+Kode: [`lib/load-bounds.ts`](../lib/load-bounds.ts). Spesifikasi: [STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §2.
+
+| Aturan | Detail |
+| --- | --- |
+| Rentang library | Titik awal untuk gerakan tanpa log/PR dan acuan level Easy/Moderate/High, bukan plafon |
+| Batas alat | Beban terberat yang bisa dirakit dari alat di Setting (per tangan untuk dumbbell, total untuk barbell). Alat belum diisi → batas atas library |
+| Batas keamanan | Hanya untuk gerakan sensitif dan hanya saat kondisi terkaitnya aktif (tabel di bawah). Gerakan yang dilarang kondisi tetap dilarang |
+| Beban resep | min(batas alat, batas keamanan). Kenaikan tetap satu langkah ke beban berikutnya yang bisa dirakit; saat aturan aktif, beban awal dari log atau PR terakhir, tidak melompat |
+| Persetujuan | Kartu "Perubahan batas beban" sekali. Sampai "Saya mengerti, aktifkan" ditekan, rentang library tetap jadi batas atas. Persetujuan tersimpan di Setting (ikut sinkron) |
+| Kembali | Toggle Setting › Alat "Batasi ke rentang awal library" mengembalikan perilaku lama |
+| Penanda | Beban resep di atas rentang library → label `DI ATAS RENTANG AWAL` di kartu, dan detail gerakan menjelaskan sumbernya (PR/log) serta batas yang berlaku |
+
+**Batas keamanan** (D4, disetujui pemilik). Angkanya sama dengan batas atas rentang library sebelum 0.14, jadi saat kondisinya aktif perilakunya seperti dulu:
+
+| Gerakan | Kondisi aktif | Batas | Sumber |
+| --- | --- | --- | --- |
+| Barbell Squat | APT (Spine-Friendly). Saat nyeri punggung bawah gerakan ini sudah dilarang | 16 kg | McGill S. *Low Back Disorders* (ed. 3), 2016: batasi beban aksial pada tulang belakang |
+| Barbell Sumo Deadlift / Hip Thrust | APT atau nyeri punggung bawah (Spine-Friendly) | 20 kg | McGill 2016; NICE NG59 (2016): latihan bertahap, bukan beban maksimal |
+| Seated Lateral Raise | Nyeri bahu | 3 kg/tangan | Diercks R dkk. 2014 (guideline subacromial pain); Littlewood C dkk. 2012 (beban rendah progresif) |
+| DB Scaption | Nyeri bahu | 2 kg/tangan | Diercks 2014; Littlewood 2012 |
+
+Tanpa batas: nyeri lutut depan & ITB (CPG Willy 2019 memakai pemantauan nyeri ≤ 3/10, bukan angka beban), Achilles & plantar fasciitis (Alfredson 1998, Rathleff 2015 justru memakai beban berat).
 
 Referensi tambahan bagian ini:
 - Daniels, J. & Gilbert, J. (1979). *Oxygen Power: Performance Tables for Distance Runners*. Rumus VDOT.
