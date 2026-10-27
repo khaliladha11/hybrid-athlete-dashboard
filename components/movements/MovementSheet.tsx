@@ -5,6 +5,8 @@ import { CONDITIONS, type ConditionId } from "@/lib/conditions";
 import { formatLoad, formatVolume } from "@/lib/generator/format";
 import type { StrengthItem } from "@/lib/generator/types";
 import { MEDIA_ATTRIBUTION, mediaFor } from "@/lib/movements/media";
+import { muscleAriaLabel, muscleSummary, TEXT_ONLY_MOVEMENTS, TEXT_ONLY_MUSCLES } from "@/lib/movements/muscle-regions";
+import { MuscleMap } from "@/components/charts/MuscleMap";
 import { MovementPlaceholderIcon } from "./MovementThumb";
 
 const FRAME_MS = 1200;
@@ -48,6 +50,9 @@ export function MovementSheet({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const media = mediaFor(name);
+  // Peta otot per gerakan (0.14.2): komponen yang sama dengan ringkasan sesi 0.14.1.
+  const muscles = muscleSummary([name]);
+  const textOnly = TEXT_ONLY_MOVEMENTS[name];
   const notes = activeConditions.flatMap((id) => {
     const n = media?.conditionNotes?.[id];
     return n ? [{ id, text: n }] : [];
@@ -134,19 +139,31 @@ export function MovementSheet({
         {media && (
           <section className="mt-4">
             <h3 className="t-label mb-2">Otot</h3>
+            {(muscles.primaryRegions.length > 0 || muscles.secondaryRegions.length > 0) && (
+              <MuscleMap primary={muscles.primaryRegions} secondary={muscles.secondaryRegions} label={muscleAriaLabel(muscles)} className="mb-3" />
+            )}
             <ul className="flex flex-wrap gap-1.5" aria-label="Otot utama dan sekunder">
               {media.primaryMuscles.map((m) => (
-                <li key={m} className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[12px] font-semibold text-brand-ink">
+                <li key={m} className="rounded-full bg-brand px-2.5 py-0.5 text-[12px] font-semibold text-on-brand">
                   {m}
                 </li>
               ))}
               {media.secondaryMuscles.map((m) => (
-                <li key={m} className="rounded-full bg-subtle-strong px-2.5 py-0.5 text-[12px] text-ink">
+                <li key={m} className="rounded-full border border-brand bg-brand-soft px-2.5 py-0.5 text-[12px] text-ink">
                   {m}
                 </li>
               ))}
             </ul>
-            <p className="mt-1 text-[12px] text-faint">Oranye = otot utama · abu-abu = sekunder</p>
+            <p className="mt-1 text-[12px] text-faint">Oranye penuh = otot utama · bergaris oranye = sekunder</p>
+            {textOnly && <p className="mt-1 text-[12px] text-muted">{textOnly}</p>}
+            {!textOnly &&
+              [...media.primaryMuscles, ...media.secondaryMuscles]
+                .filter((m) => TEXT_ONLY_MUSCLES[m])
+                .map((m) => (
+                  <p key={m} className="mt-1 text-[12px] text-muted">
+                    {m}: {TEXT_ONLY_MUSCLES[m]}.
+                  </p>
+                ))}
           </section>
         )}
 
