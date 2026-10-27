@@ -4,6 +4,29 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.14.2] · 2026-10-27 · Library & visual
+
+Tahap ketiga dan terakhir [STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) (§3 0.14.2). Usulan & keputusan: [movement-library-proposal-0.14.md](docs/movement-library-proposal-0.14.md).
+
+### Ditambahkan
+- **11 gerakan** dari free-exercise-db (Unlicense), lewat alur 0.9 (audit → usulan → keputusan pemilik → implementasi):
+  - bisep: **Seated DB Curl**, **Hammer Curl**;
+  - trisep: **Lying DB Triceps Extension**, **Close-Grip Push-Up** (cadangan tanpa alat, dihindari saat nyeri bahu);
+  - lats: **Scapular Pull-Up**, **Band-Assisted Pull-Up** (hanya bila ada band Heavy);
+  - betis & tibialis: **Standing DB Calf Raise**, **Seated Band Tibialis Raise** (tanpa gambar);
+  - varian satu sisi: **Single-Leg DB RDL**, **Single-Leg Hip Thrust** (tanpa gambar), **Single-Arm DB Floor Press**.
+- Relasi varian lebih sulit: Hip Thrust, DB RDL, dan Floor Press ke varian satu sisinya, DB Plié Squat ke Rear-Foot-Elevated Split Squat. Ketiga varian bisa jadi ★ mulai blok berikutnya.
+- Gambar untuk **Dead Hang** (`Scapular_Pull-Up`) dan **Negative Pull-Up** (`Pullups`, urutan dibalik). Script unduh mendukung `reversed`.
+- **Peta otot per gerakan** di detail gerakan (komponen `MuscleMap` 0.14.1), chip otot memakai kode warna yang sama.
+- 7 test baru (`media`): entri, gambar & lisensi, rentang bisa dirakit, varian & ★, syarat alat/kondisi, jangkauan generator & semua aturan, cadangan tanpa alat. Total 578 di 44 file.
+
+### Diubah
+- Library 56 gerakan (47 bergambar). Audit media dibuat ulang.
+- Nyeri bahu kini juga menghindari Close-Grip Push-Up.
+
+### Dokumentasi
+- PRD (versi, §4.6, §6, §7: 0.14 selesai, §8), TRAINING-LOGIC §10, NOTICE, README, screenshot.
+
 ## [0.14.1] · 2026-10-27 · Sesi ST
 
 Tahap kedua [STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) (§3 0.14.1, keputusan D5, D7, D8).

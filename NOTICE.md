@@ -12,6 +12,9 @@ Gambar di `public/movements/` berasal dari **free-exercise-db**
 - Cue teknik, nama otot (bahasa Indonesia), dan catatan kondisi ditulis sendiri, bukan salinan instruksi sumber.
 - Gerakan tanpa padanan yang layak sengaja tidak diberi gambar ("Gambar belum tersedia"); tidak ada gambar
   buatan AI atau dari sumber lain.
+- 0.14.2: 11 gerakan baru dan gambar Dead Hang (`Scapular_Pull-Up`) serta Negative Pull-Up (`Pullups`, urutan dibalik)
+  memakai sumber yang sama. wger dan Wikimedia Commons sudah dicek untuk gerakan tanpa gambar, tetapi tidak ada
+  pasangan gambar awal/akhir yang cocok, jadi tidak ada gambar dari sumber lain.
 
 ## Peta otot (SVG anatomi)
 

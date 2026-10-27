@@ -1,6 +1,6 @@
 # Usulan gerakan baru untuk movement library (0.14.2)
 
-> Status: **menunggu keputusan pemilik** (Phase A). Belum ada yang diimplementasikan.
+> Status: **disetujui 2026-10-27, semua 11 gerakan masuk** (rilis 0.14.2), termasuk keempat gambar 🟡, syarat band Heavy untuk Band-Assisted Pull-Up, ★ satu sisi mulai blok berikutnya, dan seluruh relasi varian. PR Seated DB Curl dimasukkan manual lewat Strength › PR.
 
 - **Sumber:** [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (Unlicense), 876 gerakan, diunduh 2026-10-27. Gambar setiap usulan dicek (posisi awal & akhir).
 - **Sumber kedua yang dicek:** [wger](https://wger.de) (gambar per entri berlisensi CC BY-SA) dan Wikimedia Commons. Hasilnya di "Gambar untuk 5 gerakan tanpa gambar".

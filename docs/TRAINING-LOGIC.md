@@ -473,26 +473,31 @@ Referensi tambahan bagian ini:
 - McGill S. (2016). *Low Back Disorders* (ed. 3). Human Kinetics.
 - NSCA (2016). *Exercise Technique Manual for Resistance Training* (ed. 3). Human Kinetics.
 
-## 10. Gerakan tambahan & media (0.9)
+## 10. Gerakan tambahan & media (0.9, 0.14.2)
 
-Kode: [`lib/movements/media.ts`](../lib/movements/media.ts), [`lib/generator/meta.ts`](../lib/generator/meta.ts). Usulan & alasan: [`movement-library-proposal.md`](movement-library-proposal.md). Audit gambar: [`movement-media-audit.md`](movement-media-audit.md).
+Kode: [`lib/movements/media.ts`](../lib/movements/media.ts), [`lib/generator/meta.ts`](../lib/generator/meta.ts). Usulan & alasan: [`movement-library-proposal.md`](movement-library-proposal.md) (0.9) dan [`movement-library-proposal-0.14.md`](movement-library-proposal-0.14.md) (0.14.2). Audit gambar: [`movement-media-audit.md`](movement-media-audit.md).
 
 | Aturan | Detail |
 | --- | --- |
 | Stabilitas panggul | Dipenuhi oleh Lateral Band Walk, Clamshell, **Side Plank**, atau **Standing Band Hip Abduction** (aktivasi gluteus medius tinggi — Ekstrom 2007; Distefano 2009). |
-| Prehab tungkai berputar | Lower/Full 45'/60' mendapat satu prehab tungkai tambahan (Tibialis Wall Raise / Eccentric Calf Raise / **Seated Single-Leg Calf Raise** untuk soleus — Dorn 2012). |
+| Prehab tungkai berputar | Lower/Full 45'/60' mendapat satu prehab tungkai tambahan (Tibialis Wall Raise / Eccentric Calf Raise / **Seated Single-Leg Calf Raise** untuk soleus, Dorn 2012; sejak 0.14.2 juga **Standing DB Calf Raise** dan **Seated Band Tibialis Raise**). |
 | Prehab bahu berputar | Upper Push/Pull 45'/60' mendapat satu prehab bahu (**DB Scaption** / **Band External Rotation** — Reinold 2004). Pengisi sisa waktu juga mengutamakan prehab sesuai bagian tubuh sesi. |
 | ★ baru | Rear-Foot-Elevated Split Squat, DB Step-Up, dan DB Plié Squat masuk daftar multi-joint, tetapi baru boleh jadi ★ di blok yang dimulai **setelah** tanggal ditambahkan (`ANCHOR_SINCE`), supaya ★ & progresi blok yang berjalan tidak berubah. Mode bebas: langsung boleh. |
 | Titik tambat band | Band Reverse Fly, Band External Rotation, Standing Band Hip Abduction, dan Seated Band Hamstring Curl butuh band + titik tambat (toggle di Setting › Alat). |
 | Tahan per sisi | Side Plank dihitung 2× durasi untuk estimasi waktu dan ditampilkan "/sisi". |
-| Kondisi | Gerakan baru tidak dilarang kondisi mana pun; batasannya berupa catatan teknik di detail gerakan (mis. PFP → batasi kedalaman split squat/step-up/plié; nyeri bahu → batasi side plank/plank/scaption). |
+| Kondisi | Gerakan baru 0.9 tidak dilarang kondisi mana pun; batasannya berupa catatan teknik di detail gerakan (mis. PFP → batasi kedalaman split squat/step-up/plié; nyeri bahu → batasi side plank/plank/scaption). |
+| Gerakan 0.14.2 | Bisep: **Seated DB Curl**, **Hammer Curl**. Trisep: **Lying DB Triceps Extension**, **Close-Grip Push-Up** (cadangan tanpa alat seperti Push-Up; dihindari saat nyeri bahu). Lats: **Scapular Pull-Up** (jembatan Dead Hang → Negative), **Band-Assisted Pull-Up** (hanya bila ada band Heavy). Betis & tibialis: **Standing DB Calf Raise**, **Seated Band Tibialis Raise** (progresi berbeban Tibialis Wall Raise). Rentang awal bisa dirakit dari plat yang ada |
+| Varian lebih sulit (0.14.2) | Barbell Sumo Deadlift / Hip Thrust → **Single-Leg Hip Thrust**; DB RDL Wall-Tap Method → **Single-Leg DB RDL** (tangan bertumpu di dinding, wajib saat nyeri punggung bawah); Floor Press → **Single-Arm DB Floor Press** (satu dumbbell bisa jauh lebih berat dari sepasang); DB Plié Squat → Rear-Foot-Elevated Split Squat. Ketiga varian satu sisi masuk daftar ★ mulai blok yang dimulai sejak 2026-10-27 (`ANCHOR_SINCE`) |
+| Peta otot per gerakan (0.14.2) | Detail gerakan menampilkan `MuscleMap` depan/belakang dari otot kurasi (`muscle-regions.ts`), sama dengan ringkasan sesi 0.14.1. Otot tanpa region (rotator cuff) ditulis sebagai teks dengan alasannya |
 
-Gambar hanya dari free-exercise-db (Unlicense) — tidak memakai gambar AI atau sumber lain. Gambar yang sedikit berbeda dari versi kita (🟡 yang disetujui) diberi catatan di detail gerakan.
+Gambar hanya dari free-exercise-db (Unlicense); tidak memakai gambar AI atau sumber lain. Gambar yang sedikit berbeda dari versi kita (🟡 yang disetujui) diberi catatan di detail gerakan. Sejak 0.14.2 urutan gambar boleh dibalik bila fase gerakan kita terbalik dari sumber (`reversed`, mis. Negative Pull-Up memakai `Pullups` dari atas ke bawah); Dead Hang memakai `Scapular_Pull-Up` (posisi tahan = gambar kedua).
 
 Referensi tambahan:
 - Ekstrom RA dkk. (2007). EMG of core trunk, hip, and thigh muscles during 9 rehabilitation exercises. *JOSPT* 37(12) ([doi](https://doi.org/10.2519/jospt.2007.2471)).
 - Distefano LJ dkk. (2009). Gluteal muscle activation during common therapeutic exercises. *JOSPT* 39(7) ([doi](https://doi.org/10.2519/jospt.2009.2796)).
 - Dorn TW dkk. (2012). Muscular strategy shift in human running. *J Exp Biol* 215(11) ([doi](https://doi.org/10.1242/jeb.075051)).
+- Schoenfeld BJ dkk. (2017). Dose-response relationship between weekly resistance training volume and increases in muscle mass. *J Sports Sci* 35(11). Volume langsung untuk bisep & trisep.
+- Moen MH dkk. (2009). Medial tibial stress syndrome: a critical review. *Sports Med* 39(7). Kekuatan betis & kontrol kaki untuk MTSS.
 - Reinold MM dkk. (2004). EMG of the rotator cuff and deltoid during shoulder external rotation exercises. *JOSPT* 34(7) ([doi](https://doi.org/10.2519/jospt.2004.34.7.385)).
 
 ## 11. Strength tanpa alat (0.11.2)

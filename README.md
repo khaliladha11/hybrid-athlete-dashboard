@@ -81,17 +81,17 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
   </tr>
   <tr>
     <td><img src="docs/screenshots/19-week-ledger-st.jpg" width="220" alt="Ringkasan 7 hari dengan beban ST dan Week Ledger berisi baris ST"></td>
-    <td></td>
+    <td><img src="docs/screenshots/20-movement-muscle-map.jpg" width="220" alt="Detail gerakan Seated DB Curl dengan peta otot depan dan belakang"></td>
     <td></td>
   </tr>
   <tr>
     <td align="center"><sub>Week Ledger dengan ST</sub></td>
-    <td></td>
+    <td align="center"><sub>Peta otot per gerakan</sub></td>
     <td></td>
   </tr>
 </table>
 
-<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1, onboarding & tur di 0.11.2, sinkron di 0.12.2, Program & Hari H di 0.13.2–0.13.3, mode latihan, peta otot & Week Ledger ST di 0.14.1), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
+<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1, onboarding & tur di 0.11.2, sinkron di 0.12.2, Program & Hari H di 0.13.2–0.13.3, mode latihan, peta otot & Week Ledger ST di 0.14.1, peta otot per gerakan di 0.14.2), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
 
 > **Mau memakainya dengan data latihanmu sendiri di HP?** Ikuti [Pasang di HP-mu sendiri](#pasang-di-hp-mu-sendiri): gratis, sekitar 15 menit, tanpa menulis kode.
 
@@ -294,7 +294,7 @@ Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di pera
 | **0.11** Onboarding & deploy pribadi | ✅ Selesai | Wizard 10 langkah, profil di perangkat + JSON netral, cek koneksi di server, pengingat proteksi deploy, pasang ke HP, tur in-app, strength tanpa alat |
 | **0.12** Aman & tersinkron | ✅ Selesai | CI GitHub Actions, sandi aplikasi opsional, sinkron ke Upstash Redis milikmu, cadangan otomatis harian dengan Pulihkan, Sambungkan perangkat ini |
 | **0.13** Program hidup | ✅ Selesai | Kepatuhan rencana vs aktual, rencana di kalender, ringkasan minggu di Profil, "Kerjakan sesi hari ini" ke generator, saran tahu rencana, perkiraan waktu lomba, saran update zona, geser/lewati sesi terlewat, hitung mundur. Spesifikasi: [docs/PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) |
-| **0.14** Strength hidup | 🟡 Berjalan | 0.14.0 selesai: batas beban dari alat & keamanan, alat berbobot tetap, PR kemampuan, double progression, saran Gita, pengingat beli plat. 0.14.1 selesai: mode latihan + timer, session-RPE, ST mengikuti fase program, jeda 3 jam lari + ST, peta otot sesi. Berikutnya 0.14.2: gerakan pengisi celah & peta otot per gerakan. Cakupan: [docs/STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) |
+| **0.14** Strength hidup | ✅ Selesai | 0.14.0 batas beban dari alat & keamanan, alat berbobot tetap, PR kemampuan, double progression, saran Gita, pengingat beli plat. 0.14.1 mode latihan + timer, session-RPE, ST mengikuti fase program, jeda 3 jam lari + ST, peta otot sesi. 0.14.2 11 gerakan baru (bisep, trisep, lats, betis, tibialis, varian satu sisi) & peta otot per gerakan. Cakupan: [docs/STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) |
 | **0.15** Insight | 💡 Rencana | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence, volume ST; check-in subjektif harian |
 | **1.0** Siap pakai penuh | 💡 Rencana | Offline, kirim workout ke intervals.icu/jam, test e2e. Detail: [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
 
@@ -304,7 +304,7 @@ Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 
 - **Next.js 16** (App Router, Server Components) + **React 19** + **TypeScript**
 - **Tailwind CSS 4** dengan token semantik di [`app/globals.css`](app/globals.css). Dark mode mengikuti pengaturan sistem.
-- **Vitest**: 44 file test, 571 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
+- **Vitest**: 44 file test, 578 test yang mencakup seluruh kombinasi input generator, program target, efek setiap kondisi/alat di Setting, dan perhitungan split per km dari data jam
 - **intervals.icu REST API** (aktivitas, wellness, stream per detik), dipanggil hanya dari server
 - Grafik SVG buatan sendiri (Segment Skyline), tanpa library chart
 - Tanpa database. Profil default disimpan di JSON; Setting, log sesi, dan program di localStorage perangkat (bisa diekspor/impor).
