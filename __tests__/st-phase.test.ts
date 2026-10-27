@@ -110,7 +110,7 @@ describe("batas set fase", () => {
   it("Peak: gerakan inti maks 2 set; pemanasan tidak disentuh", () => {
     const r = applyPhaseRule(w, ST_PHASE_RULES.peak);
     expect(r.items.map((i) => i.sets)).toEqual([1, 2, 2, 2]);
-    expect(r.notes.at(-1)).toBe("Peak: maintenance: set gerakan inti maks 2, beban tidak dinaikkan.");
+    expect(r.notes.at(-1)).toBe("Peak: maintenance. Set gerakan inti maks 2, beban tidak dinaikkan.");
   });
 
   it("Taper: inti maks 2, aksesori 1 (volume ±50%)", () => {

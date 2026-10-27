@@ -75,5 +75,5 @@ export function applyPhaseRule(w: StrengthWorkout, rule: StPhaseRule): StrengthW
     return it.sets > max ? { ...it, sets: max } : it;
   });
   const acc = rule.maxAccessorySets ? `, aksesori ${rule.maxAccessorySets}` : "";
-  return { ...w, items, notes: [...w.notes, `${rule.label}: set gerakan inti maks ${rule.maxSets}${acc}${rule.holdLoad ? ", beban tidak dinaikkan" : ""}.`] };
+  return { ...w, items, notes: [...w.notes, `${rule.label}. Set gerakan inti maks ${rule.maxSets}${acc}${rule.holdLoad ? ", beban tidak dinaikkan" : ""}.`] };
 }
