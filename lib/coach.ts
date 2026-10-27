@@ -170,6 +170,17 @@ export function weeklyAdvice(activities: Activity[], today: string, sessions: St
   return out;
 }
 
+/** Ada lari / ST tercatat hari ini (aktivitas intervals.icu). */
+export interface TodayDone {
+  run: boolean;
+  strength: boolean;
+}
+
+export function todayDone(activities: Activity[], today: string): TodayDone {
+  const acts = activities.filter((a) => a.date === today);
+  return { run: acts.some((a) => a.category === "run"), strength: acts.some((a) => a.category === "strength") };
+}
+
 /** Jeda minimal antara lari dan ST di hari yang sama (Schumann dkk. 2022). */
 export const SAME_DAY_GAP_H = 3;
 
@@ -179,16 +190,18 @@ export const SAME_DAY_GAP_H = 3;
  * Tidak muncul bila keduanya sudah tercatat selesai (tidak ada lagi yang bisa dijadwalkan).
  */
 export function sameDayAdvice(o: {
-  activities: Activity[];
+  activities?: Activity[];
+  /** Ringkasan aktivitas hari ini dari server (bila daftar aktivitas tidak tersedia di klien). */
+  done?: TodayDone;
   sessions?: StSession[];
   /** Jenis sesi program yang jatuh hari ini. */
   plannedToday?: { run: boolean; strength: boolean };
   current?: AdviceTarget;
   today: string;
 }): Advice | null {
-  const acts = o.activities.filter((a) => a.date === o.today);
-  const runDone = acts.some((a) => a.category === "run");
-  const stDone = acts.some((a) => a.category === "strength") || (o.sessions ?? []).some((s) => !s.deletedAt && s.date === o.today);
+  const fromActs = todayDone(o.activities ?? [], o.today);
+  const runDone = fromActs.run || !!o.done?.run;
+  const stDone = fromActs.strength || !!o.done?.strength || (o.sessions ?? []).some((s) => !s.deletedAt && s.date === o.today);
   const run = runDone || !!o.plannedToday?.run || o.current === "run";
   const st = stDone || !!o.plannedToday?.strength || o.current === "strength";
   if (!run || !st || (runDone && stDone)) return null;
@@ -198,6 +211,23 @@ export function sameDayAdvice(o: {
     title: `Lari dan ST hari ini: jeda ≥ ${SAME_DAY_GAP_H} jam`,
     message: `Hari ini ada lari dan ST. Beri jeda minimal ${SAME_DAY_GAP_H} jam di antaranya supaya adaptasi kekuatan tidak terganggu.`,
   };
+}
+
+/**
+ * Saran server (dihitung tanpa data perangkat) + sesi mode latihan di perangkat (0.14.1): ST kaki lokal kemarin/hari
+ * ini memicu `after-leg-st` bila belum ada, dan aturan hari yang sama. Murni.
+ */
+export function withStSessions(
+  advice: Advice[],
+  o: { sessions: StSession[]; today: string; done?: TodayDone; plannedToday?: { run: boolean; strength: boolean }; current?: AdviceTarget },
+): Advice[] {
+  const out = [...advice];
+  if (!out.some((a) => a.id === "after-leg-st")) {
+    const leg = weeklyAdvice([], o.today, o.sessions).find((a) => a.id === "after-leg-st");
+    if (leg) out.push(leg);
+  }
+  const same = out.some((a) => a.id === "same-day") ? null : sameDayAdvice(o);
+  return same ? [...out, same] : out;
 }
 
 export function readinessAdvice(r: Readiness | null): Advice[] {

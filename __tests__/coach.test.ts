@@ -4,6 +4,8 @@ import {
   isLegStrength,
   readinessAdvice,
   sameDayAdvice,
+  todayDone,
+  withStSessions,
   suggestFor,
   weekStats,
   weeklyAdvice,
@@ -265,5 +267,20 @@ describe("aturan hari yang sama (D5, Schumann 2022)", () => {
     expect(sameDayAdvice({ activities: [run(0, 5)], today: TODAY })).toBeNull();
     expect(sameDayAdvice({ activities: [run(1, 5)], current: "strength", today: TODAY })).toBeNull();
     expect(sameDayAdvice({ activities: [run(0, 5), st(0, "Upper")], current: "strength", today: TODAY })).toBeNull();
+  });
+});
+
+describe("saran server + sesi perangkat (0.14.1)", () => {
+  it("ST kaki lokal menambah after-leg-st bila belum ada, tanpa dobel", () => {
+    const a = withStSessions([], { sessions: [ses(0)], today: TODAY });
+    expect(ids(a)).toEqual(["after-leg-st"]);
+    const server = weeklyAdvice([st(0, "ST Lower")], TODAY);
+    expect(ids(withStSessions(server, { sessions: [ses(0)], today: TODAY })).filter((x) => x === "after-leg-st")).toHaveLength(1);
+  });
+
+  it("hari yang sama dari ringkasan server (tanpa daftar aktivitas) dan generator yang dibuka", () => {
+    expect(ids(withStSessions([], { sessions: [], today: TODAY, done: { run: true, strength: false }, current: "strength" }))).toEqual(["same-day"]);
+    expect(ids(withStSessions([], { sessions: [], today: TODAY, done: { run: true, strength: true }, current: "strength" }))).toEqual([]);
+    expect(todayDone([run(0, 5), st(1, "Upper")], TODAY)).toEqual({ run: true, strength: false });
   });
 });

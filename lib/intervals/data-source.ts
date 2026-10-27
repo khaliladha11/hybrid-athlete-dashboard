@@ -4,7 +4,7 @@ import { mockActivities, mockActivityDetail, mockWellness } from "@/lib/mock-dat
 import { getIntervalsConfig, intervalsGet } from "./client";
 import { dedupeActivities } from "./dedupe";
 import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness } from "./normalize";
-import { readinessAdvice, weeklyAdvice, type Advice } from "@/lib/coach";
+import { readinessAdvice, todayDone, weeklyAdvice, type Advice, type TodayDone } from "@/lib/coach";
 import { assessReadiness, type Readiness } from "@/lib/readiness";
 import { averageRunCadence } from "./summary";
 import type { Activity, ActivityDetail, FetchResult, Wellness } from "./types";
@@ -66,6 +66,8 @@ export interface TrainingContext {
   advice: Advice[];
   /** Cadence lari rata-rata 14 hari (SPM total), jika ada data. */
   cadenceSpm?: number;
+  /** Lari / ST tercatat hari ini (0.14.1, aturan hari yang sama di klien). */
+  todayDone?: TodayDone;
 }
 
 /** Konteks untuk halaman generator: readiness & cadence personal. Posisi blok dihitung di client dari profil perangkat. */
@@ -78,5 +80,6 @@ export async function getTrainingContext(today = todayWib()): Promise<TrainingCo
     readiness,
     advice: [...readinessAdvice(readiness), ...weeklyAdvice(activities, today)],
     cadenceSpm: averageRunCadence(activities, today, 14),
+    todayDone: todayDone(activities, today),
   };
 }
