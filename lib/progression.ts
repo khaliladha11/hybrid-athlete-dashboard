@@ -332,6 +332,10 @@ export function applyProgression(
     switch (rec.kind) {
       case "load": {
         if (it.load.kind !== "load") return it;
+        if (rec.variant && w.items.some((x) => x.movement === rec.variant)) {
+          // Varian sudah ada di sesi ini: jangan dobel, tetap tempo/jeda.
+          return { ...it, ...(rec.reps ? { reps: `${rec.reps}${it.reps?.match(/\/\S+/)?.[0] ?? ""}` } : {}), tempo: true, progression: `→ ${rec.reason.replace(/ Pindah ke varian lebih sulit: .*$/, "")} ${rec.variant} sudah ada di sesi ini, tetap tempo dan jeda.` };
+        }
         if (rec.variant) {
           // Varian lebih sulit: gerakan baru mulai dari titik awal rentang library-nya.
           const v = usable(rec.variant)!;
@@ -356,7 +360,8 @@ export function applyProgression(
         return {
           ...it,
           load: { ...it.load, min: v, max: v },
-          ...(rec.reps ? { reps: rec.reps } : {}),
+          // Rentang tetap mempertahankan satuan per sisi (mis. "/kaki") dari resep asal.
+          ...(rec.reps ? { reps: `${rec.reps}${it.reps?.match(/\/\S+/)?.[0] ?? ""}` } : {}),
           ...(rec.tempo ? { tempo: true } : {}),
           progression: `${ARROW[rec.action]} ${rec.reason}`,
         };

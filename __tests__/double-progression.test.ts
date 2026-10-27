@@ -161,10 +161,11 @@ describe("double progression saat mentok", () => {
 
 describe("diterapkan ke workout", () => {
   const p = make({ equipment: SMALL, loadRule: ACCEPTED });
-  const withSquat = (): StrengthWorkout => {
-    for (let seed = 1; seed < 500; seed++) {
+  const withSquat = (rfess = false): StrengthWorkout => {
+    for (let seed = 1; seed < 800; seed++) {
       const w = generateStrengthWorkout({ type: "lower", duration: 45, difficulty: "moderate", seed, free: true }, p);
-      if (w.items.some((i) => i.anchor && i.movement === "Barbell Squat")) return w;
+      const hasRfess = w.items.some((i) => i.movement === "Rear-Foot-Elevated Split Squat");
+      if (w.items.some((i) => i.anchor && i.movement === "Barbell Squat") && hasRfess === rfess) return w;
     }
     throw new Error("Barbell Squat ★ tidak ditemukan");
   };
@@ -177,6 +178,28 @@ describe("diterapkan ke workout", () => {
     expect(swapped.movement).toBe("Rear-Foot-Elevated Split Squat");
     expect(swapped.anchor).toBe(true);
     expect(swapped.load.kind === "load" && swapped.load.min).toBe(movesOf(p).get("Rear-Foot-Elevated Split Squat")!.loads![0]);
+  });
+
+  it("varian yang sudah ada di sesi tidak dibuat dobel: tetap tempo dan bilang begitu", () => {
+    const w = withSquat(true);
+    const out = applyProgression(w, movesOf(p), two("Barbell Squat", 12.5, 12, 5, { tempo: true }), [], { free: true });
+    expect(out.items.filter((i) => i.movement === "Rear-Foot-Elevated Split Squat")).toHaveLength(1);
+    const sq = out.items.find((i) => i.movement === "Barbell Squat")!;
+    expect(sq.tempo).toBe(true);
+    expect(sq.progression).toMatch(/Rear-Foot-Elevated Split Squat sudah ada di sesi ini, tetap tempo dan jeda\.$/);
+  });
+
+  it("gerakan satu sisi: rentang tetap mempertahankan satuan per kaki", () => {
+    for (let seed = 1; seed < 500; seed++) {
+      const w = generateStrengthWorkout({ type: "lower", duration: 45, difficulty: "moderate", seed, free: true }, p);
+      const lunge = w.items.find((i) => i.anchor && i.movement === "Reverse Lunge");
+      if (!lunge || lunge.load.kind !== "load") continue;
+      const cap = movesOf(p).get("Reverse Lunge")!.cap!.kg;
+      const out = applyProgression(w, movesOf(p), two("Reverse Lunge", cap, 12, 5), [], { free: true }).items.find((i) => i.movement === "Reverse Lunge")!;
+      expect(out.reps).toBe("8–12/kaki");
+      return;
+    }
+    throw new Error("Reverse Lunge ★ tidak ditemukan");
   });
 });
 
