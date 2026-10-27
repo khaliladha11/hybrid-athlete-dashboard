@@ -1,6 +1,7 @@
 # Cakupan 0.14 Strength hidup
 
 > Status: **cakupan diperbarui 2026-10-26** (usulan pemilik digabung dengan cakupan 2026-10-23; peta otot ditambahkan). Spesifikasi detail dan prompt menyusul setelah 0.13. Simpan di `docs/STRENGTH-HIDUP.md`.
+> Rilis: **0.14.0** dan **0.14.1** selesai 2026-10-27 (lihat [CHANGELOG](../CHANGELOG.md)); berikutnya 0.14.2.
 > Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Perubahan logika latihan wajib memperbarui TRAINING-LOGIC dan test.
 
 ## 1. Latar belakang
@@ -134,6 +135,7 @@ Semua butir di bawah **diputuskan pemilik pada 2026-10-26** (D1–D8). Daftarnya
    - **Diputuskan (D7):** otot utama `--brand`, sekunder `--brand-soft`, otot lain `--subtle-strong`. Dicatat di DESIGN-SYSTEM saat komponen dibuat.
 7. Sumber SVG final (react-body-highlighter / body-highlighter / MuscleMapJS) setelah cek region tibialis & soleus.
    - **Diputuskan (D8):** sumber SVG **dipilih di Prompt 2** setelah perbandingan (kelengkapan region, ukuran, lisensi).
+   - **Dipilih (0.14.1):** **MuscleMapJS**, model pria (path Bézier, punya tibialis & hip flexor; ±42 KB). Soleus masuk betis belakang dan lats masuk punggung atas; rotator cuff hanya teks. Tiga pemberitahuan MIT (MuscleMapJS, MuscleMap SwiftUI, react-native-body-highlighter) di `NOTICE.md`.
 
 ## 7. Perkiraan dampak (dipastikan saat memeriksa kode)
 - **Logika:** `lib/equipment.ts`, `lib/progression.ts`, `lib/training-log.ts`, `lib/generator/meta.ts`, `lib/generator/strength.ts`, `lib/generator/validate.ts`, `lib/athlete-settings.ts`, `lib/sync/merge.ts`, `lib/coach.ts`.

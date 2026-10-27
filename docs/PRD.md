@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.14.0 (2026-10-27) |
+| **Versi saat ini** | 0.14.1 (2026-10-27) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 38 file test, 507 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
+| **Kualitas** | 43 file test, 567 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -191,12 +191,12 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Saran ringkas satu baris (seperti Generator Lari) | ⬜ | Generator Strength masih memakai kartu saran lengkap |
 | Batas beban: rentang library menjadi titik awal, batas = min(alat, keamanan); persetujuan sekali, toggle "Batasi ke rentang awal library", penanda di kartu | ✅ | 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §2). Batas keamanan diusulkan dengan sumber dan disetujui pemilik (D4). Aturan §3 diubah saat diterapkan |
 | Double progression saat mentok: rentang rep tetap (Easy 10–15, Moderate 8–12, High 6–10), lalu tempo/jeda, lalu varian satu sisi | ✅ | 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3c, D3). Menggantikan baris "Tangga progresi saat beban mentok" |
-| Mode latihan: layar penuh per gerakan, timer istirahat & hitung mundur tahan, centang per set langsung tercatat | ⬜ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3). Menggantikan baris "Timer istirahat antar set" |
-| ST mengikuti fase program (Base volume, Build lebih berat, Peak maintenance, Taper ST kaki dikurangi) | ⬜ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3) |
-| Aturan lari + ST di hari yang sama: sarankan jeda ≥ 3 jam | ⬜ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3). Aturan concurrent lama tetap (D5) |
+| Mode latihan: layar penuh per gerakan, timer istirahat & hitung mundur tahan, centang per set langsung tercatat | ✅ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3). Menggantikan baris "Timer istirahat antar set" |
+| ST mengikuti fase program (Base volume, Build lebih berat, Peak maintenance, Taper ST kaki dikurangi) | ✅ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3) |
+| Aturan lari + ST di hari yang sama: sarankan jeda ≥ 3 jam | ✅ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3). Aturan concurrent lama tetap (D5) |
 | Skema "Kekuatan" 5–6 rep @ RPE 7 untuk ★ di fase Build | ⬜ | Turun prioritas ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §4): dengan alat mentok, rep rendah tidak bisa dibuat lebih berat. Ditinjau lagi bila alat bertambah |
 | Seated DB Curl + gerakan pengisi celah (biceps, triceps, lats, betis, tibialis) dan varian satu sisi untuk gerakan mentok | ⬜ | 0.14.2 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3). Alur 0.9: audit → usulan → implementasi, lolos syarat §3 |
-| Peta otot ringkasan sesi | ⬜ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3): gabungan otot utama/sekunder semua gerakan sesi, di mode latihan dan setelah sesi |
+| Peta otot ringkasan sesi | ✅ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3): gabungan otot utama/sekunder semua gerakan sesi, di mode latihan dan setelah sesi |
 | Peta otot per gerakan (depan/belakang, utama/sekunder) | ⬜ | 0.14.2 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3): `MuscleMap` SVG sendiri di bottom sheet detail gerakan, data otot dari kurasi `lib/movements/media.ts` |
 | Plyometric ringan (opsional, hanya bila kondisi shin splints nonaktif) | ⬜ | Backlog P3 (D6, [STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §4): butuh shin splints nonaktif + sumber, lewat aturan §3 |
 
@@ -237,7 +237,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | PR kemampuan (manual & otomatis dari log), riwayat per gerakan, jadi acuan target & progresi | ✅ | 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3b). Ikut ekspor/impor (format v4) dan sinkron |
 | Saran Gita yang menjelaskan alasannya (syarat naik RPE ≤ target sesi − 1; naik rep, beban, tempo, atau varian) | ✅ | 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3d, D1). Tidak pernah memblokir |
 | Pengingat beli beban per area (lower, upper push, upper pull): plat yang membuka progresi paling banyak | ✅ | 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3e). Ambang 80% gerakan aktif di area itu mentok (D2), tanpa tautan toko |
-| Session-RPE untuk ST (RPE sesi × durasi) masuk beban 7 hari, kepatuhan program, Week Ledger | ⬜ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3) |
+| Session-RPE untuk ST (RPE sesi × durasi) masuk beban 7 hari, kepatuhan program, Week Ledger | ✅ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3) |
 | Tes kekuatan berkala di minggu deload (maks push-up, tahan side plank, single-leg calf raise) + milestone pull-up (band → negative → penuh) | ⬜ | Sebagian besar tergantikan PR kemampuan 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §4); milestone pull-up tetap direncanakan. Menggabungkan baris "Milestone pull-up" |
 | Tren volume ST (set × rep × kg per pola gerakan) | ⬜ | 0.15 Insight |
 
@@ -326,7 +326,7 @@ Selesai di 0.12 (0.12.0 sampai 0.12.2), spesifikasi lengkap di [SYNC.md](SYNC.md
 | Aksesibilitas | Kontras teks AA di kedua tema, fokus keyboard, reduced motion | 🟡 Teks ✅ semua pasangan ≥ 4.5:1. Tombol oranye baru lolos sejak 0.10.0-ui (teks gelap 5.78:1; teks putih lama hanya 3.40:1, jadi klaim AA sebelumnya keliru). Non-teks belum: border kontrol `line-strong` 1.7:1 / 1.6:1 dan isi kuning `warning` di mode terang 1.9:1 (butuh ≥ 3:1) |
 | Keandalan logika | Semua aturan latihan diuji unit test | ✅ |
 | Akurasi data aktivitas | Split per km konsisten dengan ringkasan aktivitas dan dekat dengan Strava | 🟡 Jumlah jarak & waktu split = total; hasil yang meleset > 5% jarak / 10% waktu tidak ditampilkan. Per km masih bisa beda beberapa detik dari Strava (lihat §6) |
-| Lisensi aset | Hanya aset berlisensi bebas, atribusi di `NOTICE.md` | ✅ free-exercise-db (Unlicense). Rencana 0.14.2: poligon SVG anatomi berlisensi MIT disalin (bukan dependensi), atribusi di `NOTICE.md` ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3) |
+| Lisensi aset | Hanya aset berlisensi bebas, atribusi di `NOTICE.md` | ✅ free-exercise-db (Unlicense). ✅ 0.14.1: path SVG anatomi depan/belakang dari MuscleMapJS (MIT; turunan MuscleMap SwiftUI, MIT; nama region sama dengan react-native-body-highlighter, MIT) disalin ke `components/charts/muscle-paths.ts`, bukan dependensi; ketiga pemberitahuan MIT di `NOTICE.md` (keputusan D8) |
 | Ukuran aset & performa | Gambar lokal WebP ≤ 600 px, lazy loading, tanpa hotlink | ✅ 72 gambar, ±1,3 MB total |
 | Ketersediaan | Tetap jalan tanpa API key / saat intervals.icu error | ✅ |
 | Offline | Bisa dibuka tanpa sinyal | ⬜ |
@@ -364,6 +364,8 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | **0.15 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence, tren volume ST, heatmap otot mingguan/bulanan; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
 | **1.0 Siap pakai penuh** | Offline, kirim workout ke intervals.icu/jam, test e2e | Stabil dan mandiri tanpa edit kode |
 
+> 2026-10-27 (2): **0.14.1 dirilis** (sesi ST: mode latihan + timer, session-RPE ke beban 7 hari / kepatuhan / Week Ledger, ST mengikuti fase program termasuk taper, aturan jeda 3 jam di hari yang sama, peta otot sesi dari SVG MIT). Berikutnya 0.14.2 Library & visual.
+>
 > 2026-10-27: **0.14.0 dirilis** (progresi dengan alat terbatas: batas beban, alat, PR, double progression, saran Gita, pengingat beli). Berikutnya 0.14.1 Sesi ST (mode latihan, session-RPE, fase program, aturan hari yang sama, peta otot sesi).
 >
 > 2026-10-26 (5): **keputusan 0.14** ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §6, D1–D8): coach bernama **Gita**; pengingat beli pada 80% gerakan per area; rentang rep tetap saat mentok Easy 10–15 / Moderate 8–12 / High 6–10; batas keamanan diusulkan dengan sumber dan disetujui di Prompt 1A; aturan concurrent lama tetap ditambah jeda ≥ 3 jam di hari yang sama; plyometric ditunda ke backlog P3; warna peta otot brand / brand-soft / subtle-strong; sumber SVG dipilih di Prompt 2. Baris §4.4, §4.6, §4.8 kini memakai tag 0.14.0 / 0.14.1 / 0.14.2.
@@ -407,8 +409,8 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P1 | **Prediksi waktu lomba** dari lari terbaik terbaru (usulan VDOT Daniels, Riegel sebagai pembanding) untuk mengecek target | S | Target realistis. → Selesai di **0.13.2** (tanpa best effort intervals.icu, lihat P2) |
 | P1 | **Check-in harian**: nyeri shin (0–10), pegal, kualitas tidur, mood → ikut ke saran | S | Sinyal dini shin splints yang tidak terlihat di HRV. → **0.15** |
 | P1 | **Grafik tren** CTL/ATL/Form & km mingguan | M | Melihat kebugaran dan kelelahan jangka panjang. → **0.15** |
-| P1 | **ST mengikuti fase program** (Base, Build, Peak, Taper) | M | ST kaki tidak berat menjelang lomba. → **0.14.1** |
-| P1 | **Session-RPE untuk ST** masuk beban 7 hari, kepatuhan, Week Ledger | S | Saran lari ikut memperhitungkan sesi ST yang tidak tercatat di jam. → **0.14.1** |
+| P1 | **ST mengikuti fase program** (Base, Build, Peak, Taper) | M | ST kaki tidak berat menjelang lomba. → Selesai di **0.14.1** |
+| P1 | **Session-RPE untuk ST** masuk beban 7 hari, kepatuhan, Week Ledger | S | Saran lari ikut memperhitungkan sesi ST yang tidak tercatat di jam. → Selesai di **0.14.1** |
 | P2 | **Kirim workout ke kalender intervals.icu** (lalu ke jam yang terhubung) | M | Workout langsung muncul di jam. → **1.0** |
 | P2 | **Edit sisa profil di aplikasi** (target lomba, tanggal mulai blok, zona HR/RPE) | S | Tanpa edit JSON sama sekali. → Terserap ke **0.11** ([ONBOARDING.md](ONBOARDING.md) §4.5), kecuali zona HR/RPE yang tetap di backlog |
 | P2 | **Enkripsi sisi klien (opsional)**: passphrase + WebCrypto sebelum data dikirim ke database | M | Database pun tidak bisa membaca data kesehatan. Tidak di 0.12 ([SYNC.md](SYNC.md) §4, §11) |
@@ -416,9 +418,9 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P2 | **Isian awal VDOT dari lari terbaik 90 hari** di onboarding & Setting (butuh data intervals.icu di client) | S | Zona lari tepat tanpa harus ingat hasil lomba |
 | P2 | **Ambang personal** (HR berat dari zona/LTHR, baseline HRV 30 hari) | S | Saran lebih akurat |
 | P2 | **Mode offline** (service worker, cache workout terakhir) | M | Tetap bisa dibuka di gym tanpa sinyal. Relevan untuk rasa native setelah onboarding mengajak pasang ke layar utama (0.11). → **1.0** |
-| P2 | **Mode latihan ST**: layar penuh per gerakan, timer istirahat & hitung mundur tahan, centang per set langsung tercatat (menggantikan "Timer sesi ST") | M | Tidak perlu aplikasi timer lain dan tidak mencatat belakangan. → **0.14.1** |
+| P2 | **Mode latihan ST**: layar penuh per gerakan, timer istirahat & hitung mundur tahan, centang per set langsung tercatat (menggantikan "Timer sesi ST") | M | Tidak perlu aplikasi timer lain dan tidak mencatat belakangan. → Selesai di **0.14.1** |
 | P2 | **Tes kekuatan berkala** di minggu deload + **milestone pull-up** & gerakan baru otomatis aktif saat siap (mis. negative pull-up) | S–M | Progres ST terlihat seperti pace/VDOT di lari. → Sebagian besar tergantikan PR kemampuan (**0.14.0**); milestone pull-up tetap |
-| P2 | **Aturan lari + ST di hari yang sama** (jeda ≥ 3 jam) | S | Mengurangi interferensi pada kekuatan eksplosif. → **0.14.1** (aturan concurrent lama tetap, D5) |
+| P2 | **Aturan lari + ST di hari yang sama** (jeda ≥ 3 jam) | S | Mengurangi interferensi pada kekuatan eksplosif. → Selesai di **0.14.1** (aturan concurrent lama tetap, D5) |
 | P2 | **Skema "Kekuatan" 5–6 rep @ RPE 7** untuk ★ di fase Build (butuh persetujuan pemilik) | S | Manfaat beban relatif tinggi untuk running economy. → Turun prioritas, ditinjau lagi bila alat bertambah |
 | P2 | **Tangga progresi saat beban mentok** (bilateral → split → RFESS → satu kaki, atau tempo/jeda) | M | Progres tetap jalan walau alat terbatas. → **0.14.0** (double progression saat mentok) |
 | P2 | **Grafik cadence & pace easy run** | S | Memantau perbaikan crossover gait. → **0.15** |
@@ -471,6 +473,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.13.1 | 2026-10-26 | Program hidup tahap 2: "Kerjakan sesi hari ini" (isian generator lari & ST dari rencana, kartu sesi program untuk long run & sesi spesifik lomba), saran hari ini terhadap rencana |
 | 0.13.2 | 2026-10-26 | Program hidup selesai: perkiraan waktu lomba (VDOT, Riegel pembanding), hasil lomba tersimpan, saran update zona, geser/lewati sesi terlewat, hitung mundur & checklist minggu lomba |
 | 0.13.3 | 2026-10-26 | Hari H dipilih atlet: kalender dengan saran lama program, kesiapan HM/FM, jarak antar maraton, panjang program variabel & pre-Base, arsip program |
+| 0.14.1 | 2026-10-27 | Sesi ST: mode latihan layar penuh (centang per set, timer istirahat & tahan, layar tetap menyala), session-RPE (RPE × menit) ke beban 7 hari, kepatuhan & Week Ledger tanpa hitung dobel, ST mengikuti fase program (Peak maintenance, taper volume setengah, ST kaki terakhir ≥ 8 hari), jeda ≥ 3 jam lari + ST, peta otot sesi, cadangan v5 & sinkron `sessions` |
 | 0.14.0 | 2026-10-27 | Strength hidup tahap 1: batas beban dari alat & keamanan (dengan persetujuan), item alat berbobot tetap, PR kemampuan (cadangan v4, sinkron), double progression saat mentok, saran Gita berangka, pengingat beli plat |
 
 Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).

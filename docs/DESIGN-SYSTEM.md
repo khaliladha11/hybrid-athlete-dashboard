@@ -128,9 +128,22 @@ Grafik bar SVG tanpa library. **Lebar bar ∝ durasi, tinggi bar ∝ kecepatan.*
 - Aksesibilitas: `<svg role="img" aria-label="…">` + daftar interval tetap ada di bawahnya sebagai sumber data teks.
 
 ### Week Ledger (baru, di `WeeklySummary`)
-- Tabel "MINGGU INI · KM": baris per hari lari (`SELASA 3.3`), garis rambut antar baris, baris TOTAL lebih besar (`.t-ledger-num` 28px).
+- Tabel "MINGGU INI · KM · MENIT": baris per hari lari (`SELASA 3.3`) dan sejak 0.14.1 baris ST per sesi (`SENIN · ST LOWER` dengan `45'`), garis rambut antar baris, baris TOTAL LARI lebih besar (`.t-ledger-num` 28px). Komponen klien `components/profile/WeekLedger.tsx` karena sesi ST ada di perangkat.
 - Data dari aktivitas minggu kalender (sudah dihitung di `summarizeLast7Days().calendarWeek`; tambah rincian per hari di komponen).
 - Total adalah jumlah jarak mentah. Angka per hari dibulatkan 1 desimal, jadi jumlahnya bisa beda 0.01 dari total. Itu wajar; jangan "dibetulkan".
+
+### Mode latihan (0.14.1, `components/workout/`)
+- Layar penuh di atas AppBar & BottomNav (lapisan `fixed`, mulai di bawah strip status bar), satu gerakan per layar. Kembali ke Strength tidak menghentikan sesi; halaman Strength menampilkan kartu "Sesi berjalan" dengan garis oranye.
+- Atas: waktu sesi (mono tabular) dan progres set (bar `--track` diisi `--brand`, karena set selesai = oranye).
+- Timer istirahat/tahan memakai **`.t-display` satu-satunya di layar**, tanpa cincin animasi; tombol `+15 detik` dan `Lewati`/`Hentikan`. Habis: getar (bila didukung dan diaktifkan) dan satu baris status.
+- Set ditampilkan sebagai titik: selesai = oranye penuh dengan rep, set berikutnya = garis oranye, sisanya `subtle`. Input beban/rep 16px, area sentuh ≥ 44px, pilihan RPE seperti Segmented (hanya gerakan inti).
+- Layar tetap menyala lewat Wake Lock API; bila tidak didukung, satu kalimat jujur ("Layar bisa mati di perangkat ini").
+- Akhir sesi: pilihan RPE sesi 0–10 (label CR-10 di bawahnya), durasi dari timer, beban terlihat langsung, lalu ringkasan otot.
+
+### MuscleMap (0.14.1, `components/charts/MuscleMap.tsx`)
+- Tubuh depan & belakang berdampingan dalam satu `<svg role="img" aria-label="Otot utama: …; sekunder: …">`, label "Depan"/"Belakang" di bawah, **daftar teks otot selalu ada** (`MuscleSummary`), termasuk otot tanpa region (rotator cuff) dengan alasannya.
+- **Warna (D7):** otot utama `--brand`, sekunder `--brand-soft` **dengan garis `--brand`** (tanpa garis, `brand-soft` hampir sama dengan `subtle-strong` di kedua tema), otot lain `--subtle-strong`, garis antar otot `--surface`. Peta otot bukan rencana maupun status selesai; oranye di sini berarti "dilatih sesi ini".
+- Tanpa animasi. Path dari MuscleMapJS (MIT, NOTICE.md), model pria saja untuk menjaga ukuran (±42 KB, ±20 KB gzip).
 
 ### Button (`BUTTON` di Card.tsx)
 - Primary: `bg-brand text-on-brand` (teks gelap), 600, tinggi 44/48, radius 12.

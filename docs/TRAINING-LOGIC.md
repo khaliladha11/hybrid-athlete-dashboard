@@ -97,10 +97,27 @@ Kode: [`lib/coach.ts`](../lib/coach.ts) dan [`lib/readiness.ts`](../lib/readines
 | **Readiness** | HRV < 85% rata-rata 7 hari · resting HR ≥ rata-rata + 5 bpm · long run (≥ 12 km / ≥ 75') atau sesi berat kemarin | Turun satu level, sekali saja (tidak berantai) |
 | **80/20** | ≥ 2 lari berat dalam 7 hari. Lari dianggap berat bila HR ≥ 155, namanya berisi tempo/interval/4×4, atau pace ≤ 6:30/km tanpa HR | Lari: Easy |
 | **Progresi jarak** | km lari 7 hari naik > 30% dibanding 7 hari sebelumnya (basis ≥ 5 km) | Lari: 30' + sisa km aman |
-| **Setelah ST kaki** | Sesi ST bernama Lower/Full/Leg/Squat/… kemarin atau hari ini | Lari: maksimal Moderate |
+| **Setelah ST kaki** | Sesi ST bernama Lower/Full/Leg/Squat/… kemarin atau hari ini, atau sesi mode latihan Lower/Full Body (0.14.1) | Lari: maksimal Moderate |
+| **Hari yang sama** (0.14.1, D5) | Lari dan ST di hari yang sama: tercatat, sesi program hari ini, sesi mode latihan, atau generator yang sedang dibuka. Diam bila keduanya sudah tercatat | Jeda minimal 3 jam (Schumann dkk. 2022). Tidak mengubah isian |
 | **Setelah lari berat** | Lari berat atau long run kemarin atau hari ini | ST: Upper Pull/Push |
 
 Kartu "7 hari terakhir" di halaman Profil juga menampilkan bar distribusi easy/berat (dengan garis acuan 80%) dan persentase perubahan km.
+
+Saran dihitung di server dari intervals.icu; sesi mode latihan tersimpan di perangkat, jadi klien menambahkannya (`withStSessions`): ST kaki lokal memicu "Setelah ST kaki" bila belum ada, dan aturan hari yang sama memakai ringkasan `todayDone` dari server.
+
+### Session-RPE ST (0.14.1)
+
+Kode: [`lib/st-session.ts`](../lib/st-session.ts), [`lib/workout-state.ts`](../lib/workout-state.ts), [`lib/week-ledger.ts`](../lib/week-ledger.ts).
+
+| Aturan | Detail |
+| --- | --- |
+| Beban | **RPE sesi (0–10, skala CR-10) × durasi menit** = AU (Foster dkk. 2001). Durasi terisi dari timer mode latihan dan bisa diubah |
+| Beban 7 hari | `weekStats`: jumlah sesi ST, menit, dan beban AU 7 hari. AU **tidak dijumlahkan** dengan `trainingLoad` intervals.icu karena skalanya berbeda; ditampilkan sendiri di kartu 7 hari |
+| Dedupe | Sesi lokal dan aktivitas `strength` intervals.icu dianggap satu sesi bila **tanggal WIB sama** dan jam mulai selisih **≤ 2 jam** (atau salah satunya tanpa jam). Satu sesi lokal satu aktivitas (selisih terkecil). Pasangan dihitung sekali memakai sesi lokal; aktivitas tanpa pasangan tetap dihitung, tanpa AU ("sesi tanpa RPE") |
+| Kepatuhan | Sesi mode latihan di tanggal ±1 hari: set dicentang ≥ 80% rencana → selesai, di bawahnya → sebagian (dengan rasio). Sesi yang dimulai dari sesi program itu diutamakan. Aktivitas yang sudah berpasangan dan log ★ di tanggal sesi lokal tidak dihitung lagi |
+| Week Ledger | Baris ST per sesi, mis. `Senin · ST Lower` dengan `45'`; aktivitas tanpa pasangan `ST` dengan waktu geraknya. Total tetap km lari |
+| Log ★ | Mode latihan menulis satu entri log per ★ dari set terakhir (sama dengan "Catat sesi"), jadi progresi & PR tetap satu sumber |
+| Data | Sinkron bagian `sessions` (tombstone 90 hari), cadangan v5. Sesi yang sedang berjalan hanya di perangkat (`st-active`) |
 
 ### Saran terhadap sesi rencana (0.13.1)
 
@@ -181,7 +198,7 @@ Sejak 0.13.3 panjang program mengikuti Hari H yang dipilih atlet (lihat "Hari H 
 - **Fase:** Base (fartlek ringan) → Build (tempo) → Peak (spesifik lomba) → Taper (strides, volume turun). Minggu terakhir adalah minggu lomba dengan sesi sharpener.
 - **Long run:** naik ≤ 10% **dan** ≤ 2 km per minggu. Setiap minggu ke-4 ada cutback ±75% tanpa sesi berat. Long run awal diambil dari long run terjauh 30 hari terakhir di intervals.icu (maksimal 75% puncak).
 - **Pace:** zona easy/tempo/interval dari profil, sedangkan race pace = target waktu ÷ jarak. Target default diambil dari `targets.raceTargets` di profil (Sub-30m 5K, Sub-1h 10K, Sub-3h HM).
-- **Jadwal:** Selasa quality, Kamis easy, (Jumat recovery bila 4×/minggu), Minggu long run. ST di Senin (Lower/Full) & Rabu (Upper), tidak sehari sebelum quality atau long run.
+- **Jadwal:** Selasa quality, Kamis easy, (Jumat recovery bila 4×/minggu), Minggu long run. ST di Senin (Lower/Full) & Rabu (Upper), tidak sehari sebelum quality atau long run. Isi ST mengikuti fase (0.14.1, lihat di bawah).
 - **Peringatan (non-blokir):**
   - FM dengan long run terjauh < 12 km.
   - Target pace jauh lebih cepat dari zona tempo.
@@ -193,17 +210,34 @@ Kode: [`lib/program/compliance.ts`](../lib/program/compliance.ts), [`lib/program
 
 | Aturan | Detail |
 | --- | --- |
-| Sesi rencana | Setiap sesi punya id `{programId}:{minggu}:{hari}:{jenis}`; `programId` = jarak lomba + Senin mulai. Sesi ST mengikuti jadwal di atas: Senin Lower/Full & Rabu Upper, minggu taper & lomba hanya Rabu Upper ringan |
+| Sesi rencana | Setiap sesi punya id `{programId}:{minggu}:{hari}:{jenis}`; `programId` = jarak lomba + Senin mulai. Sesi ST mengikuti jadwal di atas: Senin Lower/Full & Rabu Upper; sejak 0.14.1 taper sebelum minggu lomba tetap 2× ringan dan minggu lomba hanya Upper ringan (lihat "ST mengikuti fase program") |
 | Jendela | Aktivitas di tanggal rencana ±1 hari (WIB). Satu aktivitas untuk satu sesi; pasangan diurutkan menurut selisih hari lalu kecocokan jenis. Lari lain di hari yang sama dengan aktivitas utama dijumlah |
 | Selesai | Jenis cocok dan durasi **atau** jarak ≥ 80% rencana (D2). Long run & lomba memakai jarak. Aktivitas tanpa durasi & jarak (salinan Strava kosong) dianggap memenuhi karena tidak terukur |
 | Sebagian | Ada aktivitas tapi < 80%, atau quality (selain strides/sharpener ringan) dikerjakan tanpa lari berat |
 | Lebih berat | Easy/recovery yang aktivitasnya tergolong berat (`isHardRun`, ambang yang sama dengan saran): tetap selesai, diberi catatan, dan sudah ikut hitungan 80/20 |
 | Terlewat | Tanpa aktivitas setelah tanggal + 1 hari. Kemarin tanpa aktivitas masih "bisa hari ini" |
-| ST | Selesai bila ada log ST lokal atau aktivitas strength intervals.icu di tanggal ±1 hari. Berat ringan ST dinilai di 0.14 (session-RPE) |
+| ST | Sesi mode latihan (0.14.1): set ≥ 80% → selesai, di bawahnya → sebagian. Tanpa sesi: log ST lokal atau aktivitas strength intervals.icu di tanggal ±1 hari → selesai. Tanpa hitung dobel (lihat "Session-RPE ST") |
 | Override | `skip` → dilewati (tidak dicocokkan); `move` → dinilai di tanggal baru. Tidak pernah menambah volume minggu lain (D5) |
 | Long run awal | Lari terjauh 30 hari **sebelum program mulai**, supaya target long run minggu yang sudah lewat tidak bergeser |
 
 Referensi: Daniels J. (2014). *Daniels' Running Formula* (3rd ed.), Human Kinetics, untuk jenis sesi per fase yang dicocokkan.
+
+### ST mengikuti fase program (0.14.1)
+
+Kode: [`lib/program/st-phase.ts`](../lib/program/st-phase.ts), [`lib/program/sessions.ts`](../lib/program/sessions.ts), [`lib/program/to-generator.ts`](../lib/program/to-generator.ts). Hanya saat program aktif dan isian generator dari sesi program tidak diubah; tanpa program perilaku lama.
+
+| Fase | ST | Dasar |
+| --- | --- | --- |
+| Pre-Base / Base | 2×/minggu (Senin Lower/Full, Rabu Upper), Moderate 45', rotasi skema rep | Fondasi volume |
+| Build | 2×/minggu **High** 45' (beban lebih berat sejauh alat & batas keamanan 0.14.0 memungkinkan). Minggu cutback Moderate | Heavy ST paling konsisten memperbaiki running economy (Rønnestad & Mujika 2014) |
+| Peak | **Maintenance**: Moderate 30', set gerakan inti maks 2, **beban ditahan** (progresi naik, naik band, dan pindah varian menunggu; rep, tempo, dan turun beban tetap) | Satu sesi/minggu cukup mempertahankan kekuatan & CSA paha selama musim lomba (Rønnestad, Hansen & Raastad 2010) |
+| Taper (sebelum minggu lomba) | **Volume ±50%**: 30', inti maks 2 set, aksesori 1, intensitas & frekuensi tetap (Senin "ST Lower ringan", Rabu "ST Upper ringan"), beban ditahan | Taper optimal: volume turun 41–60%, intensitas & frekuensi tetap (Bosquet dkk. 2007); volume boleh turun jauh, frekuensi turun ≤ 20% (Mujika & Padilla 2003); untuk kekuatan volume-load ±50% ≤ 2 minggu (Travis dkk. 2020) |
+| Minggu lomba | **Tanpa ST kaki**. Upper ringan (aturan taper) paling lambat 3 hari sebelum Hari H; lebih dekat → tidak dibuat | Setelah ST kaki, torsi turun dan DOMS/CK naik 24–48 jam (de Carvalho e Silva dkk. 2022); running economy masih terganggu 48 jam setelah kerusakan otot (Burt, Doma & Connor 2023) |
+
+- **ST kaki terakhir ≥ 8 hari sebelum Hari H.** Senin taper sebelum minggu lomba = 13 hari untuk lomba hari Minggu; bila Hari H lebih awal dan selisihnya < 8 hari, sesi itu tidak dibuat. Jarak ini sengaja jauh di atas jendela 48 jam di literatur karena profil APT/LBP.
+- 5K/10K: taper = minggu lomba, jadi ST kaki terakhir ada di minggu Peak. HM: 1 minggu taper dengan ST Lower ringan. FM: 2 minggu.
+- Batas set diterapkan setelah generator (`applyPhaseRule`; generator menandai aksesori). Catatan sesi menyebut fasenya, mis. "Taper: volume setengah. Set gerakan inti maks 2, aksesori 1, beban tidak dinaikkan."
+- Program baseline (`program-baseline.test.ts`) sejak 0.14.1 hanya membandingkan sesi lari: identik dengan sebelum 0.14.1.
 
 ### Sesi rencana → generator (0.13.1)
 
@@ -333,6 +367,15 @@ Studi:
 - Kassiano dkk. (2022). Does varying resistance exercises promote superior muscle hypertrophy and strength gains? *JSCR*. Variasi sistematis lebih baik daripada acak.
 - Moesgaard dkk. (2022). Effects of periodization on strength and muscle hypertrophy in volume-equated resistance training programs. *Sports Medicine* ([PubMed](https://pubmed.ncbi.nlm.nih.gov/35044672/)). Dasar rotasi skema rep (undulating).
 - Zourdos dkk. (2016). Novel resistance training–specific RPE scale measuring repetitions in reserve. *JSCR* ([PubMed](https://pubmed.ncbi.nlm.nih.gov/26049792/)). RPE 7 = sisakan 3 repetisi.
+- Foster dkk. (2001). A new approach to monitoring exercise training. *J Strength Cond Res*, 15(1), 109–115. Session-RPE = RPE sesi × menit.
+- Schumann dkk. (2022). Compatibility of concurrent aerobic and strength training for skeletal muscle size and function: an updated systematic review and meta-analysis. *Sports Medicine*, 52, 601–612 ([Springer](https://link.springer.com/article/10.1007/s40279-021-01587-7)). Kekuatan eksplosif terganggu bila lari dan ST di sesi yang sama, tidak bila dipisah ≥ 3 jam.
+- Rønnestad, B. R. & Mujika, I. (2014). Optimizing strength training for running and cycling endurance performance: a review. *Scand J Med Sci Sports*, 24(4), 603–612. Heavy/explosive ST memperbaiki running economy.
+- Rønnestad, Hansen & Raastad (2010). In-season strength maintenance training increases well-trained cyclists' performance. *Eur J Appl Physiol*, 110, 1269–1282. Satu sesi/minggu mempertahankan kekuatan.
+- Bosquet dkk. (2007). Effects of tapering on performance: a meta-analysis. *Med Sci Sports Exerc* ([PubMed](https://pubmed.ncbi.nlm.nih.gov/17762369/)). Taper 2 minggu, volume −41–60%, intensitas & frekuensi tetap.
+- Mujika, I. & Padilla, S. (2003). Scientific bases for precompetition tapering strategies. *Med Sci Sports Exerc*, 35(7), 1182–1187 ([PubMed](https://pubmed.ncbi.nlm.nih.gov/12840640/)). Intensitas dijaga, volume turun, frekuensi turun ≤ 20%.
+- Travis dkk. (2020). Tapering and peaking maximal strength for powerlifting performance: a review. *Sports*, 8(9), 125 ([PMC](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7552788/)). Volume-load ±50%, intensitas tetap.
+- de Carvalho e Silva dkk. (2022). Acute neuromuscular, physiological and performance responses after strength training in runners: a systematic review and meta-analysis. *Sports Med Open* ([PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC9385928)). Torsi turun, DOMS/CK naik setelah ST.
+- Burt, Doma & Connor (2023). The effects of exercise-induced muscle damage on varying intensities of endurance running performance: a systematic review and meta-analysis. Running economy masih terganggu 48 jam.
 - Lauersen dkk. (2014). The effectiveness of exercise interventions to prevent sports injuries. *Br J Sports Med* ([PubMed](https://pubmed.ncbi.nlm.nih.gov/24100287/)). Latihan kekuatan menurunkan risiko cedera, sehingga prehab dijadikan wajib.
 
 ## 9. Setting: kondisi, zona, alat & gerakan

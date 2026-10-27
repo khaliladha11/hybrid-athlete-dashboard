@@ -71,11 +71,12 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/intervals/splits.ts` | Split per km dari stream time/distance/HR/cadence. `buildTrack` membersihkan jarak (hanya naik, tolak lonjakan > 12 m/s & reset) dan meratakan jarak bertangga; status bergerak dari kecepatan antar titik-ubah (ambang lari 30:00/mil seperti Strava). Batas km diinterpolasi, sisa < 50 m digabung. Jarak yang hanya dibagi rata diganti GPS (`latlng`). Hasil divalidasi terhadap ringkasan aktivitas | Server (dan mock) |
 | `lib/intervals/summary.ts` | Ringkasan 7 hari, rata-rata cadence | Server |
 | `lib/readiness.ts` | Sinyal HRV / resting HR / sesi kemarin | Server |
-| `lib/coach.ts` | Saran 80/20, progresi km, concurrent, + `suggestFor()` | Server & client |
+| `lib/coach.ts` | Saran 80/20, progresi km, concurrent, + `suggestFor()`; sejak 0.14.1 ST 7 hari (sesi, menit, beban AU), aturan hari yang sama (`sameDayAdvice`), `todayDone`, dan `withStSessions` (saran server + sesi perangkat) | Server & client |
 | `lib/program.ts` | Program target murni: fase, long run, sesi per minggu (dengan `kind` & `minutes` sejak 0.13) | Server & client |
 | `lib/program/settings.ts` | Pengaturan program di perangkat + `ProgramOverride`, `programIdOf`, `isProgramActive`, `baseLongRunKm` (30 hari sebelum mulai), `mergeOverrides` per sesi. Sejak 0.13.3: Hari H, migrasi program lama, `createProgram` (arsip + program baru), `ArchivedProgram`, `mergeArchived`, `routeOverrides` | Server & client (murni) |
-| `lib/program/sessions.ts` | Sesi rencana ber-id `{programId}:{minggu}:{hari}:{jenis}` termasuk ST, penerapan override move/skip | Server & client (murni) |
-| `lib/program/compliance.ts` | Pencocokan aktivitas ±1 hari & status sesi (D2), catatan lebih berat, ringkasan minggu | Server & client (murni) |
+| `lib/program/sessions.ts` | Sesi rencana ber-id `{programId}:{minggu}:{hari}:{jenis}` termasuk ST (dengan fase, 0.14.1), penerapan override move/skip | Server & client (murni) |
+| `lib/program/st-phase.ts` | ST per fase (0.14.1): aturan level/durasi/batas set/beban ditahan, slot ST kaki ≥ 8 hari & Upper ≥ 3 hari sebelum Hari H, `applyPhaseRule` | Server & client (murni) |
+| `lib/program/compliance.ts` | Pencocokan aktivitas ±1 hari & status sesi (D2), catatan lebih berat, ringkasan minggu; ST dari sesi mode latihan (selesai/sebagian, 0.14.1) tanpa hitung dobel | Server & client (murni) |
 | `lib/program/range.ts`, `app/api/activities/route.ts` | `GET /api/activities?oldest=` (maks 200 hari, `private, max-age=300`) memakai `getActivities`; sesi sandi tetap diperiksa `intervalsGet` | Server |
 | `lib/program/to-generator.ts` | Pemetaan sesi rencana → isian generator lari/ST atau kartu sesi program (0.13.1), teks salin kartu, query prefill & parser-nya, `todaySession`, `planToday` | Server & client (murni) |
 | `lib/program/prediction.ts` | Perkiraan waktu lomba (0.13.2): sumber VDOT (hasil lomba 90 hari, lalu lari utuh ≥ 3 km), invers VDOT per jarak, keyakinan, Riegel, `targetGap`, `zoneOffer` | Server & client (murni) |
@@ -88,6 +89,10 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/generator/variation.ts` | Deteksi variasi & seed berikutnya yang pasti berbeda | Client |
 | `lib/generator/format.ts` | Teks salin & format Set Huawei | Client |
 | `lib/progression.ts` | Aturan 2-for-2 (aturan lama), penerapan ke workout; sejak 0.14.0 saat aturan batas beban aktif: syarat naik relatif (RPE ≤ target − 1), double progression saat mentok (rentang tetap, tempo/jeda, varian `harderVariant`), alasan berangka (saran Gita), titik awal dari PR | Client |
+| `lib/st-session.ts`, `lib/st-session-store.ts` | Sesi ST mode latihan (0.14.1): validasi, gabungan per id dengan tombstone, session-RPE (RPE × menit), kelengkapan set, dedupe dengan aktivitas strength intervals.icu; penyimpanan perangkat (`hybrid-athlete.st-sessions.v1`) | Murni / client |
+| `lib/workout-state.ts` | Keadaan mode latihan (0.14.1): centang set, timer istirahat/tahan berbasis jam, lanjut setelah ditinggal, `finishWorkout` → sesi + log ★ | Murni |
+| `lib/week-ledger.ts` | Baris Week Ledger per hari: km lari + ST per sesi setelah dedupe | Murni |
+| `lib/movements/muscle-regions.ts` | Nama otot kurasi → region SVG depan/belakang, otot tanpa region & gerakan teks saja (dengan alasan), ringkasan otot sesi | Murni |
 | `lib/buy-reminder.ts` | Pengingat beli plat per area (lower, upper push, upper pull): syarat 80% mentok di batas alat selama 2 sesi, plat yang membuka progresi terbanyak, tanda tangan untuk tutup/muncul lagi | Server & client (murni) |
 | `lib/training-log.ts` | Penyimpanan log (localStorage) + ekspor/impor | Client |
 | `lib/conditions.ts` | Katalog kondisi berbasis riset → aturan generator | Server & client |
@@ -100,7 +105,7 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/onboarding.ts` | State machine onboarding murni: langkah, syarat lanjut, lewati, lanjut dari langkah tersimpan, pengguna lama (`migrated`), versi disclaimer, `gateDecision`, langkah pasang otomatis selesai saat standalone, `confirmProtection`, `pendingReminders`, `completeTour` | Server & client |
 | `lib/tour.ts` | Langkah tur in-app (rute + target `data-tour`), `placePopover` (bawah → atas → sisi lebih lega, dijepit ke viewport & safe area), `holeRect` | Server & client (murni) |
 | `lib/onboarding-store.ts` | Hook status onboarding + deteksi data sebelum 0.11 | Client |
-| `lib/backup.ts` | Format cadangan v4 murni (`buildBackup`, `parseBackup`, `applyBackup`) dengan PR; v1/v2/v3 tetap diterima | Server & client |
+| `lib/backup.ts` | Format cadangan v5 murni (`buildBackup`, `parseBackup`, `applyBackup`) dengan PR dan sesi ST; v1–v4 tetap diterima | Server & client |
 | `lib/backup-store.ts` | `BackupStore` di atas localStorage, ekspor/impor file | Client |
 | `components/onboarding/*` | `OnboardingGate` (di layout), `OnboardingWizard` (`/onboarding`, memakai ulang komponen Setting), `TermsStep`, `ConnectionStep`, `ProtectStep`, `InstallStep` (juga dipakai `components/settings/PendingCard.tsx`), `Tour` (`TourProvider` di layout: spotlight, pindah tab, `useTour().start` dari ringkasan onboarding & Setting) | Client |
 | `lib/intervals/connection.ts` | Pemetaan hasil `GET /athlete/{id}` → status koneksi (`ok`, `missing`, `unauthorized`, `forbidden`, `not_found`, `network`) + nama atlet saja | Server & client (murni) |
@@ -113,7 +118,7 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/auth/guard.ts` | `isRequestUnlocked()` dipanggil di awal `intervalsGet`: request tanpa sesi tidak pernah memicu panggilan intervals.icu (error `LOCKED`) | Server |
 | `lib/redis.ts` | Upstash REST lewat `fetch` (`/pipeline`), env `UPSTASH_REDIS_REST_*` lalu `KV_REST_API_*`; dipakai batas percobaan & sinkron | Server |
 | `lib/log-entries.ts` | Entri log untuk sinkron: id deterministik untuk entri lama, `updatedAt`, tombstone, `mergeLogs` per id (komutatif & idempoten), pemadatan tombstone 90 hari | Server & client (murni) |
-| `lib/sync/parts.ts` | Enam bagian (profile, settings, program, preferences, onboarding, log) ↔ key localStorage; validasi memakai parser impor | Server & client (murni) |
+| `lib/sync/parts.ts` | Bagian profile, settings, program, preferences, onboarding, log, prs (0.14.0), sessions (0.14.1) ↔ key localStorage; validasi memakai parser impor | Server & client (murni) |
 | `lib/sync/merge.ts` | Merge per bagian berdasarkan kunci yang diubah lokal (bukan jam), gabungan onboarding simetris, aturan aktivasi pertama; bagian `program`: pengaturan utuh, override digabung per `sessionId` (0.13) | Server & client (murni) |
 | `lib/sync/store.ts` | Satu hash Redis per bagian (`rev`, `epoch`, `data`); baca semua (+ cek snapshot harian) = 1 pipeline; tulis EVAL Lua atomik dengan `baseRev`; pulihkan = satu EVAL untuk semua bagian (`rev` & `epoch` naik); snapshot di `ha:sync:snap:<id>` + ringkasan di hash `ha:sync:snapmeta` | Server |
 | `lib/sync/snapshots.ts` | Snapshot harian (`daily-YYYY-MM-DD`, WIB) & "sebelum pulihkan", ringkasan tanpa data mentah, retensi 7 | Server & client (murni) |
@@ -153,7 +158,7 @@ Key `localStorage` (pola `hybrid-athlete.<nama>[.vN]`, di `lib/preference-keys.t
 | `hybrid-athlete.onboarding.v1` | `OnboardingState` |
 | `hybrid-athlete.sync.v1` | Meta sinkron per perangkat (`rev`, kunci dirty, `gen` per bagian; status). Tidak ikut sinkron atau ekspor |
 
-**Format cadangan v4** (`lib/backup.ts`, 0.14.0): `{ app, version: 4, kind, exportedAt, log, settings, program, preferences, onboarding, prs }`. File v1/v2/v3 tetap bisa diimpor. `kind: "backup"` menimpa bagian yang ada di file; `kind: "defaults"` (file migrasi) hanya mengisi yang masih kosong di perangkat. Log selalu digabung tanpa duplikat; file tanpa log tidak menyentuh log.
+**Format cadangan v5** (`lib/backup.ts`, 0.14.1): `{ app, version: 5, kind, exportedAt, log, settings, program, preferences, onboarding, prs, sessions }`. File v1–v4 tetap bisa diimpor. `kind: "backup"` menimpa bagian yang ada di file; `kind: "defaults"` (file migrasi) hanya mengisi yang masih kosong di perangkat. Log selalu digabung tanpa duplikat; file tanpa log tidak menyentuh log.
 
 **Gate onboarding** (`components/onboarding/OnboardingGate.tsx`, di dalam `<main>` layout): status hanya ada di perangkat, jadi diperiksa di client. Sebelum localStorage terbaca tampil kerangka. Pengguna baru → `/onboarding` (tanpa BottomNav); pengguna lama (punya Setting/log/program) → `migrated` + disclaimer saja sekali; `termsVersion` < `TERMS_VERSION` → disclaimer saja. Header Profil, target, dan posisi blok kini dibaca di client dari profil perangkat, bukan dari JSON di server.
 
@@ -166,7 +171,7 @@ Sumber kebenaran desain: **[DESIGN-SYSTEM.md](DESIGN-SYSTEM.md)** (design system
 - Semua warna lewat **token semantik** di [`app/globals.css`](../app/globals.css) (`bg-surface`, `text-muted`, `bg-brand`, `fill-track`, …). Tema gelap (wajah utama) dipasang lewat `<html data-theme="dark">` atau mengikuti sistem; script di `<head>` memasangnya sebelum render. Komponen tidak memakai class `dark:`, cukup nilai token yang berganti.
 - Satu aksen oranye `#FC4C02` untuk chrome; hijau/kuning/merah hanya warna data (`components/ui/tones.ts`). Teks oranye selalu `brand-ink`. **Rencana = warna intensitas, selesai = oranye.**
 - Tipografi: Archivo (variable, sumbu `wdth`) + Geist Mono lewat `next/font/google`; utility `.t-display`, `.t-stat`, `.t-ledger`, `.t-label`.
-- Komponen dasar di `components/ui/`: `Card` (`tone="tag"`, `kicker`), `StatRow`, `BUTTON` (primary/secondary/ghost/inverse), `Chip`, `Segmented`, `Switch`, `TimePicker` (pemilih jam/menit/detik tanpa mengetik). Grafik: `components/charts/SegmentSkyline.tsx` (logika murni di `skyline-scale.ts`, diuji).
+- Komponen dasar di `components/ui/`: `Card` (`tone="tag"`, `kicker`), `StatRow`, `BUTTON` (primary/secondary/ghost/inverse), `Chip`, `Segmented`, `Switch`, `TimePicker` (pemilih jam/menit/detik tanpa mengetik). Grafik: `components/charts/SegmentSkyline.tsx` (logika murni di `skyline-scale.ts`, diuji) dan `components/charts/MuscleMap.tsx` (0.14.1, path SVG MIT di `muscle-paths.ts`). Mode latihan: `components/workout/` (`WorkoutMode`, `FinishSession`, `device.ts` untuk Wake Lock, jam, dan getar) di rute `/strength/sesi`.
 - Motion: `--ease-out` / `--ease-in-out` / `--ease-drawer`, tekan 140ms, hover hanya `(hover: hover) and (pointer: fine)` (varian Tailwind `hover` didefinisikan ulang), reduced motion dihormati.
 
 ## Testing
@@ -212,7 +217,12 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `double-progression.test.ts` | Jalur lama identik, syarat naik relatif & alasan berangka, rentang tetap per level, urutan rep → tempo → varian, varian blok berikutnya vs mode bebas, tanpa varian, batas keamanan, alat bertambah, penerapan ke workout (rentang, tempo, varian, tanpa dobel, satuan per kaki), field log baru. |
 | `buy-reminder.test.ts` | Syarat mentok (2 sesi, RPE relatif, ujung atas rep, batas keamanan tidak dihitung), ambang 80% per area, urutan plat, aturan lama tanpa pengingat, tutup & muncul lagi. |
 | `prs.test.ts` | Validasi & gabungan PR dengan tombstone, PR terbaik/terbaru/riwayat, deteksi dari log, PR sebagai titik awal (hanya aturan baru, dibulatkan ke bawah), sinkron bagian `prs`. |
-| `backup.test.ts` | Ekspor v4 (dengan PR), impor v1/v2/v3/v4, impor tanpa log tidak menghapus log, log tanpa duplikat, `kind: "defaults"` tidak menimpa kustomisasi perangkat dan menggabungkan hasil lomba. |
+| `st-session.test.ts` | Session-RPE, kelengkapan set, validasi, tombstone & gabungan, dedupe dengan intervals.icu (tanggal sama, ≤ 2 jam, tanpa jam, satu-ke-satu, sesi terhapus). |
+| `workout-state.test.ts` | Isian set, istirahat & pindah gerakan, timer dari jam setelah dibuka lagi, +15 detik & lewati, hitung mundur tahan, batalkan set, selesai → sesi + log ★, data rusak. |
+| `week-ledger.test.ts` | Baris ST per hari dari sesi lokal, satu baris untuk sesi + aktivitas yang sama, aktivitas tanpa pasangan, di luar minggu. |
+| `st-phase.test.ts` | Kunci fase, aturan per fase, slot ST kaki ≥ 8 hari & Upper ≥ 3 hari, jadwal ST semua jarak, ST Lower ringan taper HM, Hari H Jumat, fase ke tautan generator, batas set Peak/Taper, beban ditahan vs turun beban. |
+| `muscle-regions.test.ts` | Setiap gerakan library punya otot utama terpetakan atau teks saja dengan alasan, setiap nama otot terpetakan, region menunjuk path yang ada, celah sumber (tibialis, soleus, lats), ringkasan sesi, label aksesibilitas. |
+| `backup.test.ts` | Ekspor v5 (dengan PR & sesi ST), impor v1/v2/v3/v4/v5, impor tanpa log tidak menghapus log, log tanpa duplikat, `kind: "defaults"` tidak menimpa kustomisasi perangkat dan menggabungkan hasil lomba. |
 | `neutral-profile.test.ts` | JSON netral tanpa data pribadi, zona = `zonesFromVdot(30)`, semua kombinasi lari valid dengan profil netral, ST bodyweight-only: semua jenis × durasi × kesulitan × 25 seed × blok/deload/bebas tidak error, lolos aturan wajib, dan Upper Push/Pull berisi gerakan kategorinya. |
 | `tour.test.ts` | Urutan & rute langkah tur, teks tanpa dash/seru, `placePopover` (bawah, atas, elemen setinggi layar, tanpa elemen, layar lebar), `holeRect`, `tourCompletedAt` tersimpan. |
 | `tour-targets.test.ts` | Setiap target `data-tour` benar-benar dipasang di komponen. |

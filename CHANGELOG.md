@@ -4,6 +4,26 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.14.1] · 2026-10-27 · Sesi ST
+
+Tahap kedua [STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) (§3 0.14.1, keputusan D5, D7, D8).
+
+### Ditambahkan
+- **Mode latihan** (`/strength/sesi`): layar penuh satu gerakan per layar, centang per set dengan beban, rep atau detik, RPE, dan tempo; timer istirahat (+15 detik, lewati) dan hitung mundur tahan berbasis jam, jadi sesi bisa ditinggal lalu dilanjutkan; layar tetap menyala lewat Wake Lock API (catatan jujur bila tidak didukung); getar opsional saat timer habis. Kartu "Sesi berjalan" di halaman Strength.
+- **Session-RPE**: setelah sesi isi RPE 0–10 (CR-10) dan durasi dari timer; beban = RPE × menit (Foster). Masuk ST 7 hari di kartu 7 hari (terpisah dari beban lari), kepatuhan program (selesai ≥ 80% set, di bawahnya sebagian), dan Week Ledger (`SENIN · ST LOWER · 45'`). Sesi yang sama di intervals.icu tidak dihitung dua kali (tanggal sama, jam mulai ≤ 2 jam).
+- **ST mengikuti fase program**: Build High, Peak maintenance (30', inti maks 2 set, beban ditahan), taper volume setengah dengan frekuensi tetap, ST kaki terakhir ≥ 8 hari sebelum Hari H, minggu lomba hanya Upper ringan ≥ 3 hari sebelumnya. Sumber di TRAINING-LOGIC §7.
+- **Aturan hari yang sama**: lari + ST di hari yang sama → saran jeda ≥ 3 jam (Schumann 2022), non-blokir; aturan concurrent lama tetap dan kini juga dipicu sesi Lower/Full Body dari mode latihan.
+- **Peta otot sesi**: `MuscleMap` depan/belakang dari path SVG MuscleMapJS (MIT, disalin, bukan dependensi), warna D7, daftar teks otot; di mode latihan dan setelah sesi.
+- Cadangan **v5** (sesi ST; v1–v4 tetap bisa diimpor) dan bagian sinkron baru `sessions`.
+- 60 test baru (`st-session`, `workout-state`, `week-ledger`, `st-phase`, `muscle-regions`, tambahan coach, kepatuhan, cadangan), total 567 di 43 file.
+
+### Diubah
+- Jadwal ST program: minggu taper sebelum minggu lomba kini 2× ringan (sebelumnya 1× Upper); level/durasi ST dari fase. Test baseline program kini hanya membandingkan sesi lari (identik).
+- Catatan ST program menyebut aturan fase.
+
+### Dokumentasi
+- PRD (versi, §4.4/§4.6/§4.8, §5 lisensi aset, §8), TRAINING-LOGIC §5/§7/§8, DESIGN-SYSTEM §6, ARCHITECTURE, NOTICE (tiga lisensi MIT), README, screenshot.
+
 ## [0.14.0] · 2026-10-27 · Strength hidup: progresi dengan alat terbatas
 
 Tahap pertama [STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) (§2, §3 0.14.0 a–e, keputusan D1–D4).
