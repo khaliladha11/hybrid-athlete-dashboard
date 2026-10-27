@@ -224,7 +224,7 @@ function recommendCapped(m: Movement, entries: LogEntry[], deload: boolean, ctx:
 function recommendLegacy(movement: Movement, entries: LogEntry[], opts: { deload: boolean }): Recommendation | null {
   const h = historyFor(entries, movement.name).filter((e) => !e.deload);
   if (!h.length) return null;
-  if (opts.deload) return { kind: "info", reason: "Minggu deload — progresi ditunda, pakai beban deload." };
+  if (opts.deload) return { kind: "info", reason: "Minggu deload: progresi ditunda, pakai beban deload." };
 
   const spec = parseWeight(movement.weight);
   const [last, prev] = h;
@@ -233,7 +233,7 @@ function recommendLegacy(movement: Movement, entries: LogEntry[], opts: { deload
   if (last.valueUnit === "sec") {
     if (twice && last.value < MAX_HOLD_SEC) {
       const seconds = Math.min(MAX_HOLD_SEC, last.value + 5);
-      return { kind: "hold", seconds, reason: `2 sesi tuntas di ${last.value} dtk — naik ke ${seconds} dtk.` };
+      return { kind: "hold", seconds, reason: `2 sesi tuntas di ${last.value} dtk, naik ke ${seconds} dtk.` };
     }
     return { kind: "hold", seconds: last.value, reason: `Tahan ${last.value} dtk sampai 2 sesi tuntas dengan RPE ≤ ${last.targetRpe}.` };
   }
@@ -250,10 +250,10 @@ function recommendLegacy(movement: Movement, entries: LogEntry[], opts: { deload
     const stepUp = () => (loads ? (loads.find((v) => v > from) ?? from) : clamp(from + step));
     if (last.rpe > last.targetRpe + 1) {
       const load = stepDown();
-      return { kind: "load", action: load < from ? "decrease" : "hold", load, from, reason: `RPE terakhir ${last.rpe} (target ${last.targetRpe}) — turunkan dulu.` };
+      return { kind: "load", action: load < from ? "decrease" : "hold", load, from, reason: `RPE terakhir ${last.rpe} (target ${last.targetRpe}): turunkan dulu.` };
     }
     if (last.rpe > last.targetRpe) {
-      return { kind: "load", action: "hold", load: from, from, reason: `RPE terakhir ${last.rpe} sedikit di atas target — tahan beban.` };
+      return { kind: "load", action: "hold", load: from, from, reason: `RPE terakhir ${last.rpe} sedikit di atas target: tahan beban.` };
     }
     if (twice) {
       if (from >= hi) {
@@ -261,9 +261,9 @@ function recommendLegacy(movement: Movement, entries: LogEntry[], opts: { deload
       }
       const load = stepUp();
       if (load <= from) {
-        return { kind: "load", action: "hold", load: from, from, reason: "Sudah beban terberat yang bisa dirakit dari alat — progresi lewat tempo lebih lambat atau tambah rep." };
+        return { kind: "load", action: "hold", load: from, from, reason: "Sudah beban terberat yang bisa dirakit dari alat. Progresi lewat tempo lebih lambat atau tambah rep." };
       }
-      return { kind: "load", action: "increase", load, from, reason: `2 sesi berturut di batas atas rep dengan RPE ≤ ${last.targetRpe} — naik ${load - from} kg.` };
+      return { kind: "load", action: "increase", load, from, reason: `2 sesi berturut di batas atas rep dengan RPE ≤ ${last.targetRpe}: naik ${load - from} kg.` };
     }
     return {
       kind: "load",
@@ -271,7 +271,7 @@ function recommendLegacy(movement: Movement, entries: LogEntry[], opts: { deload
       load: from,
       from,
       reason: hitTarget(last)
-        ? `1/2 sesi tuntas di ${from} kg — tuntaskan sekali lagi untuk naik.`
+        ? `1/2 sesi tuntas di ${from} kg. Tuntaskan sekali lagi untuk naik.`
         : `Tahan ${from} kg sampai 2 sesi berturut mencapai ${last.target.hi} rep.`,
     };
   }
@@ -279,14 +279,14 @@ function recommendLegacy(movement: Movement, entries: LogEntry[], opts: { deload
   if (spec.kind === "band") {
     const idx = spec.options.indexOf(last.band ?? spec.options[0]);
     if (twice && idx >= 0 && idx < spec.options.length - 1) {
-      return { kind: "band", band: spec.options[idx + 1], reason: `2 sesi tuntas dengan ${spec.options[idx]} — naik ke ${spec.options[idx + 1]} Band.` };
+      return { kind: "band", band: spec.options[idx + 1], reason: `2 sesi tuntas dengan ${spec.options[idx]}, naik ke ${spec.options[idx + 1]} Band.` };
     }
   }
 
   return {
     kind: "info",
     reason: twice
-      ? "2 sesi tuntas — tambah 1–2 rep atau perlambat fase turun 3 detik."
+      ? "2 sesi tuntas: tambah 1–2 rep atau perlambat fase turun 3 detik."
       : `Target: ${last.target.hi} rep dengan RPE ≤ ${last.targetRpe}.`,
   };
 }
@@ -299,7 +299,7 @@ function capReason(m: Movement, hi: number): string {
     case "safety":
       return `Sudah di batas keamanan (${hi} kg) karena kondisi aktif. Progresi lewat rep atau tempo.`;
     default:
-      return `Sudah di batas library (${hi} kg) — progresi lewat tempo lebih lambat, bukan beban.`;
+      return `Sudah di batas library (${hi} kg). Progresi lewat tempo lebih lambat, bukan beban.`;
   }
 }
 

@@ -14,7 +14,7 @@ export function getIntervalsConfig() {
 export function errorFromStatus(status: number): IntervalsError {
   switch (status) {
     case 401:
-      return { code: "UNAUTHORIZED", status, title: "API key ditolak (401)", message: "Periksa INTERVALS_API_KEY di .env.local — kemungkinan salah ketik atau sudah di-reset." };
+      return { code: "UNAUTHORIZED", status, title: "API key ditolak (401)", message: "Periksa INTERVALS_API_KEY di .env.local. Kemungkinan salah ketik atau sudah di-reset." };
     case 403:
       return { code: "FORBIDDEN", status, title: "Akses ditolak (403)", message: "API key valid tapi tidak punya akses ke atlet ini. Periksa INTERVALS_ATHLETE_ID." };
     case 404:

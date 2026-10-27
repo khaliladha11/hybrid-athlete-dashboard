@@ -22,7 +22,7 @@ export function runTargets(p: AthleteProfile = profile) {
   };
 }
 
-export const CADENCE_NOTE = "Cadence 175–180 SPM — langkah pendek & cepat, jangan overstride.";
+export const CADENCE_NOTE = "Cadence 175–180 SPM: langkah pendek & cepat, jangan overstride.";
 export const CROSSOVER_NOTE = 'Cue "rel kereta": kaki mendarat di dua rel sejajar selebar pinggul, jangan menyilang (crossover).';
 /** Kedua cue gait untuk profil default (overpronation/crossover gait). */
 export const CADENCE_NOTES = [CADENCE_NOTE, CROSSOVER_NOTE];
@@ -35,7 +35,7 @@ export function cadenceTarget(avgSpm?: number): { target: number; note?: string 
   if (!avgSpm || !Number.isFinite(avgSpm)) return { target: 180 };
   const avg = Math.round(avgSpm);
   if (avg >= 175) {
-    return { target: avg, note: `Cadence rata-rata 14 hari: ${avg} SPM — sudah di zona target, pertahankan.` };
+    return { target: avg, note: `Cadence rata-rata 14 hari: ${avg} SPM: sudah di zona target, pertahankan.` };
   }
   const target = Math.min(180, Math.round(avg * 1.05));
   return {
@@ -182,7 +182,7 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
         ),
         cooldown,
       ];
-      notes.push("Cadence drill: pace tetap Z2 — yang berubah hanya frekuensi langkah, bukan kecepatan.");
+      notes.push("Cadence drill: pace tetap Z2. Yang berubah hanya frekuensi langkah, bukan kecepatan.");
     }
     notes.push("Jaga HR < 140. Kalau HR naik, perlambat atau jalan sampai turun.");
   } else if (difficulty === "moderate") {
@@ -209,7 +209,7 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
         block("main", cruise ? "Cruise Interval" : "Blok Tempo", o.rest > 0 ? [tempoStep, jog(o.rest)] : [tempoStep], o.reps),
         block("cooldown", "Pendinginan", [jog(cd, "Jog/jalan santai")]),
       ];
-      if (cruise) notes.push("Cruise interval: jeda pendek 1' supaya tetap di ambang — jangan dipercepat.");
+      if (cruise) notes.push("Cruise interval: jeda pendek 1' supaya tetap di ambang. Jangan dipercepat.");
     }
     notes.push("Tempo = 'comfortably hard': masih bisa bicara 3–4 kata.");
   } else if (duration === 30) {
@@ -247,7 +247,7 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
       ...(flush > 0 ? [block("main", "Aerobic Flush", [easyRun(flush, "Easy Z2 flush")])] : []),
       block("cooldown", "Pendinginan", [jog(cd, "Jog/jalan santai")]),
     ];
-    notes.push("Recovery jog tetap bergerak — jangan berhenti total.");
+    notes.push("Recovery jog tetap bergerak, jangan berhenti total.");
   } else {
     // 15/15 (Helgerud dkk. 2007): set 20×(15" cepat / 15" jog lambat), 3' jog antar set.
     const sets = duration === 45 ? 2 : 3;
@@ -274,7 +274,7 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
       ...main,
       block("cooldown", "Pendinginan", [jog(cd, "Jog/jalan santai")]),
     ];
-    notes.push('15/15: 15" cepat terkontrol, 15" jog lambat — jangan berhenti. Akhiri set kalau form mulai rusak.');
+    notes.push('15/15: 15" cepat terkontrol, 15" jog lambat, jangan berhenti. Akhiri set kalau form mulai rusak.');
   }
 
   if (cadence.note) notes.push(cadence.note);

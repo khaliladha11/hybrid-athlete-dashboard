@@ -301,18 +301,18 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
   });
 
   const notes = [
-    `Intensitas RPE ${rpe} — sisakan ${10 - rpe} repetisi di "tangki". Jangan sampai gagal (failure).`,
-    `Skema ${scheme.label} (${scheme.reps} rep) — skema berputar antar sesi supaya stimulus bervariasi.`,
+    `Intensitas RPE ${rpe}: sisakan ${10 - rpe} repetisi di "tangki". Jangan sampai gagal (failure).`,
+    `Skema ${scheme.label} (${scheme.reps} rep). Skema berputar antar sesi supaya stimulus bervariasi.`,
     free
       ? "Mode bebas: tanpa blok mingguan & deload. Gerakan ★ = gerakan utama sesi ini (tetap dicatat untuk progresi)."
       : `${blockLabel(block)}: gerakan bertanda ★ tetap sama sampai blok berganti; sisanya berganti tiap generate.`,
     ...rules.strengthNotes,
     ...p.customConditions.map((c) => `Catatan kondisimu: ${c}`),
   ];
-  if (deload) notes.splice(1, 0, "Minggu deload: set dan beban diturunkan satu tingkat — pulihkan, jangan kejar angka.");
+  if (deload) notes.splice(1, 0, "Minggu deload: set dan beban diturunkan satu tingkat. Pulihkan, jangan kejar angka.");
   if (type === "upperPull") notes.unshift("Progresi pull-up dikerjakan paling awal selagi grip masih segar.");
   if (type === "upperPull" && !main.some((i) => i.movement === "Negative Pull-Up")) {
-    notes.push("Negative Pull-Up belum aktif — fokus Dead Hang dulu. Aktifkan di Setting › Movement library saat siap.");
+    notes.push("Negative Pull-Up belum aktif. Fokus Dead Hang dulu. Aktifkan di Setting › Movement library saat siap.");
   }
 
   const workout: StrengthWorkout = {

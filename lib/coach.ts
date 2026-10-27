@@ -133,8 +133,8 @@ export function weeklyAdvice(activities: Activity[], today: string, sessions: St
       title: `Jarak lari naik ${Math.round(s.kmChange * 100)}%`,
       message:
         `Jarak lari 7 hari ${s.runKm7.toFixed(1)} km, naik ${Math.round(s.kmChange * 100)}% dari minggu sebelumnya (${s.runKmPrev7.toFixed(1)} km). ` +
-        `Kenaikan > 30% dikaitkan dengan shin splints — ` +
-        (left > 0 ? `sisa ruang aman ±${left.toFixed(1)} km.` : "pertimbangkan hari istirahat atau sesi pendek."),
+        `Kenaikan > 30% dikaitkan dengan shin splints. ` +
+        (left > 0 ? `Sisa ruang aman ±${left.toFixed(1)} km.` : "Pertimbangkan hari istirahat atau sesi pendek."),
       maxDuration: 30,
     });
   }
@@ -151,7 +151,7 @@ export function weeklyAdvice(activities: Activity[], today: string, sessions: St
       id: "after-leg-st",
       targets: ["run"],
       title: `${when(legSt)} ST kaki`,
-      message: `${when(legSt)} ada ST kaki (${legSt.name}) — hindari interval berat dulu supaya adaptasi kekuatan & pemulihan kaki tidak terganggu.`,
+      message: `${when(legSt)} ada ST kaki (${legSt.name}). Hindari interval berat dulu supaya adaptasi kekuatan & pemulihan kaki tidak terganggu.`,
       maxDifficulty: "moderate",
     });
   }
@@ -162,7 +162,7 @@ export function weeklyAdvice(activities: Activity[], today: string, sessions: St
       id: "after-hard-run",
       targets: ["strength"],
       title: `${when(hardOrLong)} ${isLongRun(hardOrLong) ? "long run" : "lari berat"}`,
-      message: `${when(hardOrLong)} ${isLongRun(hardOrLong) ? "long run" : "lari berat"} (${hardOrLong.name}) — kalau ST hari ini, prioritaskan Upper Push/Pull agar kaki pulih.`,
+      message: `${when(hardOrLong)} ${isLongRun(hardOrLong) ? "long run" : "lari berat"} (${hardOrLong.name}). Kalau ST hari ini, prioritaskan Upper Push/Pull agar kaki pulih.`,
       preferTypes: ["upperPull", "upperPush"],
     });
   }

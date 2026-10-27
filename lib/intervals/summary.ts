@@ -64,7 +64,7 @@ export function formatPace(secPerKm: number | undefined): string {
 }
 
 export function formatDuration(sec: number | undefined): string {
-  if (!sec) return "—";
+  if (!sec) return "·";
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
   const s = Math.round(sec % 60);

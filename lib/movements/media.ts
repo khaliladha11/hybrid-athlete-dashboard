@@ -65,7 +65,7 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     cues: ["Duduk bersandar penuh, rib cage turun.", "Dorong dumbbell ke atas tanpa melengkungkan punggung bawah."],
     primaryMuscles: ["Bahu"],
     secondaryMuscles: ["Trisep"],
-    conditionNotes: { apt: "Punggung tetap menempel sandaran — jangan melengkung saat mendorong." },
+    conditionNotes: { apt: "Punggung tetap menempel sandaran, jangan melengkung saat mendorong." },
   }),
   fromDb("Seated Lateral Raise", "Seated_Side_Lateral_Raise", {
     cues: ["Angkat ke samping sampai setinggi bahu saja.", "Siku sedikit ditekuk, badan tidak mengayun."],
@@ -84,7 +84,7 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     cues: ["Badan lurus seperti papan, glute aktif.", "Dada turun ke tepi tumpuan, siku ±45°."],
     primaryMuscles: ["Dada"],
     secondaryMuscles: ["Bahu depan", "Trisep"],
-    conditionNotes: { apt: "Panggul jangan turun — jaga posterior pelvic tilt ringan." },
+    conditionNotes: { apt: "Panggul jangan turun. Jaga posterior pelvic tilt ringan." },
   }),
   // ---------------- Upper Pull ----------------
   // 0.11.2 — tanpa alat. Push-Up dari free-exercise-db; empat lainnya tidak ada padanannya.
@@ -149,7 +149,7 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     cues: ["Satu tangan bertumpu di kursi, punggung netral.", "Tarik dumbbell ke pinggang, siku dekat badan."],
     primaryMuscles: ["Punggung tengah"],
     secondaryMuscles: ["Latissimus", "Bisep"],
-    conditionNotes: { lbp: "Tumpuan tangan wajib — jangan membungkuk tanpa tumpuan." },
+    conditionNotes: { lbp: "Tumpuan tangan wajib, jangan membungkuk tanpa tumpuan." },
   }),
   fromDb("DB Floor Pullover", "Bent-Arm_Dumbbell_Pullover", {
     imageNote: "Gambar melintang di bangku (gerak lebih dalam); kita berbaring di lantai sehingga gerakan dibatasi lantai.",
@@ -170,7 +170,7 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     secondaryMuscles: [],
   }),
   fromDb("Band Reverse Fly", "Back_Flyes_-_With_Bands", {
-    cues: ["Band ditambatkan setinggi dada, lengan lurus ke depan.", "Buka lengan ke samping, rapatkan tulang belikat — bahu tetap turun."],
+    cues: ["Band ditambatkan setinggi dada, lengan lurus ke depan.", "Buka lengan ke samping, rapatkan tulang belikat, bahu tetap turun."],
     primaryMuscles: ["Bahu belakang"],
     secondaryMuscles: ["Punggung tengah"],
     conditionNotes: { shoulder: "Hentikan bila nyeri; kurangi lebar gerakan." },
@@ -178,7 +178,7 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
   // ---------------- Lower ----------------
   fromDb("Barbell Sumo Deadlift / Hip Thrust", "Barbell_Hip_Thrust", {
     imageNote: "Gambar menunjukkan varian Hip Thrust (varian yang diutamakan).",
-    cues: ["Punggung atas di tepi kursi/bench, barbell + hip pad di pinggul.", "Dorong lewat tumit, posterior pelvic tilt di puncak — jangan melengkungkan punggung."],
+    cues: ["Punggung atas di tepi kursi/bench, barbell + hip pad di pinggul.", "Dorong lewat tumit, posterior pelvic tilt di puncak. Jangan melengkungkan punggung."],
     primaryMuscles: ["Gluteus"],
     secondaryMuscles: ["Hamstring"],
     conditionNotes: { apt: "Di puncak, tahan dengan glute (posterior tilt), bukan dengan melengkungkan punggung bawah." },
@@ -219,7 +219,7 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     cues: ["Punggung kaki belakang di kursi, dumbbell di samping badan.", "Turun lurus ke bawah, lutut depan searah jari kaki."],
     primaryMuscles: ["Paha depan"],
     secondaryMuscles: ["Gluteus", "Hamstring"],
-    conditionNotes: { pfp: "Batasi kedalaman, nyeri ≤ 3/10.", apt: "Rib cage turun — kaki belakang ikut meregangkan hip flexor." },
+    conditionNotes: { pfp: "Batasi kedalaman, nyeri ≤ 3/10.", apt: "Rib cage turun. Kaki belakang ikut meregangkan hip flexor." },
   }),
   fromDb("DB Step-Up", "Dumbbell_Step_Ups", {
     cues: ["Pijakan kokoh ±setinggi lutut atau lebih rendah.", "Dorong lewat tumit kaki di atas, jangan menolak dengan kaki bawah."],
@@ -231,7 +231,7 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     cues: ["Kaki lebar, jari kaki serong keluar.", "Dumbbell menggantung di tengah, dada tegak, lutut searah jari kaki."],
     primaryMuscles: ["Paha depan"],
     secondaryMuscles: ["Adduktor", "Gluteus", "Hamstring"],
-    conditionNotes: { pfp: "Batasi kedalaman.", lbp: "Beban di depan-bawah, bukan di punggung — punggung tetap netral." },
+    conditionNotes: { pfp: "Batasi kedalaman.", lbp: "Beban di depan-bawah, bukan di punggung. Punggung tetap netral." },
   }),
   fromDb("Seated Band Hamstring Curl", "Seated_Band_Hamstring_Curl", {
     cues: ["Band ditambatkan rendah, dililit di belakang pergelangan kaki.", "Tarik tumit ke bawah kursi, kembalikan perlahan."],
@@ -250,7 +250,7 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     cues: ["Punggung bawah menempel lantai sepanjang gerakan.", "Luruskan lengan & kaki berlawanan perlahan, buang napas."],
     primaryMuscles: ["Perut"],
     secondaryMuscles: [],
-    conditionNotes: { apt: "Punggung bawah tetap menempel lantai — ini inti anti-hiperlordosis.", lbp: "Perkecil gerakan bila punggung mulai terangkat." },
+    conditionNotes: { apt: "Punggung bawah tetap menempel lantai: ini inti anti-hiperlordosis.", lbp: "Perkecil gerakan bila punggung mulai terangkat." },
   }),
   noImage("Clamshell", {
     cues: ["Berbaring miring, lutut ditekuk, band di atas lutut.", "Buka lutut atas tanpa memutar panggul ke belakang."],
@@ -273,14 +273,14 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     cues: ["Siku di bawah bahu, badan lurus.", "Posterior pelvic tilt ringan, glute aktif."],
     primaryMuscles: ["Perut"],
     secondaryMuscles: ["Bahu"],
-    conditionNotes: { apt: "Punggung bawah tidak melengkung — pinggul jangan turun.", shoulder: "Batasi durasi bila bahu nyeri." },
+    conditionNotes: { apt: "Punggung bawah tidak melengkung, pinggul jangan turun.", shoulder: "Batasi durasi bila bahu nyeri." },
   }),
   // ---------------- Prehab ----------------
   noImage("Tibialis Wall Raise", {
     cues: ["Punggung bersandar di dinding, tumit sejengkal dari dinding.", "Angkat jari kaki setinggi mungkin, turun perlahan."],
     primaryMuscles: ["Tulang kering (tibialis anterior)"],
     secondaryMuscles: [],
-    conditionNotes: { shin: "Prehab inti shin splints — jangan dilewati." },
+    conditionNotes: { shin: "Prehab inti shin splints, jangan dilewati." },
   }),
   fromDb("Eccentric Calf Raise", "Standing_Dumbbell_Calf_Raise", {
     imageNote: "Gambar memakai dua kaki dan dumbbell; versi kita naik dua kaki, turun satu kaki perlahan tanpa beban.",
@@ -311,14 +311,14 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     cues: ["Satu lutut di lantai, glute kaki belakang dikencangkan.", "Dorong pinggul ke depan sedikit sampai terasa regang di depan pinggul."],
     primaryMuscles: ["Hip flexor"],
     secondaryMuscles: ["Paha depan"],
-    conditionNotes: { apt: "Posterior pelvic tilt dulu, baru condong — jangan melengkungkan punggung." },
+    conditionNotes: { apt: "Posterior pelvic tilt dulu, baru condong. Jangan melengkungkan punggung." },
   }),
   fromDb("Cat-Cow", "Cat_Stretch", {
     imageNote: "Gambar hanya menunjukkan fase cat (punggung membulat); lakukan bergantian dengan fase cow.",
     cues: ["Merangkak, bulatkan punggung (cat) lalu lengkungkan perlahan (cow).", "Gerak mengikuti napas, pelan."],
     primaryMuscles: ["Punggung bawah"],
     secondaryMuscles: ["Punggung tengah"],
-    conditionNotes: { apt: "Fase cow secukupnya — tekankan fase cat." },
+    conditionNotes: { apt: "Fase cow secukupnya, tekankan fase cat." },
   }),
   fromDb("Band Pull-Apart", "Band_Pull_Apart", {
     cues: ["Lengan lurus di depan dada, pegang band.", "Tarik band ke dada dengan merapatkan tulang belikat."],

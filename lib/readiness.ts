@@ -26,12 +26,12 @@ export function assessReadiness(wellness: Wellness[], activities: Activity[], to
 
   const hrvAvg = avg(baseline.map((w) => w.hrv).filter((x): x is number => x !== undefined));
   if (todayW?.hrv && hrvAvg && todayW.hrv < hrvAvg * HRV_DROP_RATIO) {
-    reasons.push(`HRV ${Math.round(todayW.hrv)} ms — ${Math.round((1 - todayW.hrv / hrvAvg) * 100)}% di bawah rata-rata 7 hari (${Math.round(hrvAvg)} ms).`);
+    reasons.push(`HRV ${Math.round(todayW.hrv)} ms, ${Math.round((1 - todayW.hrv / hrvAvg) * 100)}% di bawah rata-rata 7 hari (${Math.round(hrvAvg)} ms).`);
   }
 
   const rhrAvg = avg(baseline.map((w) => w.restingHr).filter((x): x is number => x !== undefined));
   if (todayW?.restingHr && rhrAvg && todayW.restingHr >= rhrAvg + RHR_RISE_BPM) {
-    reasons.push(`Resting HR ${Math.round(todayW.restingHr)} bpm — naik ${Math.round(todayW.restingHr - rhrAvg)} bpm dari rata-rata (${Math.round(rhrAvg)}).`);
+    reasons.push(`Resting HR ${Math.round(todayW.restingHr)} bpm, naik ${Math.round(todayW.restingHr - rhrAvg)} bpm dari rata-rata (${Math.round(rhrAvg)}).`);
   }
 
   const yesterday = addDays(today, -1);

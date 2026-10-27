@@ -293,7 +293,7 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
     if (raceWeek) {
       sessions.push({
         day: raceDay,
-        title: `LOMBA ${spec.short} — target ${formatGoal(input.goalSec)}`,
+        title: `LOMBA ${spec.short} · target ${formatGoal(input.goalSec)}`,
         detail: `Race pace ${rp}. Mulai sedikit lebih lambat 1–2 km pertama, cadence 175–180.`,
         kind: "race",
         intensity: "high",
@@ -331,10 +331,10 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
   const warnings: string[] = [];
   const current = input.currentLongRunKm ?? 0;
   if (input.race === "fm" && current < 12) {
-    warnings.push("Full marathon butuh basis kuat. Long run terjauhmu < 12 km — pertimbangkan program Half Marathon dulu.");
+    warnings.push("Full marathon butuh basis kuat. Long run terjauhmu < 12 km. Pertimbangkan program Half Marathon dulu.");
   }
   if (input.race === "hm" && current > 0 && current < 6) {
-    warnings.push("Long run terjauhmu < 6 km. Program dimulai dari 10 km — naikkan dulu ke 8 km dengan lari easy sebelum mulai.");
+    warnings.push("Long run terjauhmu < 6 km. Program dimulai dari 10 km. Naikkan dulu ke 8 km dengan lari easy sebelum mulai.");
   }
   const peakWeek = weeks.reduce((a, b) => (b.longRunKm > a.longRunKm ? b : a), weeks[0]);
   if (input.runsPerWeek === 3 && peakWeek.longRunKm / peakWeek.totalKm > 0.55) {
@@ -370,15 +370,15 @@ function paceRangeFastSec(range: string): number | undefined {
 }
 
 function focusText(phase: Phase, cutback: boolean, raceWeek: boolean): string {
-  if (raceWeek) return "Minggu lomba — segarkan kaki, tidur cukup, jangan coba hal baru.";
+  if (raceWeek) return "Minggu lomba: segarkan kaki, tidur cukup, jangan coba hal baru.";
   if (phase === "prebase") return "Pre-Base: lari easy rutin dan long run naik pelan sebelum program inti dimulai.";
-  if (cutback) return "Cutback — volume turun ±25% supaya tubuh beradaptasi (sejalan minggu deload blok).";
+  if (cutback) return "Cutback: volume turun ±25% supaya tubuh beradaptasi (sejalan minggu deload blok).";
   return {
     prebase: "",
     base: "Bangun basis aerobik: mayoritas Z2, kenalkan kecepatan ringan.",
     build: "Naikkan ambang (tempo) sambil memperpanjang long run.",
     peak: "Spesifik lomba: interval & race pace, long run terjauh.",
-    taper: "Taper — volume turun, intensitas dijaga singkat.",
+    taper: "Taper: volume turun, intensitas dijaga singkat.",
   }[phase];
 }
 
@@ -444,7 +444,7 @@ export function weekToText(program: Program, week: ProgramWeek): string {
     `${program.spec.label} · Minggu ${week.index}/${program.weeks.length} (${PHASE_LABEL[week.phase]}${week.cutback ? ", cutback" : ""})`,
     week.focus,
     "",
-    ...week.sessions.map((s) => `- ${s.day}: ${s.title} — ${s.detail}`),
+    ...week.sessions.map((s) => `- ${s.day}: ${s.title} · ${s.detail}`),
     "",
     `Total ±${week.totalKm} km lari. ${program.strengthNote}`,
   ];

@@ -29,9 +29,9 @@ export function datePart(local: string | undefined): string | undefined {
 const DAY_FMT = new Intl.DateTimeFormat("id-ID", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
 
 export function formatDateId(date: string | undefined): string {
-  if (!date) return "—";
+  if (!date) return "·";
   const d = new Date(`${date.slice(0, 10)}T00:00:00Z`);
-  return Number.isNaN(d.getTime()) ? "—" : DAY_FMT.format(d);
+  return Number.isNaN(d.getTime()) ? "·" : DAY_FMT.format(d);
 }
 
 export function formatTimeOfDay(local: string | undefined): string {
