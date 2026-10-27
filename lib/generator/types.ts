@@ -79,6 +79,10 @@ export interface StrengthItem {
   anchor?: boolean;
   /** Catatan progresi dari riwayat sesi (mis. "↑ naik dari 16 kg"). */
   progression?: string;
+  /** 0.14.0: kerjakan dengan tempo/jeda (turun 3 detik, jeda 2 detik di bawah). */
+  tempo?: boolean;
+  /** 0.14.0: gerakan ini varian lebih sulit dari gerakan tersebut (★ yang mentok). */
+  variantOf?: string;
 }
 
 export interface StrengthWorkout {

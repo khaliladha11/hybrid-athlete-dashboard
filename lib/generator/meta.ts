@@ -15,6 +15,8 @@ export interface MovementMeta {
   holdSec?: Record<Difficulty, number>;
   unilateral?: boolean;
   cue?: string;
+  /** 0.14.0: varian satu sisi yang lebih sulit (harus ada di library) untuk double progression saat mentok. */
+  harderVariant?: string;
 }
 
 export const META: Record<string, MovementMeta> = {
@@ -22,9 +24,14 @@ export const META: Record<string, MovementMeta> = {
   "Negative Pull-Up": { reps: "3–5 (turun 3–5 detik)", cue: "Lompat ke atas, turun perlahan terkontrol." },
   "DB Farmer's Hold": { holdSec: { easy: 30, moderate: 40, high: 45 }, cue: "Berdiri tegak, rib cage turun, core kencang." },
   "Supported Single-Arm Row": { unilateral: true, cue: "Tangan lain bertumpu di kursi — punggung netral." },
-  "Reverse Lunge": { reps: { easy: "8/kaki", moderate: "8–10/kaki", high: "10/kaki" }, unilateral: true, cue: "Lutut depan searah jari kaki, jangan collapse ke dalam." },
+  "Reverse Lunge": {
+    reps: { easy: "8/kaki", moderate: "8–10/kaki", high: "10/kaki" },
+    unilateral: true,
+    cue: "Lutut depan searah jari kaki, jangan collapse ke dalam.",
+    harderVariant: "Rear-Foot-Elevated Split Squat",
+  },
   "Barbell Sumo Deadlift / Hip Thrust": { cue: "Utamakan varian Hip Thrust dengan hip pad; posterior pelvic tilt di puncak." },
-  "Barbell Squat": { cue: "Beban ringan, tulang belakang netral, rib cage turun — jangan hiperlordosis." },
+  "Barbell Squat": { cue: "Beban ringan, tulang belakang netral, rib cage turun — jangan hiperlordosis.", harderVariant: "Rear-Foot-Elevated Split Squat" },
   "DB RDL Wall-Tap Method": { cue: "Hip hinge sampai pantat menyentuh dinding, punggung netral." },
   "Glute Bridge": { reps: { easy: "12", moderate: "12–15", high: "15" }, cue: "Tahan 2 detik di atas, tekan pinggul tanpa melengkungkan punggung." },
   "Floor Press": { cue: "Siku ±45°, punggung bawah tetap menempel lantai." },
