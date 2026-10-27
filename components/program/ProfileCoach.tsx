@@ -1,7 +1,10 @@
 "use client";
 
 import { CoachCard } from "@/components/generator/CoachCard";
-import { suggestFor, type Advice } from "@/lib/coach";
+import { useMemo } from "react";
+import { suggestFor, todayDone, withStSessions, type Advice } from "@/lib/coach";
+import { isRunKind } from "@/lib/program/sessions";
+import { useStSessions } from "@/lib/st-session-store";
 import type { Activity } from "@/lib/intervals/types";
 import { generatorHref, planToday, shortTitle, todaySession, toGenerator } from "@/lib/program/to-generator";
 import { useProgramPlan } from "@/lib/program/use-program-plan";
@@ -12,8 +15,15 @@ import { planLine } from "./planText";
  * "Rencana: … Saran: …" (PROGRAM-HIDUP §4.5); Terapkan membuka generator dengan versi yang diturunkan,
  * atau kartu long run yang dipendekkan. Tanpa program: kartu lama.
  */
-export function ProfileCoach({ advice, activities, oldest, today }: { advice: Advice[]; activities: Activity[]; oldest: string; today: string }) {
+export function ProfileCoach({ advice: serverAdvice, activities, oldest, today }: { advice: Advice[]; activities: Activity[]; oldest: string; today: string }) {
   const plan = useProgramPlan({ activities, oldest, today });
+  const stSessions = useStSessions();
+  // Sesi mode latihan di perangkat & aturan hari yang sama (0.14.1).
+  const advice = useMemo(() => {
+    const planned = plan.active ? plan.sessions.filter((x) => x.date === today && x.override?.action !== "skip") : [];
+    const plannedToday = { run: planned.some((x) => isRunKind(x.kind)), strength: planned.some((x) => !isRunKind(x.kind)) };
+    return withStSessions(serverAdvice, { sessions: stSessions, today, done: todayDone(activities, today), plannedToday });
+  }, [serverAdvice, stSessions, today, activities, plan.active, plan.sessions]);
   const session = plan.active && !plan.loading ? todaySession(plan.sessions, plan.results, today) : null;
   const pt = session ? planToday(session, plan.sessions) : null;
   let line: { text: string; href?: string } | undefined;

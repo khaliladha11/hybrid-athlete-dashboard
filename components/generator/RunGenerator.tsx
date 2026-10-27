@@ -23,7 +23,9 @@ import {
   type Duration,
   type RunStep,
 } from "@/lib/generator";
-import { suggestFor, type Advice, type PlanToday } from "@/lib/coach";
+import { suggestFor, withStSessions, type Advice, type PlanToday, type TodayDone } from "@/lib/coach";
+import { todayWib } from "@/lib/date";
+import { useStSessions } from "@/lib/st-session-store";
 import type { RunPrefill } from "@/lib/program/to-generator";
 import { parseRange } from "@/lib/run-zones";
 import { useBlockContext, useBlockMode, useResolvedProfile } from "@/lib/settings-store";
@@ -48,17 +50,23 @@ const INTENSITY_STYLE: Record<Intensity, { dot: string; label: string }> = {
 };
 
 export function RunGenerator({
-  advice,
+  advice: serverAdvice,
   cadenceSpm,
   initialSeed,
   prefill,
+  todayDone,
 }: {
   advice: Advice[];
   cadenceSpm?: number;
   initialSeed: number;
   /** Isian dari sesi program (0.13.1); tetap bisa diubah. */
   prefill?: RunPrefill | null;
+  /** Lari / ST tercatat hari ini (0.14.1, aturan hari yang sama). */
+  todayDone?: TodayDone;
 }) {
+  const stSessions = useStSessions();
+  // Sesi mode latihan di perangkat: ST kaki → lari maks Moderate, dan jeda ≥ 3 jam di hari yang sama (0.14.1).
+  const advice = useMemo(() => withStSessions(serverAdvice, { sessions: stSessions, today: todayWib(), done: todayDone, current: "run" }), [serverAdvice, stSessions, todayDone]);
   const [duration, setDuration] = useState<Duration>(prefill?.duration ?? 45);
   const [difficulty, setDifficulty] = useState<Difficulty>(prefill?.difficulty ?? "easy");
   const [seed, setSeed] = useState(initialSeed);

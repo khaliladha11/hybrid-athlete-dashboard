@@ -21,7 +21,7 @@ export default async function RunPage({ searchParams }: { searchParams: Promise<
         </div>
         <BlockBadge />
       </header>
-      <RunGenerator advice={ctx.advice} cadenceSpm={ctx.cadenceSpm} initialSeed={randomSeed()} prefill={prefill} />
+      <RunGenerator advice={ctx.advice} todayDone={ctx.todayDone} cadenceSpm={ctx.cadenceSpm} initialSeed={randomSeed()} prefill={prefill} />
     </div>
   );
 }

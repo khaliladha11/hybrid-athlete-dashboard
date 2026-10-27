@@ -4,9 +4,9 @@ import { formatPaceTag } from "@/components/ui/format";
 import { CATEGORY_LABEL, summarizeLast7Days } from "@/lib/intervals/summary";
 import { KM_INCREASE_LIMIT, MAX_HARD_RUNS_7D, weekStats } from "@/lib/coach";
 import type { Activity, ActivityCategory, FetchResult } from "@/lib/intervals/types";
+import { StLoad7, WeekLedger } from "./WeekLedger";
 
 const DAY_MONTH = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
-const WEEKDAY = new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "UTC" });
 const WEEKDAY_SHORT = new Intl.DateTimeFormat("id-ID", { weekday: "short", timeZone: "UTC" });
 const utc = (d: string) => new Date(`${d}T00:00:00Z`);
 
@@ -49,57 +49,9 @@ export function WeeklySummary({ result, today }: { result: FetchResult<Activity[
         )}
       </div>
       <IntensityAndTrend activities={result.data} today={today} />
+      <StLoad7 activities={result.data} today={today} />
       <WeekLedger activities={result.data} from={s.calendarWeek.from} to={s.calendarWeek.to} totalKm={s.calendarWeek.runKm} />
     </Card>
-  );
-}
-
-/**
- * Week Ledger: km lari per hari di minggu kalender (Senin sampai Minggu). Total = jumlah mentah;
- * angka per hari dibulatkan 1 desimal, jadi jumlahnya bisa beda sedikit dari total. Itu wajar.
- */
-function WeekLedger({ activities, from, to, totalKm }: { activities: Activity[]; from: string; to: string; totalKm: number }) {
-  const byDay = new Map<string, number>();
-  for (const a of activities) {
-    if (a.category !== "run" || !a.date || a.date < from || a.date > to) continue;
-    byDay.set(a.date, (byDay.get(a.date) ?? 0) + (a.distanceKm ?? 0));
-  }
-  const days = [...byDay.entries()].sort(([a], [b]) => a.localeCompare(b));
-
-  return (
-    <div className="mt-4 border-t border-line pt-4">
-      {days.length === 0 ? (
-        <>
-          <p className="t-label">Minggu ini · km</p>
-          <p className="mt-2 text-[13px] text-muted">Belum ada lari minggu ini.</p>
-        </>
-      ) : (
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              <th scope="col" className="t-label border-b-2 border-line-strong pb-2.5 text-left">
-                Minggu ini
-              </th>
-              <th scope="col" className="t-label border-b-2 border-line-strong pb-2.5 text-right">
-                km
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {days.map(([d, km]) => (
-              <tr key={d} className="border-b border-line">
-                <td className="t-ledger py-3">{WEEKDAY.format(utc(d))}</td>
-                <td className="t-ledger-num py-3 text-right">{km.toFixed(1)}</td>
-              </tr>
-            ))}
-            <tr>
-              <td className="t-ledger pt-4">Total</td>
-              <td className="t-ledger-num pt-4 text-right text-[28px]">{totalKm.toFixed(2)}</td>
-            </tr>
-          </tbody>
-        </table>
-      )}
-    </div>
   );
 }
 

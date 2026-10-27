@@ -13,6 +13,7 @@ import { PREF_KEYS } from "@/lib/preference-keys";
 import { useStoredString } from "@/lib/preferences";
 import { buildProgram, parseGoal, type Program } from "@/lib/program";
 import { useResolvedProfile } from "@/lib/settings-store";
+import { useStSessions } from "@/lib/st-session-store";
 import { useTrainingLog } from "@/lib/training-log";
 import { evaluateCompliance, type SessionResult } from "./compliance";
 import { planSessions, type PlannedSession } from "./sessions";
@@ -76,6 +77,7 @@ export function useProgramPlan({ activities, oldest, today }: { activities: Acti
   const settings = useMemo(() => parseProgramSettings(raw, today), [raw, today]);
   const p = useResolvedProfile();
   const log = useTrainingLog();
+  const stSessions = useStSessions();
   const saved = !!raw;
 
   // Data cukup untuk program sekarang dan arsip (dasar long run 30 hari sebelum mulai), maksimal 200 hari.
@@ -151,11 +153,11 @@ export function useProgramPlan({ activities, oldest, today }: { activities: Acti
     [settings.archived, p],
   );
   const results = useMemo(() => {
-    const m = evaluateCompliance(sessions, all, logDates, today);
+    const m = evaluateCompliance(sessions, all, logDates, today, stSessions);
     // Arsip dinilai terpisah supaya aktivitas program sekarang tidak "dicuri" sesi arsip.
-    for (const a of archived) for (const [k, v] of evaluateCompliance(a.sessions, all, logDates, today)) m.set(k, v);
+    for (const a of archived) for (const [k, v] of evaluateCompliance(a.sessions, all, logDates, today, stSessions)) m.set(k, v);
     return m;
-  }, [sessions, archived, all, logDates, today]);
+  }, [sessions, archived, all, logDates, today, stSessions]);
 
   const save = (patch: Partial<ProgramSettings>) => {
     const next = { ...settings, ...patch };

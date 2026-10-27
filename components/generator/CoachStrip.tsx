@@ -47,6 +47,8 @@ export function CoachStrip({
     : `${DIFFICULTY_LABEL[difficulty]} · ${duration}'`;
   const spoken = `${DIFFICULTY_LABEL[difficulty]} ${duration} menit`;
   const severity = suggestionSeverity(s);
+  // Aturan hari yang sama (0.14.1) tidak mengubah isian, jadi ditulis sebagai baris sendiri.
+  const sameDay = relevant.find((a) => a.id === "same-day");
 
   return (
     <aside
@@ -74,6 +76,7 @@ export function CoachStrip({
             Lihat detail
           </Link>
         </p>
+        {sameDay && <p className="text-[13px] text-muted">{sameDay.title}</p>}
       </div>
       {actionable && (
         <button
