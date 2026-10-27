@@ -200,7 +200,9 @@ function prStart(m: Movement, prs: PrEntry[]): Recommendation | null {
   const spec = parseWeight(m.weight);
   const pr = latestPr(prs, m.name);
   if (!m.cap || spec.kind !== "load" || !pr) return null;
-  const load = Math.min(m.cap.kg, Math.max(spec.min, pr.loadKg));
+  const target = Math.min(m.cap.kg, Math.max(spec.min, pr.loadKg));
+  // Beban yang bisa dirakit ≤ PR (tidak melompat di atas PR); tanpa alat terisi pakai PR apa adanya.
+  const load = m.loads?.length ? ([...m.loads].reverse().find((v) => v <= target + 1e-9) ?? m.loads[0]) : target;
   return { kind: "load", action: "hold", load, from: load, reason: `Mulai dari PR ${pr.loadKg} kg (${pr.date}).` };
 }
 

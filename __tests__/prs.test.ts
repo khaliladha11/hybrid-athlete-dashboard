@@ -118,6 +118,16 @@ describe("PR sebagai titik awal progresi (aturan batas beban aktif)", () => {
     const itOld = applyProgression(old.w, movementsOf(pOld), [], prs).items.find((i) => i.movement === old.name)!;
     expect(itOld.progression).toBeUndefined();
   });
+
+  it("PR di antara beban yang bisa dirakit → beban terdekat di bawahnya, tidak melompat ke atas PR", () => {
+    const pNew = profileWith(true);
+    const { w, name } = anchorOf(pNew);
+    const m = movementsOf(pNew).get(name)!;
+    const below = m.loads!.filter((v) => v < m.cap!.kg);
+    const [a, b] = below.slice(-2);
+    const it = applyProgression(w, movementsOf(pNew), [], [pr("s", name, (a + b) / 2, "2026-10-25")]).items.find((i) => i.movement === name)!;
+    expect(it.load).toMatchObject({ min: a, max: a });
+  });
 });
 
 describe("sinkron bagian prs", () => {
