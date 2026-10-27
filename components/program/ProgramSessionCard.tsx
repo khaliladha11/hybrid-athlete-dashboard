@@ -10,7 +10,7 @@ import { sessionCardText } from "@/lib/program/to-generator";
 import { useResolvedProfile } from "@/lib/settings-store";
 
 const kmText = (v: number) => v.toLocaleString("id-ID");
-// Catatan cue lama di lib memakai em dash; tampilan memakai titik (DESIGN-SYSTEM §7).
+// Catatan kondisi (termasuk yang ditulis pengguna) bisa memakai em dash; tampilan memakai titik (DESIGN-SYSTEM §7).
 const tidy = (t: string) => t.replace(/\s—\s/g, ". ");
 // Jarak ditampilkan terpisah, jadi "Long run 14 km" cukup "Long run".
 const titleOf = (t: string) => t.replace(/\s+[\d.,]+\s*km$/i, "");

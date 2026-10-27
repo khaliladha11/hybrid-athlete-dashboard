@@ -71,7 +71,7 @@ export function Kicker({ children, className = "" }: { children: React.ReactNode
 }
 
 /** Nilai kosong ditulis "·" warna faint, bukan em dash. */
-const isEmpty = (v: React.ReactNode) => v === undefined || v === null || v === "" || v === "—";
+const isEmpty = (v: React.ReactNode) => v === undefined || v === null || v === "" || v === "—" || v === "·";
 
 /** Satu statistik: label mono → angka tabular → satuan mono. */
 export function Stat({ label, value, sub, muted }: { label: string; value: React.ReactNode; sub?: React.ReactNode; muted?: boolean }) {
