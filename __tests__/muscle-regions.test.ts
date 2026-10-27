@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { BODY_BACK, BODY_FRONT } from "@/components/charts/muscle-paths";
 import { MOVEMENT_MEDIA } from "@/lib/movements/media";
 import { MUSCLE_REGIONS, muscleAriaLabel, muscleSummary, regionsOf, TEXT_ONLY_MOVEMENTS, TEXT_ONLY_MUSCLES } from "@/lib/movements/muscle-regions";
 
-/** Region yang ada di path SVG (components/charts/muscle-paths.ts, MuscleMapJS model pria). */
-const FRONT = ["abs", "adductors", "biceps", "calves", "chest", "deltoids", "forearm", "front-deltoid", "hip-flexors", "obliques", "quadriceps", "tibialis", "trapezius", "triceps"];
-const BACK = ["adductors", "calves", "deltoids", "forearm", "gluteal", "hamstring", "lower-back", "trapezius", "triceps", "upper-back"];
+/** Region yang ada di path SVG (MuscleMapJS model pria). */
+const FRONT = Object.keys(BODY_FRONT.parts);
+const BACK = Object.keys(BODY_BACK.parts);
 
 describe("pemetaan otot → region", () => {
   it("setiap gerakan library punya ≥ 1 otot utama terpetakan, atau tercatat teks saja dengan alasan", () => {
