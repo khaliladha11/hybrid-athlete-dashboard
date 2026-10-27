@@ -57,6 +57,8 @@ export interface AthleteSettings {
   zoneOfferDismissedVdot?: number;
   /** Aturan batas beban 0.14.0: persetujuan sekali & toggle kembali ke rentang library. */
   loadRule?: LoadRule;
+  /** Pengingat beli yang ditutup: area → tanda tangan syarat saat ditutup (0.14.0). */
+  buyReminderDismissed?: Partial<Record<"lower" | "upperPush" | "upperPull", string>>;
 }
 
 export interface RaceResult {
@@ -202,7 +204,16 @@ export function parseSettings(raw: unknown, base: AthleteProfile): AthleteSettin
       ? { zoneOfferDismissedVdot: Math.round(s.zoneOfferDismissedVdot * 10) / 10 }
       : {}),
     ...parseLoadRule(s.loadRule),
+    ...parseDismissed(s.buyReminderDismissed),
   };
+}
+
+function parseDismissed(v: unknown): { buyReminderDismissed?: AthleteSettings["buyReminderDismissed"] } {
+  if (!v || typeof v !== "object") return {};
+  const r = v as Record<string, unknown>;
+  const out: NonNullable<AthleteSettings["buyReminderDismissed"]> = {};
+  for (const k of ["lower", "upperPush", "upperPull"] as const) if (typeof r[k] === "string" && (r[k] as string).length <= 2000) out[k] = r[k] as string;
+  return Object.keys(out).length ? { buyReminderDismissed: out } : {};
 }
 
 function parseLoadRule(v: unknown): { loadRule?: LoadRule } {
