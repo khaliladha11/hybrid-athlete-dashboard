@@ -43,7 +43,7 @@ describe("sesi rencana ber-id", () => {
     expect(programIdOf({ race: "hm", startDate: "2026-01-07" })).toBe(programIdOf({ race: "hm", startDate: START }));
   });
 
-  it("tanggal sesi sesuai hari; ST Senin & Rabu, minggu taper dan lomba hanya 1× (Rabu)", () => {
+  it("tanggal sesi sesuai hari; ST Senin & Rabu; minggu lomba hanya Upper (0.14.1: taper sebelumnya tetap 2×)", () => {
     const p = build("hm");
     const s = planSessions(p, "x");
     const w1 = s.filter((x) => x.week === 1);
@@ -54,9 +54,9 @@ describe("sesi rencana ber-id", () => {
       ["Kamis", "easy", "2026-01-08"],
       ["Minggu", "long", "2026-01-11"],
     ]);
-    for (const w of p.weeks.filter((x) => x.phase === "taper" || x.raceWeek)) {
+    for (const w of p.weeks.filter((x) => x.phase === "taper")) {
       const st = s.filter((x) => x.week === w.index && x.kind.startsWith("st-"));
-      expect(st.map((x) => x.kind)).toEqual(["st-upper"]);
+      expect(st.map((x) => x.kind)).toEqual(w.raceWeek ? ["st-upper"] : ["st-lower", "st-upper"]);
     }
     expect(s.filter((x) => x.week === 12).find((x) => x.kind === "race")?.date).toBe(p.raceDate);
   });

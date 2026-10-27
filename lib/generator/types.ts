@@ -83,6 +83,8 @@ export interface StrengthItem {
   tempo?: boolean;
   /** 0.14.0: gerakan ini varian lebih sulit dari gerakan tersebut (★ yang mentok). */
   variantOf?: string;
+  /** 0.14.1: gerakan aksesori (set lebih sedikit; dipakai batas set fase program). */
+  accessory?: boolean;
 }
 
 export interface StrengthWorkout {

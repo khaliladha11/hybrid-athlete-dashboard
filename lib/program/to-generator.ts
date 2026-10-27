@@ -6,7 +6,8 @@
  *   (Tempo → `tempo`, Norwegian 4×4 → `4x4`). Easy + strides (cutback/taper) → Easy 30'.
  * - long run, lomba, dan sesi spesifik lomba (race pace berseri, sharpener) tidak dibuat ulang lewat generator
  *   30/45/60 menit (D4): tampil sebagai kartu sesi program dengan teks salin format Copy Set.
- * - st-lower → Strength Lower; st-upper → Upper Pull (minggu ganjil) / Upper Push (minggu genap). Taper: Easy.
+ * - st-lower → Strength Lower; st-upper → Upper Pull (minggu ganjil) / Upper Push (minggu genap). Level & durasi
+ *   dari aturan fase (0.14.1, `st-phase.ts`); batas set & beban ditahan dibawa lewat `ph`.
  * Judul quality yang tidak dikenali menjadi kartu, tidak dipaksa masuk generator.
  */
 import type { PlanToday } from "@/lib/coach";
@@ -14,10 +15,11 @@ import { isRunPattern, type RunPattern } from "@/lib/generator/run";
 import { DIFFICULTIES, DURATIONS, STRENGTH_TYPES, type Difficulty, type Duration, type StrengthType } from "@/lib/generator/types";
 import type { SessionResult } from "./compliance";
 import { isRunKind, type PlanKind, type PlannedSession } from "./sessions";
+import { isStPhaseKey, ST_PHASE_RULES, type StPhaseKey } from "./st-phase";
 
 export type GeneratorTarget =
   | { to: "run"; duration: Duration; difficulty: Difficulty; pattern?: RunPattern }
-  | { to: "strength"; type: StrengthType; duration: Duration; difficulty: Difficulty }
+  | { to: "strength"; type: StrengthType; duration: Duration; difficulty: Difficulty; phase?: StPhaseKey }
   | { to: "card" };
 
 /** Menit per km untuk sesi quality tanpa durasi tertulis (termasuk pemanasan & pendinginan). */
@@ -38,9 +40,12 @@ export function toGenerator(s: PlannedSession): GeneratorTarget {
     case "race":
       return { to: "card" };
     case "st-lower":
-      return { to: "strength", type: "lower", duration: 45, difficulty: s.intensity === "easy" ? "easy" : "moderate" };
-    case "st-upper":
-      return { to: "strength", type: s.week % 2 ? "upperPull" : "upperPush", duration: 45, difficulty: s.intensity === "easy" ? "easy" : "moderate" };
+    case "st-upper": {
+      const type: StrengthType = s.kind === "st-lower" ? "lower" : s.week % 2 ? "upperPull" : "upperPush";
+      if (!s.stPhase) return { to: "strength", type, duration: 45, difficulty: s.intensity === "easy" ? "easy" : "moderate" };
+      const r = ST_PHASE_RULES[s.stPhase];
+      return { to: "strength", type, duration: r.duration, difficulty: r.difficulty, phase: s.stPhase };
+    }
     case "quality": {
       const t = s.title;
       if (/^(Race pace|Sharpener)/i.test(t)) return { to: "card" };
@@ -111,11 +116,16 @@ export interface StrengthPrefill {
   duration: Duration;
   difficulty: Difficulty;
   label: string;
+  /** Aturan fase program (0.14.1). */
+  phase?: StPhaseKey;
+  /** Id sesi program, untuk kepatuhan sesi mode latihan. */
+  sessionId?: string;
 }
 
 type Params = Record<string, string | string[] | undefined>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 const LABEL_RE = /^[\p{L}\p{N} +×'./-]{1,40}$/u;
+const SESSION_ID_RE = /^[\w.:-]{1,120}$/;
 const KINDS: readonly PlanKind[] = ["quality", "easy", "recovery", "long", "race", "st-lower", "st-upper"];
 
 /** Tautan generator untuk sesi rencana. `override` = versi yang diturunkan saran. */
@@ -140,6 +150,8 @@ export function generatorHref(s: PlannedSession, t: GeneratorTarget, override: {
   q.set("d", String(t.duration));
   q.set("lvl", t.difficulty);
   q.set("t", shortTitle(s.title));
+  if (t.phase) q.set("ph", t.phase);
+  q.set("sid", s.id);
   return `/strength?${q.toString()}`;
 }
 
@@ -170,7 +182,9 @@ export function parseStrengthPrefill(params: Params): StrengthPrefill | null {
   const b = base(params);
   const type = one(params.type) as StrengthType;
   if (!b || !STRENGTH_TYPES.includes(type)) return null;
-  return { ...b, type };
+  const ph = one(params.ph);
+  const sid = one(params.sid);
+  return { ...b, type, ...(isStPhaseKey(ph) ? { phase: ph } : {}), ...(sid && SESSION_ID_RE.test(sid) ? { sessionId: sid } : {}) };
 }
 
 // ---------- Sesi hari ini & rencana untuk saran ----------

@@ -3,10 +3,12 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { RACES, buildProgram, type RaceTarget } from "@/lib/program";
-import { planSessions } from "@/lib/program/sessions";
+import { isRunKind, planSessions } from "@/lib/program/sessions";
 
 /**
  * Program panjang tetap (sebelum 0.13.3) harus tetap identik: 4 jarak × 3/4 lari × long run awal × target.
+ * Sejak 0.14.1 hanya sesi lari yang dibandingkan (tanpa catatan ST); jadwal ST mengikuti fase dan diuji di
+ * `st-phase.test.ts`.
  * Fixture dibuat sekali dari kode sebelum perubahan: `UPDATE_PROGRAM_BASELINE=1 npx vitest run __tests__/program-baseline.test.ts`.
  */
 const FIXTURE = path.join(process.cwd(), "__tests__/fixtures/program-baseline.json");
@@ -20,8 +22,8 @@ function currentHashes(): Record<string, string> {
       for (const currentLongRunKm of LONGS)
         for (const goalSec of [RACES[race].defaultGoalSec, Math.round(RACES[race].defaultGoalSec * 0.7)]) {
           const p = buildProgram({ race, goalSec, startDate: START, runsPerWeek, currentLongRunKm });
-          const sessions = planSessions(p, `${race}-${START}`);
-          out[`${race}/${runsPerWeek}/${currentLongRunKm ?? "-"}/${goalSec}`] = createHash("sha256").update(JSON.stringify({ p, sessions })).digest("hex").slice(0, 16);
+          const sessions = planSessions(p, `${race}-${START}`).filter((x) => isRunKind(x.kind));
+          out[`${race}/${runsPerWeek}/${currentLongRunKm ?? "-"}/${goalSec}`] = createHash("sha256").update(JSON.stringify({ p: { ...p, strengthNote: undefined }, sessions })).digest("hex").slice(0, 16);
         }
   return out;
 }

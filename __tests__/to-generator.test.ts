@@ -3,6 +3,7 @@ import { generateRunWorkout } from "@/lib/generator";
 import { buildProgram, RACES, type RaceTarget } from "@/lib/program";
 import { evaluateCompliance } from "@/lib/program/compliance";
 import { planSessions, type PlannedSession } from "@/lib/program/sessions";
+import { ST_PHASE_RULES } from "@/lib/program/st-phase";
 import {
   generatorHref,
   nearestDuration,
@@ -30,8 +31,9 @@ describe("pemetaan sesi → generator (§4.4)", () => {
           const where = `${race}/${s.id}/${s.title}`;
           if (s.kind === "long" || s.kind === "race") expect(t.to, where).toBe("card");
           if (s.kind === "easy" || s.kind === "recovery") expect(t, where).toMatchObject({ to: "run", difficulty: "easy" });
-          if (s.kind === "st-lower") expect(t, where).toMatchObject({ to: "strength", type: "lower", duration: 45 });
-          if (s.kind === "st-upper") expect(t, where).toMatchObject({ to: "strength", type: s.week % 2 ? "upperPull" : "upperPush" });
+          // ST mengikuti fase program (0.14.1): Base/Build 45', Peak/Taper/minggu lomba 30'.
+          if (s.kind === "st-lower") expect(t, where).toMatchObject({ to: "strength", type: "lower", duration: ST_PHASE_RULES[s.stPhase!].duration, phase: s.stPhase });
+          if (s.kind === "st-upper") expect(t, where).toMatchObject({ to: "strength", type: s.week % 2 ? "upperPull" : "upperPush", difficulty: ST_PHASE_RULES[s.stPhase!].difficulty });
           if (s.kind === "quality") {
             if (/^(Race pace|Sharpener)/.test(s.title)) expect(t.to, where).toBe("card");
             else if (s.intensity === "easy") expect(t, where).toMatchObject({ to: "run", difficulty: "easy", duration: 30 });
@@ -55,9 +57,10 @@ describe("pemetaan sesi → generator (§4.4)", () => {
     expect([25, 35, 40, 50, 53, 70].map(nearestDuration)).toEqual([30, 30, 45, 45, 60, 60]);
     const tempo = all("hm", 3).find((s) => s.title.startsWith("Tempo"))!;
     expect(toGenerator(tempo)).toEqual({ to: "run", difficulty: "moderate", duration: 45, pattern: "tempo" });
-    const st = all("hm", 3).filter((s) => s.kind === "st-upper" && s.intensity === "easy");
+    // Sesi ST ringan (taper/minggu lomba): intensitas tetap Moderate, volume yang dikurangi (30').
+    const st = all("hm", 3).filter((s) => s.kind === "st-upper" && s.title.endsWith("ringan"));
     expect(st.length).toBeGreaterThan(0);
-    for (const s of st) expect(toGenerator(s)).toMatchObject({ difficulty: "easy" });
+    for (const s of st) expect(toGenerator(s)).toMatchObject({ difficulty: "moderate", duration: 30 });
   });
 
   it("judul quality yang tidak dikenali → kartu", () => {
@@ -106,7 +109,9 @@ describe("prefill generator lewat query", () => {
 
   it("strength: bolak-balik; kartu tidak punya tautan", () => {
     const st = hm.find((s) => s.kind === "st-lower")!;
-    expect(parseStrengthPrefill(params(generatorHref(st, toGenerator(st))!))).toEqual({ week: 1, type: "lower", duration: 45, difficulty: "moderate", label: "ST Lower / Full Body" });
+    expect(parseStrengthPrefill(params(generatorHref(st, toGenerator(st))!))).toEqual({ week: 1, type: "lower", duration: 45, difficulty: "moderate", label: "ST Lower / Full Body", phase: "base", sessionId: st.id });
+    // Id sesi aneh dan fase tidak dikenal diabaikan.
+    expect(parseStrengthPrefill({ src: "program", w: "1", type: "lower", d: "45", lvl: "moderate", ph: "x", sid: "<a>" })).toEqual({ week: 1, type: "lower", duration: 45, difficulty: "moderate", label: "Sesi program" });
     const long = hm.find((s) => s.kind === "long")!;
     expect(generatorHref(long, toGenerator(long))).toBeNull();
   });

@@ -1,13 +1,15 @@
 /**
  * Sesi rencana ber-id dari program (docs/PROGRAM-HIDUP.md §3). Murni.
  * Id = `{programId}:{minggu}:{hari}:{jenis}`, stabil selama jarak lomba & tanggal mulai tidak berubah.
- * Sesi ST diturunkan dari jadwal TRAINING-LOGIC §7: Senin Lower/Full & Rabu Upper; minggu taper & lomba 1×
- * (Rabu Upper, supaya tidak ada ST kaki menjelang lomba). Override `move` mengubah tanggal; `skip` menandai.
+ * Sesi ST diturunkan dari jadwal TRAINING-LOGIC §7: Senin Lower/Full & Rabu Upper. Sejak 0.14.1 isinya mengikuti
+ * fase (`st-phase.ts`): minggu taper sebelum minggu lomba tetap 2× dengan volume setengah, ST kaki terakhir ≥ 8 hari
+ * sebelum Hari H, minggu lomba hanya Upper ringan ≥ 3 hari sebelum Hari H. Override `move` mengubah tanggal; `skip` menandai.
  */
 import { addDays } from "@/lib/date";
 import type { Difficulty } from "@/lib/generator/types";
 import type { Program, SessionKind } from "@/lib/program";
 import type { ProgramOverride } from "./settings";
+import { stPhaseKey, stSlots, type StPhaseKey } from "./st-phase";
 
 export type PlanKind = SessionKind | "st-lower" | "st-upper";
 
@@ -29,6 +31,8 @@ export interface PlannedSession {
   intensity: Difficulty;
   km?: number;
   minutes?: number;
+  /** Aturan fase untuk sesi ST (0.14.1). */
+  stPhase?: StPhaseKey;
   override?: ProgramOverride;
 }
 
@@ -50,12 +54,15 @@ export function planSessions(program: Program, programId: string, overrides: Pro
     out.push({ ...s, id, date: override?.action === "move" && override.toDate ? override.toDate : s.plannedDate, ...(override ? { override } : {}) });
   };
   for (const w of program.weeks) {
-    const light = w.phase === "taper" || w.raceWeek;
-    if (!light) push({ week: w.index, day: "Senin", plannedDate: w.start, kind: "st-lower", title: "ST Lower / Full Body", intensity: "moderate" });
+    const stPhase = stPhaseKey(w);
+    const light = stPhase === "taper" || stPhase === "race";
+    const slots = stSlots(stPhase, { monday: w.start, wednesday: addDays(w.start, 2), raceDate: program.raceDate });
+    const stIntensity = stPhase === "build" ? "high" : "moderate";
+    if (slots.lower) push({ week: w.index, day: "Senin", plannedDate: w.start, kind: "st-lower", title: light ? "ST Lower ringan" : "ST Lower / Full Body", intensity: stIntensity, stPhase });
     for (const s of w.sessions) {
       push({ week: w.index, day: s.day, plannedDate: addDays(w.start, DAY_OFFSET[s.day] ?? 0), kind: s.kind, title: s.title, detail: s.detail, intensity: s.intensity, km: s.km, minutes: s.minutes });
     }
-    push({ week: w.index, day: "Rabu", plannedDate: addDays(w.start, 2), kind: "st-upper", title: light ? "ST Upper ringan" : "ST Upper", intensity: light ? "easy" : "moderate" });
+    if (slots.upper) push({ week: w.index, day: "Rabu", plannedDate: addDays(w.start, 2), kind: "st-upper", title: light ? "ST Upper ringan" : "ST Upper", intensity: stIntensity, stPhase });
   }
   return out.sort((a, b) => a.plannedDate.localeCompare(b.plannedDate) || a.id.localeCompare(b.id));
 }

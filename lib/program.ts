@@ -360,7 +360,7 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
     weeks,
     warnings,
     strengthNote:
-      "ST 2×/minggu: Senin (Lower/Full Body) & Rabu (Upper). Jangan taruh ST kaki sehari sebelum sesi Selasa atau long run Minggu. Saat taper, ST cukup 1× ringan.",
+      "ST 2×/minggu: Senin (Lower/Full Body) & Rabu (Upper), mengikuti fase: Build lebih berat, Peak dan taper volume dikurangi dengan beban ditahan, minggu lomba hanya Upper ringan. ST kaki terakhir paling lambat 8 hari sebelum Hari H. Jangan taruh ST kaki sehari sebelum sesi Selasa atau long run Minggu.",
   };
 }
 

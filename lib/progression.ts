@@ -316,7 +316,7 @@ export function applyProgression(
   movements: Map<string, Movement>,
   entries: LogEntry[],
   prs: PrEntry[] = [],
-  opts: { blockStart?: string; free?: boolean } = {},
+  opts: { blockStart?: string; free?: boolean; holdLoad?: string } = {},
 ): StrengthWorkout {
   if (!entries.length && !prs.length) return w;
   const usable = (name: string) => {
@@ -327,7 +327,8 @@ export function applyProgression(
   const items = w.items.map((it): StrengthItem => {
     const m = movements.get(it.movement);
     if (!it.anchor || !m) return it;
-    const rec = recommend(m, entries, { deload: w.deload, ctx }) ?? (w.deload ? null : prStart(m, prs));
+    const raw = recommend(m, entries, { deload: w.deload, ctx }) ?? (w.deload ? null : prStart(m, prs));
+    const rec = raw && opts.holdLoad ? holdForPhase(raw, opts.holdLoad) : raw;
     if (!rec) return it;
     switch (rec.kind) {
       case "load": {
@@ -375,6 +376,21 @@ export function applyProgression(
     }
   });
   return { ...w, items };
+}
+
+/**
+ * Fase program yang menahan beban (0.14.1: Peak, Taper, minggu lomba): naik beban, naik band, atau pindah ke varian
+ * ditahan dulu; rep, tempo, dan turun beban tetap berlaku.
+ */
+function holdForPhase(rec: Recommendation, phase: string): Recommendation {
+  const why = `Fase ${phase}: beban ditahan, volume dikurangi. Naik lagi setelah fase ini.`;
+  if (rec.kind === "load" && rec.action === "increase") return { kind: "load", action: "hold", load: rec.from, from: rec.from, reason: `Siap naik, tetapi tahan ${kgs(rec.from)}. ${why}` };
+  if (rec.kind === "load" && rec.variant) {
+    const { variant: _v, ...rest } = rec;
+    return { ...rest, tempo: true, reason: `${rec.reason.replace(/ Pindah ke varian lebih sulit: .*$/, "")} Varian ${rec.variant} menunggu sampai fase ini selesai, tetap tempo dan jeda.` };
+  }
+  if (rec.kind === "band") return { kind: "info", reason: `Siap naik ke ${rec.band} Band, tetapi tahan band sekarang. ${why}` };
+  return rec;
 }
 
 /** Titik awal dari PR terbaru untuk gerakan tanpa log (hanya saat aturan batas beban aktif, `cap` ada). */

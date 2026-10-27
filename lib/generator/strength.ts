@@ -239,6 +239,7 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
       rpe,
       cue: meta.cue,
       ...(anchor ? { anchor: true } : {}),
+      ...(role === "accessory" ? { accessory: true } : {}),
     };
     if (role === "accessory") accessories.add(item);
     return item;
