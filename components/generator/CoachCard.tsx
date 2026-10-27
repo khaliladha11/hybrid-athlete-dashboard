@@ -55,7 +55,7 @@ export function CoachCard({
           <path d="M12 9v4m0 4h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
         </svg>
         <h2 className="t-label flex-1 shrink-0 whitespace-nowrap">
-          Saran hari ini · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
+          Saran Gita · hari ini · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
         </h2>
         {onApply &&
           actions.map((a) => (

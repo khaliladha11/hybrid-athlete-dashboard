@@ -34,6 +34,7 @@ export function MovementSheet({
   item,
   activeConditions,
   loadNote,
+  suggestion,
   onClose,
 }: {
   name: string;
@@ -41,6 +42,8 @@ export function MovementSheet({
   activeConditions: readonly ConditionId[];
   /** Penjelasan beban di atas rentang awal library (0.14.0). */
   loadNote?: string;
+  /** Saran Gita untuk gerakan ini (progresi, 0.14.0). */
+  suggestion?: string;
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -89,6 +92,13 @@ export function MovementSheet({
               </p>
             )}
             {loadNote && <p className="mt-1 text-[13px] text-ink">{loadNote}</p>}
+            {suggestion && (
+              <p className="mt-1 text-[13px] text-ink">
+                <span className="t-label mr-1 text-brand-ink">Saran Gita</span>
+                {suggestion}
+              </p>
+            )}
+            {item?.tempo && <p className="mt-1 text-[13px] font-semibold text-ink">Tempo: turun 3 detik, jeda 2 detik di bawah</p>}
           </div>
           <button
             type="button"

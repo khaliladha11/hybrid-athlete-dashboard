@@ -93,7 +93,10 @@ export function StrengthGenerator({
     [type, duration, difficulty, seed, block, free, p],
   );
   // Beban gerakan ★ disesuaikan dengan riwayat sesi atau PR (tetap dalam batas library, atau sejak 0.14.0 batas alat & keamanan).
-  const workout = useMemo(() => generated && applyProgression(generated, movements, log, prs), [generated, movements, log, prs]);
+  const workout = useMemo(
+    () => generated && applyProgression(generated, movements, log, prs, { blockStart: block.start, free }),
+    [generated, movements, log, prs, block.start, free],
+  );
   const text = useMemo(() => (workout ? strengthToText(workout) : ""), [workout]);
   const outputRef = useRef<HTMLElement>(null);
 
@@ -217,7 +220,14 @@ export function StrengthGenerator({
                               <Chip tone="accent">Di atas rentang awal</Chip>
                             </p>
                           )}
-                          {it.progression && <p className="mt-1 text-[13px] font-semibold text-brand-ink">{it.progression}</p>}
+                          {it.variantOf && <p className="mt-1 text-[13px] text-ink">Varian lebih sulit dari {it.variantOf}</p>}
+                          {it.tempo && <p className="mt-1 text-[13px] font-semibold text-ink">Tempo: turun 3 detik, jeda 2 detik di bawah</p>}
+                          {it.progression && (
+                            <p className="mt-1 text-[13px] font-semibold text-brand-ink">
+                              <span className="t-label mr-1 text-brand-ink">Saran Gita</span>
+                              {it.progression}
+                            </p>
+                          )}
                           {it.cue && <p className="mt-1 text-[13px] text-faint">{it.cue}</p>}
                           <p className="t-label mt-1.5">Lihat teknik ›</p>
                         </div>
@@ -297,6 +307,7 @@ export function StrengthGenerator({
           item={detail}
           activeConditions={p.activeConditions}
           loadNote={loadNote(movements.get(detail.movement), detail, log, prs) ?? undefined}
+          suggestion={detail.progression}
           onClose={() => setDetail(null)}
         />
       )}

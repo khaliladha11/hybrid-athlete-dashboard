@@ -74,6 +74,8 @@ export function LogForm({
         movement: r.item.movement,
         ...(load !== undefined ? { load } : {}),
         ...(r.band ? { band: r.band } : {}),
+        ...(r.item.tempo ? { tempo: true } : {}),
+        ...(r.item.variantOf ? { variantOf: r.item.variantOf } : {}),
         value,
         valueUnit: r.item.durationSec ? "sec" : "reps",
         target,

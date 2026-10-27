@@ -51,7 +51,7 @@ export function CoachStrip({
   return (
     <aside
       role="note"
-      aria-label="Saran hari ini"
+      aria-label="Saran Gita hari ini"
       title={relevant.map((a) => a.title).join(" · ")}
       className="flex min-h-14 items-center gap-2.5 rounded-card border border-line bg-surface py-2 pr-2 pl-3.5"
     >
@@ -60,7 +60,7 @@ export function CoachStrip({
       </svg>
       <div className="grid min-w-0 flex-1 gap-0.5">
         <span className="t-label truncate">
-          Saran hari ini · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
+          Saran Gita · hari ini · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
         </span>
         {/* Label di atas sudah menyebut "Saran", jadi baris ini cukup ringkasan + tautan detail. */}
         <p className="flex min-w-0 items-baseline gap-2 text-[14px]">

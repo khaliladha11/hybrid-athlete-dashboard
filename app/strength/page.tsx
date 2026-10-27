@@ -3,6 +3,7 @@ import { BlockBadge } from "@/components/generator/BlockBadge";
 import { StrengthGenerator } from "@/components/generator/StrengthGenerator";
 import Link from "next/link";
 import { LogHistory } from "@/components/log/LogHistory";
+import { BuyReminderCard } from "@/components/strength/BuyReminderCard";
 import { LoadRuleNotice } from "@/components/strength/LoadRuleNotice";
 import { PrSection } from "@/components/strength/PrSection";
 import { randomSeed } from "@/lib/generator/rng";
@@ -29,6 +30,7 @@ export default async function StrengthPage({ searchParams }: { searchParams: Pro
       <Link href="/setting#alat" className="inline-flex min-h-11 items-center text-[14px] font-semibold text-brand-ink hover:underline">
         Atur alat di Setting
       </Link>
+      <BuyReminderCard />
       <PrSection />
       <div className="pt-4">
         <LogHistory />
