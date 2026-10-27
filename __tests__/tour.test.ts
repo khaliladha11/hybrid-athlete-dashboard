@@ -8,6 +8,10 @@ const VIEW = { width: 375, height: 812, insetTop: 44, insetBottom: 34 };
 const POP = { width: 360, height: 200 };
 
 describe("langkah tur", () => {
+  it("langkah saran memakai nama coach Gita (D1)", () => {
+    expect(TOUR_STEPS[0].title).toBe("Saran Gita hari ini");
+  });
+
   it("4 sampai 5 sorotan, urutan sesuai ONBOARDING §4: Profil, Lari, Strength, Program, Setting", () => {
     expect(TOUR_STEPS.length).toBeGreaterThanOrEqual(4);
     expect(TOUR_STEPS.length).toBeLessThanOrEqual(5);

@@ -15,7 +15,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
     id: "saran",
     route: "/",
     targets: ["saran"],
-    title: "Saran hari ini",
+    title: "Saran Gita hari ini",
     body: "Kesiapanmu hari ini dari tidur, HRV, dan beban latihan. Saran yang sama bisa dipakai langsung di generator Lari dan Strength.",
   },
   {
