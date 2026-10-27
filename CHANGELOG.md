@@ -15,11 +15,12 @@ Tahap kedua [STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) (§3 0.14.1, keputusan D
 - **Aturan hari yang sama**: lari + ST di hari yang sama → saran jeda ≥ 3 jam (Schumann 2022), non-blokir; aturan concurrent lama tetap dan kini juga dipicu sesi Lower/Full Body dari mode latihan.
 - **Peta otot sesi**: `MuscleMap` depan/belakang dari path SVG MuscleMapJS (MIT, disalin, bukan dependensi), warna D7, daftar teks otot; di mode latihan dan setelah sesi.
 - Cadangan **v5** (sesi ST; v1–v4 tetap bisa diimpor) dan bagian sinkron baru `sessions`.
-- 60 test baru (`st-session`, `workout-state`, `week-ledger`, `st-phase`, `muscle-regions`, tambahan coach, kepatuhan, cadangan), total 567 di 43 file.
+- 64 test baru (`st-session`, `workout-state`, `week-ledger`, `st-phase`, `muscle-regions`, `copy-dashes`, tambahan coach, kepatuhan, cadangan), total 571 di 44 file.
 
 ### Diubah
 - Jadwal ST program: minggu taper sebelum minggu lomba kini 2× ringan (sebelumnya 1× Upper); level/durasi ST dari fase. Test baseline program kini hanya membandingkan sesi lari (identik).
 - Catatan ST program menyebut aturan fase.
+- Teks saran coach, alasan progresi lama, catatan generator, cue gerakan, readiness, dan teks program tanpa em dash (DESIGN-SYSTEM §7); tanggal & durasi kosong ditulis `·`. Baseline program & generator lari diperbarui (hanya teks yang berubah).
 
 ### Dokumentasi
 - PRD (versi, §4.4/§4.6/§4.8, §5 lisensi aset, §8), TRAINING-LOGIC §5/§7/§8, DESIGN-SYSTEM §6, ARCHITECTURE, NOTICE (tiga lisensi MIT), README, screenshot.
