@@ -25,7 +25,7 @@ const entry = (id: string, date = "2026-01-05"): LogEntry => ({
 const d = defaultSettings(baseProfile);
 const settingsPart = { conditions: d.conditions, customConditions: d.customConditions, runZones: d.runZones, equipment: d.equipment, movements: d.movements, raceResults: d.raceResults };
 const onboarded = (): OnboardingState => ({ ...initialState(), currentStep: "summary", completed: [...STEPS], termsVersion: 1, completedAt: "2026-01-01T00:00:00.000Z" });
-const emptyLocal = (): PartData => ({ profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [], prs: [] });
+const emptyLocal = (): PartData => ({ profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [], prs: [], sessions: [] });
 
 /** Satu "perangkat": data lokal + meta di memori, berbicara ke store yang sama lewat logika server. */
 function device(store: SyncStore, initial: Partial<PartData> = {}, opts: { failGet?: boolean; failPost?: boolean } = {}) {

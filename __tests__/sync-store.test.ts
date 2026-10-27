@@ -71,7 +71,7 @@ describe.each(stores())("store sinkron (%s)", (_name, make) => {
   it("bagian kosong: rev 0 & data null", async () => {
     const s = make();
     const all = await s.readAll();
-    expect(Object.keys(all)).toEqual(["profile", "settings", "program", "preferences", "onboarding", "log", "prs"]);
+    expect(Object.keys(all)).toEqual(["profile", "settings", "program", "preferences", "onboarding", "log", "prs", "sessions"]);
     expect(all.profile).toEqual({ rev: 0, epoch: 0, data: null });
   });
 

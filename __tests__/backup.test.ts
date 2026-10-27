@@ -10,7 +10,7 @@ const entry = (id: string) => ({ id, date: "2026-01-05", movement: "Glute Bridge
 
 /** Penyimpanan di memori dengan perilaku log yang sama seperti `trainingLog.merge`. */
 function memStore(init: Partial<{ settings: string; program: string; theme: string; block: string; log: { id: string }[] }> = {}) {
-  const st = { settings: "", program: "", theme: "", block: "", log: [] as { id: string }[], prs: [] as unknown[], onboarding: null as OnboardingState | null, ...init };
+  const st = { settings: "", program: "", theme: "", block: "", log: [] as { id: string }[], prs: [] as unknown[], sessions: [] as unknown[], onboarding: null as OnboardingState | null, ...init };
   const store: BackupStore = {
     getSettingsRaw: () => st.settings,
     setSettingsRaw: (v) => (st.settings = v),
@@ -32,18 +32,22 @@ function memStore(init: Partial<{ settings: string; program: string; theme: stri
       st.prs = [...st.prs, ...list];
       return { added: list.length, skipped: 0 };
     },
+    mergeSessions: (list) => {
+      st.sessions = [...st.sessions, ...list];
+      return { added: list.length, skipped: 0 };
+    },
   };
   return { st, store };
 }
 
-describe("ekspor v4", () => {
+describe("ekspor v5", () => {
   it("berisi profil dasar dan status onboarding, lalu bisa dibaca kembali", () => {
     const settings = { ...defaultSettings(baseProfile), profile: { name: "Atlet Contoh", blockStart: "2026-01-05" } };
     const onboarding = advance(initialState(), {}, NOW);
     const file = buildBackup({ log: [entry("a")], settings, program: "{}", theme: "dark", blockEnabled: true, onboarding, now: NOW });
-    expect(file).toMatchObject({ app: "hybrid-athlete", version: 4, kind: "backup" });
+    expect(file).toMatchObject({ app: "hybrid-athlete", version: 5, kind: "backup" });
     const parsed = parseBackup(JSON.parse(JSON.stringify(file)))!;
-    expect(parsed.version).toBe(4);
+    expect(parsed.version).toBe(5);
     expect(parsed.settings?.profile).toEqual({ name: "Atlet Contoh", blockStart: "2026-01-05" });
     expect(parsed.onboarding).toEqual(onboarding);
   });
@@ -171,5 +175,23 @@ describe("impor", () => {
     const parsed = parseBackup(file)!;
     expect(parsed.kind).toBe("defaults");
     expect(parsed.log).toBeUndefined();
+  });
+});
+
+describe("sesi ST di cadangan v5 (0.14.1)", () => {
+  const s = { id: "s1", date: "2026-03-02", startedAt: "2026-03-02T00:00:00.000Z", type: "lower", title: "Lower", difficulty: "moderate", durationMin: 45, rpe: 6, setsDone: 12, setsPlanned: 12, movements: [], updatedAt: "2026-03-02T01:00:00.000Z" };
+  it("ekspor v5 membawa sesi; impor v5 menggabungkan sesi", () => {
+    const file = buildBackup({ log: [], settings: null, program: null, onboarding: null, sessions: [s], now: NOW });
+    expect(file.sessions).toEqual([s]);
+    const { st, store } = memStore();
+    const parts = applyBackup(parseBackup({ app: "hybrid-athlete", version: 5, kind: "backup", sessions: [s] })!, store, baseProfile);
+    expect(st.sessions).toEqual([s]);
+    expect(parts[0]).toBe("1 sesi ST baru, 0 dilewati");
+  });
+
+  it("v4 tetap terbaca (PR ikut) dan sessions di file v4 diabaikan", () => {
+    const { st, store } = memStore();
+    applyBackup(parseBackup({ version: 4, kind: "backup", prs: [], sessions: [s] })!, store, baseProfile);
+    expect(st.sessions).toEqual([]);
   });
 });

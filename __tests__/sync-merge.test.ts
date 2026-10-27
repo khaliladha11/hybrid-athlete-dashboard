@@ -53,16 +53,17 @@ describe("bagian data ↔ localStorage", () => {
       onboarding: done(),
       log: [entry("a")],
       prs: [{ id: "p1", movement: "Floor Press", loadKg: 10, date: "2026-01-05", source: "manual", updatedAt: "2026-01-05T00:00:00.000Z" }],
+      sessions: [{ id: "s1", date: "2026-01-05", startedAt: "2026-01-05T00:00:00.000Z", type: "lower", title: "Lower", difficulty: "moderate", durationMin: 45, rpe: 6, setsDone: 10, setsPlanned: 12, movements: ["Glute Bridge"], updatedAt: "2026-01-05T01:00:00.000Z" }],
     };
     const raw = localFromParts(parts, baseProfile);
-    expect(partsFromLocal(raw, parts.log, baseProfile, parts.prs)).toEqual(parts);
+    expect(partsFromLocal(raw, parts.log, baseProfile, parts.prs, parts.sessions)).toEqual(parts);
   });
 
   it("perangkat kosong → bagian kosong; tema sistem & blok default tidak disimpan", () => {
     const empty = partsFromLocal({ settings: null, program: null, theme: null, blockEnabled: null, onboarding: null }, [], baseProfile);
-    expect(empty).toEqual({ profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [], prs: [] });
+    expect(empty).toEqual({ profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [], prs: [], sessions: [] });
     expect(localFromParts(empty, baseProfile)).toEqual({ settings: null, program: null, theme: null, blockEnabled: null, onboarding: null });
-    for (const n of ["profile", "settings", "program", "preferences", "onboarding", "log", "prs"] as const) expect(hasData(n, emptyPart(n))).toBe(false);
+    for (const n of ["profile", "settings", "program", "preferences", "onboarding", "log", "prs", "sessions"] as const) expect(hasData(n, emptyPart(n))).toBe(false);
   });
 
   it("validasi menolak payload rusak dan membersihkan field asing", () => {

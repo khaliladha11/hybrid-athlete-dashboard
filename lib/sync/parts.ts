@@ -9,8 +9,9 @@ import { parseOnboardingState, type OnboardingState } from "@/lib/onboarding";
 import type { AthleteProfile } from "@/lib/profile";
 import type { LogEntry } from "@/lib/progression";
 import { MAX_PRS, normalizePrs, type PrEntry } from "@/lib/prs";
+import { MAX_ST_SESSIONS, normalizeSessions, type StSession } from "@/lib/st-session";
 
-export const PART_NAMES = ["profile", "settings", "program", "preferences", "onboarding", "log", "prs"] as const;
+export const PART_NAMES = ["profile", "settings", "program", "preferences", "onboarding", "log", "prs", "sessions"] as const;
 export type PartName = (typeof PART_NAMES)[number];
 export const isPartName = (x: unknown): x is PartName => typeof x === "string" && (PART_NAMES as readonly string[]).includes(x);
 
@@ -29,6 +30,8 @@ export interface PartData {
   log: LogEntry[];
   /** PR kemampuan (0.14.0), digabung per entri dengan tombstone seperti log. */
   prs: PrEntry[];
+  /** Sesi ST mode latihan (0.14.1), digabung per entri dengan tombstone seperti log. */
+  sessions: StSession[];
 }
 
 export const MAX_LOG_ENTRIES = 5000;
@@ -55,7 +58,7 @@ const pickSettings = (s: AthleteSettings): SettingsPart => ({
   ...(s.buyReminderDismissed !== undefined ? { buyReminderDismissed: s.buyReminderDismissed } : {}),
 });
 
-export function partsFromLocal(raw: LocalRaw, log: LogEntry[], base: AthleteProfile, prs: PrEntry[] = []): PartData {
+export function partsFromLocal(raw: LocalRaw, log: LogEntry[], base: AthleteProfile, prs: PrEntry[] = [], sessions: StSession[] = []): PartData {
   const parsed = raw.settings ? parseSettings(raw.settings, base) : null;
   const preferences: PreferencesPart = {};
   if (raw.theme === "light" || raw.theme === "dark") preferences.theme = raw.theme;
@@ -68,6 +71,7 @@ export function partsFromLocal(raw: LocalRaw, log: LogEntry[], base: AthleteProf
     onboarding: parseOnboardingState(raw.onboarding ?? ""),
     log,
     prs,
+    sessions,
   };
 }
 
@@ -110,6 +114,8 @@ export function validatePart<K extends PartName>(name: K, data: unknown, base: A
       return (Array.isArray(data) && data.length <= MAX_LOG_ENTRIES ? normalizeLog(data).entries : undefined) as PartData[K] | undefined;
     case "prs":
       return (Array.isArray(data) && data.length <= MAX_PRS ? normalizePrs(data) : undefined) as PartData[K] | undefined;
+    case "sessions":
+      return (Array.isArray(data) && data.length <= MAX_ST_SESSIONS ? normalizeSessions(data) : undefined) as PartData[K] | undefined;
     default:
       return undefined;
   }
@@ -117,13 +123,13 @@ export function validatePart<K extends PartName>(name: K, data: unknown, base: A
 
 /** Nilai kosong per bagian (server belum pernah menerima bagian ini). */
 export function emptyPart<K extends PartName>(name: K): PartData[K] {
-  return (name === "log" || name === "prs" ? [] : name === "preferences" ? {} : null) as PartData[K];
+  return (name === "log" || name === "prs" || name === "sessions" ? [] : name === "preferences" ? {} : null) as PartData[K];
 }
 
 /** Bagian ini berisi data (bukan kosong)? */
 export function hasData(name: PartName, data: unknown): boolean {
   if (data === null || data === undefined) return false;
-  if (name === "log" || name === "prs") return Array.isArray(data) && data.length > 0;
+  if (name === "log" || name === "prs" || name === "sessions") return Array.isArray(data) && data.length > 0;
   if (name === "preferences") return Object.keys(data as object).length > 0;
   return true;
 }

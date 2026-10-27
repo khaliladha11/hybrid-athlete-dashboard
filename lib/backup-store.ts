@@ -8,6 +8,7 @@ import { PREF_KEYS } from "./preference-keys";
 import { applyTheme, readStored, writeStored } from "./preferences";
 import { baseProfile } from "./profile";
 import { prStore } from "./pr-store";
+import { stSessionStore } from "./st-session-store";
 import { trainingLog } from "./training-log";
 
 export const deviceBackupStore: BackupStore = {
@@ -25,9 +26,10 @@ export const deviceBackupStore: BackupStore = {
   setOnboarding: (v) => writeStored(PREF_KEYS.onboarding, JSON.stringify(v)),
   mergeLog: (entries) => trainingLog.merge(entries),
   mergePrs: (entries) => prStore.merge(entries),
+  mergeSessions: (entries) => stSessionStore.merge(entries),
 };
 
-/** Cadangan v4 dari isi perangkat sekarang. */
+/** Cadangan v5 dari isi perangkat sekarang. */
 export function exportDeviceBackup(now = new Date().toISOString()): BackupFile {
   const settingsRaw = readStored(PREF_KEYS.settings);
   const theme = readStored(PREF_KEYS.theme);
@@ -40,6 +42,7 @@ export function exportDeviceBackup(now = new Date().toISOString()): BackupFile {
     blockEnabled: block === "1" ? true : block === "0" ? false : undefined,
     onboarding: parseOnboardingState(readStored(PREF_KEYS.onboarding) ?? ""),
     prs: prStore.live(),
+    sessions: stSessionStore.live(),
     now,
   });
 }
@@ -58,7 +61,7 @@ export async function importBackupFile(file: File): Promise<{ ok: boolean; messa
   return { ok: true, kind: parsed.kind, message: parts.length ? `✓ Impor selesai: ${parts.join("; ")}.` : "✓ Impor selesai." };
 }
 
-/** Unduh cadangan v4 sebagai file JSON. */
+/** Unduh cadangan v5 sebagai file JSON. */
 export function downloadDeviceBackup(fileName: string) {
   const blob = new Blob([JSON.stringify(exportDeviceBackup(), null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);

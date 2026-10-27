@@ -11,6 +11,10 @@ export const PREF_KEYS = {
   onboarding: "hybrid-athlete.onboarding.v1",
   /** PR kemampuan (0.14.0, `lib/pr-store.ts`). */
   prs: "hybrid-athlete.prs.v1",
+  /** Sesi ST dari mode latihan (0.14.1, `lib/st-session-store.ts`). */
+  sessions: "hybrid-athlete.st-sessions.v1",
+  /** Sesi latihan yang sedang berjalan (0.14.1, tidak disinkron). */
+  activeWorkout: "hybrid-athlete.st-active.v1",
 } as const;
 
 /**
