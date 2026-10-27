@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BUTTON, Chip } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
@@ -27,7 +28,15 @@ import {
   type StrengthWorkout,
 } from "@/lib/generator";
 import type { StrengthPrefill } from "@/lib/program/to-generator";
-import type { Advice } from "@/lib/coach";
+import { applyPhaseRule, ST_PHASE_RULES } from "@/lib/program/st-phase";
+import { withStSessions, type Advice, type TodayDone } from "@/lib/coach";
+import { todayWib } from "@/lib/date";
+import { PREF_KEYS } from "@/lib/preference-keys";
+import { useStoredString } from "@/lib/preferences";
+import { useStSessions } from "@/lib/st-session-store";
+import { newEntryId } from "@/lib/training-log";
+import { parseActiveWorkout, startWorkout } from "@/lib/workout-state";
+import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import { sessionCoverage } from "@/lib/athlete-settings";
 import { baseProfile, type Movement, type ResolvedProfile } from "@/lib/profile";
 import { useBlockContext, useBlockMode, useResolvedProfile } from "@/lib/settings-store";
@@ -62,19 +71,29 @@ function restLabel(sec: number) {
 }
 
 export function StrengthGenerator({
-  advice,
+  advice: serverAdvice,
   initialSeed,
   prefill,
+  todayDone,
 }: {
   advice: Advice[];
   initialSeed: number;
   /** Isian dari sesi ST program (0.13.1); tetap bisa diubah. */
   prefill?: StrengthPrefill | null;
+  /** Lari / ST tercatat hari ini (0.14.1, aturan hari yang sama). */
+  todayDone?: TodayDone;
 }) {
+  const router = useRouter();
+  const sessions = useStSessions();
+  const advice = useMemo(() => withStSessions(serverAdvice, { sessions, today: todayWib(), done: todayDone, current: "strength" }), [serverAdvice, sessions, todayDone]);
+  const [activeRaw, setActiveRaw] = useStoredString(PREF_KEYS.activeWorkout, "");
+  const active = useMemo(() => parseActiveWorkout(activeRaw), [activeRaw]);
   const [type, setType] = useState<StrengthType>(prefill?.type ?? "fullBody");
   const [duration, setDuration] = useState<Duration>(prefill?.duration ?? 45);
   const [difficulty, setDifficulty] = useState<Difficulty>(prefill?.difficulty ?? "moderate");
   const fromPlan = !!prefill && type === prefill.type && duration === prefill.duration && difficulty === prefill.difficulty;
+  // ST mengikuti fase program (0.14.1) selama isian dari program tidak diubah.
+  const phaseRule = fromPlan && prefill?.phase ? ST_PHASE_RULES[prefill.phase] : undefined;
   const [seed, setSeed] = useState(initialSeed);
 
   const [logging, setLogging] = useState(false);
@@ -93,10 +112,17 @@ export function StrengthGenerator({
     [type, duration, difficulty, seed, block, free, p],
   );
   // Beban gerakan ★ disesuaikan dengan riwayat sesi atau PR (tetap dalam batas library, atau sejak 0.14.0 batas alat & keamanan).
-  const workout = useMemo(
-    () => generated && applyProgression(generated, movements, log, prs, { blockStart: block.start, free }),
-    [generated, movements, log, prs, block.start, free],
-  );
+  const workout = useMemo(() => {
+    if (!generated) return null;
+    const holdLoad = phaseRule?.holdLoad ? phaseRule.label.split(":")[0] : undefined;
+    const w = applyProgression(generated, movements, log, prs, { blockStart: block.start, free, holdLoad });
+    return phaseRule ? applyPhaseRule(w, phaseRule) : w;
+  }, [generated, movements, log, prs, block.start, free, phaseRule]);
+  const startSession = () => {
+    if (!workout) return;
+    setActiveRaw(JSON.stringify(startWorkout({ id: newEntryId(), nowIso: new Date().toISOString(), workout, blockIndex: block.index, planSessionId: fromPlan ? prefill?.sessionId : undefined })));
+    router.push("/strength/sesi");
+  };
   const text = useMemo(() => (workout ? strengthToText(workout) : ""), [workout]);
   const outputRef = useRef<HTMLElement>(null);
 
@@ -117,7 +143,12 @@ export function StrengthGenerator({
   return (
     <div className="space-y-4">
       <div className="space-y-4 rounded-card border border-line bg-surface p-5 shadow-card">
-        {prefill && fromPlan && <Chip tone="accent">Dari program · Minggu {prefill.week}</Chip>}
+        {prefill && fromPlan && (
+          <Chip tone="accent">
+            Dari program · Minggu {prefill.week}
+            {phaseRule ? ` · ${phaseRule.label}` : ""}
+          </Chip>
+        )}
         <Segmented
           label="Tipe"
           wrap
@@ -254,6 +285,23 @@ export function StrengthGenerator({
             </div>
           );
         })}
+
+        <div className="mt-4 space-y-2">
+          {active ? (
+            <>
+              <Link href="/strength/sesi" className={`${BUTTON.base} ${BUTTON.primary} ${BUTTON.lg} w-full`}>
+                Lanjutkan sesi yang berjalan
+              </Link>
+              <div className="flex justify-center">
+                <ConfirmButton size="md" label="Mulai sesi ini sebagai gantinya" confirmLabel="Ya, ganti sesi berjalan" onConfirm={startSession} />
+              </div>
+            </>
+          ) : (
+            <button type="button" data-tour="strength-start" onClick={startSession} className={`${BUTTON.base} ${BUTTON.primary} ${BUTTON.lg} w-full`}>
+              Mulai sesi
+            </button>
+          )}
+        </div>
 
         {logging ? (
           <LogForm

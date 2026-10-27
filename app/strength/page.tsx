@@ -6,6 +6,7 @@ import { LogHistory } from "@/components/log/LogHistory";
 import { BuyReminderCard } from "@/components/strength/BuyReminderCard";
 import { LoadRuleNotice } from "@/components/strength/LoadRuleNotice";
 import { PrSection } from "@/components/strength/PrSection";
+import { ActiveSessionBanner } from "@/components/workout/ActiveSessionBanner";
 import { randomSeed } from "@/lib/generator/rng";
 import { getTrainingContext } from "@/lib/intervals/data-source";
 import { parseStrengthPrefill } from "@/lib/program/to-generator";
@@ -25,8 +26,9 @@ export default async function StrengthPage({ searchParams }: { searchParams: Pro
         </div>
         <BlockBadge />
       </header>
+      <ActiveSessionBanner />
       <LoadRuleNotice />
-      <StrengthGenerator advice={ctx.advice} initialSeed={randomSeed()} prefill={prefill} />
+      <StrengthGenerator advice={ctx.advice} todayDone={ctx.todayDone} initialSeed={randomSeed()} prefill={prefill} />
       <Link href="/setting#alat" className="inline-flex min-h-11 items-center text-[14px] font-semibold text-brand-ink hover:underline">
         Atur alat di Setting
       </Link>

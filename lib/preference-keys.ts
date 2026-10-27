@@ -15,6 +15,8 @@ export const PREF_KEYS = {
   sessions: "hybrid-athlete.st-sessions.v1",
   /** Sesi latihan yang sedang berjalan (0.14.1, tidak disinkron). */
   activeWorkout: "hybrid-athlete.st-active.v1",
+  /** Getar saat timer mode latihan habis (per perangkat, tidak disinkron). */
+  workoutVibrate: "hybrid-athlete.workout-vibrate",
 } as const;
 
 /**
