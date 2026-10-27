@@ -4,6 +4,7 @@
  */
 import { todayWib } from "@/lib/date";
 import { compactTombstones } from "@/lib/log-entries";
+import { compactPrTombstones } from "@/lib/prs";
 import type { OnboardingState } from "@/lib/onboarding";
 import type { AthleteProfile } from "@/lib/profile";
 import type { PasscodeConfig } from "@/lib/auth/config";
@@ -104,6 +105,7 @@ export async function handlePost(store: SyncStore, rawBody: string, base: Athlet
     let data = validatePart(part, w.data, base);
     if (data === undefined) return { status: 400, body: { error: "invalid" } };
     if (part === "log") data = compactTombstones(data as PartData["log"], nowMs);
+    if (part === "prs") data = compactPrTombstones(data as PartData["prs"], nowMs);
     seen.add(part);
     valid.push({ part, baseRev, data });
   }

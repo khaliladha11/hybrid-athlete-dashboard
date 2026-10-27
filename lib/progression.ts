@@ -11,6 +11,7 @@
  */
 import { parseWeight, type Movement, type WeightSpec } from "@/lib/profile";
 import type { StrengthItem, StrengthWorkout } from "@/lib/generator/types";
+import { latestPr, type PrEntry } from "@/lib/prs";
 
 export interface LogEntry {
   id: string;
@@ -157,18 +158,21 @@ const ARROW: Record<"increase" | "hold" | "decrease", string> = { increase: "↑
 
 /**
  * Terapkan rekomendasi ke gerakan utama (★) sebuah workout.
- * Beban tetap di-clamp ke rentang library, jadi aturan WAJIB tidak bisa dilanggar.
+ * Beban tetap di-clamp ke rentang library, atau ke batas efektif saat aturan batas beban 0.14.0 aktif, jadi
+ * aturan WAJIB tidak bisa dilanggar. Saat aturan itu aktif dan gerakan belum punya log, PR terbaru menjadi titik
+ * awal (bukan minggu deload).
  */
 export function applyProgression(
   w: StrengthWorkout,
   movements: Map<string, Movement>,
   entries: LogEntry[],
+  prs: PrEntry[] = [],
 ): StrengthWorkout {
-  if (!entries.length) return w;
+  if (!entries.length && !prs.length) return w;
   const items = w.items.map((it): StrengthItem => {
     const m = movements.get(it.movement);
     if (!it.anchor || !m) return it;
-    const rec = recommend(m, entries, { deload: w.deload });
+    const rec = recommend(m, entries, { deload: w.deload }) ?? (w.deload ? null : prStart(m, prs));
     if (!rec) return it;
     switch (rec.kind) {
       case "load": {
@@ -189,6 +193,15 @@ export function applyProgression(
     }
   });
   return { ...w, items };
+}
+
+/** Titik awal dari PR terbaru untuk gerakan tanpa log (hanya saat aturan batas beban aktif, `cap` ada). */
+function prStart(m: Movement, prs: PrEntry[]): Recommendation | null {
+  const spec = parseWeight(m.weight);
+  const pr = latestPr(prs, m.name);
+  if (!m.cap || spec.kind !== "load" || !pr) return null;
+  const load = Math.min(m.cap.kg, Math.max(spec.min, pr.loadKg));
+  return { kind: "load", action: "hold", load, from: load, reason: `Mulai dari PR ${pr.loadKg} kg (${pr.date}).` };
 }
 
 /** Validasi longgar untuk data impor (JSON dari cadangan). */

@@ -9,6 +9,8 @@ export const PREF_KEYS = {
   log: "hybrid-athlete.log.v1",
   /** Status onboarding (`lib/onboarding.ts`). */
   onboarding: "hybrid-athlete.onboarding.v1",
+  /** PR kemampuan (0.14.0, `lib/pr-store.ts`). */
+  prs: "hybrid-athlete.prs.v1",
 } as const;
 
 /**

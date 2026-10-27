@@ -9,7 +9,9 @@
  *   - `"defaults"` (mis. `owner-settings.local.json` hasil migrasi): hanya **mengisi yang masih
  *     kosong** di perangkat; kustomisasi yang sudah ada tidak ditimpa.
  *
- * Log selalu digabung (`mergeLog`), tidak pernah dihapus: file tanpa log tidak menyentuh log.
+ * - v4 (0.14.0): v3 + `prs` (PR kemampuan). v1/v2/v3 tetap bisa diimpor.
+ *
+ * Log dan PR selalu digabung (`mergeLog`, `mergePrs`), tidak pernah dihapus: file tanpa log/PR tidak menyentuhnya.
  */
 import { mergeRaceResults, parseProfileSettings, parseSettings, type AthleteSettings } from "./athlete-settings";
 import { parseOnboardingState, type OnboardingState } from "./onboarding";
@@ -17,7 +19,7 @@ import type { AthleteProfile } from "./profile";
 import { ZONE_KEYS } from "./run-zones";
 
 export const BACKUP_APP = "hybrid-athlete";
-export const BACKUP_VERSION = 3;
+export const BACKUP_VERSION = 4;
 
 export type ThemeValue = "system" | "light" | "dark";
 export type BackupKind = "backup" | "defaults";
@@ -32,11 +34,12 @@ export interface BackupFile {
   program: string | null;
   preferences: { theme?: ThemeValue; blockEnabled?: boolean };
   onboarding: OnboardingState | null;
+  prs: unknown[];
 }
 
 /** Isi file cadangan yang sudah dibaca; bagian yang tidak ada = undefined. */
 export interface ParsedBackup {
-  version: 1 | 2 | 3;
+  version: 1 | 2 | 3 | 4;
   kind: BackupKind;
   log?: unknown[];
   /** Objek mentah: dipakai untuk tahu field mana yang benar-benar ada di file. */
@@ -45,6 +48,7 @@ export interface ParsedBackup {
   theme?: ThemeValue;
   blockEnabled?: boolean;
   onboarding?: OnboardingState;
+  prs?: unknown[];
 }
 
 /** Akses ke penyimpanan perangkat. Nilai string kosong = belum pernah disimpan. */
@@ -59,6 +63,7 @@ export interface BackupStore {
   setBlockEnabled(v: boolean): void;
   setOnboarding(v: OnboardingState): void;
   mergeLog(entries: unknown[]): { added: number; skipped: number };
+  mergePrs(entries: unknown[]): { added: number; skipped: number };
 }
 
 const isTheme = (v: unknown): v is ThemeValue => v === "system" || v === "light" || v === "dark";
@@ -70,6 +75,7 @@ export function buildBackup(input: {
   theme?: ThemeValue;
   blockEnabled?: boolean;
   onboarding: OnboardingState | null;
+  prs?: unknown[];
   now: string;
 }): BackupFile {
   return {
@@ -82,6 +88,7 @@ export function buildBackup(input: {
     program: input.program,
     preferences: { theme: input.theme, blockEnabled: input.blockEnabled },
     onboarding: input.onboarding,
+    prs: input.prs ?? [],
   };
 }
 
@@ -90,9 +97,10 @@ export function parseBackup(data: unknown): ParsedBackup | null {
   if (Array.isArray(data)) return { version: 1, kind: "backup", log: data };
   if (!data || typeof data !== "object") return null;
   const d = data as Record<string, unknown>;
-  const version = d.version === 3 ? 3 : 2;
-  const out: ParsedBackup = { version, kind: version === 3 && d.kind === "defaults" ? "defaults" : "backup" };
+  const version = d.version === 4 ? 4 : d.version === 3 ? 3 : 2;
+  const out: ParsedBackup = { version, kind: version >= 3 && d.kind === "defaults" ? "defaults" : "backup" };
   if (Array.isArray(d.log)) out.log = d.log;
+  if (version === 4 && Array.isArray(d.prs)) out.prs = d.prs;
   if (d.settings && typeof d.settings === "object" && !Array.isArray(d.settings)) out.settings = d.settings as Record<string, unknown>;
   if (typeof d.program === "string") out.program = d.program;
   const prefs = d.preferences && typeof d.preferences === "object" ? (d.preferences as Record<string, unknown>) : {};
@@ -100,7 +108,7 @@ export function parseBackup(data: unknown): ParsedBackup | null {
   if (typeof prefs.blockEnabled === "boolean") out.blockEnabled = prefs.blockEnabled;
   const ob = parseOnboardingState(d.onboarding);
   if (ob) out.onboarding = ob;
-  const known = out.log || out.settings || out.program !== undefined || out.theme || out.blockEnabled !== undefined || out.onboarding;
+  const known = out.log || out.prs || out.settings || out.program !== undefined || out.theme || out.blockEnabled !== undefined || out.onboarding;
   return known ? out : null;
 }
 
@@ -130,6 +138,10 @@ export function applyBackup(b: ParsedBackup, store: BackupStore, base: AthletePr
   if (b.log) {
     const r = store.mergeLog(b.log);
     parts.push(`${r.added} entri log baru, ${r.skipped} dilewati`);
+  }
+  if (b.prs) {
+    const r = store.mergePrs(b.prs);
+    parts.push(`${r.added} PR baru, ${r.skipped} dilewati`);
   }
   const fill = b.kind === "defaults";
   if (b.settings) {

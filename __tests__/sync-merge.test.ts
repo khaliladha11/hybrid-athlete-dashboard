@@ -52,16 +52,17 @@ describe("bagian data ↔ localStorage", () => {
       preferences: { theme: "dark", blockEnabled: false },
       onboarding: done(),
       log: [entry("a")],
+      prs: [{ id: "p1", movement: "Floor Press", loadKg: 10, date: "2026-01-05", source: "manual", updatedAt: "2026-01-05T00:00:00.000Z" }],
     };
     const raw = localFromParts(parts, baseProfile);
-    expect(partsFromLocal(raw, parts.log, baseProfile)).toEqual(parts);
+    expect(partsFromLocal(raw, parts.log, baseProfile, parts.prs)).toEqual(parts);
   });
 
   it("perangkat kosong → bagian kosong; tema sistem & blok default tidak disimpan", () => {
     const empty = partsFromLocal({ settings: null, program: null, theme: null, blockEnabled: null, onboarding: null }, [], baseProfile);
-    expect(empty).toEqual({ profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [] });
+    expect(empty).toEqual({ profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [], prs: [] });
     expect(localFromParts(empty, baseProfile)).toEqual({ settings: null, program: null, theme: null, blockEnabled: null, onboarding: null });
-    for (const n of ["profile", "settings", "program", "preferences", "onboarding", "log"] as const) expect(hasData(n, emptyPart(n))).toBe(false);
+    for (const n of ["profile", "settings", "program", "preferences", "onboarding", "log", "prs"] as const) expect(hasData(n, emptyPart(n))).toBe(false);
   });
 
   it("validasi menolak payload rusak dan membersihkan field asing", () => {

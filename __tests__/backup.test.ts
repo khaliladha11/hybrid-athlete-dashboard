@@ -10,7 +10,7 @@ const entry = (id: string) => ({ id, date: "2026-01-05", movement: "Glute Bridge
 
 /** Penyimpanan di memori dengan perilaku log yang sama seperti `trainingLog.merge`. */
 function memStore(init: Partial<{ settings: string; program: string; theme: string; block: string; log: { id: string }[] }> = {}) {
-  const st = { settings: "", program: "", theme: "", block: "", log: [] as { id: string }[], onboarding: null as OnboardingState | null, ...init };
+  const st = { settings: "", program: "", theme: "", block: "", log: [] as { id: string }[], prs: [] as unknown[], onboarding: null as OnboardingState | null, ...init };
   const store: BackupStore = {
     getSettingsRaw: () => st.settings,
     setSettingsRaw: (v) => (st.settings = v),
@@ -28,20 +28,43 @@ function memStore(init: Partial<{ settings: string; program: string; theme: stri
       st.log = [...st.log, ...fresh];
       return { added: fresh.length, skipped: list.length - fresh.length };
     },
+    mergePrs: (list) => {
+      st.prs = [...st.prs, ...list];
+      return { added: list.length, skipped: 0 };
+    },
   };
   return { st, store };
 }
 
-describe("ekspor v3", () => {
+describe("ekspor v4", () => {
   it("berisi profil dasar dan status onboarding, lalu bisa dibaca kembali", () => {
     const settings = { ...defaultSettings(baseProfile), profile: { name: "Atlet Contoh", blockStart: "2026-01-05" } };
     const onboarding = advance(initialState(), {}, NOW);
     const file = buildBackup({ log: [entry("a")], settings, program: "{}", theme: "dark", blockEnabled: true, onboarding, now: NOW });
-    expect(file).toMatchObject({ app: "hybrid-athlete", version: 3, kind: "backup" });
+    expect(file).toMatchObject({ app: "hybrid-athlete", version: 4, kind: "backup" });
     const parsed = parseBackup(JSON.parse(JSON.stringify(file)))!;
-    expect(parsed.version).toBe(3);
+    expect(parsed.version).toBe(4);
     expect(parsed.settings?.profile).toEqual({ name: "Atlet Contoh", blockStart: "2026-01-05" });
     expect(parsed.onboarding).toEqual(onboarding);
+  });
+});
+
+describe("PR kemampuan di cadangan v4 (0.14.0)", () => {
+  const pr = { id: "p1", movement: "Floor Press", loadKg: 10, date: "2026-10-25", source: "manual", updatedAt: "2026-10-25T00:00:00.000Z" };
+  it("ekspor v4 membawa PR; impor v4 menggabungkan PR, juga untuk kind defaults", () => {
+    const file = buildBackup({ log: [], settings: null, program: null, onboarding: null, prs: [pr], now: NOW });
+    expect(file.prs).toEqual([pr]);
+    const { st, store } = memStore();
+    const parts = applyBackup(parseBackup({ app: "hybrid-athlete", version: 4, kind: "defaults", prs: [pr] })!, store, baseProfile);
+    expect(st.prs).toEqual([pr]);
+    expect(parts[0]).toBe("1 PR baru, 0 dilewati");
+  });
+
+  it("v2 & v3 tanpa PR tetap terbaca dan tidak menyentuh PR; prs di file v3 diabaikan", () => {
+    const { st, store } = memStore();
+    applyBackup(parseBackup({ version: 3, kind: "backup", settings: { conditions: ["apt"] }, prs: [pr] })!, store, baseProfile);
+    applyBackup(parseBackup({ version: 2, log: [entry("a")] })!, store, baseProfile);
+    expect(st.prs).toEqual([]);
   });
 });
 
