@@ -128,10 +128,11 @@ function planSlots(
 }
 
 /**
- * Rentang beban sesuai level dari rentang library. Bila `loads` (beban yang bisa
- * dirakit dari alat) ada, hasil dipilih dari daftar itu.
+ * Rentang beban sesuai level dari rentang library (titik awal). Bila `loads` (beban yang bisa
+ * dirakit dari alat) ada, hasil dipilih dari daftar itu. `maxKg` (0.14.0) = batas atas efektif
+ * (min(alat, keamanan)); rentang level tidak pernah melewatinya.
  */
-export function prescribeLoad(weight: string, difficulty: Difficulty, loads?: number[]): LoadPrescription {
+export function prescribeLoad(weight: string, difficulty: Difficulty, loads?: number[], maxKg?: number): LoadPrescription {
   const spec = parseWeight(weight);
   if (spec.kind === "bodyweight") return spec;
   if (spec.kind === "band") {
@@ -142,7 +143,8 @@ export function prescribeLoad(weight: string, difficulty: Difficulty, loads?: nu
   if (span === 0) return snapToLoads({ ...spec }, loads);
   const step = span >= 2 ? 0.5 : 0.25;
   const [lo, hi] = difficulty === "easy" ? [0, 1 / 3] : difficulty === "moderate" ? [1 / 3, 2 / 3] : [2 / 3, 1];
-  const clamp = (v: number) => Math.min(spec.max, Math.max(spec.min, v));
+  const hiCap = Math.min(spec.max, maxKg ?? spec.max);
+  const clamp = (v: number) => Math.min(hiCap, Math.max(spec.min, v));
   const min = clamp(Math.floor((spec.min + span * lo) / step) * step);
   const max = clamp(Math.ceil((spec.min + span * hi) / step) * step);
   return snapToLoads({ ...spec, min, max: Math.max(min, max) }, loads);
@@ -232,7 +234,7 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
       sets: role === "accessory" ? 2 : baseSets,
       reps,
       durationSec: meta.holdSec?.[difficulty],
-      load: prescribeLoad(m.weight, loadLevel, m.loads),
+      load: prescribeLoad(m.weight, loadLevel, m.loads, m.cap?.kg),
       restSec: role === "accessory" ? ACCESSORY_REST_SEC : cfg.mainRest,
       rpe,
       cue: meta.cue,

@@ -5,7 +5,9 @@
  * naik satu tingkat hanya bila DUA sesi berturut-turut mencapai batas atas
  * repetisi dengan RPE tidak melebihi target. RPE terasa lebih berat dari
  * target → tahan; jauh lebih berat (> target + 1) → turun satu tingkat.
- * Beban tidak pernah melewati batas movement library. Minggu deload: progresi ditunda.
+ * Beban tidak pernah melewati batas movement library, atau sejak 0.14.0 (aturan batas beban aktif)
+ * batas efektif gerakan = min(alat, keamanan). Beban terakhir dipakai apa adanya (tanpa lompatan) dan
+ * naik satu langkah. Minggu deload: progresi ditunda.
  */
 import { parseWeight, type Movement, type WeightSpec } from "@/lib/profile";
 import type { StrengthItem, StrengthWorkout } from "@/lib/generator/types";
@@ -90,8 +92,9 @@ export function recommend(movement: Movement, entries: LogEntry[], opts: { deloa
     const step = loadStep(spec);
     // Beban terakhir dipakai apa adanya (hanya di-clamp); hasil baru dibulatkan ke 0.25 kg,
     // atau — bila alat sudah diisi — ke beban terdekat yang bisa dirakit.
-    const clamp = (v: number) => Math.min(spec.max, Math.max(spec.min, round(v, 0.25)));
-    const from = Math.min(spec.max, Math.max(spec.min, last.load));
+    const hi = movement.cap?.kg ?? spec.max;
+    const clamp = (v: number) => Math.min(hi, Math.max(spec.min, round(v, 0.25)));
+    const from = Math.min(hi, Math.max(spec.min, last.load));
     const loads = movement.loads?.length ? movement.loads : undefined;
     const stepDown = () => (loads ? ([...loads].reverse().find((v) => v < from) ?? from) : clamp(from - step));
     const stepUp = () => (loads ? (loads.find((v) => v > from) ?? from) : clamp(from + step));
@@ -103,8 +106,8 @@ export function recommend(movement: Movement, entries: LogEntry[], opts: { deloa
       return { kind: "load", action: "hold", load: from, from, reason: `RPE terakhir ${last.rpe} sedikit di atas target — tahan beban.` };
     }
     if (twice) {
-      if (from >= spec.max) {
-        return { kind: "load", action: "hold", load: from, from, reason: `Sudah di batas library (${spec.max} kg) — progresi lewat tempo lebih lambat, bukan beban.` };
+      if (from >= hi) {
+        return { kind: "load", action: "hold", load: from, from, reason: capReason(movement, hi) };
       }
       const load = stepUp();
       if (load <= from) {
@@ -138,6 +141,18 @@ export function recommend(movement: Movement, entries: LogEntry[], opts: { deloa
   };
 }
 
+/** Alasan tahan di batas atas: library (aturan lama), alat, atau keamanan (0.14.0). */
+function capReason(m: Movement, hi: number): string {
+  switch (m.cap?.source) {
+    case "equipment":
+      return `Sudah di batas alat (${hi} kg). Progresi lewat rep atau tempo sampai alat bertambah.`;
+    case "safety":
+      return `Sudah di batas keamanan (${hi} kg) karena kondisi aktif. Progresi lewat rep atau tempo.`;
+    default:
+      return `Sudah di batas library (${hi} kg) — progresi lewat tempo lebih lambat, bukan beban.`;
+  }
+}
+
 const ARROW: Record<"increase" | "hold" | "decrease", string> = { increase: "↑", hold: "→", decrease: "↓" };
 
 /**
@@ -160,7 +175,7 @@ export function applyProgression(
         if (it.load.kind !== "load") return it;
         const spec = parseWeight(m.weight);
         if (spec.kind !== "load") return it;
-        const clamped = Math.min(spec.max, Math.max(spec.min, rec.load));
+        const clamped = Math.min(m.cap?.kg ?? spec.max, Math.max(spec.min, rec.load));
         // Alat sudah diisi → beban yang diresepkan harus bisa dirakit.
         const v = m.loads?.length ? m.loads.reduce((b, x) => (Math.abs(x - clamped) < Math.abs(b - clamped) ? x : b), m.loads[0]) : clamped;
         return { ...it, load: { ...it.load, min: v, max: v }, progression: `${ARROW[rec.action]} ${rec.reason}` };

@@ -15,8 +15,10 @@ export interface Movement {
    * kategorinya tidak punya gerakan non-cadangan yang bisa dipakai. Pilihan eksplisit di Setting tetap menang.
    */
   fallback?: boolean;
-  /** Beban (kg) yang bisa dirakit dari alat, sudah dalam rentang library. Tidak ada = pakai rentang library. */
+  /** Beban (kg) yang bisa dirakit dari alat, sudah dalam rentang library (atau sampai `cap`). Tidak ada = pakai rentang library. */
   loads?: number[];
+  /** Batas atas beban saat aturan batas beban 0.14.0 aktif (min(alat, keamanan)). Tidak ada = batas atas library. */
+  cap?: import("./load-bounds").LoadCap;
 }
 
 export type MovementCategory =

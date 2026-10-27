@@ -75,8 +75,9 @@ function nearest(loads: number[], v: number): number {
 
 /**
  * Sanitizer: membuang gerakan yang tidak terdaftar/terlarang/non-aktif,
- * meng-clamp RPE ≤ 7 dan beban ke rentang library (dan ke beban yang bisa
- * dirakit dari alat). Tidak memutasi input.
+ * meng-clamp RPE ≤ 7 dan beban ke rentang library, atau sejak 0.14.0 ke batas efektif
+ * gerakan (`cap` = min(alat, keamanan)) bila aturan batas beban aktif, dan ke beban yang bisa
+ * dirakit dari alat. Tidak memutasi input.
  */
 export function sanitizeStrength(
   w: StrengthWorkout,
@@ -95,7 +96,8 @@ export function sanitizeStrength(
       if (m && out.load.kind === "load") {
         const spec = parseWeight(m.weight);
         if (spec.kind === "load") {
-          const clamp = (v: number) => Math.min(spec.max, Math.max(spec.min, v));
+          const hi = m.cap?.kg ?? spec.max;
+          const clamp = (v: number) => Math.min(hi, Math.max(spec.min, v));
           const snap = (v: number) => (m.loads?.length ? nearest(m.loads, clamp(v)) : clamp(v));
           const min = snap(out.load.min);
           out.load = { ...out.load, min, max: Math.max(min, snap(out.load.max)) };
@@ -132,8 +134,9 @@ export function validateStrength(
     const m = findMovement(it.movement, lib);
     if (m && it.load.kind === "load") {
       const spec = parseWeight(m.weight);
-      if (spec.kind !== "load" || it.load.max > spec.max || it.load.min > it.load.max) {
-        issues.push(`Beban "${it.movement}" melebihi batas library (${m.weight})`);
+      const hi = spec.kind === "load" ? (m.cap?.kg ?? spec.max) : 0;
+      if (spec.kind !== "load" || it.load.max > hi + 1e-9 || it.load.min > it.load.max) {
+        issues.push(m.cap ? `Beban "${it.movement}" melebihi batas ${hi} kg` : `Beban "${it.movement}" melebihi batas library (${m.weight})`);
       }
       if (m.loads?.length && ![it.load.min, it.load.max].every((v) => m.loads!.includes(v))) {
         issues.push(`Beban "${it.movement}" tidak bisa dirakit dari alat yang dimiliki`);

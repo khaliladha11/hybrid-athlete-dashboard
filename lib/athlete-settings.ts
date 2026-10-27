@@ -8,7 +8,6 @@
 import { combineRules, CONDITION_IDS, CONDITIONS, isConditionId, type ActiveRules, type ConditionId } from "./conditions";
 import {
   BAND_OPTIONAL,
-  feasibleLoads,
   missingNeeds,
   NEED_LABEL,
   normalizeEquipment,
@@ -16,6 +15,7 @@ import {
   type Equipment,
 } from "./equipment";
 import { STABILITY_HIP } from "./generator/meta";
+import { loadBounds, newRuleActive, type LoadRule } from "./load-bounds";
 import { formatRange, parseRange, RACE_DISTANCES, ZONE_KEYS, type RaceDistanceKey, type ZoneKey } from "./run-zones";
 import type { AthleteProfile, Movement, MovementCategory, MovementLibrary } from "./profile";
 
@@ -55,6 +55,8 @@ export interface AthleteSettings {
   raceResults: RaceResult[];
   /** VDOT tawaran update zona yang terakhir ditolak; tawaran baru butuh VDOT ≥ nilai ini + 1. */
   zoneOfferDismissedVdot?: number;
+  /** Aturan batas beban 0.14.0: persetujuan sekali & toggle kembali ke rentang library. */
+  loadRule?: LoadRule;
 }
 
 export interface RaceResult {
@@ -199,7 +201,17 @@ export function parseSettings(raw: unknown, base: AthleteProfile): AthleteSettin
     ...(typeof s.zoneOfferDismissedVdot === "number" && s.zoneOfferDismissedVdot >= 10 && s.zoneOfferDismissedVdot <= 90
       ? { zoneOfferDismissedVdot: Math.round(s.zoneOfferDismissedVdot * 10) / 10 }
       : {}),
+    ...parseLoadRule(s.loadRule),
   };
+}
+
+function parseLoadRule(v: unknown): { loadRule?: LoadRule } {
+  if (!v || typeof v !== "object") return {};
+  const r = v as Record<string, unknown>;
+  const out: LoadRule = {};
+  if (typeof r.acceptedAt === "string" && !Number.isNaN(Date.parse(r.acceptedAt))) out.acceptedAt = r.acceptedAt;
+  if (typeof r.limitToLibrary === "boolean") out.limitToLibrary = r.limitToLibrary;
+  return Object.keys(out).length ? { loadRule: out } : {};
 }
 
 /** Pilihan default gerakan (dari profil) — dipakai saat pengguna belum memilih. */
@@ -213,6 +225,7 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
   const movementStatus: Record<string, MovementStatus> = {};
   const excludedBy = (name: string) => s.conditions.filter((id) => CONDITIONS[id].rules.exclude?.includes(name));
 
+  const newRule = newRuleActive(s.loadRule);
   const resolveMovement = (m: Movement, fallbackOn = false): Movement => {
     // Gerakan yang diwajibkan kondisi aktif selalu terpilih. Cadangan: default mengikuti `fallbackOn`.
     const chosen = s.movements[m.name];
@@ -222,6 +235,7 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
     let weight = m.weight;
     let reason: string | undefined;
     let loads: number[] | undefined;
+    let cap: Movement["cap"];
 
     if (!selected) reason = "Tidak dipilih";
     else if (excl.length) reason = `Dihindari: ${excl.map((id) => CONDITIONS[id].label).join(", ")}`;
@@ -234,7 +248,9 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
       } else if (bands) {
         weight = `${bands.join("/")} Band`;
       }
-      loads = feasibleLoads(m.name, m.weight, eq);
+      const bounds = loadBounds(m.name, m.weight, eq, s.conditions, s.loadRule);
+      loads = bounds?.loads;
+      if (bounds && newRule) cap = bounds.cap;
       if (loads && !loads.length) reason = `Beban ${m.weight} tidak bisa dirakit dari alat`;
     }
     movementStatus[m.name] = {
@@ -244,7 +260,7 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
       loads: reason ? undefined : loads,
       ...(m.fallback ? { fallback: true, autoSelected: chosen === undefined && fallbackOn } : {}),
     };
-    return { ...m, weight, available: !reason, ...(loads && !reason ? { loads } : {}) };
+    return { ...m, weight, available: !reason, ...(loads && !reason ? { loads } : {}), ...(cap && !reason ? { cap } : {}) };
   };
 
   const lib = {} as MovementLibrary;
