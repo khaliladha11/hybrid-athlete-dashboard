@@ -4,6 +4,25 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.14.0] · 2026-10-27 · Strength hidup: progresi dengan alat terbatas
+
+Tahap pertama [STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) (§2, §3 0.14.0 a–e, keputusan D1–D4).
+
+### Ditambahkan
+- **Batas beban baru** (keputusan pemilik 2026-10-26): rentang library jadi titik awal; beban resep = min(batas alat, batas keamanan). Aktif setelah kartu "Perubahan batas beban" disetujui, bisa dikembalikan lewat Setting › Alat "Batasi ke rentang awal library". Batas keamanan: Barbell Squat 16 kg & Barbell Sumo Deadlift / Hip Thrust 20 kg saat APT/LBP, Seated Lateral Raise 3 kg & DB Scaption 2 kg saat nyeri bahu. Label `DI ATAS RENTANG AWAL` dan penjelasannya di detail gerakan.
+- **Alat diperluas:** dumbbell fixed & kettlebell (tambah/ubah/hapus) di samping handle + plat; data lama dimigrasi otomatis; jalan pintas dari halaman Strength ke Setting › Alat.
+- **PR kemampuan:** daftar per gerakan dengan riwayat, tambah/ubah/hapus, PR dari log terdeteksi otomatis, PR terbaru jadi titik awal gerakan tanpa log. Ikut cadangan **v4** (v1–v3 tetap bisa diimpor) dan bagian sinkron baru `prs`.
+- **Double progression saat mentok:** rentang rep tetap (Easy 10–15, Moderate 8–12, High 6–10), lalu tempo/jeda, lalu varian satu sisi yang lebih sulit (★ mulai blok berikutnya, mode bebas langsung). Alat bertambah → progresi beban jalan lagi. Log mencatat tempo & varian.
+- **Saran Gita:** syarat naik RPE ≤ target sesi − 1, setiap saran menyebut alasannya dengan angka, tampil di kartu dan detail gerakan. Kartu saran harian kini "Saran Gita · hari ini".
+- **Pengingat beli plat** per area (lower, upper push, upper pull) bila ≥ 80% gerakan aktif mentok di batas alat selama 2 sesi; menyebut plat yang membuka progresi terbanyak, bisa ditutup.
+- 49 test baru (`equipment`, `load-bounds`, `prs`, `double-progression`, `buy-reminder`, tambahan cadangan & sinkron), total 507 di 38 file.
+
+### Diubah
+- PRD §3: aturan beban mengikuti batas alat & keamanan (teks STRENGTH-HIDUP §7).
+
+### Dokumentasi
+- PRD (versi, §3, §4.4/§4.6/§4.8, §8), TRAINING-LOGIC §3/§6/§9, DESIGN-SYSTEM §7 (Gita), ARCHITECTURE, README.
+
 ## [0.13.3] · 2026-10-26 · Hari H & saran lama program
 
 [PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) §4.10.

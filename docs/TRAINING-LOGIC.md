@@ -140,6 +140,31 @@ Rekomendasi diterapkan ke workout lalu **tetap di-clamp ke batas atas yang berla
 
 **PR kemampuan (0.14.0):** entri gerakan library, beban, set & rep (boleh tidak diketahui), tanggal, sumber manual atau log. PR dari log terdeteksi otomatis saat sesi mengalahkan PR terbaik (beban, lalu rep).
 
+### Double progression & saran Gita (0.14.0)
+
+Kode: [`lib/progression.ts`](../lib/progression.ts). Hanya berlaku saat aturan batas beban aktif; sebelum persetujuan atau saat "Batasi ke rentang awal library" nyala, aturan 2-for-2 di atas berlaku tanpa perubahan. Spesifikasi: [STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3c–e, D1–D3.
+
+| Aturan | Detail |
+| --- | --- |
+| Syarat naik | Dua sesi terakhir (bukan deload) di ujung atas rep dengan **RPE ≤ target sesi − 1**. Berlaku juga untuk gerakan tahan (+5 detik) dan band |
+| Mentok | Beban terakhir di batas alat atau batas keamanan, dan tidak ada beban lebih berat yang bisa dirakit |
+| Rentang tetap (D3) | Gerakan mentok keluar dari rotasi skema rep: Easy 10–15, Moderate 8–12, High 6–10 rep (satuan per kaki/sisi dipertahankan). RPE tetap ≤ 7 |
+| Urutan | 1) rep sampai ujung atas rentang; 2) dua sesi tuntas → tempo/jeda (turun 3 detik, jeda 2 detik di bawah); 3) dua sesi tuntas dengan tempo → varian satu sisi yang lebih sulit |
+| Varian | Dari relasi `harderVariant` di META, hanya gerakan library yang tersedia dan lolos kondisi aktif: Barbell Squat → Rear-Foot-Elevated Split Squat, Reverse Lunge → Rear-Foot-Elevated Split Squat. Tanpa varian: tetap tempo dan saran menyebutnya. Varian yang sudah ada di sesi tidak dibuat dobel |
+| Waktu berlaku | Tempo boleh di tengah blok. Ganti ★ ke varian mulai blok berikutnya (mode bebas: langsung). Varian mulai dari titik awal rentang library-nya |
+| Alat bertambah | Batas naik → tidak mentok lagi → progresi beban jalan otomatis dan rotasi rep kembali |
+| Log | Entri baru mencatat `tempo` dan `variantOf`; entri lama dibaca sebagai tanpa tempo, bukan varian |
+| Saran Gita (D1) | Setiap saran menyebut alasannya dengan angka, mis. "2 sesi terakhir RPE 5 di 12 rep (target RPE 6), beban sudah di batas alat 20 kg. Tambah tempo: turun 3 detik, jeda 2 detik di bawah." Tampil di kartu gerakan dan detail gerakan. Tidak pernah memblokir |
+
+### Pengingat beli plat (0.14.0)
+
+Kode: [`lib/buy-reminder.ts`](../lib/buy-reminder.ts).
+
+- Per area: lower, upper push, upper pull.
+- Muncul bila ≥ 80% gerakan berbeban yang aktif di area itu mentok di **batas alat** (batas keamanan tidak dihitung), masing-masing dua sesi terakhir di ujung atas rep dengan RPE ≤ target − 1 (D2).
+- Isi: sepasang plat dari berat umum (0,5 / 1 / 1,25 / 2 / 2,5 / 5 kg) yang membuka progresi untuk gerakan terbanyak; seri → paling ringan. Contoh: "Sepasang plat 2,5 kg membuka progresi untuk 4 gerakan lower." Tanpa tautan toko.
+- Dihitung dari data saja. "Tutup pengingat" menyimpan tanda tangan syaratnya (daftar gerakan + batas); pengingat muncul lagi hanya bila syaratnya baru terpenuhi.
+
 ## 7. Program target (5K / 10K / HM / FM)
 
 Kode: [`lib/program.ts`](../lib/program.ts). Halaman **Program**.

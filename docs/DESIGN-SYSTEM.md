@@ -166,6 +166,7 @@ Grafik bar SVG tanpa library. **Lebar bar ∝ durasi, tinggi bar ∝ kecepatan.*
 - **Tanpa em dash (—) dan en dash (–) di teks UI.** Ganti dengan `·`, titik dua, atau dua kalimat. Rentang angka ditulis `8:00 sampai 8:50/km` atau `8'00"–8'50"` hanya di dalam angka. Catatan: 23 tempat di `components/`/`app/` dan banyak string di `lib/` (coach, readiness, generator). String di `lib/` hanya diubah bersama test-nya, di commit terpisah.
 - Kalimat aktif, sentence case untuk kalimat; UPPERCASE hanya untuk label mono dan Display.
 - Tanpa tanda seru di pesan sukses. Tombol menyebut hasilnya: "Generate lari", "Salin set", "Terapkan Easy".
+- **Nama coach: Gita** (0.14.0, D1). Dipakai konsisten di teks UI: label `Saran Gita` di kartu gerakan dan detail gerakan, kartu saran harian `Saran Gita · hari ini`, dan pengingat alat `Saran Gita · alat`. Nama di kode (`coach`, `CoachCard`) tidak diganti. Gita menjelaskan alasan dengan angka dan tidak pernah memblokir.
 
 ## 8. Yang tidak boleh berubah
 

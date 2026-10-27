@@ -87,7 +87,8 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/generator/validate.ts` | Sanitizer + validator | Client |
 | `lib/generator/variation.ts` | Deteksi variasi & seed berikutnya yang pasti berbeda | Client |
 | `lib/generator/format.ts` | Teks salin & format Set Huawei | Client |
-| `lib/progression.ts` | Aturan 2-for-2, penerapan ke workout | Client |
+| `lib/progression.ts` | Aturan 2-for-2 (aturan lama), penerapan ke workout; sejak 0.14.0 saat aturan batas beban aktif: syarat naik relatif (RPE ≤ target − 1), double progression saat mentok (rentang tetap, tempo/jeda, varian `harderVariant`), alasan berangka (saran Gita), titik awal dari PR | Client |
+| `lib/buy-reminder.ts` | Pengingat beli plat per area (lower, upper push, upper pull): syarat 80% mentok di batas alat selama 2 sesi, plat yang membuka progresi terbanyak, tanda tangan untuk tutup/muncul lagi | Server & client (murni) |
 | `lib/training-log.ts` | Penyimpanan log (localStorage) + ekspor/impor | Client |
 | `lib/conditions.ts` | Katalog kondisi berbasis riset → aturan generator | Server & client |
 | `lib/run-zones.ts` | Rumus VDOT Daniels, invers (`timeForVdot`) & VDOT zona tersimpan (`zoneVdot`, 0.13.2), parser & format pace | Server & client |
@@ -208,6 +209,8 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `onboarding.test.ts` | Urutan & langkah otomatis 0.11.0, maju/mundur, langkah wajib memblokir, opsional dilewati, lanjut dari langkah tersimpan, state rusak, "Tidak ada kondisi" eksklusif, gate (baru/lama/versi disclaimer). |
 | `equipment.test.ts` | Migrasi alat lama, dumbbell fixed (sepasang butuh 2), kettlebell hanya dicatat, batas alat & sepasang plat 2,5 kg, beban yang bisa dirakit sampai batas baru. |
 | `load-bounds.test.ts` | Persetujuan & toggle, `loadRule` tersimpan & sinkron, batas keamanan hanya saat kondisi aktif, aturan min(), profil efektif, progresi dari log terakhir tanpa lompatan, alasan batas, generator semua kombinasi ≤ batas & bisa dirakit, label di atas rentang awal. |
+| `double-progression.test.ts` | Jalur lama identik, syarat naik relatif & alasan berangka, rentang tetap per level, urutan rep → tempo → varian, varian blok berikutnya vs mode bebas, tanpa varian, batas keamanan, alat bertambah, penerapan ke workout (rentang, tempo, varian, tanpa dobel, satuan per kaki), field log baru. |
+| `buy-reminder.test.ts` | Syarat mentok (2 sesi, RPE relatif, ujung atas rep, batas keamanan tidak dihitung), ambang 80% per area, urutan plat, aturan lama tanpa pengingat, tutup & muncul lagi. |
 | `prs.test.ts` | Validasi & gabungan PR dengan tombstone, PR terbaik/terbaru/riwayat, deteksi dari log, PR sebagai titik awal (hanya aturan baru, dibulatkan ke bawah), sinkron bagian `prs`. |
 | `backup.test.ts` | Ekspor v4 (dengan PR), impor v1/v2/v3/v4, impor tanpa log tidak menghapus log, log tanpa duplikat, `kind: "defaults"` tidak menimpa kustomisasi perangkat dan menggabungkan hasil lomba. |
 | `neutral-profile.test.ts` | JSON netral tanpa data pribadi, zona = `zonesFromVdot(30)`, semua kombinasi lari valid dengan profil netral, ST bodyweight-only: semua jenis × durasi × kesulitan × 25 seed × blok/deload/bebas tidak error, lolos aturan wajib, dan Upper Push/Pull berisi gerakan kategorinya. |
