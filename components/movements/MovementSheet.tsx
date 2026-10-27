@@ -33,11 +33,14 @@ export function MovementSheet({
   name,
   item,
   activeConditions,
+  loadNote,
   onClose,
 }: {
   name: string;
   item?: StrengthItem;
   activeConditions: readonly ConditionId[];
+  /** Penjelasan beban di atas rentang awal library (0.14.0). */
+  loadNote?: string;
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -85,6 +88,7 @@ export function MovementSheet({
                 {item.rpe !== undefined && ` · RPE ${item.rpe}`}
               </p>
             )}
+            {loadNote && <p className="mt-1 text-[13px] text-ink">{loadNote}</p>}
           </div>
           <button
             type="button"

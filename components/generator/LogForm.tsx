@@ -7,6 +7,7 @@ import type { BlockContext } from "@/lib/generator/block";
 import type { StrengthItem, StrengthWorkout } from "@/lib/generator/types";
 import { findMovement, parseWeight, type MovementLibrary } from "@/lib/profile";
 import { parseRepRange, type LogEntry } from "@/lib/progression";
+import { prStore } from "@/lib/pr-store";
 import { newEntryId, trainingLog } from "@/lib/training-log";
 
 const RPE_OPTIONS = [4, 5, 6, 7, 8, 9];
@@ -86,6 +87,8 @@ export function LogForm({
       setError("Gagal menyimpan di perangkat ini (mode privat atau memori penuh).");
       return;
     }
+    // PR kemampuan dari sesi ini (0.14.0).
+    prStore.detectFromLog(trainingLog.all());
     onSaved();
   };
 

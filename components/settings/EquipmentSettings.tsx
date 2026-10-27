@@ -5,7 +5,8 @@ import { BUTTON, Card } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
 import { Switch } from "@/components/ui/Switch";
 import type { AthleteSettings } from "@/lib/athlete-settings";
-import { BAND_LEVELS, barbellLoads, dumbbellLoads, type Equipment } from "@/lib/equipment";
+import { BAND_LEVELS, ITEM_LABEL, MAX_ITEMS, barbellLoads, dumbbellLoads, type Equipment, type EquipmentItemKind } from "@/lib/equipment";
+import { LoadRuleNotice } from "@/components/strength/LoadRuleNotice";
 
 const INPUT = "min-h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-base text-ink tabular focus:border-brand";
 
@@ -74,6 +75,19 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
 
       <div className="mt-4 space-y-4">
         <section className="space-y-3">
+          <p className="text-body font-semibold">Batas beban</p>
+          <LoadRuleNotice inset />
+          {settings.loadRule?.acceptedAt && (
+            <Switch
+              checked={!!settings.loadRule.limitToLibrary}
+              onChange={(limitToLibrary) => onChange({ ...settings, loadRule: { ...settings.loadRule, limitToLibrary } })}
+              label="Batasi ke rentang awal library"
+              description="Nyala: beban tidak melewati rentang library seperti sebelum 0.14. Mati: beban boleh naik sampai batas alat dan batas keamanan kondisi aktif."
+            />
+          )}
+        </section>
+
+        <section className="space-y-3 border-t border-line pt-4">
           <Switch checked={eq.dumbbell.enabled} onChange={(enabled) => set({ dumbbell: { ...eq.dumbbell, enabled } })} label="Dumbbell modular" />
           {eq.dumbbell.enabled && (
             <div className="grid grid-cols-2 gap-3">
@@ -155,8 +169,53 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
             + Tambah plat
           </button>
           <div className="mt-3 space-y-2 rounded-inner bg-subtle p-3">
-            <LoadList label="Bisa dirakit · sepasang dumbbell (per tangan)" loads={eq.dumbbell.enabled ? dumbbellLoads(eq, true) : []} />
+            <LoadList label="Bisa dirakit · sepasang dumbbell (per tangan)" loads={eq.dumbbell.enabled || eq.items.some((i) => i.kind === "fixedDumbbell") ? dumbbellLoads(eq, true) : []} />
             {eq.barbell.enabled && <LoadList label="Bisa dirakit · barbell (total)" loads={barbellLoads(eq)} />}
+          </div>
+        </section>
+
+        <section className="border-t border-line pt-4">
+          <p className="text-body font-semibold">Dumbbell fixed & kettlebell</p>
+          <p className="mt-0.5 text-[13px] text-muted">Alat berbobot tetap. Dumbbell fixed ikut beban dumbbell (sepasang butuh 2 buah). Kettlebell dicatat dulu karena library belum punya gerakan kettlebell.</p>
+          <ul className="mt-2 space-y-2">
+            {eq.items.map((it) => (
+              <li key={it.id} className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2">
+                <p className="pb-3 text-[14px] font-semibold">{ITEM_LABEL[it.kind]}</p>
+                <NumberField
+                  label="Berat"
+                  value={it.kg}
+                  suffix="kg"
+                  onSave={(kg) => kg && set({ items: eq.items.map((x) => (x.id === it.id ? { ...x, kg } : x)) })}
+                />
+                <NumberField
+                  label="Jumlah"
+                  value={it.count}
+                  suffix="pcs"
+                  onSave={(count) => count && set({ items: eq.items.map((x) => (x.id === it.id ? { ...x, count: Math.round(count) } : x)) })}
+                />
+                <button
+                  type="button"
+                  aria-label={`Hapus ${ITEM_LABEL[it.kind]} ${it.kg} kg`}
+                  onClick={() => set({ items: eq.items.filter((x) => x.id !== it.id) })}
+                  className="pressable grid h-11 w-11 place-items-center rounded-control text-muted hover:bg-subtle hover:text-danger-ink"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {(["fixedDumbbell", "kettlebell"] as EquipmentItemKind[]).map((kind) => (
+              <button
+                key={kind}
+                type="button"
+                disabled={eq.items.length >= MAX_ITEMS}
+                onClick={() => set({ items: [...eq.items, { id: `${kind}-${Date.now().toString(36)}`, kind, kg: kind === "kettlebell" ? 8 : 5, count: kind === "kettlebell" ? 1 : 2 }] })}
+                className={`${BUTTON.base} ${BUTTON.secondary} disabled:opacity-40`}
+              >
+                + {ITEM_LABEL[kind]}
+              </button>
+            ))}
           </div>
         </section>
 

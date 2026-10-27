@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { BlockBadge } from "@/components/generator/BlockBadge";
 import { StrengthGenerator } from "@/components/generator/StrengthGenerator";
+import Link from "next/link";
 import { LogHistory } from "@/components/log/LogHistory";
+import { LoadRuleNotice } from "@/components/strength/LoadRuleNotice";
+import { PrSection } from "@/components/strength/PrSection";
 import { randomSeed } from "@/lib/generator/rng";
 import { getTrainingContext } from "@/lib/intervals/data-source";
 import { parseStrengthPrefill } from "@/lib/program/to-generator";
@@ -21,7 +24,12 @@ export default async function StrengthPage({ searchParams }: { searchParams: Pro
         </div>
         <BlockBadge />
       </header>
+      <LoadRuleNotice />
       <StrengthGenerator advice={ctx.advice} initialSeed={randomSeed()} prefill={prefill} />
+      <Link href="/setting#alat" className="inline-flex min-h-11 items-center text-[14px] font-semibold text-brand-ink hover:underline">
+        Atur alat di Setting
+      </Link>
+      <PrSection />
       <div className="pt-4">
         <LogHistory />
       </div>

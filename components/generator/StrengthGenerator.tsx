@@ -32,6 +32,8 @@ import { sessionCoverage } from "@/lib/athlete-settings";
 import { baseProfile, type Movement, type ResolvedProfile } from "@/lib/profile";
 import { useBlockContext, useBlockMode, useResolvedProfile } from "@/lib/settings-store";
 import { applyProgression } from "@/lib/progression";
+import { usePrs } from "@/lib/pr-store";
+import { isAboveLibrary, loadNote } from "@/components/strength/load-note";
 import { useTrainingLog } from "@/lib/training-log";
 import { MovementSheet } from "@/components/movements/MovementSheet";
 import { MovementThumb } from "@/components/movements/MovementThumb";
@@ -82,6 +84,7 @@ export function StrengthGenerator({
   const [saved, setSaved] = useState(false);
   const [detail, setDetail] = useState<StrengthItem | null>(null);
   const log = useTrainingLog();
+  const prs = usePrs();
   const p = useResolvedProfile();
   const movements = useMemo(() => movementMap(p), [p]);
 
@@ -89,8 +92,8 @@ export function StrengthGenerator({
     () => tryGenerate(() => generateStrengthWorkout({ type, duration, difficulty, seed, block, free }, p)),
     [type, duration, difficulty, seed, block, free, p],
   );
-  // Beban gerakan ★ disesuaikan dengan riwayat sesi (tetap dalam batas library & alat).
-  const workout = useMemo(() => generated && applyProgression(generated, movements, log), [generated, movements, log]);
+  // Beban gerakan ★ disesuaikan dengan riwayat sesi atau PR (tetap dalam batas library, atau sejak 0.14.0 batas alat & keamanan).
+  const workout = useMemo(() => generated && applyProgression(generated, movements, log, prs), [generated, movements, log, prs]);
   const text = useMemo(() => (workout ? strengthToText(workout) : ""), [workout]);
   const outputRef = useRef<HTMLElement>(null);
 
@@ -209,6 +212,11 @@ export function StrengthGenerator({
                             {formatLoad(it.load)} · RPE {it.rpe}
                             {it.sets > 1 && ` · rest ${restLabel(it.restSec)}`}
                           </p>
+                          {isAboveLibrary(movements.get(it.movement), it) && (
+                            <p className="mt-1">
+                              <Chip tone="accent">Di atas rentang awal</Chip>
+                            </p>
+                          )}
                           {it.progression && <p className="mt-1 text-[13px] font-semibold text-brand-ink">{it.progression}</p>}
                           {it.cue && <p className="mt-1 text-[13px] text-faint">{it.cue}</p>}
                           <p className="t-label mt-1.5">Lihat teknik ›</p>
@@ -283,7 +291,15 @@ export function StrengthGenerator({
       />
       </>
       )}
-      {detail && <MovementSheet name={detail.movement} item={detail} activeConditions={p.activeConditions} onClose={() => setDetail(null)} />}
+      {detail && (
+        <MovementSheet
+          name={detail.movement}
+          item={detail}
+          activeConditions={p.activeConditions}
+          loadNote={loadNote(movements.get(detail.movement), detail, log, prs) ?? undefined}
+          onClose={() => setDetail(null)}
+        />
+      )}
     </div>
   );
 }
