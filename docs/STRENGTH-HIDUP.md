@@ -106,7 +106,7 @@ Rentang beban per gerakan di library **tidak lagi menjadi plafon**, dengan syara
 | --- | --- |
 | Skema "Kekuatan" 5–6 rep | Turun prioritas: dengan alat mentok, rep rendah tidak bisa dibuat lebih berat. Ditinjau lagi bila alat bertambah |
 | Tes kekuatan berkala | Sebagian besar tergantikan PR. Milestone pull-up tetap |
-| Plyometric ringan | Opsional, hanya bila shin splints nonaktif, lewat aturan PRD §3 |
+| Plyometric ringan | Ditunda ke backlog P3 (D6): butuh shin splints nonaktif dan sumber, lewat aturan PRD §3 |
 | Tren volume ST, heatmap aktivitas | 0.15 Insight |
 | Heatmap otot mingguan/bulanan | 0.15 Insight: agregasi log ST per otot (frekuensi atau volume) memakai `MuscleMap` yang sama; menyorot otot yang jarang dilatih (mis. biceps, triceps, lats, betis, tibialis) |
 | Sinkron per-field | Bahan pertimbangan desain 0.12 |
@@ -116,13 +116,24 @@ Rentang beban per gerakan di library **tidak lagi menjadi plafon**, dengan syara
 Hanya konsep (AGPL-3.0): jangan salin kode, teks, atau aset UI. Konsep yang dipakai di 0.14: double progression dengan rentang rep terlihat, timer istirahat, target yang menjelaskan alasannya. Progresi "tambah waktu" untuk gerakan tahan sudah ada (+5 detik, maks 60).
 
 ## 6. Keputusan terbuka
+
+Semua butir di bawah **diputuskan pemilik pada 2026-10-26** (D1–D8). Daftarnya tetap disimpan sebagai riwayat.
+
 1. **Gita:** nama coach di UI. Bila disetujui, dicatat di DESIGN-SYSTEM §7 dan dipakai konsisten.
+   - **Diputuskan (D1):** nama coach **Gita**.
 2. Ambang pengingat beli (usulan 80%) dan rentang rep tetap per level (usulan Easy 10–15, Moderate 8–12, High 6–10, tetap RPE ≤ 7).
+   - **Diputuskan (D2):** ambang pengingat beli **80% per area** (lower, upper push, upper pull).
+   - **Diputuskan (D3):** rentang rep tetap saat mentok **Easy 10–15, Moderate 8–12, High 6–10**, tetap RPE ≤ 7.
 3. Daftar gerakan dengan batas keamanan, beserta sumbernya.
+   - **Diputuskan (D4):** daftar dan angka batas keamanan **diusulkan Claude Code beserta sumbernya**, lalu disetujui pemilik di Prompt 1A sebelum diterapkan.
 4. Aturan concurrent lama (setelah ST kaki → lari maks Moderate): dipertahankan, dipersempit, atau diganti aturan hari yang sama.
+   - **Diputuskan (D5):** aturan concurrent lama **dipertahankan**, ditambah aturan hari yang sama (lari + ST: sarankan jeda **≥ 3 jam**).
 5. Plyometric masuk 0.14 atau ditunda.
+   - **Diputuskan (D6):** **ditunda ke backlog** (P3), butuh kondisi shin splints nonaktif dan sumber.
 6. Warna peta otot. Usulan: otot utama `--brand`, sekunder `--brand-soft`, otot lain `--subtle-strong`. Perlu dicatat di DESIGN-SYSTEM karena oranye selama ini berarti "selesai"; peta otot bukan rencana maupun status selesai.
+   - **Diputuskan (D7):** otot utama `--brand`, sekunder `--brand-soft`, otot lain `--subtle-strong`. Dicatat di DESIGN-SYSTEM saat komponen dibuat.
 7. Sumber SVG final (react-body-highlighter / body-highlighter / MuscleMapJS) setelah cek region tibialis & soleus.
+   - **Diputuskan (D8):** sumber SVG **dipilih di Prompt 2** setelah perbandingan (kelengkapan region, ukuran, lisensi).
 
 ## 7. Perkiraan dampak (dipastikan saat memeriksa kode)
 - **Logika:** `lib/equipment.ts`, `lib/progression.ts`, `lib/training-log.ts`, `lib/generator/meta.ts`, `lib/generator/strength.ts`, `lib/generator/validate.ts`, `lib/athlete-settings.ts`, `lib/sync/merge.ts`, `lib/coach.ts`.
