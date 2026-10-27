@@ -3,6 +3,7 @@ import {
   isHardRun,
   isLegStrength,
   readinessAdvice,
+  sameDayAdvice,
   suggestFor,
   weekStats,
   weeklyAdvice,
@@ -11,6 +12,7 @@ import {
 import { addDays } from "@/lib/date";
 import type { Activity } from "@/lib/intervals/types";
 import { mockActivities } from "@/lib/mock-data";
+import type { StSession } from "@/lib/st-session";
 
 const TODAY = "2026-09-28";
 let n = 0;
@@ -198,5 +200,70 @@ describe("saran terhadap rencana hari ini (0.13.1, PROGRAM-HIDUP §4.5)", () => 
       }
     }
     expect(suggestFor([readiness], "strength", { difficulty: "high", duration: 45, type: "lower" }, { plan: quality })).toEqual({ difficulty: "moderate" });
+  });
+});
+
+// Sesi mode latihan fiktif (0.14.1).
+const ses = (daysAgo: number, over: Partial<StSession> = {}): StSession => ({
+  id: `ses${n++}`,
+  date: addDays(TODAY, -daysAgo),
+  startedAt: `${addDays(TODAY, -daysAgo)}T10:00:00.000Z`,
+  type: "lower",
+  title: "Lower · Moderate 45'",
+  difficulty: "moderate",
+  durationMin: 45,
+  rpe: 6,
+  setsDone: 12,
+  setsPlanned: 12,
+  movements: [],
+  updatedAt: `${addDays(TODAY, -daysAgo)}T11:00:00.000Z`,
+  ...over,
+});
+
+describe("ST di beban 7 hari (0.14.1)", () => {
+  it("sesi lokal masuk jumlah, menit, dan beban AU; aktivitas tanpa pasangan dihitung tanpa AU", () => {
+    const s = weekStats([{ ...st(4, "Weight Training"), movingTimeSec: 1800 }], TODAY, [ses(1), ses(3, { type: "upperPush", rpe: 5, durationMin: 30 })]);
+    expect(s).toMatchObject({ st7: 3, stMin7: 105, stLoad7: 270 + 150, stNoRpe7: 1 });
+  });
+
+  it("sesi lokal dan aktivitas intervals.icu yang sama tidak dihitung dobel", () => {
+    const dup: Activity = { ...st(1, "Weight Training"), startLocal: `${addDays(TODAY, -1)}T17:20:00`, movingTimeSec: 2700 };
+    expect(weekStats([dup], TODAY, [ses(1)])).toMatchObject({ st7: 1, stMin7: 45, stLoad7: 270, stNoRpe7: 0 });
+  });
+
+  it("di luar 7 hari dan sesi terhapus tidak dihitung; tanpa sesi = hanya aktivitas", () => {
+    expect(weekStats([], TODAY, [ses(7), ses(1, { deletedAt: "2026-09-28T00:00:00.000Z" })]).st7).toBe(0);
+    expect(weekStats([st(2, "Upper")], TODAY)).toMatchObject({ st7: 1, stLoad7: 0, stNoRpe7: 1 });
+  });
+
+  it("ST kaki dari sesi mode latihan juga memicu batas lari Moderate (aturan concurrent tetap)", () => {
+    const a = weeklyAdvice([], TODAY, [ses(1)]);
+    expect(a.find((x) => x.id === "after-leg-st")).toMatchObject({ title: "Kemarin ST kaki", maxDifficulty: "moderate" });
+    expect(ids(weeklyAdvice([], TODAY, [ses(0, { type: "upperPull" })]))).not.toContain("after-leg-st");
+    expect(ids(weeklyAdvice([], TODAY, [ses(2)]))).not.toContain("after-leg-st");
+    // Aturan lama dari nama aktivitas tetap.
+    expect(ids(weeklyAdvice([st(0, "ST Lower")], TODAY))).toContain("after-leg-st");
+  });
+});
+
+describe("aturan hari yang sama (D5, Schumann 2022)", () => {
+  it("lari dan ST hari ini → sarankan jeda ≥ 3 jam, non-blokir", () => {
+    const a = sameDayAdvice({ activities: [run(0, 5)], plannedToday: { run: false, strength: true }, today: TODAY });
+    expect(a).toMatchObject({ id: "same-day", targets: ["run", "strength"] });
+    expect(a?.message).toBe("Hari ini ada lari dan ST. Beri jeda minimal 3 jam di antaranya supaya adaptasi kekuatan tidak terganggu.");
+    expect(a?.maxDifficulty).toBeUndefined();
+    expect(a?.lowerBy).toBeUndefined();
+  });
+
+  it("sumber: sesi program, sesi lokal, atau generator yang dibuka", () => {
+    expect(sameDayAdvice({ activities: [], plannedToday: { run: true, strength: true }, today: TODAY })).not.toBeNull();
+    expect(sameDayAdvice({ activities: [], sessions: [ses(0)], current: "run", today: TODAY })).not.toBeNull();
+    expect(sameDayAdvice({ activities: [run(0, 5)], current: "strength", today: TODAY })).not.toBeNull();
+  });
+
+  it("hanya satu jenis, hari lain, atau keduanya sudah tercatat → tidak muncul", () => {
+    expect(sameDayAdvice({ activities: [run(0, 5)], today: TODAY })).toBeNull();
+    expect(sameDayAdvice({ activities: [run(1, 5)], current: "strength", today: TODAY })).toBeNull();
+    expect(sameDayAdvice({ activities: [run(0, 5), st(0, "Upper")], current: "strength", today: TODAY })).toBeNull();
   });
 });

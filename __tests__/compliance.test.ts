@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Activity } from "@/lib/intervals/types";
 import { evaluateCompliance, weekSummary } from "@/lib/program/compliance";
 import type { PlannedSession } from "@/lib/program/sessions";
+import type { StSession } from "@/lib/st-session";
 
 // Sesi & aktivitas fiktif (minggu 2026-01-05 s.d. 2026-01-11).
 const sess = (id: string, date: string, kind: PlannedSession["kind"], extra: Partial<PlannedSession> = {}): PlannedSession => ({
@@ -127,5 +128,50 @@ describe("ringkasan minggu", () => {
     const r = evaluateCompliance(list, [act("2026-01-06", { name: "Tempo" }), act("2026-01-11", { distanceKm: 14 })], ["2026-01-05"], TODAY);
     expect(weekSummary(list, r, 1)).toEqual({ week: 1, done: 3, total: 4, longRun: { km: 14, status: "selesai" } });
     expect(weekSummary(list, r, 2)).toEqual({ week: 2, done: 0, total: 1 });
+  });
+});
+
+describe("kepatuhan ST dari sesi mode latihan (0.14.1)", () => {
+  const lower = sess("p:1:senin:st-lower", "2026-01-05", "st-lower", { intensity: "moderate" });
+  const upper = sess("p:1:rabu:st-upper", "2026-01-07", "st-upper", { intensity: "moderate" });
+  const ses = (id: string, date: string, over: Partial<StSession> = {}): StSession => ({
+    id,
+    date,
+    startedAt: `${date}T10:00:00.000Z`,
+    type: "lower",
+    title: "Lower",
+    difficulty: "moderate",
+    durationMin: 45,
+    rpe: 6,
+    setsDone: 12,
+    setsPlanned: 12,
+    movements: [],
+    updatedAt: `${date}T11:00:00.000Z`,
+    ...over,
+  });
+
+  it("set ≥ 80% → selesai; di bawahnya → sebagian dengan rasio", () => {
+    expect(evaluateCompliance([lower], [], [], TODAY, [ses("s1", "2026-01-05")]).get(lower.id)).toMatchObject({ status: "selesai", stSessionId: "s1", ratio: 1 });
+    expect(evaluateCompliance([lower], [], [], TODAY, [ses("s1", "2026-01-05", { setsDone: 6 })]).get(lower.id)).toMatchObject({ status: "sebagian", ratio: 0.5 });
+  });
+
+  it("aktivitas strength intervals.icu yang sama tidak dipakai lagi untuk sesi lain", () => {
+    const dup = act("2026-01-06", { category: "strength", type: "WeightTraining", startLocal: "2026-01-06T17:10:00" });
+    const r = evaluateCompliance([lower, upper], [dup], [], TODAY, [ses("s1", "2026-01-06")]);
+    expect(r.get(lower.id)?.stSessionId).toBe("s1");
+    // Tanpa dedupe, aktivitas yang sama akan "memenuhi" ST Upper Rabu (±1 hari).
+    expect(status(r, upper.id)).toBe("terlewat");
+  });
+
+  it("log ★ di tanggal sesi lokal tidak dihitung dua kali; log tanpa sesi tetap selesai", () => {
+    const r = evaluateCompliance([lower, upper], [], ["2026-01-06"], TODAY, [ses("s1", "2026-01-06")]);
+    expect(status(r, upper.id)).toBe("terlewat");
+    expect(evaluateCompliance([upper], [], ["2026-01-07"], TODAY).get(upper.id)).toMatchObject({ status: "selesai", logDate: "2026-01-07" });
+  });
+
+  it("sesi yang dimulai dari sesi program diutamakan untuk sesi itu", () => {
+    const s = ses("s1", "2026-01-06", { planSessionId: upper.id, type: "upperPull" });
+    const r = evaluateCompliance([lower, upper], [], [], TODAY, [s]);
+    expect(r.get(upper.id)?.stSessionId).toBe("s1");
   });
 });

@@ -6,12 +6,16 @@
  *   shin splints (MTSS) dan cedera gluteus medius — relevan untuk profil ini.
  * - Concurrent training (Wilson dkk. 2012): lari mengganggu adaptasi kekuatan,
  *   jadi sesi kaki berat dan lari berat diberi jarak.
+ * - Hari yang sama (0.14.1, Schumann dkk. 2022): lari dan ST di hari yang sama diberi jeda ≥ 3 jam.
+ * - ST dihitung dari sesi mode latihan (session-RPE, 0.14.1) dan aktivitas strength intervals.icu tanpa hitung dobel
+ *   (`dedupeStSessions`). Beban ST dalam AU (RPE × menit), tidak dijumlah dengan beban lari.
  *
  * Semua saran bersifat non-blokir: hanya menyarankan, tidak memaksa.
  */
 import { addDays } from "@/lib/date";
 import type { Activity } from "@/lib/intervals/types";
 import type { Readiness } from "@/lib/readiness";
+import { dedupeStSessions, type StItem, type StSession } from "@/lib/st-session";
 import { DIFFICULTIES, type Difficulty, type Duration, type StrengthType } from "@/lib/generator/types";
 
 /** Lari dianggap berat di atas HR ini (batas bawah zona tempo generator = 160). */
@@ -30,7 +34,7 @@ const LOWER_ST_NAME = /lower|leg|kaki|full|squat|deadlift|hip thrust|glute|lunge
 export type AdviceTarget = "run" | "strength";
 
 export interface Advice {
-  id: "readiness" | "polarized" | "volume" | "after-leg-st" | "after-hard-run";
+  id: "readiness" | "polarized" | "volume" | "after-leg-st" | "after-hard-run" | "same-day";
   targets: AdviceTarget[];
   /** Ringkasan pendek untuk tampilan ringkas (judul baris). */
   title: string;
@@ -68,11 +72,23 @@ export interface WeekStats {
   kmChange?: number;
   /** Batas km 7 hari yang masih ≤ +30% dari 7 hari sebelumnya. */
   safeKmCap?: number;
+  /** Sesi ST 7 hari (sesi lokal + aktivitas strength tanpa pasangan). */
+  st7: number;
+  /** Menit ST 7 hari yang diketahui. */
+  stMin7: number;
+  /** Beban session-RPE 7 hari (AU), hanya dari sesi mode latihan. */
+  stLoad7: number;
+  /** Sesi ST 7 hari tanpa RPE (aktivitas intervals.icu saja), tidak masuk `stLoad7`. */
+  stNoRpe7: number;
 }
 
 const inRange = (a: Activity, from: string, to: string) => !!a.date && a.date >= from && a.date <= to;
 
-export function weekStats(activities: Activity[], today: string): WeekStats {
+const stInRange = (i: StItem, from: string, to: string) => i.date >= from && i.date <= to;
+
+/** `sessions` = sesi ST mode latihan di perangkat (0.14.1); kosong = hanya aktivitas intervals.icu. */
+export function weekStats(activities: Activity[], today: string, sessions: StSession[] = []): WeekStats {
+  const st = dedupeStSessions(sessions, activities).filter((i) => stInRange(i, addDays(today, -6), today));
   const runs = activities.filter((a) => a.category === "run");
   const cur = runs.filter((a) => inRange(a, addDays(today, -6), today));
   const prev = runs.filter((a) => inRange(a, addDays(today, -13), addDays(today, -7)));
@@ -87,12 +103,16 @@ export function weekStats(activities: Activity[], today: string): WeekStats {
     runKmPrev7,
     kmChange: enoughBase ? runKm7 / runKmPrev7 - 1 : undefined,
     safeKmCap: enoughBase ? runKmPrev7 * (1 + KM_INCREASE_LIMIT) : undefined,
+    st7: st.length,
+    stMin7: st.reduce((t, i) => t + (i.minutes ?? 0), 0),
+    stLoad7: st.reduce((t, i) => t + (i.load ?? 0), 0),
+    stNoRpe7: st.filter((i) => i.source === "intervals").length,
   };
 }
 
-export function weeklyAdvice(activities: Activity[], today: string): Advice[] {
+export function weeklyAdvice(activities: Activity[], today: string, sessions: StSession[] = []): Advice[] {
   const out: Advice[] = [];
-  const s = weekStats(activities, today);
+  const s = weekStats(activities, today, sessions);
 
   if (s.hardRuns7 >= MAX_HARD_RUNS_7D) {
     const pct = Math.round((s.hardRuns7 / s.runs7) * 100);
@@ -121,9 +141,11 @@ export function weeklyAdvice(activities: Activity[], today: string): Advice[] {
 
   const yesterday = addDays(today, -1);
   const recent = activities.filter((a) => a.date === today || a.date === yesterday);
-  const when = (a: Activity) => (a.date === today ? "Hari ini" : "Kemarin");
+  const when = (a: Pick<Activity, "date">) => (a.date === today ? "Hari ini" : "Kemarin");
 
-  const legSt = recent.find(isLegStrength);
+  // ST kaki dari aktivitas intervals.icu (nama) atau sesi mode latihan (tipe Lower/Full Body).
+  const legSession = sessions.find((x) => !x.deletedAt && (x.date === today || x.date === yesterday) && (x.type === "lower" || x.type === "fullBody"));
+  const legSt: Pick<Activity, "date" | "name"> | undefined = recent.find(isLegStrength) ?? (legSession ? { date: legSession.date, name: legSession.title } : undefined);
   if (legSt) {
     out.push({
       id: "after-leg-st",
@@ -146,6 +168,36 @@ export function weeklyAdvice(activities: Activity[], today: string): Advice[] {
   }
 
   return out;
+}
+
+/** Jeda minimal antara lari dan ST di hari yang sama (Schumann dkk. 2022). */
+export const SAME_DAY_GAP_H = 3;
+
+/**
+ * Lari dan ST di hari yang sama → sarankan jeda ≥ 3 jam (D5, non-blokir). Sumber "ada lari/ST hari ini": aktivitas
+ * yang sudah tercatat, sesi mode latihan, sesi program hari ini, atau generator yang sedang dibuka (`current`).
+ * Tidak muncul bila keduanya sudah tercatat selesai (tidak ada lagi yang bisa dijadwalkan).
+ */
+export function sameDayAdvice(o: {
+  activities: Activity[];
+  sessions?: StSession[];
+  /** Jenis sesi program yang jatuh hari ini. */
+  plannedToday?: { run: boolean; strength: boolean };
+  current?: AdviceTarget;
+  today: string;
+}): Advice | null {
+  const acts = o.activities.filter((a) => a.date === o.today);
+  const runDone = acts.some((a) => a.category === "run");
+  const stDone = acts.some((a) => a.category === "strength") || (o.sessions ?? []).some((s) => !s.deletedAt && s.date === o.today);
+  const run = runDone || !!o.plannedToday?.run || o.current === "run";
+  const st = stDone || !!o.plannedToday?.strength || o.current === "strength";
+  if (!run || !st || (runDone && stDone)) return null;
+  return {
+    id: "same-day",
+    targets: ["run", "strength"],
+    title: `Lari dan ST hari ini: jeda ≥ ${SAME_DAY_GAP_H} jam`,
+    message: `Hari ini ada lari dan ST. Beri jeda minimal ${SAME_DAY_GAP_H} jam di antaranya supaya adaptasi kekuatan tidak terganggu.`,
+  };
 }
 
 export function readinessAdvice(r: Readiness | null): Advice[] {

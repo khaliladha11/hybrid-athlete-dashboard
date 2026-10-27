@@ -8,12 +8,15 @@
  *   Quality yang dikerjakan ringan juga sebagian. Aktivitas tanpa durasi & jarak (mis. salinan Strava kosong) dianggap
  *   memenuhi karena tidak bisa diukur.
  * - Easy/recovery yang dikerjakan berat diberi catatan `lebih-berat` (memakai `isHardRun` yang sama dengan coach).
- * - ST: selesai bila ada log ST lokal atau aktivitas strength di tanggal ±1 hari. Berat ringannya ST cakupan 0.14.
+ * - ST: sesi mode latihan (0.14.1) di tanggal ±1 hari menentukan selesai (set ≥ 80%) atau sebagian; sesi yang dimulai
+ *   dari sesi program itu diutamakan. Tanpa sesi: log ST lokal atau aktivitas strength = selesai. Aktivitas strength
+ *   yang sudah berpasangan dengan sesi lokal (`dedupeStSessions`) dan log di tanggal sesi lokal tidak dihitung lagi.
  * - Tanpa aktivitas: kemarin masih bisa (tenggang ±1 hari), lewat dari itu terlewat.
  */
 import { addDays } from "@/lib/date";
 import { isHardRun } from "@/lib/coach";
 import type { Activity } from "@/lib/intervals/types";
+import { completion, dedupeStSessions, isComplete, type StSession } from "@/lib/st-session";
 import { isRunKind, type PlannedSession } from "./sessions";
 
 export type SessionStatus = "mendatang" | "hari-ini" | "selesai" | "sebagian" | "terlewat" | "digeser" | "dilewati";
@@ -24,6 +27,8 @@ export interface SessionResult {
   activityIds: string[];
   /** Sesi ST yang dipenuhi log lokal di tanggal ini. */
   logDate?: string;
+  /** Sesi mode latihan yang memenuhi sesi ST ini (0.14.1). */
+  stSessionId?: string;
   note?: "lebih-berat";
   /** Tanggal kemarin tanpa aktivitas: masih bisa dikerjakan hari ini. */
   masihBisa?: boolean;
@@ -46,6 +51,7 @@ interface Candidate {
   date: string;
   start: string;
   activity?: Activity;
+  session?: StSession;
 }
 
 /** Pasangkan sesi dengan kandidat secara serakah dan deterministik. */
@@ -83,23 +89,34 @@ function judgeRun(s: PlannedSession, acts: Activity[]): Pick<SessionResult, "sta
 }
 
 /**
- * Status setiap sesi. `stLogDates` = tanggal (WIB) yang punya log ST hidup di perangkat.
- * Aktivitas tanpa tanggal atau setelah hari ini diabaikan.
+ * Status setiap sesi. `stLogDates` = tanggal (WIB) yang punya log ST hidup di perangkat; `stSessions` = sesi mode
+ * latihan (0.14.1). Aktivitas tanpa tanggal atau setelah hari ini diabaikan.
  */
-export function evaluateCompliance(sessions: PlannedSession[], activities: Activity[], stLogDates: string[], today: string): Map<string, SessionResult> {
+export function evaluateCompliance(
+  sessions: PlannedSession[],
+  activities: Activity[],
+  stLogDates: string[],
+  today: string,
+  stSessions: StSession[] = [],
+): Map<string, SessionResult> {
   const acts = activities.filter((a) => a.date && a.date <= today);
   const active = sessions.filter((s) => s.override?.action !== "skip");
   const runSessions = active.filter((s) => isRunKind(s.kind));
-  const stSessions = active.filter((s) => !isRunKind(s.kind));
+  const stPlanned = active.filter((s) => !isRunKind(s.kind));
 
   const runCands: Candidate[] = acts.filter((a) => a.category === "run").map((a) => ({ key: a.id, date: a.date!, start: a.startLocal ?? a.date!, activity: a }));
   const runMatch = assign(runSessions, runCands, (s, c) => runFit(s, c.activity!));
 
+  const liveSt = stSessions.filter((s) => !s.deletedAt && s.date <= today);
+  const paired = new Set(dedupeStSessions(liveSt, acts).flatMap((i) => (i.source === "local" && i.activityId ? [i.activityId] : [])));
+  const stDates = new Set(liveSt.map((s) => s.date));
   const stCands: Candidate[] = [
-    ...[...new Set(stLogDates)].filter((d) => d <= today).map((d) => ({ key: `log:${d}`, date: d, start: `${d}T00` })),
-    ...acts.filter((a) => a.category === "strength").map((a) => ({ key: a.id, date: a.date!, start: a.startLocal ?? a.date!, activity: a })),
+    ...liveSt.map((s) => ({ key: `ses:${s.id}`, date: s.date, start: s.startedAt, session: s })),
+    ...[...new Set(stLogDates)].filter((d) => d <= today && !stDates.has(d)).map((d) => ({ key: `log:${d}`, date: d, start: `${d}T00` })),
+    ...acts.filter((a) => a.category === "strength" && !paired.has(a.id)).map((a) => ({ key: a.id, date: a.date!, start: a.startLocal ?? a.date!, activity: a })),
   ];
-  const stMatch = assign(stSessions, stCands, (_s, c) => (c.activity ? 1 : 2));
+  const stFit = (s: PlannedSession, c: Candidate) => (c.session ? (c.session.planSessionId === s.id ? 4 : 3) : c.activity ? 1 : 2);
+  const stMatch = assign(stPlanned, stCands, stFit);
 
   // Lari tambahan di hari yang sama dengan aktivitas utama sesi dijumlah.
   const usedRun = new Set([...runMatch.values()].map((c) => c.key));
@@ -125,7 +142,10 @@ export function evaluateCompliance(sessions: PlannedSession[], activities: Activ
     }
     const st = stMatch.get(s.id);
     if (st) {
-      out.set(s.id, st.activity ? { status: "selesai", activityIds: [st.activity.id] } : { status: "selesai", activityIds: [], logDate: st.date });
+      if (st.session) {
+        const ratio = Math.round(completion(st.session) * 100) / 100;
+        out.set(s.id, { status: isComplete(st.session) ? "selesai" : "sebagian", activityIds: [], stSessionId: st.session.id, ratio });
+      } else out.set(s.id, st.activity ? { status: "selesai", activityIds: [st.activity.id] } : { status: "selesai", activityIds: [], logDate: st.date });
       continue;
     }
     const moved = s.override?.action === "move";
