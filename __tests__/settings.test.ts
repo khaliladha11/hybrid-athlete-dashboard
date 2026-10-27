@@ -352,7 +352,7 @@ describe("profil dasar di Setting (0.11)", () => {
 describe("gerakan cadangan tanpa alat (0.11.2)", () => {
   const PUSH = ["Push-Up", "Knee Push-Up", "Wall Push-Up"];
   const PULL = ["Prone Y-T-W Raise", "Prone Reverse Snow Angel"];
-  const noGear = { dumbbell: { enabled: false, handles: 2 }, barbell: { enabled: false }, plates: [], bands: [], pullUpBar: false, bench: false, bandAnchor: false, other: [] };
+  const noGear = { dumbbell: { enabled: false, handles: 2 }, barbell: { enabled: false }, plates: [], bands: [], pullUpBar: false, bench: false, bandAnchor: false, other: [], items: [] };
 
   it("profil beralat: cadangan tidak dipilih otomatis (rotasi lama tidak berubah)", () => {
     const p = make({});
@@ -382,7 +382,7 @@ describe("gerakan cadangan tanpa alat (0.11.2)", () => {
 });
 
 describe("cakupan jenis sesi ST (pesan alat)", () => {
-  const noGear = { dumbbell: { enabled: false, handles: 2 }, barbell: { enabled: false }, plates: [], bands: [], pullUpBar: false, bench: false, bandAnchor: false, other: [] };
+  const noGear = { dumbbell: { enabled: false, handles: 2 }, barbell: { enabled: false }, plates: [], bands: [], pullUpBar: false, bench: false, bandAnchor: false, other: [], items: [] };
   const allOff = (cat: "upperPush" | "upperPull") => Object.fromEntries(baseProfile.movementLibrary[cat].map((m) => [m.name, false]));
 
   it("profil beralat dan profil tanpa alat (dengan cadangan) bisa menyusun semua jenis sesi", () => {

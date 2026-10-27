@@ -118,6 +118,7 @@ const FALLBACK_EQUIPMENT: Equipment = {
   bench: true,
   bandAnchor: true,
   other: [],
+  items: [],
 };
 
 export function defaultSettings(base: AthleteProfile): AthleteSettings {
