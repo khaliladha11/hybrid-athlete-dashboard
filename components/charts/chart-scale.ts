@@ -22,9 +22,14 @@ const round = (v: number, d: number) => Number(v.toFixed(Math.min(10, d)));
 
 /**
  * Domain dan tick "rapi" (langkah 1/2/2,5/5 × 10ⁿ) yang memuat `[min, max]`, dengan jumlah tick ≤ `maxTicks`.
- * Satu nilai atau nilai sama diberi jarak supaya garis tidak menempel di tepi. `zero` memaksa domain memuat 0 (batang).
+ * Satu nilai atau nilai sama diberi jarak supaya garis tidak menempel di tepi. `zero` memaksa domain memuat 0 (batang),
+ * `integer` hanya memakai langkah bilangan bulat (hitungan).
  */
-export function niceTicks(min: number, max: number, { maxTicks = 5, zero = false }: { maxTicks?: number; zero?: boolean } = {}): { domain: Range; ticks: number[] } {
+export function niceTicks(
+  min: number,
+  max: number,
+  { maxTicks = 5, zero = false, integer = false }: { maxTicks?: number; zero?: boolean; integer?: boolean } = {},
+): { domain: Range; ticks: number[] } {
   let lo = zero ? Math.min(0, min) : min;
   let hi = zero ? Math.max(0, max) : max;
   if (hi === lo) {
@@ -37,6 +42,8 @@ export function niceTicks(min: number, max: number, { maxTicks = 5, zero = false
   for (let k = 0; k < 4; k++) {
     for (const s of STEPS) {
       const step = s * mag * 10 ** k;
+      // Hitungan (sesi, set): langkah minimal 1 dan bulat.
+      if (integer && (step < 1 || !Number.isInteger(step))) continue;
       const a = Math.floor(lo / step + 1e-9) * step;
       const b = Math.ceil(hi / step - 1e-9) * step;
       const n = Math.round((b - a) / step) + 1;
@@ -49,6 +56,9 @@ export function niceTicks(min: number, max: number, { maxTicks = 5, zero = false
   }
   return { domain: [lo, hi], ticks: [lo, hi] };
 }
+
+/** Label angka sumbu gaya Indonesia: 0,5 · 1.200 · −10. */
+export const axisNumber = (v: number) => v.toLocaleString("id-ID", { maximumFractionDigits: 2 }).replace("-", "−");
 
 /** Skala linear domain → piksel. Domain nol lebar dipetakan ke tengah. */
 export function linearScale([d0, d1]: Range, [r0, r1]: Range): (v: number) => number {

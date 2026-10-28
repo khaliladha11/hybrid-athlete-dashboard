@@ -1,6 +1,6 @@
 "use client";
 
-import { areaPath, extent, linePath, linearScale, niceTicks, placeLabels, thinLabels, type Point } from "./chart-scale";
+import { areaPath, axisNumber, extent, linePath, linearScale, niceTicks, placeLabels, thinLabels, type Point } from "./chart-scale";
 import { useWidth } from "./useWidth";
 
 export type LineTone = "brand" | "ink" | "muted";
@@ -38,7 +38,7 @@ export function LineChart({
   band,
   target,
   invert = false,
-  yFormat = (v) => String(v),
+  yFormat = axisNumber,
 }: {
   ariaLabel: string;
   /** Label sumbu-x per indeks; ditipiskan ke ≤ 6. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_LABELS, areaPath, bandLayout, extent, labelWidth, linePath, linearScale, niceTicks, placeLabels, thinLabels } from "@/components/charts/chart-scale";
+import { MAX_LABELS, areaPath, axisNumber, bandLayout, extent, labelWidth, linePath, linearScale, niceTicks, placeLabels, thinLabels } from "@/components/charts/chart-scale";
 
 describe("extent", () => {
   it("abaikan nilai kosong, null bila semua kosong", () => {
@@ -109,5 +109,18 @@ describe("placeLabels", () => {
     expect(out.at(-1)!.x).toBeLessThanOrEqual(369 - labelWidth("28 Okt") / 2);
     expect(out.map((l) => l.text)).not.toContain("20 Okt");
     for (let i = 1; i < out.length; i++) expect(out[i].x - out[i - 1].x).toBeGreaterThanOrEqual((labelWidth(out[i].text) + labelWidth(out[i - 1].text)) / 2);
+  });
+});
+
+describe("tick hitungan & format sumbu", () => {
+  it("integer: langkah bulat ≥ 1", () => {
+    expect(niceTicks(0, 1, { zero: true, integer: true }).ticks).toEqual([0, 1]);
+    expect(niceTicks(0, 3, { zero: true, integer: true }).ticks).toEqual([0, 1, 2, 3]);
+    expect(niceTicks(0, 9, { zero: true, integer: true }).ticks.every(Number.isInteger)).toBe(true);
+  });
+  it("angka sumbu gaya Indonesia", () => {
+    expect(axisNumber(0.5)).toBe("0,5");
+    expect(axisNumber(1200)).toBe("1.200");
+    expect(axisNumber(-10)).toBe("−10");
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { bandLayout, linearScale, niceTicks, placeLabels, thinLabels } from "./chart-scale";
+import { axisNumber, bandLayout, linearScale, niceTicks, placeLabels, thinLabels } from "./chart-scale";
 import { useWidth } from "./useWidth";
 
 export type BarTone = "success" | "danger" | "brand" | "brandSoft" | "track";
@@ -29,7 +29,8 @@ export function BarChart({
   stacks,
   marks = [],
   partial,
-  yFormat = (v) => String(v),
+  integer = false,
+  yFormat = axisNumber,
 }: {
   ariaLabel: string;
   labels: string[];
@@ -38,12 +39,14 @@ export function BarChart({
   marks?: (string | undefined)[];
   /** Indeks batang yang belum lengkap (minggu berjalan). */
   partial?: number;
+  /** Nilai berupa hitungan: tick bilangan bulat. */
+  integer?: boolean;
   yFormat?: (v: number) => string;
 }) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const n = labels.length;
   const totals = labels.map((_, i) => stacks.reduce((t, s) => t + (s.values[i] ?? 0), 0));
-  const { domain, ticks } = niceTicks(0, Math.max(0, ...totals), { zero: true });
+  const { domain, ticks } = niceTicks(0, Math.max(0, ...totals), { zero: true, integer });
   const plotW = width - LEFT - RIGHT;
   const y = linearScale(domain, [HEIGHT - BOTTOM, TOP]);
   const bars = bandLayout(n, plotW);
