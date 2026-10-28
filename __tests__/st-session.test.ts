@@ -56,6 +56,37 @@ describe("session-RPE (Foster)", () => {
   });
 });
 
+describe("rincian set (0.15.1)", () => {
+  it("sesi lama tanpa rincian tetap valid dan tidak diberi field kosong", () => {
+    expect(normalizeSession(ses())).not.toHaveProperty("sets");
+    expect(normalizeSession({ ...ses(), sets: [] })).not.toHaveProperty("sets");
+  });
+
+  it("set valid disimpan, set rusak dibuang", () => {
+    const sets = [
+      { movement: "Barbell Squat", load: 14, value: 10, unit: "reps", tempo: true },
+      { movement: "Side Plank", value: 30.4, unit: "sec" },
+      { movement: "Clamshell", band: "Light", value: 15, unit: "reps" },
+      { movement: "", value: 10, unit: "reps" },
+      { movement: "X", value: 0, unit: "reps" },
+      { movement: "X", value: 5, unit: "menit" },
+      { movement: "X", load: -2, value: 5, unit: "reps" },
+    ];
+    expect(normalizeSession({ ...ses(), sets })?.sets).toEqual([
+      { movement: "Barbell Squat", load: 14, value: 10, unit: "reps", tempo: true },
+      { movement: "Side Plank", value: 30, unit: "sec" },
+      { movement: "Clamshell", band: "Light", value: 15, unit: "reps" },
+      { movement: "X", value: 5, unit: "reps" },
+    ]);
+  });
+
+  it("gabungan (sinkron) mempertahankan rincian", () => {
+    const a = { ...ses(), sets: [{ movement: "Glute Bridge", value: 12, unit: "reps" as const }] };
+    expect(mergeSessions([a], [])[0].sets).toEqual(a.sets);
+    expect(normalizeSessions(JSON.parse(JSON.stringify([a])))[0]).toEqual(a);
+  });
+});
+
 describe("validasi & gabungan", () => {
   it("menolak RPE di luar 0–10, durasi 0, tipe tidak dikenal, tanggal rusak", () => {
     expect(normalizeSession(ses())).toEqual(ses());

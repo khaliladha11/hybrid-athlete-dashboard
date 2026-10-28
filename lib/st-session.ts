@@ -8,10 +8,23 @@
  * - Dedupe dengan intervals.icu: sesi lokal dan aktivitas `strength` di tanggal WIB yang sama dianggap satu sesi bila
  *   jam mulainya selisih ≤ 2 jam (atau salah satunya tanpa jam). Satu sesi lokal satu aktivitas (selisih terkecil);
  *   pasangan dihitung sekali memakai sesi lokal. Aktivitas tanpa pasangan tetap dihitung, tanpa beban AU.
+ * - Rincian set (0.15.1, docs/INSIGHT.md §3): setiap set yang dicentang (gerakan, kg atau band, rep atau detik, tempo).
+ *   Opsional: sesi sebelum 0.15.1 tidak punya rincian dan tetap valid; perangkat lama mengabaikan field ini.
  */
 import { WIB_OFFSET_MS } from "./date";
 import { DIFFICULTIES, STRENGTH_TYPES, type Difficulty, type StrengthType } from "./generator/types";
 import type { Activity } from "./intervals/types";
+
+/** Satu set yang dicentang di mode latihan (0.15.1). */
+export interface StSetDetail {
+  movement: string;
+  /** kg seperti tercatat (dumbbell sepasang = per tangan). */
+  load?: number;
+  band?: string;
+  value: number;
+  unit: "reps" | "sec";
+  tempo?: boolean;
+}
 
 export interface StSession {
   id: string;
@@ -31,6 +44,8 @@ export interface StSession {
   setsPlanned: number;
   /** Gerakan inti sesi (untuk ringkasan otot). */
   movements: string[];
+  /** Rincian set (0.15.1); tidak ada pada sesi lama. */
+  sets?: StSetDetail[];
   /** ISO. */
   updatedAt: string;
   /** ISO. Ada = dihapus (tombstone sinkron). */
@@ -43,6 +58,7 @@ export const ST_COMPLETE_RATIO = 0.8;
 /** Selisih jam mulai maksimal agar sesi lokal dan aktivitas intervals.icu dianggap sesi yang sama. */
 export const ST_MATCH_WINDOW_MIN = 120;
 export const MAX_DURATION_MIN = 300;
+export const MAX_SET_DETAILS = 200;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const isIso = (v: unknown): v is string => typeof v === "string" && !Number.isNaN(Date.parse(v));
@@ -50,6 +66,22 @@ const intIn = (v: unknown, lo: number, hi: number): v is number => typeof v === 
 const str = (v: unknown, max: number): v is string => typeof v === "string" && v.length > 0 && v.length <= max;
 
 export const isLiveSession = (s: StSession) => !s.deletedAt;
+
+function normalizeSet(x: unknown): StSetDetail | null {
+  if (!x || typeof x !== "object" || Array.isArray(x)) return null;
+  const r = x as Record<string, unknown>;
+  if (!str(r.movement, 120) || (r.unit !== "reps" && r.unit !== "sec")) return null;
+  if (typeof r.value !== "number" || !Number.isFinite(r.value) || r.value <= 0 || r.value > 3600) return null;
+  const load = typeof r.load === "number" && Number.isFinite(r.load) && r.load > 0 && r.load <= 500 ? Math.round(r.load * 100) / 100 : undefined;
+  return {
+    movement: r.movement,
+    ...(load !== undefined ? { load } : {}),
+    ...(str(r.band, 40) ? { band: r.band } : {}),
+    value: Math.round(r.value),
+    unit: r.unit,
+    ...(r.tempo === true ? { tempo: true } : {}),
+  };
+}
 
 export function normalizeSession(x: unknown): StSession | null {
   if (!x || typeof x !== "object" || Array.isArray(x)) return null;
@@ -61,6 +93,7 @@ export function normalizeSession(x: unknown): StSession | null {
   if (!intIn(r.durationMin, 1, MAX_DURATION_MIN) || !intIn(r.rpe, 0, 10)) return null;
   if (!intIn(r.setsPlanned, 0, 200) || !intIn(r.setsDone, 0, 200)) return null;
   const movements = Array.isArray(r.movements) ? r.movements.filter((m): m is string => str(m, 120)).slice(0, 40) : [];
+  const sets = Array.isArray(r.sets) ? r.sets.map(normalizeSet).filter((x): x is StSetDetail => x !== null).slice(0, MAX_SET_DETAILS) : undefined;
   return {
     id: r.id,
     date: r.date,
@@ -74,6 +107,7 @@ export function normalizeSession(x: unknown): StSession | null {
     setsDone: Math.min(r.setsDone, r.setsPlanned || r.setsDone),
     setsPlanned: r.setsPlanned,
     movements,
+    ...(sets?.length ? { sets } : {}),
     updatedAt: isIso(r.updatedAt) ? r.updatedAt : r.startedAt,
     ...(isIso(r.deletedAt) ? { deletedAt: r.deletedAt } : {}),
   };

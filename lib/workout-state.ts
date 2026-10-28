@@ -144,7 +144,7 @@ export function logEntryFor(
   };
 }
 
-/** Sesi selesai → sesi session-RPE + log ★ (set terakhir setiap ★ yang punya set). */
+/** Sesi selesai → sesi session-RPE dengan rincian set (0.15.1) + log ★ (set terakhir setiap ★ yang punya set). */
 export function finishWorkout(
   s: ActiveWorkout,
   o: { rpe: number; durationMin: number; newId: () => string },
@@ -169,6 +169,16 @@ export function finishWorkout(
       setsDone: setsDone(s),
       setsPlanned: setsPlanned(s),
       movements: [...new Set(w.items.filter((it) => it.phase === "main").map((it) => it.movement))],
+      sets: w.items.flatMap((it, i) =>
+        (s.sets[i] ?? []).map((r) => ({
+          movement: it.movement,
+          ...(it.load.kind === "load" && r.load !== undefined ? { load: r.load } : {}),
+          ...(r.band ? { band: r.band } : {}),
+          value: r.value,
+          unit: r.unit,
+          ...(r.tempo || it.tempo ? { tempo: true } : {}),
+        })),
+      ),
     },
     entries,
   };

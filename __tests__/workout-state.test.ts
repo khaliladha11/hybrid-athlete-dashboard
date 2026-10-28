@@ -119,6 +119,21 @@ describe("mode latihan", () => {
     ]);
   });
 
+  it("rincian set (0.15.1): semua set yang dicentang, kg hanya untuk gerakan berbeban, detik untuk tahan", () => {
+    let s = start();
+    s = completeSet(s, 0, { value: 10, unit: "reps", rpe: 3 }, T0);
+    s = completeSet(s, 1, { load: 12, value: 12, unit: "reps", rpe: 6 }, T0);
+    s = completeSet(s, 1, { load: 14, value: 9, unit: "reps", rpe: 7 }, T0);
+    s = completeSet(s, 2, { load: 5, value: 30, unit: "sec", rpe: 5 }, T0);
+    const { session } = finishWorkout(s, { rpe: 6, durationMin: 40, newId: () => "e" });
+    expect(session.sets).toEqual([
+      { movement: "Cat-Cow", value: 10, unit: "reps" },
+      { movement: "Barbell Squat", load: 12, value: 12, unit: "reps", tempo: true },
+      { movement: "Barbell Squat", load: 14, value: 9, unit: "reps", tempo: true },
+      { movement: "Side Plank", value: 30, unit: "sec" },
+    ]);
+  });
+
   it("★ tanpa set tidak dicatat; durasi dari jam mulai", () => {
     expect(finishWorkout(start(), { rpe: 3, durationMin: 10, newId: () => "x" }).entries).toEqual([]);
     expect(elapsedMin(start(), T0 + 44 * 60_000 + 20_000)).toBe(44);
