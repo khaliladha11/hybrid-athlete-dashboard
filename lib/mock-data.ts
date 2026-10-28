@@ -4,7 +4,7 @@
  * Huawei Watch Fit 4 dan cadence per-kaki — lalu dilewatkan ke normalizer
  * yang sama dengan data asli. Tanggal relatif terhadap hari ini (WIB).
  */
-import { addDays } from "@/lib/date";
+import { addDays, startOfWeekMonday } from "@/lib/date";
 import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness } from "@/lib/intervals/normalize";
 import type { Activity, ActivityDetail, Wellness } from "@/lib/intervals/types";
 
@@ -160,4 +160,111 @@ export function mockWellness(today: string): Wellness[] {
     atl: atl[i],
   }));
   return normalizeList(raw, normalizeWellness);
+}
+
+/** Panjang riwayat demo Insight (minggu), cukup untuk 12 minggu tampilan + jendela VDOT 90 hari. */
+export const INSIGHT_HISTORY_WEEKS = 26;
+/** Minggu demo tanpa lari (minggu ke-k sebelum minggu ini), supaya kondisi minggu kosong terlihat. */
+export const DEMO_REST_WEEK = 7;
+
+/**
+ * Riwayat demo untuk Insight (0.15.0): minggu ke-3 sampai ke-25 sebelum minggu ini dibuat deterministik, lalu
+ * ditambah aktivitas demo 17 hari terakhir (`mockActivities`) supaya sama dengan Profil. Bentuk mentah intervals.icu
+ * (cadence per kaki, HR/cadence kadang null) lewat normalizer yang sama. Km naik pelan, cutback tiap minggu ke-4,
+ * satu minggu tanpa lari, satu lonjakan > 30%, pace easy membaik.
+ */
+function rawHistory(today: string) {
+  const thisMonday = startOfWeekMonday(today);
+  // Hari ke-17 hanya berisi ST demo, jadi lari riwayat di hari itu tidak bertabrakan.
+  const cutoff = addDays(today, -16);
+  const out: ReturnType<typeof rawActivities> = [];
+  for (let k = INSIGHT_HISTORY_WEEKS - 1; k >= 3; k--) {
+    if (k === DEMO_REST_WEEK) continue;
+    const monday = addDays(thisMonday, -7 * k);
+    const progress = (INSIGHT_HISTORY_WEEKS - 1 - k) / (INSIGHT_HISTORY_WEEKS - 4); // 0 → 1
+    let km = 14 + 12 * progress;
+    if (k % 4 === 0) km *= 0.8; // cutback
+    if (k === 10) km *= 1.45; // lonjakan > 30%
+    const easyPace = Math.round(560 - 55 * progress);
+    const easyHr = Math.round(147 - 8 * progress);
+    const footCad = Math.round(81 + 5 * progress);
+    const runs = [
+      { day: 1, time: "05:40", name: k % 2 ? "Tempo 20'" : "Interval 5×3'", km: km * 0.25, pace: Math.round(405 - 55 * progress), hr: 158, cad: footCad + 4, load: 60 },
+      { day: 3, time: "05:45", name: "Easy Run Z2", km: km * 0.3, pace: easyPace, hr: k % 3 === 0 ? null : easyHr, cad: k % 5 === 0 ? null : footCad, load: 38 },
+      { day: 6, time: "05:30", name: "Long Run", km: km * 0.45, pace: easyPace - 25, hr: easyHr + 4, cad: footCad - 1, load: 80 },
+    ];
+    const st = [
+      { day: 0, time: "19:00", name: "Lower Body ST", sec: 2700, load: 28 },
+      { day: 4, time: "19:00", name: k % 2 ? "Upper Push ST" : "Upper Pull ST", sec: 2400, load: 24 },
+    ];
+    for (const [n, r] of runs.entries()) {
+      const date = addDays(monday, r.day);
+      if (date >= cutoff) continue;
+      const distance = Math.round(r.km * 10) * 100;
+      const moving = Math.round((distance / 1000) * r.pace);
+      out.push({
+        id: `demo-h${k}-${n}`,
+        start_date_local: `${date}T${r.time}:00`,
+        name: r.name,
+        type: "Run",
+        distance,
+        moving_time: moving,
+        average_speed: distance / moving,
+        average_heartrate: r.hr,
+        max_heartrate: r.hr ? r.hr + 14 : null,
+        average_cadence: r.cad,
+        icu_training_load: Math.round(r.load * (km / 20)),
+      });
+    }
+    for (const [n, s] of st.entries()) {
+      const date = addDays(monday, s.day);
+      if (date >= cutoff) continue;
+      out.push({
+        id: `demo-h${k}-st${n}`,
+        start_date_local: `${date}T${s.time}:00`,
+        name: s.name,
+        type: "WeightTraining",
+        distance: null,
+        moving_time: s.sec,
+        average_speed: null,
+        average_heartrate: null,
+        max_heartrate: null,
+        average_cadence: null,
+        icu_training_load: s.load,
+      });
+    }
+  }
+  return out;
+}
+
+/** Aktivitas demo Insight: riwayat + 17 hari terakhir, terbaru dulu (seperti `getActivities`). */
+export function mockInsightActivities(today: string): Activity[] {
+  return normalizeList([...rawHistory(today), ...rawActivities(today)], normalizeActivity).sort((a, b) => (b.startLocal ?? "").localeCompare(a.startLocal ?? ""));
+}
+
+/**
+ * Wellness demo Insight: CTL/ATL dihitung dari load harian (rata-rata eksponensial 42 & 7 hari, seperti
+ * intervals.icu), digeser supaya 8 hari terakhir menyambung dengan `mockWellness` (yang dipakai Profil).
+ */
+export function mockInsightWellness(today: string, days = 84): Wellness[] {
+  const start = addDays(startOfWeekMonday(today), -7 * (INSIGHT_HISTORY_WEEKS - 1));
+  const load = new Map<string, number>();
+  for (const a of mockInsightActivities(today)) if (a.date) load.set(a.date, (load.get(a.date) ?? 0) + (a.trainingLoad ?? 0));
+  const recent = mockWellness(today);
+  const series: { date: string; ctl: number; atl: number }[] = [];
+  let ctl = 25;
+  let atl = 25;
+  for (let d = start; d <= today; d = addDays(d, 1)) {
+    const l = load.get(d) ?? 0;
+    ctl += (l - ctl) / 42;
+    atl += (l - atl) / 7;
+    series.push({ date: d, ctl, atl });
+  }
+  const join = series.findIndex((s) => s.date === recent[0].date);
+  const dCtl = recent[0].ctl! - series[join - 1].ctl;
+  const dAtl = recent[0].atl! - series[join - 1].atl;
+  const r1 = (v: number) => Math.round(v * 10) / 10;
+  const older = series.slice(0, join).map((s) => ({ id: s.date, ctl: r1(s.ctl + dCtl), atl: r1(s.atl + dAtl) }));
+  const all = [...normalizeList(older, normalizeWellness), ...recent];
+  return all.slice(-days);
 }

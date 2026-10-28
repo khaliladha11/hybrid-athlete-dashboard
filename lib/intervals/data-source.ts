@@ -1,6 +1,6 @@
 import "server-only";
 import { addDays, todayWib } from "@/lib/date";
-import { mockActivities, mockActivityDetail, mockWellness } from "@/lib/mock-data";
+import { mockActivities, mockActivityDetail, mockInsightActivities, mockInsightWellness, mockWellness } from "@/lib/mock-data";
 import { getIntervalsConfig, intervalsGet } from "./client";
 import { dedupeActivities } from "./dedupe";
 import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness } from "./normalize";
@@ -36,6 +36,30 @@ export async function getWellness(days = 8, today = todayWib()): Promise<FetchRe
   if (!res.ok) return res;
   const data = normalizeList(res.data, normalizeWellness).sort((a, b) => a.date.localeCompare(b.date));
   return { ok: true, data, source: "live" };
+}
+
+/** Rentang Insight (0.15.0): 12 minggu tampilan + jendela VDOT 90 hari + minggu pembanding kenaikan km. */
+export const INSIGHT_ACTIVITY_DAYS = 182;
+export const INSIGHT_WELLNESS_DAYS = 84;
+
+export interface InsightData {
+  activities: FetchResult<Activity[]>;
+  wellness: FetchResult<Wellness[]>;
+}
+
+/**
+ * Data Insight: 2 request paralel per buka halaman, tanpa cache data bersama (data kesehatan). Pilihan 6/12 minggu
+ * dipotong di client tanpa request ulang. Satu sumber gagal tidak mematikan yang lain.
+ */
+export async function getInsightData(today = todayWib()): Promise<InsightData> {
+  if (isDemoMode()) {
+    return {
+      activities: { ok: true, data: mockInsightActivities(today), source: "demo" },
+      wellness: { ok: true, data: mockInsightWellness(today, INSIGHT_WELLNESS_DAYS), source: "demo" },
+    };
+  }
+  const [activities, wellness] = await Promise.all([getActivities(INSIGHT_ACTIVITY_DAYS, today), getWellness(INSIGHT_WELLNESS_DAYS, today)]);
+  return { activities, wellness };
 }
 
 export async function getActivityDetail(id: string): Promise<FetchResult<ActivityDetail>> {
