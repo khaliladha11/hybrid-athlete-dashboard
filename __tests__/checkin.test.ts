@@ -83,7 +83,7 @@ describe("aturan check-in (batas)", () => {
   });
 
   it("tidur buruk + pegal + readiness rendah = tetap turun satu level (tidak berantai)", () => {
-    const r: Readiness = { caution: true, reasons: ["HRV 40 ms, 20% di bawah rata-rata 7 hari (50 ms)."], hasData: true, basis: "" };
+    const r: Readiness = { caution: true, reasons: ["HRV 40 ms, 20% di bawah rata-rata 7 hari (50 ms)."], hasData: true, basis: "", used: [], baselines: { hrv: { days: 0, active: false }, restingHr: { days: 0, active: false } } };
     const advice = withCheckin(readinessAdvice(r), c({ sleep: 1, soreness: 8 }));
     expect(ids(advice)).toEqual(["readiness", "checkin-soreness", "checkin-sleep"]);
     expect(suggestFor(advice, "run", { difficulty: "high", duration: 45 }).difficulty).toBe("moderate");

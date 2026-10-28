@@ -67,7 +67,7 @@ describe("readiness advisory", () => {
     expect(assessReadiness(w, acts, TODAY).caution).toBe(false);
   });
   it("tanpa data sama sekali", () => {
-    expect(assessReadiness([], [], TODAY)).toEqual({ caution: false, reasons: [], hasData: false, basis: "Data HRV dan resting HR dari jam belum ada, jadi kesiapan hanya dihitung dari sesi kemarin." });
+    expect(assessReadiness([], [], TODAY)).toMatchObject({ caution: false, reasons: [], hasData: false, basis: "Data HRV dan resting HR dari jam belum ada, jadi kesiapan hanya dihitung dari sesi kemarin.", used: [] });
   });
   it("turun satu level", () => {
     expect(lowerDifficulty("high")).toBe("moderate");

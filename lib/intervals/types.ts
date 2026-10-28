@@ -18,6 +18,8 @@ export interface Activity {
   trainingLoad?: number;
   /** Sumber di intervals.icu (STRAVA, HUAWEI, GARMIN_CONNECT, …). Isi aktivitas STRAVA tidak tersedia lewat API. */
   source?: string;
+  /** Ambang HR lari berat pribadi (0.15.2, 90% LTHR) yang ditandai server; tidak ada = ambang umum. */
+  hardHrBpm?: number;
 }
 
 export interface ActivityInterval {

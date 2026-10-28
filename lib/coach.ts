@@ -51,7 +51,8 @@ export interface Advice {
 export function isHardRun(a: Activity): boolean {
   if (a.category !== "run") return false;
   if (HARD_NAME.test(a.name)) return true;
-  if (a.avgHr) return a.avgHr >= HARD_RUN_HR;
+  // Ambang pribadi (0.15.2) ditandai server pada aktivitas bila LTHR lari tersedia.
+  if (a.avgHr) return a.avgHr >= (a.hardHrBpm ?? HARD_RUN_HR);
   return !!a.avgPaceSecPerKm && a.avgPaceSecPerKm <= HARD_RUN_PACE_SEC;
 }
 
