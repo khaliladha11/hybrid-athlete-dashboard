@@ -110,6 +110,7 @@ describe("snapshot (murni)", () => {
       log: { rev: 1, data: [entry("a"), tombstone(entry("b"), "2026-01-06T00:00:00.000Z")] },
       prs: { rev: 0, data: [] },
       sessions: { rev: 0, data: [] },
+      checkins: { rev: 0, data: [] },
     });
     expect(s).toEqual({ logEntries: 1, profile: true, settings: false, program: true });
     expect(JSON.stringify(s)).not.toContain("Alex");
@@ -212,7 +213,7 @@ describe.each(makers)("snapshot harian & pulihkan (%s)", (_n, make) => {
 
 describe("epoch di klien: pulihkan ikut ke semua perangkat", () => {
   function device(store: SyncStore, initial: Partial<PartData> = {}) {
-    let local: PartData = { profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [], prs: [], sessions: [], ...initial };
+    let local: PartData = { profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [], prs: [], sessions: [], checkins: [], ...initial };
     let meta: SyncMeta = emptyMeta();
     const io: SyncIO = {
       async get() {

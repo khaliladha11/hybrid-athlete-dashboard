@@ -54,16 +54,17 @@ describe("bagian data ↔ localStorage", () => {
       log: [entry("a")],
       prs: [{ id: "p1", movement: "Floor Press", loadKg: 10, date: "2026-01-05", source: "manual", updatedAt: "2026-01-05T00:00:00.000Z" }],
       sessions: [{ id: "s1", date: "2026-01-05", startedAt: "2026-01-05T00:00:00.000Z", type: "lower", title: "Lower", difficulty: "moderate", durationMin: 45, rpe: 6, setsDone: 10, setsPlanned: 12, movements: ["Glute Bridge"], updatedAt: "2026-01-05T01:00:00.000Z" }],
+      checkins: [{ date: "2026-01-05", shin: 3, sleep: 4, updatedAt: "2026-01-05T01:00:00.000Z" }],
     };
     const raw = localFromParts(parts, baseProfile);
-    expect(partsFromLocal(raw, parts.log, baseProfile, parts.prs, parts.sessions)).toEqual(parts);
+    expect(partsFromLocal(raw, parts.log, baseProfile, parts.prs, parts.sessions, parts.checkins)).toEqual(parts);
   });
 
   it("perangkat kosong → bagian kosong; tema sistem & blok default tidak disimpan", () => {
     const empty = partsFromLocal({ settings: null, program: null, theme: null, blockEnabled: null, onboarding: null }, [], baseProfile);
-    expect(empty).toEqual({ profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [], prs: [], sessions: [] });
+    expect(empty).toEqual({ profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [], prs: [], sessions: [], checkins: [] });
     expect(localFromParts(empty, baseProfile)).toEqual({ settings: null, program: null, theme: null, blockEnabled: null, onboarding: null });
-    for (const n of ["profile", "settings", "program", "preferences", "onboarding", "log", "prs", "sessions"] as const) expect(hasData(n, emptyPart(n))).toBe(false);
+    for (const n of ["profile", "settings", "program", "preferences", "onboarding", "log", "prs", "sessions", "checkins"] as const) expect(hasData(n, emptyPart(n))).toBe(false);
   });
 
   it("validasi menolak payload rusak dan membersihkan field asing", () => {
@@ -246,5 +247,21 @@ describe("program: override digabung per sesi (0.13)", () => {
     expect(m.goal).toBe("2:20:00");
     expect(m.overrides).toHaveLength(2);
     expect(mergePart("program", server, null, [WHOLE])).toBeNull();
+  });
+});
+
+describe("check-in (0.15.2)", () => {
+  it("digabung per tanggal di kedua arah, validator menolak isian di luar rentang", () => {
+    const server = [{ date: "2026-01-05", shin: 2, updatedAt: "2026-01-05T01:00:00.000Z" }, { date: "2026-01-06", sleep: 4, updatedAt: "2026-01-06T01:00:00.000Z" }];
+    const local = [{ date: "2026-01-05", shin: 5, updatedAt: "2026-01-05T02:00:00.000Z" }, { date: "2026-01-07", soreness: 7, updatedAt: "2026-01-07T01:00:00.000Z" }];
+    const merged = mergePart("checkins", server, local, [WHOLE]);
+    expect(merged.map((c) => [c.date, c.shin ?? c.sleep ?? c.soreness])).toEqual([
+      ["2026-01-05", 5],
+      ["2026-01-06", 4],
+      ["2026-01-07", 7],
+    ]);
+    expect(mergePart("checkins", local, server, [])).toEqual(merged);
+    expect(validatePart("checkins", [{ date: "2026-01-05", shin: 12 }], baseProfile)).toEqual([]);
+    expect(validatePart("checkins", "x", baseProfile)).toBeUndefined();
   });
 });

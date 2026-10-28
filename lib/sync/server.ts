@@ -6,6 +6,7 @@ import { todayWib } from "@/lib/date";
 import { compactTombstones } from "@/lib/log-entries";
 import { compactPrTombstones } from "@/lib/prs";
 import { compactSessionTombstones } from "@/lib/st-session";
+import { compactCheckinTombstones } from "@/lib/checkin";
 import type { OnboardingState } from "@/lib/onboarding";
 import type { AthleteProfile } from "@/lib/profile";
 import type { PasscodeConfig } from "@/lib/auth/config";
@@ -108,6 +109,7 @@ export async function handlePost(store: SyncStore, rawBody: string, base: Athlet
     if (part === "log") data = compactTombstones(data as PartData["log"], nowMs);
     if (part === "prs") data = compactPrTombstones(data as PartData["prs"], nowMs);
     if (part === "sessions") data = compactSessionTombstones(data as PartData["sessions"], nowMs);
+    if (part === "checkins") data = compactCheckinTombstones(data as PartData["checkins"], nowMs);
     seen.add(part);
     valid.push({ part, baseRev, data });
   }

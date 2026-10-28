@@ -13,6 +13,10 @@ export const PREF_KEYS = {
   prs: "hybrid-athlete.prs.v1",
   /** Sesi ST dari mode latihan (0.14.1, `lib/st-session-store.ts`). */
   sessions: "hybrid-athlete.st-sessions.v1",
+  /** Check-in harian (0.15.2, `lib/checkin-store.ts`). */
+  checkins: "hybrid-athlete.checkins.v1",
+  /** Bulan ringkasan bulanan yang sudah ditutup (YYYY-MM, 0.15.2; hanya perangkat ini). */
+  monthlyDismissed: "hybrid-athlete.monthly-dismissed",
   /** Sesi latihan yang sedang berjalan (0.14.1, tidak disinkron). */
   activeWorkout: "hybrid-athlete.st-active.v1",
   /** Getar saat timer mode latihan habis (per perangkat, tidak disinkron). */

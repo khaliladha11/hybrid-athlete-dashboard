@@ -7,6 +7,7 @@
  * - log: per entri lewat `mergeLogs` (tombstone menang, komutatif & idempoten);
  * - prs (0.14.0): per entri lewat `mergePrs`, aturan yang sama dengan log;
  * - sessions (0.14.1): per entri lewat `mergeSessions`, aturan yang sama dengan log;
+ * - checkins (0.15.2): per tanggal lewat `mergeCheckins`, aturan yang sama dengan log;
  * - program (0.13): pengaturan utuh dengan aturan dirty, override sesi digabung per `sessionId`, program arsip
  *   (0.13.3) digabung per `id` dua sisi; override milik arsip dipindahkan ke arsipnya.
  * Aktivasi pertama (perangkat belum pernah sinkron): server menang untuk bagian utuh & per kunci,
@@ -15,6 +16,7 @@
 import { mergeLogs } from "@/lib/log-entries";
 import { mergePrs } from "@/lib/prs";
 import { mergeSessions } from "@/lib/st-session";
+import { mergeCheckins } from "@/lib/checkin";
 import { STEPS, type OnboardingState } from "@/lib/onboarding";
 import { isArchived, isOverride, mergeArchived, mergeOverrides, mergeWeekNotes, routeOverrides, type ArchivedProgram, type ProgramOverride } from "@/lib/program/settings";
 import { PREFERENCE_KEYS, SETTINGS_KEYS, type PartData, type PartName } from "./parts";
@@ -147,6 +149,8 @@ export function mergePart<K extends PartName>(name: K, server: PartData[K], loca
       return mergePrs(server as PartData["prs"], local as PartData["prs"]) as PartData[K];
     case "sessions":
       return mergeSessions(server as PartData["sessions"], local as PartData["sessions"]) as PartData[K];
+    case "checkins":
+      return mergeCheckins(server as PartData["checkins"], local as PartData["checkins"]) as PartData[K];
     case "onboarding":
       return mergeOnboarding(server as OnboardingState | null, local as OnboardingState | null) as PartData[K];
     case "settings":

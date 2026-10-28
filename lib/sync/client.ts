@@ -11,6 +11,7 @@ import { applyTheme, readStored, writeStored } from "@/lib/preferences";
 import { baseProfile } from "@/lib/profile";
 import { prStore } from "@/lib/pr-store";
 import { stSessionStore } from "@/lib/st-session-store";
+import { checkinStore } from "@/lib/checkin-store";
 import { trainingLog } from "@/lib/training-log";
 import { emptyMeta, markDirty, syncOnce, type GetResponse, type PostResult, type SyncIO, type SyncMeta } from "./engine";
 import { localFromParts, partsFromLocal, type PartData } from "./parts";
@@ -19,7 +20,7 @@ export const SYNC_META_KEY = "hybrid-athlete.sync.v1";
 export const DEBOUNCE_MS = 2000;
 
 /** Key localStorage yang termasuk data sinkron. */
-const SYNCED_KEYS = new Set<string>([PREF_KEYS.settings, PREF_KEYS.program, PREF_KEYS.theme, PREF_KEYS.blockEnabled, PREF_KEYS.onboarding, PREF_KEYS.log, PREF_KEYS.prs, PREF_KEYS.sessions]);
+const SYNCED_KEYS = new Set<string>([PREF_KEYS.settings, PREF_KEYS.program, PREF_KEYS.theme, PREF_KEYS.blockEnabled, PREF_KEYS.onboarding, PREF_KEYS.log, PREF_KEYS.prs, PREF_KEYS.sessions, PREF_KEYS.checkins]);
 
 // ---------- Meta & status (localStorage langsung, tanpa memicu perubahan lokal) ----------
 
@@ -62,6 +63,7 @@ function readLocal(): PartData {
     baseProfile,
     prStore.all(),
     stSessionStore.all(),
+    checkinStore.all(),
   );
 }
 
@@ -82,6 +84,7 @@ function applyLocal(changes: Partial<PartData>) {
     if (changes.log) trainingLog.replaceAll(changes.log);
     if (changes.prs) prStore.replaceAll(changes.prs);
     if (changes.sessions) stSessionStore.replaceAll(changes.sessions);
+    if (changes.checkins) checkinStore.replaceAll(changes.checkins);
   });
   known = readLocal();
 }

@@ -10,8 +10,9 @@ import type { AthleteProfile } from "@/lib/profile";
 import type { LogEntry } from "@/lib/progression";
 import { MAX_PRS, normalizePrs, type PrEntry } from "@/lib/prs";
 import { MAX_ST_SESSIONS, normalizeSessions, type StSession } from "@/lib/st-session";
+import { MAX_CHECKINS, normalizeCheckins, type Checkin } from "@/lib/checkin";
 
-export const PART_NAMES = ["profile", "settings", "program", "preferences", "onboarding", "log", "prs", "sessions"] as const;
+export const PART_NAMES = ["profile", "settings", "program", "preferences", "onboarding", "log", "prs", "sessions", "checkins"] as const;
 export type PartName = (typeof PART_NAMES)[number];
 export const isPartName = (x: unknown): x is PartName => typeof x === "string" && (PART_NAMES as readonly string[]).includes(x);
 
@@ -32,6 +33,8 @@ export interface PartData {
   prs: PrEntry[];
   /** Sesi ST mode latihan (0.14.1), digabung per entri dengan tombstone seperti log. */
   sessions: StSession[];
+  /** Check-in harian (0.15.2), digabung per tanggal dengan tombstone. */
+  checkins: Checkin[];
 }
 
 export const MAX_LOG_ENTRIES = 5000;
@@ -58,7 +61,7 @@ const pickSettings = (s: AthleteSettings): SettingsPart => ({
   ...(s.buyReminderDismissed !== undefined ? { buyReminderDismissed: s.buyReminderDismissed } : {}),
 });
 
-export function partsFromLocal(raw: LocalRaw, log: LogEntry[], base: AthleteProfile, prs: PrEntry[] = [], sessions: StSession[] = []): PartData {
+export function partsFromLocal(raw: LocalRaw, log: LogEntry[], base: AthleteProfile, prs: PrEntry[] = [], sessions: StSession[] = [], checkins: Checkin[] = []): PartData {
   const parsed = raw.settings ? parseSettings(raw.settings, base) : null;
   const preferences: PreferencesPart = {};
   if (raw.theme === "light" || raw.theme === "dark") preferences.theme = raw.theme;
@@ -72,6 +75,7 @@ export function partsFromLocal(raw: LocalRaw, log: LogEntry[], base: AthleteProf
     log,
     prs,
     sessions,
+    checkins,
   };
 }
 
@@ -116,20 +120,25 @@ export function validatePart<K extends PartName>(name: K, data: unknown, base: A
       return (Array.isArray(data) && data.length <= MAX_PRS ? normalizePrs(data) : undefined) as PartData[K] | undefined;
     case "sessions":
       return (Array.isArray(data) && data.length <= MAX_ST_SESSIONS ? normalizeSessions(data) : undefined) as PartData[K] | undefined;
+    case "checkins":
+      return (Array.isArray(data) && data.length <= MAX_CHECKINS ? normalizeCheckins(data) : undefined) as PartData[K] | undefined;
     default:
       return undefined;
   }
 }
 
+/** Bagian berupa daftar entri yang digabung per entri. */
+export const isListPart = (name: PartName) => name === "log" || name === "prs" || name === "sessions" || name === "checkins";
+
 /** Nilai kosong per bagian (server belum pernah menerima bagian ini). */
 export function emptyPart<K extends PartName>(name: K): PartData[K] {
-  return (name === "log" || name === "prs" || name === "sessions" ? [] : name === "preferences" ? {} : null) as PartData[K];
+  return (isListPart(name) ? [] : name === "preferences" ? {} : null) as PartData[K];
 }
 
 /** Bagian ini berisi data (bukan kosong)? */
 export function hasData(name: PartName, data: unknown): boolean {
   if (data === null || data === undefined) return false;
-  if (name === "log" || name === "prs" || name === "sessions") return Array.isArray(data) && data.length > 0;
+  if (isListPart(name)) return Array.isArray(data) && data.length > 0;
   if (name === "preferences") return Object.keys(data as object).length > 0;
   return true;
 }

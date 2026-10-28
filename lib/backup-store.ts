@@ -9,6 +9,7 @@ import { applyTheme, readStored, writeStored } from "./preferences";
 import { baseProfile } from "./profile";
 import { prStore } from "./pr-store";
 import { stSessionStore } from "./st-session-store";
+import { checkinStore } from "./checkin-store";
 import { trainingLog } from "./training-log";
 
 export const deviceBackupStore: BackupStore = {
@@ -27,9 +28,10 @@ export const deviceBackupStore: BackupStore = {
   mergeLog: (entries) => trainingLog.merge(entries),
   mergePrs: (entries) => prStore.merge(entries),
   mergeSessions: (entries) => stSessionStore.merge(entries),
+  mergeCheckins: (entries) => checkinStore.merge(entries),
 };
 
-/** Cadangan v5 dari isi perangkat sekarang. */
+/** Cadangan v6 dari isi perangkat sekarang. */
 export function exportDeviceBackup(now = new Date().toISOString()): BackupFile {
   const settingsRaw = readStored(PREF_KEYS.settings);
   const theme = readStored(PREF_KEYS.theme);
@@ -43,6 +45,7 @@ export function exportDeviceBackup(now = new Date().toISOString()): BackupFile {
     onboarding: parseOnboardingState(readStored(PREF_KEYS.onboarding) ?? ""),
     prs: prStore.live(),
     sessions: stSessionStore.live(),
+    checkins: checkinStore.live(),
     now,
   });
 }

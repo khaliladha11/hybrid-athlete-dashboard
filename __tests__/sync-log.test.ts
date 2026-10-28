@@ -110,6 +110,7 @@ describe("tombstone", () => {
       mergeLog: (e) => log.merge(e),
       mergePrs: () => ({ added: 0, skipped: 0 }),
       mergeSessions: () => ({ added: 0, skipped: 0 }),
+      mergeCheckins: () => ({ added: 0, skipped: 0 }),
     };
     applyBackup(parseBackup([{ ...base }])!, store, baseProfile);
     applyBackup(parseBackup({ version: 2, log: [entry("v2", { date: "2026-01-06" })] })!, store, baseProfile);
