@@ -61,7 +61,7 @@ export default async function ProfilePage() {
         </Link>
       </div>
 
-      <WellnessCard result={wellness} today={today} />
+      <WellnessCard result={wellness} today={today} basis={readiness?.basis} />
       <WeeklySummary result={activities} today={today} />
       {activities.ok ? (
         <ActivityCalendar activities={activities.data} today={today} oldest={oldest} />
