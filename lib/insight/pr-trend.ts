@@ -1,8 +1,8 @@
 /**
  * #8 Tren PR per gerakan (docs/INSIGHT.md §4, 0.15.1). Murni.
  *
- * - Titik = beban terbaik per tanggal dari PR (manual & log) dan log ★ berbeban gerakan itu; seri beban sama → rep
- *   terbanyak.
+ * - Beban terbaik per tanggal dari PR (manual & log) dan log ★ berbeban gerakan itu; seri beban sama → rep terbanyak.
+ *   Garis hanya memuat titik pertama & terakhir, PR beban baru, dan hari dengan penanda tahap.
  * - Saat beban mentok (0.14.0), tahap progresi lain tampil sebagai penanda di garis yang sama:
  *   `rep` rep naik di beban yang sama, `tempo` log dengan tempo/jeda, `variant` log varian lebih sulit (`variantOf`).
  *   Hari yang hanya punya log varian memakai beban titik sebelumnya sebagai posisi penanda.
@@ -72,7 +72,15 @@ export function prSeries(movement: string, prs: PrEntry[], log: LogEntry[], capK
     points.push(b ? { date, load: b.load, ...(b.reps ? { reps: b.reps } : {}), markers } : { date, load: prev!.load, markers, carried: true });
   }
   const cappedSince = capKg !== undefined ? points.find((p) => !p.carried && p.load >= capKg)?.date : undefined;
-  return { movement, points, ...(capKg !== undefined ? { capKg } : {}), ...(cappedSince ? { cappedSince } : {}) };
+  // Garis PR: titik pertama & terakhir, PR beban baru, atau hari dengan tahap progresi (catatan sama tidak digambar ulang).
+  let top = -Infinity;
+  const kept = points.filter((p, i) => {
+    const keep = i === 0 || i === points.length - 1 || (!p.carried && p.load > top) || p.markers.length > 0;
+    if (!p.carried) top = Math.max(top, p.load);
+    return keep;
+  });
+  for (const p of kept) if (p.carried) p.load = Math.max(...kept.filter((q) => !q.carried && q.date < p.date).map((q) => q.load));
+  return { movement, points: kept,...(capKg !== undefined ? { capKg } : {}), ...(cappedSince ? { cappedSince } : {}) };
 }
 
 const DAY = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });

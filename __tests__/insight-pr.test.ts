@@ -68,6 +68,12 @@ describe("prSeries", () => {
     expect(prSummary(s)).toEqual({ drawable: false, text: "Belum ada catatan beban untuk Barbell Squat." });
   });
 
+  it("catatan sama berulang tidak digambar ulang; titik terakhir tetap ada", () => {
+    const s = prSeries(M, [], [log("2026-01-01", 14, 10), log("2026-01-05", 14, 10), log("2026-01-08", 12, 10), log("2026-01-12", 14, 10)]);
+    expect(s.points.map((p) => p.date)).toEqual(["2026-01-01", "2026-01-12"]);
+    expect(prSummary(s).drawable).toBe(true);
+  });
+
   it("satu titik → belum cukup; tanpa batas alat → tanpa kalimat mentok", () => {
     expect(prSummary(prSeries(M, [pr("2026-01-02", 14, 6)], [])).text).toBe("Beban terbaik 14 kg × 6 rep (2 Jan). Butuh 2 catatan beban untuk tren ini.");
     const s = prSeries(M, [pr("2026-01-02", 14), pr("2026-01-09", 15)], []);
