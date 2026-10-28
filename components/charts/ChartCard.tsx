@@ -53,7 +53,7 @@ export function ChartCard({
                 <thead>
                   <tr className="border-b border-line">
                     {table.columns.map((c, i) => (
-                      <th key={c} scope="col" className={`t-label py-2 font-normal ${i ? "text-right" : ""}`}>
+                      <th key={c} scope="col" className={`t-label py-2 font-normal ${i ? "pl-2 text-right" : ""}`}>
                         {c}
                       </th>
                     ))}

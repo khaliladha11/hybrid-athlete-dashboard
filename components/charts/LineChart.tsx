@@ -1,6 +1,6 @@
 "use client";
 
-import { areaPath, extent, linePath, linearScale, niceTicks, thinLabels, type Point } from "./chart-scale";
+import { areaPath, extent, linePath, linearScale, niceTicks, placeLabels, thinLabels, type Point } from "./chart-scale";
 import { useWidth } from "./useWidth";
 
 export type LineTone = "brand" | "ink" | "muted";
@@ -101,15 +101,13 @@ export function LineChart({
               })}
           </g>
         ))}
-        {thinLabels(n).map((i) => (
-          <text
-            key={i}
-            x={x(i)}
-            y={HEIGHT - 6}
-            textAnchor={n > 1 && i === n - 1 ? "end" : n > 1 && i === 0 ? "start" : "middle"}
-            className="fill-muted font-mono text-[11px]"
-          >
-            {labels[i]}
+        {placeLabels(
+          thinLabels(n).map((i) => ({ x: x(i), text: labels[i] })),
+          LEFT,
+          width - RIGHT,
+        ).map((l) => (
+          <text key={l.text} x={l.x} y={HEIGHT - 6} textAnchor="middle" className="fill-muted font-mono text-[11px]">
+            {l.text}
           </text>
         ))}
       </svg>

@@ -66,6 +66,28 @@ export function thinLabels(n: number, max = MAX_LABELS): number[] {
   return out;
 }
 
+/** Perkiraan lebar label mono 11px (Geist Mono ±6,7px per karakter). */
+export const labelWidth = (text: string) => Math.ceil(text.length * 6.7);
+
+/**
+ * Pusat label sumbu-x: label di tepi digeser masuk supaya tidak terpotong, dan label yang masih bertabrakan
+ * (jarak < lebar + 6px) dibuang, kecuali label terakhir (data terbaru).
+ */
+export function placeLabels(items: { x: number; text: string }[], min: number, max: number, gap = 6): { x: number; text: string }[] {
+  const placed = items.map((it) => {
+    const half = labelWidth(it.text) / 2;
+    return { ...it, x: Math.min(max - half, Math.max(min + half, it.x)) };
+  });
+  const out: typeof placed = [];
+  for (let i = placed.length - 1; i >= 0; i--) {
+    const it = placed[i];
+    const next = out[0];
+    if (next && next.x - it.x < (labelWidth(next.text) + labelWidth(it.text)) / 2 + gap) continue;
+    out.unshift(it);
+  }
+  return out;
+}
+
 export interface Band {
   x: number;
   w: number;

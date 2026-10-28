@@ -1,6 +1,6 @@
 "use client";
 
-import { bandLayout, linearScale, niceTicks, thinLabels } from "./chart-scale";
+import { bandLayout, linearScale, niceTicks, placeLabels, thinLabels } from "./chart-scale";
 import { useWidth } from "./useWidth";
 
 export type BarTone = "success" | "danger" | "brand" | "track";
@@ -79,9 +79,13 @@ export function BarChart({
             </g>
           );
         })}
-        {thinLabels(n).map((i) => (
-          <text key={i} x={LEFT + bars[i].x + bars[i].w / 2} y={HEIGHT - 6} textAnchor="middle" className="fill-muted font-mono text-[11px]">
-            {labels[i]}
+        {placeLabels(
+          thinLabels(n).map((i) => ({ x: LEFT + bars[i].x + bars[i].w / 2, text: labels[i] })),
+          LEFT,
+          width - RIGHT,
+        ).map((l) => (
+          <text key={l.text} x={l.x} y={HEIGHT - 6} textAnchor="middle" className="fill-muted font-mono text-[11px]">
+            {l.text}
           </text>
         ))}
       </svg>

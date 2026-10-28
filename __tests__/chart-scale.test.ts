@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_LABELS, areaPath, bandLayout, extent, linePath, linearScale, niceTicks, thinLabels } from "@/components/charts/chart-scale";
+import { MAX_LABELS, areaPath, bandLayout, extent, labelWidth, linePath, linearScale, niceTicks, placeLabels, thinLabels } from "@/components/charts/chart-scale";
 
 describe("extent", () => {
   it("abaikan nilai kosong, null bila semua kosong", () => {
@@ -89,5 +89,25 @@ describe("linePath / areaPath", () => {
   it("area ditutup ke garis dasar per potongan", () => {
     expect(areaPath([{ x: 0, y: 10 }, { x: 10, y: 20 }], 50)).toBe("M0 10 L10 20 L10 50 L0 50 Z");
     expect(areaPath([{ x: 0, y: 10 }, null, { x: 5, y: 5 }], 50)).toBe("");
+  });
+});
+
+describe("placeLabels", () => {
+  it("label tepi digeser masuk, label bertabrakan dibuang kecuali yang terakhir", () => {
+    const out = placeLabels(
+      [
+        { x: 36, text: "21 Sep" },
+        { x: 120, text: "5 Okt" },
+        { x: 320, text: "20 Okt" },
+        { x: 340, text: "28 Okt" },
+      ],
+      36,
+      369,
+    );
+    expect(out[0].x).toBeGreaterThanOrEqual(36 + labelWidth("21 Sep") / 2);
+    expect(out.at(-1)!.text).toBe("28 Okt");
+    expect(out.at(-1)!.x).toBeLessThanOrEqual(369 - labelWidth("28 Okt") / 2);
+    expect(out.map((l) => l.text)).not.toContain("20 Okt");
+    for (let i = 1; i < out.length; i++) expect(out[i].x - out[i - 1].x).toBeGreaterThanOrEqual((labelWidth(out[i].text) + labelWidth(out[i - 1].text)) / 2);
   });
 });
