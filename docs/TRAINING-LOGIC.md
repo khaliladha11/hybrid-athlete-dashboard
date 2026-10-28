@@ -372,6 +372,21 @@ Grafik Insight **hanya menampilkan data**; tidak ada saran yang berubah karenany
 - **Easy run:** lari yang tidak berat dan bukan long run (< 12 km). Per minggu: median pace (waktu ÷ jarak), median HR, median cadence, masing-masing **hanya dari lari yang punya nilainya**. Target cadence = aturan cadence personal (rata-rata 14 hari, naik ±5% bertahap, maks 180).
 - **VDOT per minggu:** sumber perkiraan waktu lomba (hasil lomba 90 hari lebih diutamakan, keyakinan tinggi; lalu lari ≥ 3 km 90 hari dengan VDOT tertinggi, keyakinan rendah) dihitung ulang dengan data sampai akhir minggu itu. Target dari tujuan program aktif; selisih = perkiraan waktu dari VDOT terakhir dibanding target, dalam detik per km.
 
+### Tren kekuatan (0.15.1)
+
+- **Rincian set:** sesi mode latihan menyimpan setiap set yang dicentang (gerakan, kg atau band, rep atau detik, tempo). Sesi sebelum 0.15.1 dan log ★ dari generator hanya punya set terakhir gerakan ★ → dihitung **1 set** dan minggunya ditandai **perkiraan (hanya gerakan ★)**. Aktivitas strength intervals.icu tidak punya isi gerakan, jadi tidak masuk volume.
+- **Volume per pola** (kategori library: Upper Push, Upper Pull, Lower, Core/Stabilitas, Prehab), per minggu:
+  - set berbeban rep: **kg × rep**, kg seperti tercatat (dumbbell sepasang = per tangan, sama dengan log & PR);
+  - set tahan (termasuk Farmer's Hold berbeban): **detik**, tidak masuk kg;
+  - band & bodyweight rep: **rep tanpa beban**, tanpa kg;
+  - semua set masuk **jumlah set**, satu-satunya ukuran yang bisa dibandingkan antar jenis (grafik memakai set).
+- **Beban ST mingguan** = jumlah session-RPE (RPE sesi × menit, AU), tidak dijumlah dengan load lari (INSIGHT I4).
+- **Heatmap otot:** bobot otot utama **1**, sekunder **0,5**. Frekuensi = jumlah sesi, satu sesi menyumbang bobot terbesar otot itu (maks 1); volume = jumlah set × bobot. Rentang 7 atau 30 hari.
+- **Otot jarang dilatih:** otot utama dari gerakan yang **tersedia sekarang** (alat, kondisi, pilihan Setting) tanpa **kerja utama** dalam **14 hari**. Kerja sekunder tidak cukup. Hanya dinilai bila ada ≥ 1 sesi ST dalam 14 hari, dan otot yang tidak bisa dilatih dengan alat sekarang tidak didaftar. Tidak mengubah generator (I3).
+- **Tren PR:** beban terbaik per tanggal dari PR dan log ★; garis hanya digambar di titik pertama & terakhir, PR beban baru, dan hari dengan tahap progresi: **R** rep naik di beban yang sama, **T** tempo/jeda, **V** pindah varian (`variantOf`). Batas alat = batas beban 0.14.0 bila aktif, selain itu beban terberat yang bisa dirakit; "mentok sejak" = tanggal pertama beban mencapai batas itu.
+- **Kepatuhan mingguan:** status sesi model mingguan 0.14.3 per minggu kalender, lari (termasuk lomba) dan ST terpisah; terpenuhi / sebagian / belum, dilewati tidak dihitung. Ringkasan hanya dari minggu yang sudah selesai.
+- **Kalender heatmap:** hari lari / ST / lari + ST / istirahat dari aktivitas di tanggal aslinya (`calendarItems`), ST lokal tanpa dobel. Jalan dan sepeda dihitung istirahat.
+
 ## 8. Referensi
 
 Buku:

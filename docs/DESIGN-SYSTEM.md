@@ -153,6 +153,13 @@ Grafik bar SVG tanpa library. **Lebar bar ∝ durasi, tinggi bar ∝ kecepatan.*
 - **Warna:** garis data aktivitas `--brand` (CTL, median easy run, VDOT), garis pembanding `--muted` (ATL), area Form & pita konteks `--track`/`--subtle` (netral, tanpa label "bahaya"), target putus-putus `--ink`. Batang km: easy `--success`, berat `--danger` (tone intensitas); minggu berjalan redup. Penanda teks mono di atas batang (`+35%`, `CB`, `DL`).
 - **Keyakinan VDOT** sebagai gaya titik: penuh (tinggi), cincin tebal (sedang), cincin tipis (rendah).
 - **Tanpa animasi** (reduced motion aman dengan sendirinya).
+- **Hitungan** (set, sesi) memakai tick bilangan bulat; angka sumbu gaya Indonesia (`0,5`, `1.200`, `−10`).
+
+### Heatmap (0.15.1)
+- **Heatmap otot** (`MuscleMap` dengan `levels`): 4 tingkat opasitas `--brand` (0,3 · 0,55 · 0,8 · 1) relatif terhadap skor tertinggi rentang itu, legenda angka per tingkat. Otot tanpa data `--subtle-strong` seperti biasa. **Jarang dilatih** = garis putus-putus `--ink` (bukan merah) plus daftar teks. Region bisa diketuk, tetapi daftar tombol otot (≥ 44px) adalah jalur utama; pilihan menampilkan gerakan tersedia yang melatih otot itu.
+- **Kalender heatmap** (`HeatGrid`): kolom = minggu, baris = Senin sampai Minggu. Lari `--brand`, ST `--brand-soft` bergaris `--brand`, lari + ST `--brand` dengan titik `--surface`, istirahat `--subtle`, hari mendatang hanya garis `--line`. Aktivitas = oranye karena sudah selesai; tidak ada warna intensitas di sini.
+- **Kepatuhan**: terpenuhi `--brand`, sebagian `--brand-soft` bergaris `--brand`, belum `--track`. Tanpa merah, tanpa streak.
+- **Tren PR**: garis `--brand`, batas alat putus-putus `--ink`, penanda tahap huruf mono (R rep naik, T tempo/jeda, V varian).
 
 ### Button (`BUTTON` di Card.tsx)
 - Primary: `bg-brand text-on-brand` (teks gelap), 600, tinggi 44/48, radius 12.

@@ -4,6 +4,24 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.15.1] · 2026-10-28 · Insight: tren kekuatan
+
+Tahap kedua [INSIGHT.md](docs/INSIGHT.md) (§8 0.15.1). Definisi volume & aturan otot jarang dilatih: [TRAINING-LOGIC](docs/TRAINING-LOGIC.md) "Tren kekuatan (0.15.1)".
+
+### Ditambahkan
+- **Rincian set di mode latihan**: setiap set yang dicentang (gerakan, kg atau band, rep atau detik, tempo) ikut tersimpan di sesi, tersinkron, dan masuk cadangan (field opsional, tanpa versi cadangan baru). Sesi lama tetap valid.
+- **Volume ST per pola** (Upper Push, Upper Pull, Lower, Core/Stabilitas, Prehab) per minggu: set, kg × rep, detik tahan, dan rep tanpa beban; minggu dari data lama ditandai perkiraan. **Beban ST mingguan** dari session-RPE (AU) sebagai grafik terpisah, tidak dijumlah dengan load lari (#4).
+- **Heatmap otot** 7/30 hari, mode frekuensi atau volume, bobot utama 1 / sekunder 0,5, legenda angka. Otot tanpa kerja utama 14 hari (yang bisa dilatih dengan alat & kondisi sekarang) bergaris putus-putus dan didaftar; ketuk otot untuk melihat gerakan tersedia yang melatihnya (#5).
+- **Tren PR** per gerakan dengan penanda R (rep naik), T (tempo/jeda), V (varian) dan garis batas alat; kalimat "Beban mentok di batas alat … sejak …" (#8).
+- **Tren kepatuhan** per minggu program, lari dan ST terpisah: terpenuhi / sebagian / belum, dilewati tidak dihitung, tanpa merah dan streak (#10).
+- **Kalender heatmap** 12/26 minggu: lari, ST, lari + ST, istirahat di tanggal aslinya (#11).
+- Tautan "Lihat tren" juga di kartu PR (Strength). Demo Mode menampilkan riwayat ST fiktif (tidak ditulis ke perangkat), termasuk Barbell Squat yang mentok di 17 kg.
+- Komponen: `HeatGrid`, mode heatmap `MuscleMap`, penanda titik di `LineChart`, tick bilangan bulat untuk hitungan dan angka sumbu gaya Indonesia.
+- 42 test baru; total 686 di 57 file.
+
+### Dokumentasi
+- PRD (header, §4.1, §4.5, §4.6, §7, §8, backlog), TRAINING-LOGIC (volume, bobot otot, jarang dilatih, tahap PR), DESIGN-SYSTEM §6 (warna heatmap), ARCHITECTURE, INSIGHT (status), README.
+
 ## [0.15.0] · 2026-10-28 · Insight: tren lari
 
 Tahap pertama [INSIGHT.md](docs/INSIGHT.md) (§8 0.15.0, keputusan I1, I2, I3, I6).
