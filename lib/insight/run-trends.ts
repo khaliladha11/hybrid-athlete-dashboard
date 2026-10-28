@@ -94,7 +94,9 @@ export function runWeeks(activities: Activity[], today: string, weeks: number, m
     const total = km(runs);
     const hard = km(runs.filter(isHardRun));
     const prev = km(byWeek[j]);
-    const change = prev >= MIN_BASE_KM ? Math.round((total / prev - 1) * 100) / 100 : undefined;
+    const raw = prev >= MIN_BASE_KM ? Math.round((total / prev - 1) * 100) / 100 : undefined;
+    // Minggu berjalan belum lengkap: perubahannya hanya ditulis bila sudah melewati batas kenaikan.
+    const change = raw !== undefined && (!b.current || raw > KM_INCREASE_LIMIT) ? raw : undefined;
     return {
       ...b,
       km: r1(total),

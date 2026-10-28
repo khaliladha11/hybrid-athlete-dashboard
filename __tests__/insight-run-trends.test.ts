@@ -60,6 +60,14 @@ describe("runWeeks", () => {
     expect(rows[3].jump).toBe(false);
   });
 
+  it("minggu berjalan tidak dibandingkan seolah lengkap, kecuali sudah melewati batas", () => {
+    const base = [run("2025-12-29", 20)];
+    expect(runWeeks([...base, run("2026-01-05", 6)], TODAY, 2)[1].change).toBeUndefined();
+    const over = runWeeks([...base, run("2026-01-05", 27)], TODAY, 2)[1];
+    expect(over.change).toBe(0.35);
+    expect(over.jump).toBe(true);
+  });
+
   it("median pace/HR/cadence easy hanya dari lari yang punya nilai; long run & berat tidak dihitung", () => {
     const acts = [
       run("2026-01-05", 5, { movingTimeSec: 5 * 390, avgHr: 138, cadenceSpm: undefined }),
