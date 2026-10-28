@@ -7,10 +7,12 @@ import { CATEGORY_LABEL, formatDuration, formatPace } from "@/lib/intervals/summ
 import { SessionStatusChip, sessionNote } from "@/components/program/SessionStatusChip";
 import { INTENSITY_TONE, TONES } from "@/components/ui/tones";
 import { isHardRun } from "@/lib/coach";
+import { calendarItems, planMarker, type CalendarItem, type PlanMarker } from "@/lib/calendar";
 import type { Activity, ActivityCategory } from "@/lib/intervals/types";
-import type { SessionResult } from "@/lib/program/compliance";
 import type { PlannedSession } from "@/lib/program/sessions";
 import { useProgramPlan } from "@/lib/program/use-program-plan";
+import { useStSessions } from "@/lib/st-session-store";
+import { useTrainingLog } from "@/lib/training-log";
 
 /** Ikon garis 24×24 per kategori. */
 const CATEGORY_ICON: Record<ActivityCategory, string> = {
@@ -25,15 +27,18 @@ const CATEGORY_ICON: Record<ActivityCategory, string> = {
 const DONE_FILL = "bg-brand text-on-brand";
 const STRENGTH_ICON = "M3 10v4m3-6v8m0-4h12m0-4v8m3-6v4";
 
-/** Tampilan sel untuk hari tanpa aktivitas tetapi ada sesi rencana. */
-function planCell(s: PlannedSession, r: SessionResult | undefined): { className: string; mark?: "x" | "done" } {
-  switch (r?.status) {
-    case "selesai":
-      return { className: DONE_FILL, mark: "done" };
-    case "terlewat":
-      return { className: "bg-danger-soft text-danger-ink", mark: "x" };
-    case "dilewati":
+/**
+ * Tampilan sel untuk hari tanpa aktivitas tetapi ada sesi rencana (0.14.3): hanya penanda, tidak pernah oranye.
+ * Sesi yang sudah dipenuhi di hari lain tampil redup dengan centang netral; yang lewat & belum dikerjakan netral.
+ */
+function planCell(s: PlannedSession, m: PlanMarker): { className: string; mark?: "check" } {
+  switch (m) {
+    case "fulfilled":
+      return { className: "border border-line text-faint", mark: "check" };
+    case "skipped":
       return { className: "border border-line text-faint line-through" };
+    case "open":
+      return { className: "border border-dashed border-line-strong text-muted" };
     default:
       return { className: `border-2 ${s.kind.startsWith("st-") ? "border-line-strong" : TONES[INTENSITY_TONE[s.intensity]].border} text-ink` };
   }
@@ -64,25 +69,19 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
   // Program tersimpan: aktivitas sejak awal program (diambil sekali bila perlu) + sesi rencana & statusnya.
   const plan = useProgramPlan({ activities: serverActivities, oldest, today });
   const activities = plan.activities;
+  const stSessions = useStSessions();
+  const log = useTrainingLog();
   const showPlan = plan.saved && !!plan.program && !plan.loading;
   const planByDate = useMemo(() => {
     const map = new Map<string, PlannedSession[]>();
     if (!showPlan) return map;
     // Sesi arsip (0.13.3) ikut tampil sebagai riwayat.
-    for (const s of [...plan.archived.flatMap((a) => a.sessions), ...plan.sessions]) map.set(s.date, [...(map.get(s.date) ?? []), s]);
+    for (const s of [...plan.archived.flatMap((a) => a.sessions), ...plan.sessions]) map.set(s.plannedDate, [...(map.get(s.plannedDate) ?? []), s]);
     return map;
   }, [showPlan, plan.sessions, plan.archived]);
 
-  const byDate = useMemo(() => {
-    const map = new Map<string, Activity[]>();
-    for (const a of activities) {
-      if (!a.date) continue;
-      map.set(a.date, [...(map.get(a.date) ?? []), a]);
-    }
-    // Urut pagi → malam di dalam satu hari.
-    for (const list of map.values()) list.sort((x, y) => (x.startLocal ?? "").localeCompare(y.startLocal ?? ""));
-    return map;
-  }, [activities]);
+  // Aktivitas (termasuk ST lokal) selalu di tanggal aslinya (0.14.3).
+  const byDate = useMemo(() => calendarItems(activities, stSessions, log.map((e) => e.date)), [activities, stSessions, log]);
 
   const currentMonth = `${today.slice(0, 7)}-01`;
   // Navigasi sepanjang rentang program (awal program sampai bulan lomba), minimal 2 bulan terakhir.
@@ -99,8 +98,8 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
 
   const weeks = monthWeeks(month);
   const inMonth = (d: string) => d.slice(0, 7) === month.slice(0, 7);
-  const monthActs = activities.filter((a) => a.date && inMonth(a.date));
-  const runKm = monthActs.filter((a) => a.category === "run").reduce((s, a) => s + (a.distanceKm ?? 0), 0);
+  const monthItems = [...byDate.entries()].filter(([d]) => inMonth(d)).flatMap(([, list]) => list);
+  const runKm = monthItems.reduce((s, i) => s + (i.kind === "activity" && i.activity.category === "run" ? (i.activity.distanceKm ?? 0) : 0), 0);
   const selectedList = byDate.get(selected) ?? [];
   const selectedPlan = planByDate.get(selected) ?? [];
 
@@ -126,7 +125,7 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
       <div className="mt-3 grid grid-cols-2 gap-3">
         <div>
           <p className="text-[12px] text-muted">Aktivitas</p>
-          <p className="tabular text-[22px] leading-tight font-semibold">{monthActs.length}</p>
+          <p className="tabular text-[22px] leading-tight font-semibold">{monthItems.length}</p>
         </div>
         <div>
           <p className="text-[12px] text-muted">Jarak lari</p>
@@ -158,7 +157,7 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
                 const own = inMonth(d);
                 const isSel = d === selected;
                 const first = list[0];
-                const cell = !first && planned[0] ? planCell(planned[0], plan.results.get(planned[0].id)) : null;
+                const cell = !first && planned[0] ? planCell(planned[0], planMarker(planned[0], plan.results.get(planned[0].id), today)) : null;
                 const label = [
                   list.length ? `${list.length} aktivitas` : future ? null : "tidak ada aktivitas",
                   planned.length ? `rencana: ${planned.map((p) => p.title).join(", ")}` : null,
@@ -176,11 +175,9 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
                         } ${d === today ? "ring-2 ring-brand" : ""} ${isSel ? "outline-2 outline-offset-2 outline-ink" : ""}`}
                       >
                         {first ? (
-                          <Icon d={CATEGORY_ICON[first.category]} className="h-5 w-5" />
-                        ) : cell?.mark === "done" ? (
-                          <Icon d={STRENGTH_ICON} className="h-5 w-5" />
-                        ) : cell?.mark === "x" ? (
-                          <Icon d="M8 8l8 8M16 8l-8 8" className="h-4 w-4" strokeWidth={2.4} />
+                          <Icon d={itemIcon(first)} className="h-5 w-5" />
+                        ) : cell?.mark === "check" ? (
+                          <Icon d="m6 12 4 4 8-8" className="h-4 w-4" strokeWidth={2.2} />
                         ) : (
                           Number(d.slice(8))
                         )}
@@ -198,15 +195,15 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
                   </div>
                 );
               })}
-              {/* Status minggu: aktif = hijau ✓, minggu lewat tanpa aktivitas = merah ✕. */}
+              {/* Status minggu: aktif = hijau ✓, minggu lewat tanpa aktivitas = netral (tanpa merah, 0.14.3). */}
               <div role="gridcell" className="flex items-center justify-center">
                 {weekActive ? (
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-success text-bg" title="Minggu aktif">
                     <Icon d="m5 12 4.5 4.5L19 7" className="h-4 w-4" strokeWidth={3} />
                   </span>
                 ) : weekDone ? (
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-danger text-bg" title="Tidak ada aktivitas">
-                    <Icon d="M7 7l10 10M17 7 7 17" className="h-3.5 w-3.5" strokeWidth={3} />
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-subtle-strong text-faint" title="Tidak ada aktivitas">
+                    <Icon d="M7 12h10" className="h-3.5 w-3.5" strokeWidth={3} />
                   </span>
                 ) : (
                   <span className="h-6 w-6 rounded-full border-2 border-line-strong" title="Minggu berjalan" />
@@ -224,7 +221,7 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
             <Legend className="border-2 border-success" label="Rencana easy" />
             <Legend className="border-2 border-warning" label="Moderate" />
             <Legend className="border-2 border-danger" label="High" />
-            <Legend className="bg-danger-soft" label="Terlewat" />
+            <Legend className="border border-line" label="Rencana sudah dipenuhi" />
           </>
         )}
       </div>
@@ -238,7 +235,7 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
               const note = sessionNote(r);
               return (
                 <li key={s.id} className="flex flex-wrap items-center gap-2 text-[14px]">
-                  <span className="t-label">Rencana</span>
+                  <span className="t-label">Disarankan</span>
                   <span className="font-semibold">{s.title}</span>
                   <SessionStatusChip session={s} result={r} />
                   {note && <span className="text-[12px] text-muted">{note}</span>}
@@ -251,9 +248,7 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
           selectedPlan.length === 0 && <p className="mt-1 text-body text-faint">{selected > today ? "Belum ada rencana." : "Tidak ada aktivitas. Hari istirahat."}</p>
         ) : (
           <ul key={selected} className="swap-in -mx-5 mt-1 divide-y divide-line">
-            {selectedList.map((a) => (
-              <ActivityRow key={a.id} a={a} />
-            ))}
+            {selectedList.map((i) => (i.kind === "activity" ? <ActivityRow key={i.activity.id} a={i.activity} /> : <LocalStRow key={i.id} item={i} />))}
           </ul>
         )}
       </div>
@@ -300,6 +295,26 @@ function ActivityRow({ a }: { a: Activity }) {
     </li>
   );
 }
+
+/** ST yang dicatat di perangkat (mode latihan atau log ★), tanpa aktivitas intervals.icu. */
+function LocalStRow({ item }: { item: Extract<CalendarItem, { kind: "local-st" }> }) {
+  return (
+    <li className="flex items-center gap-3 px-5 py-3">
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${DONE_FILL}`} aria-hidden>
+        <Icon d={STRENGTH_ICON} className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-body font-semibold">{item.title}</p>
+        <p className="tabular truncate text-[13px] text-muted">
+          <span className="text-faint">Dicatat di perangkat</span>
+          {item.minutes ? ` · ${item.minutes}'` : ""}
+        </p>
+      </div>
+    </li>
+  );
+}
+
+const itemIcon = (i: CalendarItem) => (i.kind === "activity" ? CATEGORY_ICON[i.activity.category] : STRENGTH_ICON);
 
 function MonthButton({ label, disabled, onClick, d }: { label: string; disabled: boolean; onClick: () => void; d: string }) {
   return (
