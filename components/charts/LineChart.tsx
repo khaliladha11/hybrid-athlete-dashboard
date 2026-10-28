@@ -12,6 +12,8 @@ export interface LineSeries {
   tone: LineTone;
   /** Titik di setiap nilai (seri mingguan). Seri harian cukup garis. */
   dots?: boolean | DotStyle[];
+  /** Penanda teks pendek di atas titik (mis. tahap progresi "R", "T", "V"). */
+  marks?: (string | undefined)[];
 }
 
 const STROKE: Record<LineTone, string> = { brand: "stroke-brand", ink: "stroke-ink", muted: "stroke-muted" };
@@ -20,7 +22,8 @@ const FILL: Record<LineTone, string> = { brand: "fill-brand", ink: "fill-ink", m
 const HEIGHT = 160;
 const LEFT = 36;
 const RIGHT = 6;
-const TOP = 8;
+/** Ruang penanda teks di atas titik tertinggi. */
+const TOP = 16;
 const BOTTOM = 22;
 
 /**
@@ -99,6 +102,13 @@ export function LineChart({
                   <circle key={i} cx={x(i)} cy={y(v)} r={3.5} className={`${STROKE[s.tone]} fill-surface`} strokeWidth={style === "ring" ? 2 : 1.25} />
                 );
               })}
+            {s.marks?.map((m, i) =>
+              m && s.values[i] !== undefined ? (
+                <text key={`m${i}`} x={x(i)} y={y(s.values[i]!) - 8} textAnchor="middle" className="fill-ink font-mono text-[10px] font-semibold">
+                  {m}
+                </text>
+              ) : null,
+            )}
           </g>
         ))}
         {placeLabels(

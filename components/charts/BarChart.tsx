@@ -3,14 +3,14 @@
 import { bandLayout, linearScale, niceTicks, placeLabels, thinLabels } from "./chart-scale";
 import { useWidth } from "./useWidth";
 
-export type BarTone = "success" | "danger" | "brand" | "track";
+export type BarTone = "success" | "danger" | "brand" | "brandSoft" | "track";
 
 export interface BarStack {
   values: number[];
   tone: BarTone;
 }
 
-const FILL: Record<BarTone, string> = { success: "fill-success", danger: "fill-danger", brand: "fill-brand", track: "fill-track" };
+const FILL: Record<BarTone, string> = { success: "fill-success", danger: "fill-danger", brand: "fill-brand", brandSoft: "fill-brand-soft stroke-brand", track: "fill-track" };
 
 const HEIGHT = 168;
 const LEFT = 36;
