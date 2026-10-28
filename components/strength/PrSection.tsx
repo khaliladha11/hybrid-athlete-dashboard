@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { BUTTON, Card, Chip } from "@/components/ui/Card";
 import { ConfirmButton } from "@/components/ui/ConfirmButton";
+import { InsightLink } from "@/components/profile/InsightLink";
 import { formatDateId, todayWib } from "@/lib/date";
 import { prStore, usePrs } from "@/lib/pr-store";
 import { allMovementNames, baseProfile } from "@/lib/profile";
@@ -132,6 +133,7 @@ export function PrSection() {
           );
         })}
       </ul>
+      <InsightLink />
     </Card>
   );
 }

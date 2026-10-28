@@ -18,6 +18,19 @@ import type { Activity, FetchResult, Wellness } from "@/lib/intervals/types";
 import type { Confidence } from "@/lib/program/prediction";
 import { useProgramPlan } from "@/lib/program/use-program-plan";
 import { useAthleteSettings, useBlockMode, useResolvedProfile } from "@/lib/settings-store";
+import { complianceWeeks } from "@/lib/insight/compliance-trend";
+import { patternMap, stWork, strengthWeeks } from "@/lib/insight/strength-trends";
+import { DEMO_BARBELL_CAP_KG, mockInsightStrength } from "@/lib/mock-data";
+import { usePrs } from "@/lib/pr-store";
+import { baseProfile, findMovement } from "@/lib/profile";
+import { mergePrs } from "@/lib/prs";
+import { mergeSessions } from "@/lib/st-session";
+import { useStSessions } from "@/lib/st-session-store";
+import { useTrainingLog } from "@/lib/training-log";
+import { ActivityHeatmap, ComplianceTrend } from "./ProgramCalendarTrends";
+import { MuscleHeatmap, PrTrend, StrengthVolume, availableMovements } from "./StrengthTrends";
+
+const PATTERNS = patternMap(baseProfile.movementLibrary);
 
 const DAY = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
 const dayLabel = (d: string) => DAY.format(new Date(`${d}T00:00:00Z`)).replace(".", "");
@@ -25,9 +38,11 @@ const weekRow = (r: { start: string; current: boolean }) => `${weekLabel(r.start
 const DOT: Record<Confidence, DotStyle> = { tinggi: "filled", sedang: "ring", rendah: "thin" };
 
 /**
- * Insight bagian Lari (0.15.0, docs/INSIGHT.md §4): CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT.
- * Data intervals.icu dari server (sekali per buka halaman), data perangkat (hasil lomba, program, blok) di sini.
- * Pilihan 6/12 minggu hanya memotong data yang sudah ada. Grafik tidak mengubah saran (I3).
+ * Insight (docs/INSIGHT.md §4). Lari (0.15.0): CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT.
+ * Kekuatan (0.15.1): volume ST per pola & session-RPE, heatmap otot, tren PR. Program & kalender (0.15.1): kepatuhan
+ * mingguan, kalender heatmap. Data intervals.icu dari server (sekali per buka halaman), data perangkat (sesi ST, log ★,
+ * PR, hasil lomba, program, blok) di sini. Demo Mode menambah data ST fiktif tanpa menulis ke perangkat. Pilihan
+ * 6/12 minggu hanya memotong data yang sudah ada. Grafik tidak mengubah saran (I3).
  */
 export function InsightView({ activities, wellness, today }: { activities: FetchResult<Activity[]>; wellness: FetchResult<Wellness[]>; today: string }) {
   const [weeks, setWeeks] = useState<RangeWeeks>(6);
@@ -46,6 +61,31 @@ export function InsightView({ activities, wellness, today }: { activities: Fetch
   }, [today, weeks, plan.saved, plan.program, blockOn, profile.training?.blockStart, profile.training?.blockWeeks]);
   const rows = useMemo(() => runWeeks(acts, today, weeks, marks), [acts, today, weeks, marks]);
   const goal = plan.active ? goalVdot(plan.program) : undefined;
+
+  // Kekuatan: data perangkat (+ data ST fiktif di Demo Mode, tidak pernah disimpan).
+  const demo = activities.ok && activities.source === "demo";
+  const deviceSessions = useStSessions();
+  const deviceLog = useTrainingLog();
+  const devicePrs = usePrs();
+  const demoSt = useMemo(() => (demo ? mockInsightStrength(today) : null), [demo, today]);
+  const stSessions = useMemo(() => (demoSt ? mergeSessions(deviceSessions, demoSt.sessions) : deviceSessions), [deviceSessions, demoSt]);
+  const log = useMemo(() => (demoSt ? [...deviceLog, ...demoSt.log] : deviceLog), [deviceLog, demoSt]);
+  const prs = useMemo(() => (demoSt ? mergePrs(devicePrs, demoSt.prs) : devicePrs), [devicePrs, demoSt]);
+  const work = useMemo(() => stWork(stSessions, log), [stSessions, log]);
+  const stRows = useMemo(() => strengthWeeks(work, stSessions, PATTERNS, today, weeks), [work, stSessions, today, weeks]);
+  const available = useMemo(() => availableMovements(profile), [profile]);
+  // Batas alat: batas beban 0.14.0 bila aktif, selain itu beban terberat yang bisa dirakit.
+  const capOf = (movement: string) => {
+    const m = findMovement(movement, profile.movementLibrary);
+    const cap = m && m.available !== false ? (m.cap?.kg ?? (m.loads?.length ? Math.max(...m.loads) : undefined)) : undefined;
+    return cap ?? (demo && movement === "Barbell Squat" ? DEMO_BARBELL_CAP_KG : undefined);
+  };
+  const logDates = useMemo(() => log.map((e) => e.date), [log]);
+  const compliance = useMemo(
+    // Hanya program yang benar-benar disimpan (bukan pratinjau default) dan arsipnya.
+    () => complianceWeeks(plan.saved ? [...plan.sessions, ...plan.archived.flatMap((a) => a.sessions)] : [], plan.results, today, weeks),
+    [plan.saved, plan.sessions, plan.archived, plan.results, today, weeks],
+  );
 
   return (
     <div className="space-y-4">
@@ -73,6 +113,15 @@ export function InsightView({ activities, wellness, today }: { activities: Fetch
       ) : (
         <SourceError title="Tren lari" result={activities} />
       )}
+
+      <h2 className="t-label pt-2 text-ink">Kekuatan</h2>
+      <StrengthVolume rows={stRows} />
+      <MuscleHeatmap work={work} today={today} available={available} />
+      <PrTrend prs={prs} log={log} capOf={capOf} />
+
+      <h2 className="t-label pt-2 text-ink">Program & kalender</h2>
+      {!plan.loading && <ComplianceTrend rows={compliance} />}
+      <ActivityHeatmap activities={acts} stSessions={stSessions} logDates={logDates} today={today} />
     </div>
   );
 }

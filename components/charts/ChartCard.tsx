@@ -20,6 +20,7 @@ export function ChartCard({
   drawable,
   table,
   legend,
+  header,
   children,
 }: {
   title: string;
@@ -27,12 +28,15 @@ export function ChartCard({
   drawable: boolean;
   table: ChartTable;
   legend?: React.ReactNode;
+  /** Kontrol di atas ringkasan (mis. Segmented), tetap tampil walau data tidak cukup. */
+  header?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const id = useId();
   return (
     <Card title={title}>
+      {header && <div className="mb-4">{header}</div>}
       <p className={`text-body ${drawable ? "text-ink" : "text-muted"}`}>{summary}</p>
       {drawable && (
         <>
