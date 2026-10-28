@@ -101,17 +101,27 @@ Dibangun mobile-first sebagai **PWA**: bisa di-install ke layar utama HP dan dip
   </tr>
   <tr>
     <td><img src="docs/screenshots/25-insight-calendar.jpg" width="220" alt="Kepatuhan program dan kalender aktivitas 12 minggu"></td>
+    <td><img src="docs/screenshots/26-checkin.jpg" width="220" alt="Kartu check-in harian dengan slider nyeri shin dan pilihan kualitas tidur"></td>
+    <td><img src="docs/screenshots/27-checkin-advice.jpg" width="220" alt="Saran hari ini setelah check-in: nyeri shin maks Easy dan tidur turun satu level"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Kepatuhan & kalender</sub></td>
+    <td align="center"><sub>Check-in harian</sub></td>
+    <td align="center"><sub>Saran dari check-in</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/28-insight-body.jpg" width="220" alt="Mode terang: tren check-in dan status ambang pribadi di Insight"></td>
     <td></td>
     <td></td>
   </tr>
   <tr>
-    <td align="center"><sub>Kepatuhan & kalender</sub></td>
+    <td align="center"><sub>Tubuh & ambang</sub></td>
     <td></td>
     <td></td>
   </tr>
 </table>
 
-<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1, onboarding & tur di 0.11.2, sinkron di 0.12.2, Program & Hari H di 0.13.2–0.13.3, mode latihan, peta otot & Week Ledger ST di 0.14.1, peta otot per gerakan di 0.14.2, Tren di 0.15.0–0.15.1), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
+<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1, onboarding & tur di 0.11.2, sinkron di 0.12.2, Program & Hari H di 0.13.2–0.13.3, mode latihan, peta otot & Week Ledger ST di 0.14.1, peta otot per gerakan di 0.14.2, Tren di 0.15.0–0.15.1, check-in di 0.15.2), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
 
 > **Mau memakainya dengan data latihanmu sendiri di HP?** Ikuti [Pasang di HP-mu sendiri](#pasang-di-hp-mu-sendiri): gratis, sekitar 15 menit, tanpa menulis kode.
 
@@ -136,7 +146,7 @@ Awalnya ini cuma buat saya sendiri. Tapi kondisi, alat, zona lari, dan pilihan g
 
 | Area | Yang bisa dilakukan |
 | --- | --- |
-| **Profil** | Data diri, target lomba, saran hari ini, wellness, ringkasan 7 hari, dan kalender aktivitas. |
+| **Profil** | Data diri, target lomba, saran hari ini, wellness, ringkasan 7 hari, dan kalender aktivitas. Sejak 0.15.2 **check-in harian** (nyeri shin, pegal, tidur, mood; di bawah 10 detik) yang hanya bisa menurunkan saran, ambang pribadi dari LTHR/HRV/resting HR, dan ringkasan bulanan di awal bulan. |
 | **Tren** | Sejak 0.15.0, "Lihat tren" membuka grafik 6 atau 12 minggu: CTL/ATL/Form, km mingguan dengan pembagian 80/20 (kenaikan > 30%, cutback, dan deload ditandai), pace/HR/cadence easy run, dan VDOT per minggu dengan selisih ke target. Sejak 0.15.1 juga kekuatan: volume ST per pola dan beban session-RPE, heatmap otot (dengan otot yang jarang dilatih dan gerakan untuk melatihnya), tren PR dengan tahap rep/tempo/varian saat beban mentok, kepatuhan program lari & ST, dan kalender aktivitas 12/26 minggu. Setiap grafik punya kalimat ringkasan dan "Lihat tabel"; data yang tidak dikirim jam ditulis apa adanya. |
 | **Setting** | Kondisi & batasan dari **katalog berbasis riset** (10 kondisi, masing-masing dengan sumber) yang langsung mengubah generator; zona pace per jenis latihan (manual atau dihitung **VDOT Daniels** dari hasil lomba); alat (dumbbell, plat, barbell, band, pull-up bar); pilihan gerakan movement library; tema; dan cadangan data. |
 | **Data intervals.icu** | Ringkasan 7 hari (km, pace, HR, long run, load), kalender aktivitas bulanan (ketuk tanggal untuk detail), detail aktivitas dengan **split per km** (dari data per detik jam atau GPS, divalidasi terhadap ringkasan) dan interval, serta wellness (HRV, resting HR, tidur, CTL/ATL/Form). Aktivitas yang tercatat dobel dari dua sumber (mis. jam + Strava) dihitung sekali. |
@@ -316,7 +326,7 @@ Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di pera
 | **0.12** Aman & tersinkron | ✅ Selesai | CI GitHub Actions, sandi aplikasi opsional, sinkron ke Upstash Redis milikmu, cadangan otomatis harian dengan Pulihkan, Sambungkan perangkat ini |
 | **0.13** Program hidup | ✅ Selesai | Kepatuhan rencana vs aktual, rencana di kalender, ringkasan minggu di Profil, "Kerjakan sesi hari ini" ke generator, saran tahu rencana, perkiraan waktu lomba, saran update zona, geser/lewati sesi terlewat, hitung mundur. Spesifikasi: [docs/PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) |
 | **0.14** Strength hidup | ✅ Selesai | 0.14.0 batas beban dari alat & keamanan, alat berbobot tetap, PR kemampuan, double progression, saran Gita, pengingat beli plat. 0.14.1 mode latihan + timer, session-RPE, ST mengikuti fase program, jeda 3 jam lari + ST, peta otot sesi. 0.14.2 11 gerakan baru (bisep, trisep, lats, betis, tibialis, varian satu sisi) & peta otot per gerakan. Cakupan: [docs/STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) |
-| **0.15** Insight | 🚧 Berjalan | 0.15.0 halaman Tren: CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT per minggu, setiap grafik dengan "Lihat tabel". 0.15.1 tren kekuatan: volume ST & session-RPE, heatmap otot, tren PR, kepatuhan, kalender heatmap. Berikutnya check-in harian (0.15.2). Spesifikasi: [docs/INSIGHT.md](docs/INSIGHT.md) |
+| **0.15** Insight | ✅ Selesai | 0.15.0 halaman Tren: CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT per minggu, setiap grafik dengan "Lihat tabel". 0.15.1 tren kekuatan: volume ST & session-RPE, heatmap otot, tren PR, kepatuhan, kalender heatmap. 0.15.2 check-in harian yang hanya menurunkan saran, ambang pribadi (LTHR, HRV, resting HR), ringkasan bulanan. Spesifikasi: [docs/INSIGHT.md](docs/INSIGHT.md) |
 | **1.0** Siap pakai penuh | 💡 Rencana | Offline, kirim workout ke intervals.icu/jam, test e2e. Detail: [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
 
 Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.

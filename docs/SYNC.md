@@ -58,6 +58,8 @@ Payload memakai bagian-bagian format ekspor v3, dipisah menjadi **dokumen per ba
 | `preferences` | tema, blok mingguan | Per kunci |
 | `onboarding` | status langkah, disclaimer | Gabung: langkah selesai = gabungan; `termsVersion` = maksimum |
 | `log` | entri sesi ST | **Per entri**: gabungan berdasarkan `id`, hapus memakai tombstone |
+| `prs` (0.14.0), `sessions` (0.14.1) | PR kemampuan, sesi mode latihan (sejak 0.15.1 dengan rincian set) | Per entri seperti `log` |
+| `checkins` (0.15.2) | check-in harian: nyeri shin, pegal, tidur, mood | **Per tanggal**: satu entri per hari, versi terbaru (`updatedAt`) menang, hapus memakai tombstone (dipadatkan setelah 90 hari). "Lewati hari ini" = entri tanpa isian, jadi perangkat lain juga tidak menanyakan lagi |
 
 Aturan log:
 - Setiap entri punya `id` stabil (UUID), `updatedAt`, dan opsional `deletedAt`.

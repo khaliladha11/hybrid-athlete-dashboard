@@ -4,6 +4,35 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.15.2] · 2026-10-28 · Insight: tubuh & saran
+
+Tahap terakhir [INSIGHT.md](docs/INSIGHT.md) (§8 0.15.2, keputusan I3, I4, I5). Rilis ini **mengubah logika saran**; aturan dan sumbernya disetujui pemilik dan ditulis di [TRAINING-LOGIC](docs/TRAINING-LOGIC.md) §5 "Check-in harian" dan "Ambang pribadi".
+
+### Ditambahkan
+- **Check-in harian** di Profil: nyeri shin & pegal (slider 0–10), kualitas tidur & mood (1–5), opsional dan di bawah 10 detik. Bisa diubah hari itu atau dilewati tanpa pengingat berulang (juga di perangkat lain).
+- **Saran dari check-in**:
+  - nyeri shin ≥ 4 → lari maks Easy + catatan prehab;
+  - nyeri shin ≥ 6 → Easy 30 menit, pertimbangkan istirahat/jalan dan periksa bila menetap, ST Upper didahulukan;
+  - pegal ≥ 7 atau tidur ≤ 2 → turun satu level;
+  - mood hanya catatan.
+  Hanya menurunkan, **tidak berantai** dengan readiness, tidak memblokir; lomba tidak diturunkan.
+- **Ambang pribadi** dengan status yang terlihat ("ambang pribadi aktif sejak …" / "masih memakai ambang umum (n dari 30 hari data)") di kartu Wellness dan Insight:
+  - HR lari berat = 90% LTHR lari dari intervals.icu;
+  - HRV = rata-rata 7 hari ln rMSSD di bawah rata-rata 30 hari − 0,5 SD, hanya bila jam mengirim HRV;
+  - resting HR = rata-rata 30 hari + maks(1 SD, 3 bpm).
+  Ambang umum (155 bpm, 15%, +5 bpm) tetap dipakai sampai datanya cukup.
+- **Dasar kesiapan** menyebut check-in bila ada ("Kesiapan dihitung dari resting HR, check-in, dan sesi kemarin.").
+- **Ringkasan bulanan** (km, hari ST, PR baru, VDOT, otot terlewat): kartu di Profil tanggal 1–7, sekali per bulan, dan di Insight.
+- **Insight bagian Tubuh**: tren nyeri shin & tidur, status ambang, ringkasan bulan lalu. Demo Mode menampilkan check-in fiktif. Transisi 30 hari terlihat di Demo Mode: Profil (8 hari) memakai ambang umum, Insight (84 hari) ambang pribadi.
+- **Sinkron** bagian `checkins` (gabung per tanggal) dan **cadangan v6** (v1–v5 tetap bisa diimpor).
+- 33 test baru; total 719 di 60 file.
+
+### Diubah
+- Wellness untuk readiness diambil 60 hari (dari 14). Ada satu request tambahan `/athlete/{id}` (LTHR, cache 1 jam).
+
+### Dokumentasi
+- PRD (header, §4.1, §4.2, §6 #2 selesai, §7 0.15 selesai, §8, backlog), TRAINING-LOGIC §5 (check-in, ambang pribadi, sumber), SYNC.md (bagian `checkins`), ARCHITECTURE, INSIGHT (status), README.
+
 ## [0.15.1] · 2026-10-28 · Insight: tren kekuatan
 
 Tahap kedua [INSIGHT.md](docs/INSIGHT.md) (§8 0.15.1). Definisi volume & aturan otot jarang dilatih: [TRAINING-LOGIC](docs/TRAINING-LOGIC.md) "Tren kekuatan (0.15.1)".

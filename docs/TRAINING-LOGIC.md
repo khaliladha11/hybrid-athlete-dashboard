@@ -114,6 +114,35 @@ Kode: [`lib/wellness-signals.ts`](../lib/wellness-signals.ts), [`lib/readiness.t
 - Readiness menyebut dasarnya, mis. "Kesiapan dihitung dari resting HR dan sesi kemarin." Tanpa HRV dan resting HR: "Data HRV dan resting HR dari jam belum ada, jadi kesiapan hanya dihitung dari sesi kemarin."
 - Integrasi Huawei di intervals.icu tidak mengirim HRV (pengumuman resmi di forum intervals.icu mencantumkan steps, tidur, resting HR, berat, VO2max). Kode membaca `hrv` (rMSSD) lalu `hrvSDNN`.
 
+### Check-in harian (0.15.2)
+
+Kode: [`lib/checkin.ts`](../lib/checkin.ts). Aturan disetujui pemilik 2026-10-28. Isian opsional (nyeri shin 0–10, pegal 0–10, kualitas tidur 1–5, mood 1–5), sekali per hari; "Lewati hari ini" tidak menanyakan lagi.
+
+| Pemicu | Saran | Sumber / alasan |
+| --- | --- | --- |
+| Nyeri shin ≥ 4/10 | Lari maks **Easy** hari itu (tanpa quality) + catatan prehab (Tibialis Wall Raise, Eccentric Calf Raise) | Pain-monitoring model membolehkan ≤ 5/10 untuk **tendon** (Silbernagel 2007). Shin splints (MTSS) berada di kontinum stres tulang yang butuh nyeri mendekati nol (Winters 2013), jadi ambangnya lebih ketat |
+| Nyeri shin ≥ 6/10 | Lari maks Easy **30 menit**, pertimbangkan istirahat atau jalan; bila menetap atau memburuk beberapa hari, periksakan ke tenaga profesional. ST: Upper didahulukan | Sama, ditambah nyeri tinggi sebagai tanda waspada stres tulang |
+| Pegal ≥ 7/10 | Turun satu level (lari & ST) | Ukuran subjektif lebih peka terhadap beban latihan dibanding ukuran objektif (Saw dkk. 2016); kuesioner wellness pegal/tidur/mood (McLean dkk. 2010; Hooper & Mackinnon 1995) |
+| Tidur ≤ 2/5 | Turun satu level (lari & ST) | Sama |
+| Mood | Catatan saja | |
+
+- Angka 4/6/7/2 adalah **default aplikasi** yang sengaja konservatif. Literatur wellness biasanya memakai perubahan terhadap kebiasaan pribadi (z-score), belum dipakai di sini.
+- Semua aturan **hanya menurunkan** dan tidak memblokir. "Turun satu level" dari check-in dan readiness **tidak berantai**: berapa pun pemicunya, hasilnya turun satu level dari pilihan/rencana (`suggestFor`). Batas maks Easy/30 menit berlaku sendiri. Lomba tidak pernah diturunkan.
+- Dasar kesiapan menyebut check-in bila ada ("Kesiapan dihitung dari resting HR, check-in, dan sesi kemarin.").
+
+### Ambang pribadi (0.15.2)
+
+Kode: [`lib/thresholds.ts`](../lib/thresholds.ts). Aturan disetujui pemilik 2026-10-28.
+
+| Ambang | Umum (sebelumnya) | Pribadi | Syarat aktif | Sumber |
+| --- | --- | --- | --- | --- |
+| HR lari berat | 155 bpm | **90% LTHR** lari dari intervals.icu (`sportSettings[].lthr`) | LTHR lari diisi di intervals.icu | Zona HR lari dari LTHR (Friel): di bawah zona 3 = intensitas rendah dalam model 3 zona (Seiler 2010) |
+| Penurunan HRV | HRV hari ini < 85% rata-rata 7 hari | Rata-rata 7 hari ln rMSSD < rata-rata 30 hari − **0,5 SD** (smallest worthwhile change) | ≥ 30 hari bernilai HRV dalam 60 hari **dan** HRV dikirim jam | Plews dkk. 2012, 2013 |
+| Kenaikan resting HR | ≥ rata-rata 7 hari + 5 bpm | Hari ini ≥ rata-rata 30 hari + maks(**1 SD**, 3 bpm) | ≥ 30 hari bernilai resting HR | Rentang normal pribadi, analog dengan HRV (usulan aplikasi, dasar lebih lemah) |
+
+- Server menandai setiap aktivitas dengan ambang HR pribadi (`hardHrBpm`), jadi coach, kepatuhan, kalender, dan Insight memakai angka yang sama. Hanya angka LTHR yang di-cache di memori proses (1 jam).
+- Wellness readiness diambil 60 hari. Status tampil di kartu Wellness dan Insight bagian Tubuh: "ambang pribadi aktif sejak …" atau "masih memakai ambang umum (12 dari 30 hari data)". Sinyal yang tidak dikirim jam (0.14.3) disebut dan aturannya tidak dipakai.
+
 ### Session-RPE ST (0.14.1)
 
 Kode: [`lib/st-session.ts`](../lib/st-session.ts), [`lib/workout-state.ts`](../lib/workout-state.ts), [`lib/week-ledger.ts`](../lib/week-ledger.ts).
@@ -501,6 +530,13 @@ Referensi tambahan bagian ini:
 - Willy RW & Davis IS (2011). Hip-strengthening program & running mechanics. *JOSPT* 41(9) ([doi](https://doi.org/10.2519/jospt.2011.3470)).
 - Winters M dkk. (2013). Treatment of medial tibial stress syndrome. *Sports Med* 43(12) ([doi](https://doi.org/10.1007/s40279-013-0087-0)).
 - Alfredson H dkk. (1998). Heavy-load eccentric calf training for Achilles tendinosis. *Am J Sports Med* 26(3) ([doi](https://doi.org/10.1177/03635465980260030301)).
+- Saw AE, Main LC, Gastin PB (2016). Monitoring the athlete training response: subjective self-reported measures trump commonly used objective measures. *Br J Sports Med* 50(5).
+- McLean BD dkk. (2010). Neuromuscular, endocrine, and perceptual fatigue responses during different length between-match microcycles in professional rugby league players. *Int J Sports Physiol Perform* 5(3).
+- Hooper SL & Mackinnon LT (1995). Monitoring overtraining in athletes. *Sports Med* 20(5).
+- Plews DJ dkk. (2012). Heart rate variability in elite triathletes, is variation in variability the key to effective training? *Eur J Appl Physiol* 112(11).
+- Plews DJ dkk. (2013). Training adaptation and heart rate variability in elite endurance athletes: opening the door to effective monitoring. *Sports Med* 43(9).
+- Seiler S (2010). What is best practice for training intensity and duration distribution in endurance athletes? *Int J Sports Physiol Perform* 5(3).
+- Friel J. *The Triathlete's Training Bible*: zona HR lari dari LTHR.
 - Silbernagel KG dkk. (2007). Pain-monitoring model in Achilles tendinopathy. *Am J Sports Med* 35(6) ([doi](https://doi.org/10.1177/0363546506298279)).
 - Martin RL dkk. (2014). Heel pain—plantar fasciitis CPG. *JOSPT* 44(11) ([doi](https://doi.org/10.2519/jospt.2014.0303)).
 - Rathleff MS dkk. (2015). High-load strength training for plantar fasciitis. *Scand J Med Sci Sports* 25(3) ([doi](https://doi.org/10.1111/sms.12313)).
