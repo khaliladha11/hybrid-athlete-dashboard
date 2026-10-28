@@ -94,7 +94,7 @@ Kode: [`lib/coach.ts`](../lib/coach.ts) dan [`lib/readiness.ts`](../lib/readines
 
 | Aturan | Pemicu | Saran |
 | --- | --- | --- |
-| **Readiness** | HRV < 85% rata-rata 7 hari · resting HR ≥ rata-rata + 5 bpm · long run (≥ 12 km / ≥ 75') atau sesi berat kemarin | Turun satu level, sekali saja (tidak berantai) |
+| **Readiness** | HRV < 85% rata-rata 7 hari · resting HR ≥ rata-rata + 5 bpm · long run (≥ 12 km / ≥ 75') atau sesi berat kemarin. Sejak 0.14.3 aturan HRV/resting HR hanya dipakai bila sinyalnya tersedia (lihat bawah) | Turun satu level, sekali saja (tidak berantai) |
 | **80/20** | ≥ 2 lari berat dalam 7 hari. Lari dianggap berat bila HR ≥ 155, namanya berisi tempo/interval/4×4, atau pace ≤ 6:30/km tanpa HR | Lari: Easy |
 | **Progresi jarak** | km lari 7 hari naik > 30% dibanding 7 hari sebelumnya (basis ≥ 5 km) | Lari: 30' + sisa km aman |
 | **Setelah ST kaki** | Sesi ST bernama Lower/Full/Leg/Squat/… kemarin atau hari ini, atau sesi mode latihan Lower/Full Body (0.14.1) | Lari: maksimal Moderate |
@@ -105,6 +105,15 @@ Kartu "7 hari terakhir" di halaman Profil juga menampilkan bar distribusi easy/b
 
 Saran dihitung di server dari intervals.icu; sesi mode latihan tersimpan di perangkat, jadi klien menambahkannya (`withStSessions`): ST kaki lokal memicu "Setelah ST kaki" bila belum ada, dan aturan hari yang sama memakai ringkasan `todayDone` dari server.
 
+### Sinyal wellness yang tidak dikirim jam (0.14.3)
+
+Kode: [`lib/wellness-signals.ts`](../lib/wellness-signals.ts), [`lib/readiness.ts`](../lib/readiness.ts).
+
+- Sinyal HRV, resting HR, tidur, dan CTL/ATL yang **tidak punya nilai sama sekali dalam 14 hari terakhir** dianggap tidak tersedia. Wellness diambil 14 hari; baseline readiness tetap 7 hari.
+- Sinyal tidak tersedia: barisnya tidak ditampilkan di kartu Wellness dan aturan readiness-nya dilewati.
+- Readiness menyebut dasarnya, mis. "Kesiapan dihitung dari resting HR dan sesi kemarin." Tanpa HRV dan resting HR: "Data HRV dan resting HR dari jam belum ada, jadi kesiapan hanya dihitung dari sesi kemarin."
+- Integrasi Huawei di intervals.icu tidak mengirim HRV (pengumuman resmi di forum intervals.icu mencantumkan steps, tidur, resting HR, berat, VO2max). Kode membaca `hrv` (rMSSD) lalu `hrvSDNN`.
+
 ### Session-RPE ST (0.14.1)
 
 Kode: [`lib/st-session.ts`](../lib/st-session.ts), [`lib/workout-state.ts`](../lib/workout-state.ts), [`lib/week-ledger.ts`](../lib/week-ledger.ts).
@@ -114,14 +123,14 @@ Kode: [`lib/st-session.ts`](../lib/st-session.ts), [`lib/workout-state.ts`](../l
 | Beban | **RPE sesi (0–10, skala CR-10) × durasi menit** = AU (Foster dkk. 2001). Durasi terisi dari timer mode latihan dan bisa diubah |
 | Beban 7 hari | `weekStats`: jumlah sesi ST, menit, dan beban AU 7 hari. AU **tidak dijumlahkan** dengan `trainingLoad` intervals.icu karena skalanya berbeda; ditampilkan sendiri di kartu 7 hari |
 | Dedupe | Sesi lokal dan aktivitas `strength` intervals.icu dianggap satu sesi bila **tanggal WIB sama** dan jam mulai selisih **≤ 2 jam** (atau salah satunya tanpa jam). Satu sesi lokal satu aktivitas (selisih terkecil). Pasangan dihitung sekali memakai sesi lokal; aktivitas tanpa pasangan tetap dihitung, tanpa AU ("sesi tanpa RPE") |
-| Kepatuhan | Sesi mode latihan di tanggal ±1 hari: set dicentang ≥ 80% rencana → selesai, di bawahnya → sebagian (dengan rasio). Sesi yang dimulai dari sesi program itu diutamakan. Aktivitas yang sudah berpasangan dan log ★ di tanggal sesi lokal tidak dihitung lagi |
+| Kepatuhan | Sesi mode latihan di minggu yang sama (0.14.3): set dicentang ≥ 80% rencana → terpenuhi, di bawahnya → sebagian (dengan rasio). Sesi yang dimulai dari sesi program itu diutamakan. Aktivitas yang sudah berpasangan dan log ★ di tanggal sesi lokal tidak dihitung lagi |
 | Week Ledger | Baris ST per sesi, mis. `Senin · ST Lower` dengan `45'`; aktivitas tanpa pasangan `ST` dengan waktu geraknya. Total tetap km lari |
 | Log ★ | Mode latihan menulis satu entri log per ★ dari set terakhir (sama dengan "Catat sesi"), jadi progresi & PR tetap satu sumber |
 | Data | Sinkron bagian `sessions` (tombstone 90 hari), cadangan v5. Sesi yang sedang berjalan hanya di perangkat (`st-active`) |
 
 ### Saran terhadap sesi rencana (0.13.1)
 
-Bila ada program aktif dan sesi lari hari ini, saran dihitung **terhadap rencana**, bukan terhadap pilihan di generator ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.5). Karena basisnya tetap rencana, menerapkan saran tidak membuatnya turun lagi (tidak berantai). Hasilnya hanya berisi nilai yang lebih ringan dari rencana; tanpa rencana, aturan di atas berlaku persis seperti sebelumnya.
+Bila ada program aktif dan sesi lari yang direkomendasikan untuk hari ini ("Sesi minggu ini", 0.14.3), saran dihitung **terhadap rencana**, bukan terhadap pilihan di generator ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.5). Karena basisnya tetap rencana, menerapkan saran tidak membuatnya turun lagi (tidak berantai). Hasilnya hanya berisi nilai yang lebih ringan dari rencana; tanpa rencana, aturan di atas berlaku persis seperti sebelumnya.
 
 | Pemicu | Sesi rencana | Saran |
 | --- | --- | --- |
@@ -204,23 +213,38 @@ Sejak 0.13.3 panjang program mengikuti Hari H yang dipilih atlet (lihat "Hari H 
   - Target pace jauh lebih cepat dari zona tempo.
   - Long run puncak > 55% volume mingguan pada 3 lari/minggu (sarankan 4×).
 
-### Kepatuhan program (0.13.0)
+### Kepatuhan program mingguan (0.13.0, model mingguan 0.14.3)
 
-Kode: [`lib/program/compliance.ts`](../lib/program/compliance.ts), [`lib/program/sessions.ts`](../lib/program/sessions.ts). Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §3–§4.1.
+Kode: [`lib/program/compliance.ts`](../lib/program/compliance.ts), [`lib/program/sessions.ts`](../lib/program/sessions.ts). Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) D2 (2026-10-28), §3–§4.1.
 
 | Aturan | Detail |
 | --- | --- |
-| Sesi rencana | Setiap sesi punya id `{programId}:{minggu}:{hari}:{jenis}`; `programId` = jarak lomba + Senin mulai. Sesi ST mengikuti jadwal di atas: Senin Lower/Full & Rabu Upper; sejak 0.14.1 taper sebelum minggu lomba tetap 2× ringan dan minggu lomba hanya Upper ringan (lihat "ST mengikuti fase program") |
-| Jendela | Aktivitas di tanggal rencana ±1 hari (WIB). Satu aktivitas untuk satu sesi; pasangan diurutkan menurut selisih hari lalu kecocokan jenis. Lari lain di hari yang sama dengan aktivitas utama dijumlah |
-| Selesai | Jenis cocok dan durasi **atau** jarak ≥ 80% rencana (D2). Long run & lomba memakai jarak. Aktivitas tanpa durasi & jarak (salinan Strava kosong) dianggap memenuhi karena tidak terukur |
-| Sebagian | Ada aktivitas tapi < 80%, atau quality (selain strides/sharpener ringan) dikerjakan tanpa lari berat |
-| Lebih berat | Easy/recovery yang aktivitasnya tergolong berat (`isHardRun`, ambang yang sama dengan saran): tetap selesai, diberi catatan, dan sudah ikut hitungan 80/20 |
-| Terlewat | Tanpa aktivitas setelah tanggal + 1 hari. Kemarin tanpa aktivitas masih "bisa hari ini" |
-| ST | Sesi mode latihan (0.14.1): set ≥ 80% → selesai, di bawahnya → sebagian. Tanpa sesi: log ST lokal atau aktivitas strength intervals.icu di tanggal ±1 hari → selesai. Tanpa hitung dobel (lihat "Session-RPE ST") |
-| Override | `skip` → dilewati (tidak dicocokkan); `move` → dinilai di tanggal baru. Tidak pernah menambah volume minggu lain (D5) |
+| Sesi rencana | Setiap sesi punya id `{programId}:{minggu}:{hari}:{jenis}`; `programId` = jarak lomba + Senin mulai. Hari di rencana adalah **hari disarankan**. Sesi ST mengikuti jadwal di atas: Senin Lower/Full & Rabu Upper; sejak 0.14.1 taper sebelum minggu lomba tetap 2× ringan dan minggu lomba hanya Upper ringan |
+| Minggu | Senin sampai Minggu (WIB). Sesi dipenuhi oleh aktivitas di **minggu kalender yang sama**, hari apa pun. Aktivitas minggu lain tidak dihitung |
+| Pencocokan | Satu aktivitas untuk satu sesi. Urutan: kecocokan jenis (quality ↔ lari berat, long run ↔ jarak ≥ 80%, easy ↔ lari tidak berat; ST ↔ sesi dari sesi program itu, lalu tipe Lower/Upper cocok, lalu log/aktivitas), lalu hari disarankan terdekat, lalu tanggal. Lari lain di hari yang sama dengan aktivitas utama dijumlah |
+| Terpenuhi | Jenis cocok dan durasi **atau** jarak ≥ 80% rencana. Long run & lomba memakai jarak. Aktivitas tanpa durasi & jarak (salinan Strava kosong) dianggap memenuhi karena tidak terukur. Tanggal aktual dicatat ("dipenuhi Rabu") |
+| Sebagian | Ada aktivitas tapi < 80%, quality (selain strides/sharpener ringan) dikerjakan tanpa lari berat, atau ST < 80% set |
+| Lebih berat | Easy/recovery yang aktivitasnya tergolong berat (`isHardRun`, ambang yang sama dengan saran): tetap terpenuhi, diberi catatan, dan sudah ikut hitungan 80/20 |
+| Belum | Tanpa aktivitas cocok. Tidak ada "terlewat", tidak ada merah, tidak ada streak |
+| Status minggu | Terpenuhi bila semua sesi yang tidak dilewati terpenuhi; selain itu sebagian |
+| ST | Sesi mode latihan (set ≥ 80% → terpenuhi), log ★ lokal, atau aktivitas strength intervals.icu di minggu yang sama. Tanpa hitung dobel (lihat "Session-RPE ST") |
+| Override | Hanya `skip` → dilewati (tidak dicocokkan). `move` lama dibuang (0.14.3). Tidak pernah menambah volume minggu lain (D5) |
 | Long run awal | Lari terjauh 30 hari **sebelum program mulai**, supaya target long run minggu yang sudah lewat tidak bergeser |
 
 Referensi: Daniels J. (2014). *Daniels' Running Formula* (3rd ed.), Human Kinetics, untuk jenis sesi per fase yang dicocokkan.
+
+### Sesi minggu ini (0.14.3)
+
+Kode: [`lib/program/week-plan.ts`](../lib/program/week-plan.ts). Tampil di Program › Minggu ini dan ringkasan Profil, menggantikan "Kerjakan sesi hari ini". Semua saran **tidak memblokir**: setiap sesi sisa bisa dibuka kapan saja di minggu itu.
+
+| Aturan | Detail |
+| --- | --- |
+| Sisa sesi | Sesi minggu kalender ini yang belum terpenuhi/sebagian dan tidak dilewati |
+| Tidak disarankan hari ini | Quality atau long run sehari setelah lari berat atau long run · quality bila long run masih terbuka dan minggu tinggal ≤ 2 hari (supaya tidak sehari sebelum long run) · quality High setelah ST kaki kemarin/hari ini (lari maks Moderate) · ST Lower setelah lari berat/long run bila ST Upper masih ada |
+| Urutan rekomendasi | Sesi yang disarankan hari ini → long run bila minggu tinggal ≤ 2 hari → sesi tertunda paling awal (lari sebelum ST). Alasan menyebut harinya |
+| Coach | Readiness, 80/20, dan progresi km tetap diterapkan pada sesi yang direkomendasikan lewat "Saran terhadap sesi rencana" dan hanya menurunkan |
+| Lewati | Sesi minggu berjalan yang belum dikerjakan (bukan lomba), dua ketukan |
+| Catatan akhir minggu | Untuk minggu yang baru selesai bila ada sesi yang belum dikerjakan (bukan dilewati), sekali sampai ditutup (`weekNotesSeen`, tersinkron). Spesifik per jenis: quality → progres pace, long run → daya tahan, easy → volume dasar, ST → kekuatan. Contoh: "Minggu ini tanpa sesi quality. Wajar sesekali, kalau sering progres pace bisa melambat." Sesi tidak pernah dibawa ke minggu berikutnya (D5) |
 
 ### ST mengikuti fase program (0.14.1)
 
@@ -241,7 +265,7 @@ Kode: [`lib/program/st-phase.ts`](../lib/program/st-phase.ts), [`lib/program/ses
 
 ### Sesi rencana → generator (0.13.1)
 
-Kode: [`lib/program/to-generator.ts`](../lib/program/to-generator.ts). Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.4, D4. Tombol **Kerjakan sesi hari ini** di Program › Minggu ini dan ringkasan Profil membuka sesi hari ini yang belum selesai atau dilewati (lari didahulukan).
+Kode: [`lib/program/to-generator.ts`](../lib/program/to-generator.ts). Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.4, D4. Sejak 0.14.3 tombol di "Sesi minggu ini" membuka sesi yang direkomendasikan untuk hari ini, dan setiap sesi sisa punya tombol **Buka**.
 
 | Sesi | Tujuan |
 | --- | --- |
@@ -326,19 +350,9 @@ Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.7. VDOT zona sekarang diba
 - Tidak pernah otomatis. **Perbarui** menulis keempat zona dari VDOT itu; **Tolak** mengingat VDOT-nya, dan tawaran baru muncul hanya bila hasil terbaru ≥ VDOT yang ditolak + 1.
 - Lari latihan (sumber 3) tidak pernah memicu saran.
 
-### Sesi terlewat: geser atau lewati (0.13.2)
+### Sesi terlewat: geser atau lewati (0.13.2) · geser dihapus 0.14.3
 
-Kode: [`lib/program/reschedule.ts`](../lib/program/reschedule.ts). Spesifikasi: [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.8, D5. Hanya untuk sesi berstatus terlewat (lewat tanggal + 1 hari tanpa aktivitas) yang belum diputuskan, dalam 7 hari terakhir. Paling banyak satu tanggal geser ditawarkan (yang paling awal), selalu ≥ hari ini dan **di minggu program yang sama**.
-
-| Sesi | Opsi |
-| --- | --- |
-| Quality | Geser ke hari tanpa lari (rencana atau tercatat), bukan sehari sebelum quality/long run/lomba, dan ≥ 48 jam dari quality sebelumnya. Tanpa kandidat → hanya lewati |
-| Long run | Geser +1 atau +2 hari dengan syarat yang sama, bukan hari quality atau sehari sebelumnya. Long run program selalu Minggu dan baru terlewat Selasa, jadi praktis hanya lewati |
-| Easy / recovery | Hanya lewati |
-| ST | Geser ke hari tanpa sesi apa pun, bukan sehari sebelum quality/long run |
-| Lomba | Tidak ada opsi |
-
-Keputusan disimpan sebagai override program (tersinkron per sesi). Geser tidak pernah membuat sesi atau km baru dan tidak pernah menyentuh minggu lain (D5, dijaga test untuk semua program); tidak ada "membayar utang" latihan.
+Di model mingguan sesi boleh dikerjakan di hari apa pun dalam minggunya, jadi geser tidak diperlukan lagi dan dihapus (logika `reschedule.ts` & entri `move` lama). "Lewati" tetap ada di "Sesi minggu ini" (lihat di atas). Tidak ada "membayar utang" latihan (D5).
 
 ### Hitung mundur & minggu lomba (0.13.2)
 

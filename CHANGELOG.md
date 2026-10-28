@@ -4,6 +4,26 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.14.3] · 2026-10-28 · Program mingguan & sinyal wellness
+
+Temuan uji manual pemilik 2026-10-28.
+
+### Diubah
+- **Program mingguan fleksibel** (keputusan pemilik, [PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) D2 baru): satu minggu program (Senin sampai Minggu) adalah himpunan sesi, hari di rencana hanya hari disarankan. Aktivitas di hari apa pun dalam minggu yang sama memenuhi sesi (jenis cocok dulu, lalu hari disarankan terdekat; ambang 80% dan catatan lebih-berat tetap). Status terpenuhi (dengan hari aslinya) / sebagian / belum / dilewati; minggu terpenuhi / sebagian. Tanpa "terlewat", merah, atau streak. Riwayat program aktif & arsip dinilai ulang otomatis.
+- **"Sesi minggu ini"** menggantikan "Kerjakan sesi hari ini" di Program dan Profil: sisa sesi, sesi yang paling cocok hari ini beserta alasannya (tidak quality/long run setelah lari berat atau long run, tidak quality sehari sebelum long run di akhir minggu, aturan concurrent lama tetap), Buka & Lewati per sesi. Saran tidak pernah memblokir; coach tetap hanya menurunkan.
+- **Catatan akhir minggu** yang lembut dan spesifik (quality, long run, easy, ST), sekali per minggu sampai ditutup, tersinkron. Sesi tidak dibawa ke minggu berikutnya.
+- **Geser dihapus.** Override `move` lama dibuang (program aktif, arsip, sinkron); `skip` tetap.
+
+### Diperbaiki
+- **Kalender:** sesi yang dikerjakan di hari lain tampil oranye di hari rencananya. Penyebab: sel rencana berstatus selesai digambar oranye (dengan ikon ST) walau hari itu kosong; lari juga terkena. Sekarang aktivitas, termasuk ST dari mode latihan & log ★, selalu di tanggal aslinya; hari rencana hanya penanda (tidak pernah oranye), detail menulis "Dipenuhi Rabu"; minggu kosong tidak lagi merah.
+- **HRV tidak pernah tampil:** bukan bug. Jam pemilik (integrasi Huawei di intervals.icu) tidak mengirim HRV; mapping `hrv`/`hrvSDNN` sudah benar dan kini dijaga fixture. Sinyal wellness yang tidak dikirim dalam 14 hari disembunyikan di kartu Wellness, aturan readiness-nya dilewati, dan readiness menyebut dasarnya ("Kesiapan dihitung dari resting HR dan sesi kemarin.").
+
+### Ditambahkan
+- 14 test baru (`wellness-signals`, `week-plan`, `calendar`, tambahan sinkron) dan test kepatuhan ditulis ulang; total 588 di 46 file.
+
+### Dokumentasi
+- PROGRAM-HIDUP (D2 baru, §3, §4.1, §4.2, §4.4, §4.8), TRAINING-LOGIC §5/§7, PRD (header, §4.1, §4.5, §6 #14, §7, §8), ARCHITECTURE.
+
 ## [0.14.2] · 2026-10-27 · Library & visual
 
 Tahap ketiga dan terakhir [STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) (§3 0.14.2). Usulan & keputusan: [movement-library-proposal-0.14.md](docs/movement-library-proposal-0.14.md).

@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.14.2 (2026-10-27) |
+| **Versi saat ini** | 0.14.3 (2026-10-28) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 44 file test, 578 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
+| **Kualitas** | 46 file test, 588 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -134,7 +134,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | --- | --- | --- |
 | Header profil (nama, usia, gaya hidup, fokus) | ✅ | Dari profil di perangkat sejak 0.11.0 (dulu dari JSON). Tanpa avatar inisial sejak 0.10.1 |
 | Target lomba | ✅ | Kondisi, zona, alat & movement library pindah ke Setting (0.8) |
-| Wellness hari ini (HRV, resting HR, tidur, CTL/ATL/Form) | ✅ | Status ✓ data hari ini / ✕ data lama |
+| Wellness hari ini (HRV, resting HR, tidur, CTL/ATL/Form) | ✅ | Status ✓ data hari ini / ✕ data lama. Sejak 0.14.3 sinyal yang tidak dikirim jam dalam 14 hari tidak ditampilkan. **HRV:** jam pemilik (integrasi Huawei) tidak mengirim HRV ke intervals.icu, jadi HRV tidak tampil; mapping field `hrv`/`hrvSDNN` sudah benar (§6 #14) |
 | Ringkasan 7 hari (km, pace, HR, long run, load, sesi) | ✅ | Plus distribusi 80/20 & tren km |
 | Kalender aktivitas bulanan + detail per tanggal | ✅ | Tanpa program: bulan ini & bulan lalu. Dengan program tersimpan (0.13.0, [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #5–#6): dari awal program sampai bulan lomba, aktivitas selesai oranye, rencana bercincin warna intensitas, terlewat & dilewati ditandai |
 | Detail aktivitas: split per km + interval / lap | ✅ | `/activity/[id]`. Split dari stream intervals.icu: jarak jam, atau GPS bila jarak hanya dibagi rata / tidak konsisten. Data bertangga diratakan, lonjakan & reset dibuang, hasil divalidasi terhadap ringkasan (0.10.2). Interval hanya tampil bila > 1 |
@@ -147,7 +147,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
-| Readiness: HRV turun > 15%, resting HR naik ≥ 5 bpm, sesi berat/long run kemarin | ✅ | |
+| Readiness: HRV turun > 15%, resting HR naik ≥ 5 bpm, sesi berat/long run kemarin | ✅ | 0.14.3: hanya sinyal yang tersedia dipakai, dan dasarnya ditulis ("Kesiapan dihitung dari resting HR dan sesi kemarin.") |
 | Aturan 80/20 (≥ 2 lari berat dalam 7 hari → Easy) | ✅ | Lari berat = HR ≥ 155, nama sesi, atau pace cepat |
 | Peringatan kenaikan km > 30% + sisa km aman | ✅ | |
 | Concurrent training (setelah ST kaki / lari berat) | ✅ | |
@@ -209,15 +209,15 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Program PB 5K (8 mg), PB 10K (10), HM (12), FM (16) | ✅ | Base → Build → Peak → Taper. Sejak 0.13.3 ini panjang standar; panjang sebenarnya mengikuti Hari H |
 | Race pace dari target waktu, long run aman + cutback, peringatan | ✅ | |
 | Salin rencana minggu ini | ✅ | |
-| Program terhubung ke generator ("Kerjakan sesi hari ini") | ✅ | 0.13.1 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #1): tombol di Program › Minggu ini dan ringkasan Profil; isian generator dari rencana tetap bisa diubah, chip `DARI PROGRAM · MINGGU N` selama belum diubah, pola rencana (tempo, 4×4) lewat parameter opsional generator. Long run, lomba, Race pace & Sharpener tampil sebagai kartu sesi program dengan teks Copy Set (D4) |
-| Kepatuhan program (rencana vs aktual dari intervals.icu) | ✅ | 0.13.0 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #2): selesai / sebagian / terlewat / digeser / dilewati, dihitung di client (D2, D3); sesi ber-id + override disinkron per sesi; ST dari log lokal atau aktivitas strength |
+| Program terhubung ke generator ("Sesi minggu ini") | ✅ | 0.13.1 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #1), sejak 0.14.3 lewat "Sesi minggu ini": sisa sesi minggu, rekomendasi hari ini dengan alasan, Buka & Lewati per sesi; isian generator dari rencana tetap bisa diubah, chip `DARI PROGRAM · MINGGU N` selama belum diubah, pola rencana (tempo, 4×4) lewat parameter opsional generator. Long run, lomba, Race pace & Sharpener tampil sebagai kartu sesi program dengan teks Copy Set (D4) |
+| Kepatuhan program (rencana vs aktual dari intervals.icu) | ✅ | 0.14.3: **program mingguan fleksibel** (D2 baru): sesi dipenuhi di hari apa pun dalam minggunya; terpenuhi / sebagian / belum / dilewati, status minggu terpenuhi / sebagian, tanpa terlewat & streak, dihitung di client (D3); catatan akhir minggu yang lembut sekali per minggu. 0.13.0: sesi ber-id + override disinkron per sesi; ST dari log lokal atau aktivitas strength |
 | Prediksi waktu lomba dari performa terbaru | ✅ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #3): kartu "Perkiraan waktu lomba" di Program. VDOT Daniels dari hasil lomba 90 hari (keyakinan tinggi) atau lari utuh ≥ 3 km (rendah), invers ke 5K/10K/HM/FM, selisih terhadap target, Riegel hanya pembanding (D1). FM maksimal rendah bila long run terjauh 30 hari < 12 km. Best effort intervals.icu belum dipakai (backlog) |
 | Saran hari ini membaca sesi rencana hari ini | ✅ | 0.13.1 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #4): readiness rendah menurunkan quality satu level dan memendekkan long run ke ±75% (pace easy); 80/20 → quality jadi Easy; kenaikan km > 30% → maks 30' dan long run ditahan di jarak minggu lalu. Lihat [TRAINING-LOGIC §5](TRAINING-LOGIC.md#5-saran-hari-ini) |
-| Sesi rencana yang akan datang di kalender (rencana = warna intensitas, selesai = oranye) | ✅ | 0.13.0 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #5) |
+| Sesi rencana yang akan datang di kalender (rencana = warna intensitas, selesai = oranye) | ✅ | 0.13.0 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #5). 0.14.3: aktivitas (termasuk ST dari mode latihan & log) selalu di tanggal aslinya; hari rencana hanya penanda, tidak pernah oranye; detail menulis "Dipenuhi Rabu" |
 | Rentang kalender mengikuti panjang program (HM 12 mg, FM 16 mg) | ✅ | 0.13.0 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #6): data lama diambil sekali lewat `/api/activities` (maks 200 hari) |
 | Ringkasan minggu program di Profil (minggu ke-, fase, sesi selesai, long run) | ✅ | 0.13.0 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #7): hanya untuk program aktif |
 | Sesi ST dari program membuka Generator Strength | ✅ | 0.13.1 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #8): Senin Lower 45', Rabu Upper Pull (minggu ganjil) / Upper Push (genap), taper Easy. Logika ST tidak berubah (0.14) |
-| Sesi terlewat: tawaran geser atau lewati, tetap mematuhi aturan jadwal | ✅ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #9): baris `Tempo Selasa terlewat · Geser ke Jumat · Lewati` di Program dan Profil, disimpan sebagai override (tersinkron per sesi). Geser hanya di minggu yang sama, jadi tidak pernah menambah volume minggu berikutnya (D5); long run Minggu praktis hanya bisa dilewati. Lewati dua ketukan |
+| Sesi terlewat: tawaran geser atau lewati, tetap mematuhi aturan jadwal | ✅ | **0.14.3: geser dihapus** (sesi boleh di hari apa pun dalam minggunya), lewati tetap di "Sesi minggu ini"; override `move` lama dibuang. Riwayat 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #9): baris `Tempo Selasa terlewat · Geser ke Jumat · Lewati` di Program dan Profil, disimpan sebagai override (tersinkron per sesi). Geser hanya di minggu yang sama, jadi tidak pernah menambah volume minggu berikutnya (D5); long run Minggu praktis hanya bisa dilewati. Lewati dua ketukan |
 | Saran update zona saat prediksi menunjukkan kebugaran naik konsisten | ✅ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #10): di Setting › Zona dan Profil bila dua hasil lomba berbeda (terpisah ≥ 14 hari) sama-sama ≥ VDOT zona + 1. Tidak pernah otomatis; Tolak diingat sampai VDOT naik ≥ 1 lagi |
 | Hitung mundur & minggu lomba (sisa hari, catatan taper, checklist hari H) | ✅ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #11): `14 HARI LAGI · HALF MARATHON` di Program dan Profil, checklist umum H-1 dengan rencana pace dari perkiraan, dan tawaran mencatat hasil lomba H+1 sampai H+14 |
 | Hari H dipilih atlet, panjang program = minggu di antara mulai dan Hari H | ✅ | 0.13.3 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.10): kalender bulan dengan warna band (rekomendasi umum + minimum dari data long run), alasan, tanggal paling awal, ringkasan fase, long run puncak, info VDOT. Merah butuh konfirmasi, abu-abu menambah pre-Base, di bawah taper + 2 tidak bisa disusun |
@@ -348,6 +348,7 @@ Diurutkan dari yang paling berdampak.
 9. **Batas percobaan sandi tanpa Redis hanya upaya terbaik.** Tanpa Upstash, hitungan gagal disimpan di memori per instance serverless, jadi bisa ter-reset saat instance baru dibuat. IP diambil dari `x-forwarded-for` yang di Vercel diisi oleh platform; di hosting lain header ini bisa dipalsukan.
 10. **Sinkron bergantung pada paket gratis Upstash** (500K perintah/bulan, data 256 MB, dicek 2026-10-23; lihat README). Desainnya hemat: satu baca + satu tulis per sinkron, ditambah satu snapshot harian. Tema ikut tersinkron, jadi mengganti tema di satu perangkat mengubah semua perangkat.
 11. **Pulihkan bersifat otoritatif.** Pulihkan mengganti data di semua perangkat (lewat `epoch`). Perubahan yang belum terkirim dari perangkat lain saat itu ikut tergantikan; snapshot "Sebelum pulihkan" hanya menyimpan keadaan server. Kemajuan onboarding dan persetujuan disclaimer tidak ikut mundur.
+14. **Jam pemilik tidak mengirim HRV.** Integrasi Huawei di intervals.icu tidak menyertakan HRV, jadi baris HRV disembunyikan dan readiness memakai resting HR dan sesi kemarin (0.14.3). Baseline HRV personal hanya masuk akal bila ada sumber HRV lain.
 12. **Tanpa enkripsi sisi klien.** Data di database tersimpan apa adanya (Upstash mengenkripsi saat disimpan, database ada di akun pengguna, dibatasi sandi aplikasi). Enkripsi dengan passphrase ada di backlog P2.
 13. **Sesi ST hanya terukur bila dikerjakan di mode latihan.** Sejak 0.14.1 session-RPE masuk beban 7 hari dan ST mengikuti fase program, tetapi ST yang hanya tercatat di jam (tanpa RPE) dihitung jumlah & menitnya saja, tanpa beban AU.
 
@@ -360,9 +361,11 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 
 | Usulan versi | Isi | Alasan |
 | --- | --- | --- |
-| **0.15 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence, tren volume ST, heatmap otot mingguan/bulanan; check-in subjektif harian | Melihat progres jangka panjang dan mencegah cedera |
+| **0.15 Insight** | Grafik tren CTL/ATL/Form, km mingguan, pace & cadence, tren volume ST, heatmap otot mingguan/bulanan; **check-in subjektif harian sebagai sinyal kesiapan subjektif utama** (jam tidak mengirim HRV); baseline HRV personal hanya bila data HRV ada | Melihat progres jangka panjang dan mencegah cedera |
 | **1.0 Siap pakai penuh** | Offline, kirim workout ke intervals.icu/jam, test e2e | Stabil dan mandiri tanpa edit kode |
 
+> 2026-10-28: **0.14.3 dirilis** (temuan uji manual): program **mingguan fleksibel** menggantikan pencocokan ±1 hari (D2 baru), kalender menampilkan aktivitas di tanggal aslinya, "Sesi minggu ini" dengan rekomendasi hari ini, catatan akhir minggu yang lembut, geser dihapus. HRV tidak tampil karena jam tidak mengirimnya (bukan bug); sinyal yang tidak dikirim disembunyikan dan readiness menyebut dasarnya.
+>
 > 2026-10-27 (3): **0.14.2 dirilis, 0.14 Strength hidup selesai** (11 gerakan baru dari [movement-library-proposal-0.14.md](movement-library-proposal-0.14.md): Seated DB Curl, Hammer Curl, Lying DB Triceps Extension, Close-Grip Push-Up, Scapular Pull-Up, Band-Assisted Pull-Up, Standing DB Calf Raise, Seated Band Tibialis Raise, dan varian satu sisi Single-Leg DB RDL / Single-Leg Hip Thrust / Single-Arm DB Floor Press; gambar Dead Hang & Negative Pull-Up; peta otot per gerakan). Berikutnya 0.15 Insight.
 >
 > 2026-10-27 (2): **0.14.1 dirilis** (sesi ST: mode latihan + timer, session-RPE ke beban 7 hari / kepatuhan / Week Ledger, ST mengikuti fase program termasuk taper, aturan jeda 3 jam di hari yang sama, peta otot sesi dari SVG MIT). Berikutnya 0.14.2 Library & visual.
@@ -417,7 +420,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P2 | **Enkripsi sisi klien (opsional)**: passphrase + WebCrypto sebelum data dikirim ke database | M | Database pun tidak bisa membaca data kesehatan. Tidak di 0.12 ([SYNC.md](SYNC.md) §4, §11) |
 | P2 | **Best effort intervals.icu sebagai sumber kedua prediksi** (`GET /api/v1/athlete/{id}/pace-curves`, `type=Run`, `curves=90d`) | S | Perkiraan lebih yakin tanpa harus lomba. Butuh kepastian satuan `values` (tidak dijelaskan di skema API) dan penyaring untuk data per detik jam yang rusak, karena best effort juga bisa memicu saran update zona |
 | P2 | **Isian awal VDOT dari lari terbaik 90 hari** di onboarding & Setting (butuh data intervals.icu di client) | S | Zona lari tepat tanpa harus ingat hasil lomba |
-| P2 | **Ambang personal** (HR berat dari zona/LTHR, baseline HRV 30 hari) | S | Saran lebih akurat |
+| P2 | **Ambang personal** (HR berat dari zona/LTHR, baseline HRV 30 hari) | S | Saran lebih akurat. Baseline HRV hanya bila data HRV ada (jam pemilik tidak mengirimnya, 0.14.3) |
 | P2 | **Mode offline** (service worker, cache workout terakhir) | M | Tetap bisa dibuka di gym tanpa sinyal. Relevan untuk rasa native setelah onboarding mengajak pasang ke layar utama (0.11). → **1.0** |
 | P2 | **Mode latihan ST**: layar penuh per gerakan, timer istirahat & hitung mundur tahan, centang per set langsung tercatat (menggantikan "Timer sesi ST") | M | Tidak perlu aplikasi timer lain dan tidak mencatat belakangan. → Selesai di **0.14.1** |
 | P2 | **Tes kekuatan berkala** di minggu deload + **milestone pull-up** & gerakan baru otomatis aktif saat siap (mis. negative pull-up) | S–M | Progres ST terlihat seperti pace/VDOT di lari. → Sebagian besar tergantikan PR kemampuan (**0.14.0**); milestone pull-up tetap |
@@ -474,6 +477,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.13.1 | 2026-10-26 | Program hidup tahap 2: "Kerjakan sesi hari ini" (isian generator lari & ST dari rencana, kartu sesi program untuk long run & sesi spesifik lomba), saran hari ini terhadap rencana |
 | 0.13.2 | 2026-10-26 | Program hidup selesai: perkiraan waktu lomba (VDOT, Riegel pembanding), hasil lomba tersimpan, saran update zona, geser/lewati sesi terlewat, hitung mundur & checklist minggu lomba |
 | 0.13.3 | 2026-10-26 | Hari H dipilih atlet: kalender dengan saran lama program, kesiapan HM/FM, jarak antar maraton, panjang program variabel & pre-Base, arsip program |
+| 0.14.3 | 2026-10-28 | Program mingguan fleksibel (sesi di hari apa pun dalam minggunya, Sesi minggu ini, catatan akhir minggu, tanpa geser), kalender di tanggal asli, sinyal wellness yang tidak dikirim jam disembunyikan & dasar readiness |
 | 0.14.2 | 2026-10-27 | Strength hidup selesai: 11 gerakan baru (bisep, trisep, lats, betis, tibialis, varian satu sisi untuk gerakan mentok) dengan gambar free-exercise-db, gambar Dead Hang & Negative Pull-Up, relasi varian lebih sulit, peta otot per gerakan di detail gerakan; 56 gerakan |
 | 0.14.1 | 2026-10-27 | Sesi ST: mode latihan layar penuh (centang per set, timer istirahat & tahan, layar tetap menyala), session-RPE (RPE × menit) ke beban 7 hari, kepatuhan & Week Ledger tanpa hitung dobel, ST mengikuti fase program (Peak maintenance, taper volume setengah, ST kaki terakhir ≥ 8 hari), jeda ≥ 3 jam lari + ST, peta otot sesi, cadangan v5 & sinkron `sessions` |
 | 0.14.0 | 2026-10-27 | Strength hidup tahap 1: batas beban dari alat & keamanan (dengan persetujuan), item alat berbobot tetap, PR kemampuan (cadangan v4, sinkron), double progression saat mentok, saran Gita berangka, pengingat beli plat |

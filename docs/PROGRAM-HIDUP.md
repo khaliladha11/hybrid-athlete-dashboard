@@ -18,37 +18,38 @@ Program target dipakai **setiap hari**. Satu pertanyaan terjawab di satu tempat:
 | # | Keputusan | Alasan |
 | --- | --- | --- |
 | D1 | Prediksi memakai **VDOT Daniels** (sudah ada di `lib/run-zones.ts`); Riegel hanya pembanding di detail | Zona dan prediksi berasal dari angka yang sama; Riegel cenderung terlalu optimis untuk jarak jauh pada volume rendah |
-| D2 | Sesi **selesai** = lari di tanggal rencana atau ±1 hari (WIB), jenis cocok, durasi atau jarak ≥ 80% rencana. Di bawahnya **sebagian** | Toleran terhadap jadwal nyata tanpa menghitung sesi yang jauh berbeda |
+| D2 | **Diganti 2026-10-28 (0.14.3): program mingguan fleksibel.** Satu minggu program (Senin sampai Minggu, WIB) adalah himpunan sesi; hari di rencana hanya **hari disarankan**. Sesi **terpenuhi** bila ada aktivitas di minggu kalender yang sama dengan jenis cocok dan durasi atau jarak ≥ 80% rencana; di bawahnya **sebagian**. Satu aktivitas untuk satu sesi, jenis cocok dulu lalu hari disarankan terdekat. Minggu yang tidak lengkap tidak apa-apa: hanya catatan lembut. Versi lama (tanggal rencana ±1 hari) membuat sesi di hari lain tampil di hari rencana dan sesi di luar ±1 hari tidak terhitung | Jadwal nyata atlet berubah-ubah; tekanan harian tidak membantu konsistensi |
 | D3 | Kepatuhan dihitung di **client** lewat modul murni; aktivitas dikirim dari server sebagai props | Program ada di perangkat (disinkron 0.12); API key tetap di server |
 | D4 | Long run dan sesi spesifik lomba **tidak dibuat ulang lewat generator** (generator berbasis 30/45/60 menit). Sesi itu tampil sebagai kartu sesi program dengan teks salin | Menghindari sesi program "dipotong" menjadi 60 menit |
-| D5 | Geser/lewati sesi tidak pernah otomatis dan tidak pernah menambah volume minggu berikutnya | Saran tidak memaksa; tanpa "membayar utang" latihan |
+| D5 | Lewati sesi tidak pernah otomatis dan tidak pernah menambah volume minggu berikutnya; sesi tidak pernah dibawa ke minggu berikutnya. Geser dihapus di 0.14.3 karena sesi boleh dikerjakan di hari apa pun dalam minggunya | Saran tidak memaksa; tanpa "membayar utang" latihan |
 
 ## 3. Konsep & data
 
 ### Sesi rencana
 Setiap sesi di program mendapat **id stabil**: `{programId}:{minggu}:{hari}:{jenis}`. Jenis: `quality`, `easy`, `recovery`, `long`, `race`, `st-lower`, `st-upper`.
 
-### Override (geser/lewati)
+### Override (lewati)
 ```ts
 type ProgramOverride = {
   sessionId: string;
-  action: "move" | "skip";
-  toDate?: string;      // YYYY-MM-DD WIB, untuk move
+  action: "skip";
   decidedAt: string;    // ISO
 };
 ```
+- **0.14.3:** `move` dihapus. Entri `move` lama dibuang saat dibaca (program aktif, arsip, dan sinkron); `skip` tetap.
+- `weekNotesSeen` (0.14.3): catatan akhir minggu yang sudah ditutup (`{programId}:{minggu}`), digabung union saat sinkron.
 - Disimpan di bagian `program`.
 - **Sinkron 0.12:** override digabung **per entri** berdasarkan `sessionId` (bukan seluruh bagian), sama seperti log. `lib/sync/merge.ts` diperbarui beserta test.
 
 ### Status sesi
 | Status | Arti |
 | --- | --- |
-| `mendatang` | Tanggal belum lewat |
-| `hari-ini` | Tanggal hari ini, belum ada aktivitas cocok |
-| `selesai` | Sesuai D2 |
+| `terpenuhi` | Sesuai D2 (model mingguan), dengan tanggal aktual ("dipenuhi Rabu") |
 | `sebagian` | Ada aktivitas, tapi < 80% atau lebih ringan dari rencana |
-| `terlewat` | Lewat tanggal + 1 hari tanpa aktivitas cocok |
-| `digeser` / `dilewati` | Ada override |
+| `belum` | Belum ada aktivitas cocok di minggu itu (tanpa "terlewat", tanpa merah) |
+| `dilewati` | Ada override `skip` |
+
+Status minggu: `terpenuhi` (semua sesi yang tidak dilewati terpenuhi) atau `sebagian`. Tanpa streak.
 
 Catatan tambahan per sesi: `lebih-berat` bila rencana easy tapi aktivitas tergolong berat (memakai klasifikasi lari berat yang sudah ada di coach). Catatan ini masuk perhitungan 80/20, bukan status gagal.
 
@@ -57,14 +58,14 @@ Catatan tambahan per sesi: `lebih-berat` bila rencana easy tapi aktivitas tergol
 ### 4.1 Kepatuhan program (#2)
 - Modul murni `lib/program/compliance.ts`:
   - Input: sesi rencana (setelah override), aktivitas lari yang sudah di-dedupe, log ST lokal, tanggal hari ini (WIB).
-  - Pencocokan: urutkan berdasarkan kedekatan tanggal lalu kecocokan jenis; satu aktivitas hanya untuk satu sesi; satu sesi hanya satu aktivitas (aktivitas tambahan di hari yang sama dijumlah bila jenisnya sama).
+  - Pencocokan (0.14.3): hanya di minggu kalender yang sama; urutkan berdasarkan kecocokan jenis lalu kedekatan ke hari disarankan; satu aktivitas hanya untuk satu sesi; satu sesi hanya satu aktivitas (aktivitas tambahan di hari yang sama dijumlah bila jenisnya sama).
   - Jenis cocok: quality ↔ aktivitas berat; easy/recovery ↔ aktivitas apa pun (berat → catatan `lebih-berat`); long ↔ jarak ≥ 80% rencana.
-- **ST di 0.13:** sesi ST rencana dianggap selesai bila ada log ST lokal atau aktivitas WeightTraining di intervals.icu pada tanggal itu ±1 hari. Penilaian berat ringan ST adalah cakupan 0.14 (session-RPE).
+- **ST:** sesi mode latihan (0.14.1, yang dimulai dari sesi itu diutamakan, lalu tipe Lower/Upper cocok), log ★ lokal, atau aktivitas WeightTraining di minggu yang sama. Set < 80% → sebagian.
 - Tampil di halaman Program (per minggu) dan kalender.
 
 ### 4.2 Rencana di kalender (#5) & rentang mengikuti program (#6)
-- Kalender menampilkan sesi rencana yang akan datang memakai **warna intensitas** (Easy hijau, quality kuning/merah sesuai intensitas, long run sesuai tier) dan aktivitas selesai **oranye**.
-- Status di sel tanggal: titik oranye (selesai), cincin (mendatang), tanda `✕` lembut (terlewat), garis tipis (dilewati).
+- Kalender menampilkan sesi rencana memakai **warna intensitas** di hari disarankan dan aktivitas **oranye di tanggal aslinya** (termasuk ST dari mode latihan & log ★ sejak 0.14.3).
+- Sel rencana tidak pernah oranye (0.14.3): mendatang = cincin warna intensitas, sudah dipenuhi di hari lain = redup dengan centang netral, lewat & belum = garis putus netral, dilewati = garis tipis. Detail hari menulis "Dipenuhi Rabu".
 - Rentang data aktivitas: dari **min(awal program, 2 bulan lalu)** sampai hari ini. Server mengambil rentang ini satu kali per render; periksa batas dan performa API intervals.icu, dan cache sewajarnya.
 - Navigasi bulan sepanjang rentang program.
 
@@ -74,7 +75,7 @@ Catatan tambahan per sesi: `lebih-berat` bila rencana easy tapi aktivitas tergol
 - Tanpa program aktif: baris tidak tampil (tanpa ajakan berulang).
 
 ### 4.4 Program → generator (#1) & sesi ST dari program (#8)
-- Tombol **Kerjakan sesi hari ini** di Program dan di ringkasan Profil.
+- **Sesi minggu ini** (0.14.3, menggantikan "Kerjakan sesi hari ini") di Program dan ringkasan Profil: sisa sesi minggu ini, sesi yang direkomendasikan untuk hari ini beserta alasannya (`lib/program/week-plan.ts`), sesi yang sebaiknya tidak hari ini, dan "Lewati". Semua tidak memblokir.
 - Pemetaan murni `lib/program/to-generator.ts`:
   | Jenis rencana | Tujuan |
   | --- | --- |
@@ -111,7 +112,9 @@ Catatan tambahan per sesi: `lebih-berat` bila rencana easy tapi aktivitas tergol
 - Tidak pernah otomatis. Tolak → tidak ditawarkan lagi sampai VDOT naik lagi.
 - Sumber 3 (aktivitas utuh) tidak memicu saran.
 
-### 4.8 Sesi terlewat: geser atau lewati (#9)
+### 4.8 Sesi terlewat: geser atau lewati (#9) · geser dihapus 0.14.3
+
+> **0.14.3:** geser dihapus. Di model mingguan sesi boleh dikerjakan di hari apa pun dalam minggunya, jadi tidak ada sesi "terlewat" yang perlu digeser. "Lewati" tetap ada di "Sesi minggu ini" untuk sesi minggu berjalan. Teks di bawah adalah riwayat 0.13.2.
 - Modul murni `lib/program/reschedule.ts` menghasilkan opsi untuk sesi `terlewat`:
   - `quality`: hari pengganti di minggu yang sama yang **tidak** sehari sebelum quality/long run, **tidak** di hari yang sudah ada lari, dan ≥ 48 jam dari quality sebelumnya. Tanpa kandidat → hanya "lewati".
   - `long`: geser 1–2 hari bila tidak menabrak quality minggu berikutnya; selain itu "lewati".
@@ -171,17 +174,18 @@ Setiap band membawa alasan, mis. "Long run terjauhmu 8 km. Untuk mencapai long r
 - Ikuti DESIGN-SYSTEM: satu Display per layar, StatRow untuk angka, label mono, copy tanpa em dash/en dash dan tanpa tanda seru.
 - Halaman Program: header fase + minggu, daftar minggu dengan status per sesi (Week Ledger gaya), kartu prediksi, hitung mundur.
 - Rencana = warna intensitas, selesai = oranye. Konsisten di Program, kalender, dan generator.
-- Area sentuh ≥ 44px; tombol aksi baris (Geser, Lewati) minimal 32px dengan area sentuh diperluas, seperti tombol saran sekarang.
+- Area sentuh ≥ 44px; tombol aksi baris (Buka, Lewati) minimal 32px dengan area sentuh diperluas, seperti tombol saran sekarang.
 
 ## 6. Arsitektur
 
 | Modul | Tanggung jawab | Berjalan di |
 | --- | --- | --- |
 | `lib/program/sessions.ts` | Turunkan sesi rencana ber-id dari program + override | Server & client |
-| `lib/program/compliance.ts` | Pencocokan & status | Server & client |
+| `lib/program/compliance.ts` | Pencocokan mingguan & status (0.14.3) | Server & client |
+| `lib/program/week-plan.ts` | Sesi minggu ini, rekomendasi hari ini, lewati, catatan akhir minggu (0.14.3) | Server & client |
+| `lib/calendar.ts` | Item kalender di tanggal asli & penanda rencana (0.14.3) | Server & client |
 | `lib/program/to-generator.ts` | Pemetaan sesi → isian generator / kartu sesi | Client |
 | `lib/program/prediction.ts` | VDOT dari sumber, invers, keyakinan, Riegel | Server & client |
-| `lib/program/reschedule.ts` | Opsi geser/lewati | Server & client |
 | `lib/program/timeline.ts` | Saran lama program dari Hari H (0.13.3): tabel, minimum data, band, kesiapan, jarak antar lomba | Server & client |
 | `lib/coach.ts` | `suggestFor()` menerima sesi rencana | Server & client |
 | Data source intervals | Rentang aktivitas mengikuti program | Server |
@@ -190,10 +194,11 @@ Semua modul baru murni (tanpa I/O, tanggal dari parameter, WIB lewat `lib/date.t
 
 ## 7. Test
 
-- `program-sessions.test.ts`: id stabil antar render, override move/skip diterapkan, program berganti → id baru.
-- `compliance.test.ts`: tepat hari, ±1 hari, dua sesi berebut satu aktivitas, aktivitas ganda sehari, < 80% → sebagian, easy dikerjakan berat → catatan, terlewat setelah tenggat, ST dari log lokal dan dari intervals.icu, data kosong/null aman.
+- `program-sessions.test.ts`: id stabil antar render, override skip diterapkan, `move` lama dibuang (0.14.3), program berganti → id baru.
+- `compliance.test.ts` (0.14.3): hari apa pun di minggu yang sama, minggu lain tidak dihitung, satu aktivitas satu sesi, jenis cocok lalu hari disarankan terdekat, aktivitas ganda sehari, < 80% → sebagian, easy dikerjakan berat → catatan, ST dari sesi lokal/log/intervals.icu, status minggu, data kosong/null aman.
+- `week-plan.test.ts` (0.14.3): sisa sesi, lewati, aturan rekomendasi hari ini, coach tetap hanya menurunkan, catatan akhir minggu & sekali tampil.
+- `calendar.test.ts` (0.14.3): lari & ST di tanggal asli, penanda rencana.
 - `prediction.test.ts`: invers VDOT cocok dengan tabel Daniels (contoh TRAINING-LOGIC: 5K 30:40 → VDOT ±30), prioritas sumber, keyakinan FM turun bila long run pendek, Riegel pembanding.
-- `reschedule.test.ts`: semua aturan §4.8, tidak pernah menambah volume minggu berikutnya, tanpa kandidat → hanya lewati.
 - `timeline.test.ts` (0.13.3): batas band per jarak, toggle FM 16 → 12, minimum data (0 / 8 km / dekat puncak), batas teknis & tanggal paling awal, kesiapan, jarak antar lomba, data kosong.
 - `program-baseline.test.ts` (0.13.3): program panjang tetap identik dengan sebelum 0.13.3 (hash).
 - `coach.test.ts` (tambahan): saran terhadap rencana hanya menurunkan, tidak berantai, long run dipendekkan, tanpa rencana perilaku lama tetap.
@@ -208,6 +213,7 @@ Semua modul baru murni (tanpa I/O, tanggal dari parameter, WIB lewat `lib/date.t
 | **0.13.1** | Program → generator (lari & ST) + kartu sesi program, saran hari ini tahu rencana |
 | **0.13.2** | Prediksi, saran update zona, sesi terlewat (geser/lewati), hitung mundur & minggu lomba |
 | **0.13.3** | Hari H dipilih atlet dengan saran lama program, pre-Base, arsip program saat Hari H diganti (§4.10) |
+| **0.14.3** | Program mingguan fleksibel (D2 baru), kalender di tanggal asli, "Sesi minggu ini", catatan akhir minggu, geser dihapus |
 
 ## 9. Di luar cakupan
 - Semua logika ST baru (fase ST, session-RPE, mode latihan, progresi alat terbatas): **0.14**.
