@@ -34,7 +34,7 @@ const LOWER_ST_NAME = /lower|leg|kaki|full|squat|deadlift|hip thrust|glute|lunge
 export type AdviceTarget = "run" | "strength";
 
 export interface Advice {
-  id: "readiness" | "polarized" | "volume" | "after-leg-st" | "after-hard-run" | "same-day";
+  id: "readiness" | "polarized" | "volume" | "after-leg-st" | "after-hard-run" | "same-day" | "checkin-shin" | "checkin-soreness" | "checkin-sleep";
   targets: AdviceTarget[];
   /** Ringkasan pendek untuk tampilan ringkas (judul baris). */
   title: string;
