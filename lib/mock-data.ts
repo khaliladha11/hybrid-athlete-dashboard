@@ -7,6 +7,9 @@
 import { addDays, startOfWeekMonday } from "@/lib/date";
 import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness } from "@/lib/intervals/normalize";
 import type { Activity, ActivityDetail, Wellness } from "@/lib/intervals/types";
+import type { LogEntry } from "@/lib/progression";
+import type { PrEntry } from "@/lib/prs";
+import type { StSession } from "@/lib/st-session";
 
 interface Template {
   daysAgo: number;
@@ -267,4 +270,127 @@ export function mockInsightWellness(today: string, days = 84): Wellness[] {
   const older = series.slice(0, join).map((s) => ({ id: s.date, ctl: r1(s.ctl + dCtl), atl: r1(s.atl + dAtl) }));
   const all = [...normalizeList(older, normalizeWellness), ...recent];
   return all.slice(-days);
+}
+
+/** Gerakan per jenis sesi demo: [gerakan, set, beban/band/detik]. ★ = gerakan pertama (berbeban, progresi). */
+type DemoSet = { movement: string; sets: number; value: number; unit: "reps" | "sec"; load?: number; band?: string };
+const DEMO_ST: Record<"lower" | "upperPush" | "upperPull" | "fullBody", (k: number) => DemoSet[]> = {
+  lower: (k) => [
+    demoSquat(k),
+    { movement: "Glute Bridge", sets: 3, value: 12, unit: "reps" },
+    { movement: "Seated Band Hamstring Curl", sets: 2, value: 12, unit: "reps", band: "Medium" },
+    { movement: "Side Plank", sets: 2, value: 30, unit: "sec" },
+    { movement: "Tibialis Wall Raise", sets: 2, value: 15, unit: "reps" },
+  ],
+  upperPush: (k) => [
+    { movement: "Floor Press", sets: 3, value: 10, unit: "reps", load: Math.min(14, 10 + Math.floor(k / 3)) },
+    { movement: "Push-Up", sets: 2, value: 10, unit: "reps" },
+    { movement: "DB Scaption", sets: 2, value: 12, unit: "reps", load: 2 },
+    { movement: "Dead Bug", sets: 2, value: 10, unit: "reps" },
+  ],
+  upperPull: (k) => [
+    { movement: "Supported Single-Arm Row", sets: 3, value: 10, unit: "reps", load: Math.min(7.5, 5 + 0.5 * Math.floor(k / 3)) },
+    { movement: "Dead Hang", sets: 3, value: 20 + k, unit: "sec" },
+    { movement: "Band Reverse Fly", sets: 2, value: 15, unit: "reps", band: "Light" },
+    { movement: "Plank", sets: 2, value: 30, unit: "sec" },
+  ],
+  fullBody: (k) => [demoSquat(k), { movement: "Floor Press", sets: 2, value: 10, unit: "reps", load: 12 }, { movement: "Supported Single-Arm Row", sets: 2, value: 10, unit: "reps", load: 6 }],
+};
+
+/** Barbell Squat demo: naik ke batas alat 17 kg, lalu rep naik (8 → 12) dan tempo/jeda. */
+function demoSquat(k: number): DemoSet {
+  const load = Math.min(17, 12 + k);
+  const reps = load < 17 ? 8 : Math.min(12, 8 + (k - 5));
+  return { movement: "Barbell Squat", sets: 3, value: reps, unit: "reps", load };
+}
+
+const DEMO_TYPE: [RegExp, "lower" | "upperPush" | "upperPull" | "fullBody"][] = [
+  [/lower/i, "lower"],
+  [/push/i, "upperPush"],
+  [/pull/i, "upperPull"],
+  [/full/i, "fullBody"],
+];
+
+/** Batas alat Barbell Squat di data demo (bar 5 kg + plat), untuk penanda "mentok". */
+export const DEMO_BARBELL_CAP_KG = 17;
+/** Minggu demo terakhir tanpa rincian set (data sebelum 0.15.1 → volume perkiraan). */
+const DEMO_DETAIL_WEEKS = 8;
+
+/**
+ * Data ST demo untuk Insight (0.15.1), tidak pernah ditulis ke perangkat: satu sesi mode latihan untuk setiap
+ * aktivitas strength demo (tanggal & jam sama, jadi digabung oleh dedupe), log ★ set terakhir, dan PR. Sesi lebih
+ * dari 8 minggu lalu tanpa rincian set (seperti data sebelum 0.15.1). Barbell Squat mentok di 17 kg lalu naik rep,
+ * tempo/jeda, dan pindah ke varian Rear-Foot-Elevated Split Squat.
+ */
+export function mockInsightStrength(today: string): { sessions: StSession[]; log: LogEntry[]; prs: PrEntry[] } {
+  const strength = mockInsightActivities(today)
+    .filter((a) => a.category === "strength" && a.date && a.startLocal)
+    .sort((a, b) => a.startLocal!.localeCompare(b.startLocal!));
+  const detailFrom = addDays(startOfWeekMonday(today), -7 * (DEMO_DETAIL_WEEKS - 1));
+  const sessions: StSession[] = [];
+  const log: LogEntry[] = [];
+  const typeOf = (name: string) => DEMO_TYPE.find(([re]) => re.test(name))?.[1] ?? "fullBody";
+  const legs = (t: string) => t === "lower" || t === "fullBody";
+  // Progresi Barbell Squat dipusatkan di 12 sesi kaki terakhir (rentang 12 minggu Insight).
+  let squatK = 12 - strength.filter((a) => legs(typeOf(a.name))).length;
+  strength.forEach((a, i) => {
+    const type = typeOf(a.name);
+    const k = legs(type) ? Math.max(0, squatK++) : i;
+    const plan = DEMO_ST[type](Math.min(k, 30));
+    const startedAt = new Date(Date.parse(`${a.startLocal!.slice(0, 16)}:00Z`) - 7 * 3_600_000).toISOString();
+    const setsTotal = plan.reduce((t, p) => t + p.sets, 0);
+    const detailed = a.date! >= detailFrom;
+    const lastPhase = type === "lower" && k >= 9;
+    sessions.push({
+      id: `demo-st-${i}`,
+      date: a.date!,
+      startedAt,
+      type,
+      title: a.name,
+      difficulty: "moderate",
+      durationMin: Math.round((a.movingTimeSec ?? 2400) / 60),
+      rpe: 5 + (i % 3),
+      setsDone: setsTotal,
+      setsPlanned: setsTotal,
+      movements: plan.map((p) => p.movement),
+      ...(detailed
+        ? {
+            sets: plan.flatMap((p) =>
+              Array.from({ length: p.sets }, () => ({
+                movement: p.movement,
+                ...(p.load !== undefined ? { load: p.load } : {}),
+                ...(p.band ? { band: p.band } : {}),
+                value: p.value,
+                unit: p.unit,
+                ...(lastPhase && p.movement === "Barbell Squat" ? { tempo: true } : {}),
+              })),
+            ),
+          }
+        : {}),
+      updatedAt: startedAt,
+    });
+    const star = plan[0];
+    const variant = type === "lower" && k >= 11;
+    log.push({
+      id: `demo-log-${i}`,
+      date: a.date!,
+      movement: variant ? "Rear-Foot-Elevated Split Squat" : star.movement,
+      ...(variant ? { load: 8, variantOf: "Barbell Squat" } : star.load !== undefined ? { load: star.load } : {}),
+      ...(lastPhase && !variant ? { tempo: true } : {}),
+      value: star.value,
+      valueUnit: star.unit,
+      target: { lo: 8, hi: 12 },
+      rpe: 6,
+      targetRpe: 6,
+      deload: false,
+      blockIndex: 0,
+      updatedAt: startedAt,
+    });
+  });
+  const first = sessions[0]?.date ?? today;
+  const prs: PrEntry[] = [
+    { id: "demo-pr-1", movement: "Barbell Squat", loadKg: 10, sets: 3, reps: 8, date: addDays(first, -10), source: "manual", updatedAt: `${first}T00:00:00.000Z` },
+    { id: "demo-pr-2", movement: "Floor Press", loadKg: 8, sets: 3, reps: 10, date: addDays(first, -10), source: "manual", updatedAt: `${first}T00:00:00.000Z` },
+  ];
+  return { sessions, log, prs };
 }
