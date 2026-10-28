@@ -100,3 +100,13 @@ describe("dasar kesiapan dengan check-in", () => {
     expect(readinessBasis([])).toBe("Data HRV dan resting HR dari jam belum ada, jadi kesiapan hanya dihitung dari sesi kemarin.");
   });
 });
+
+describe("LTHR dari respons athlete intervals.icu", () => {
+  it("sportSettings dengan types Run; tanpa LTHR / bentuk lain → undefined", async () => {
+    const { runLthr } = await import("@/lib/intervals/normalize");
+    expect(runLthr({ sportSettings: [{ types: ["Ride", "VirtualRide"], lthr: 160 }, { types: ["Run", "TrailRun"], lthr: 169, max_hr: 190 }] })).toBe(169);
+    expect(runLthr({ sportSettings: [{ types: ["Run"], lthr: null }] })).toBeUndefined();
+    expect(runLthr({ sportSettings: "x" })).toBeUndefined();
+    expect(runLthr(null)).toBeUndefined();
+  });
+});

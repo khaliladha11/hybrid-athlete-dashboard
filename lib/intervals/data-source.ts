@@ -3,7 +3,8 @@ import { addDays, todayWib } from "@/lib/date";
 import { mockActivities, mockActivityDetail, mockInsightActivities, mockInsightWellness, mockWellness } from "@/lib/mock-data";
 import { getIntervalsConfig, intervalsGet } from "./client";
 import { dedupeActivities } from "./dedupe";
-import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness } from "./normalize";
+import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness, runLthr } from "./normalize";
+import { hardRunThreshold, type HardRunThreshold } from "@/lib/thresholds";
 import { readinessAdvice, todayDone, weeklyAdvice, type Advice, type TodayDone } from "@/lib/coach";
 import { assessReadiness, type Readiness } from "@/lib/readiness";
 import { averageRunCadence } from "./summary";
@@ -14,8 +15,31 @@ export function isDemoMode(): boolean {
   return !getIntervalsConfig().hasKey;
 }
 
+/** LTHR lari demo (fiktif): 90% = 151 bpm. */
+export const DEMO_LTHR = 168;
+const LTHR_TTL_MS = 60 * 60 * 1000;
+let lthrCache: { at: number; lthr?: number } | null = null;
+
+/**
+ * Ambang HR lari berat (0.15.2): 90% LTHR lari dari intervals.icu, atau 155 bpm. Hanya angka LTHR yang disimpan di
+ * memori proses selama 1 jam (bukan data kesehatan harian); gagal → ambang umum, tidak pernah error.
+ */
+export async function getRunThreshold(): Promise<HardRunThreshold> {
+  if (isDemoMode()) return hardRunThreshold(DEMO_LTHR);
+  if (lthrCache && Date.now() - lthrCache.at < LTHR_TTL_MS) return hardRunThreshold(lthrCache.lthr);
+  const { athleteId } = getIntervalsConfig();
+  const res = await intervalsGet(`/athlete/${encodeURIComponent(athleteId)}`);
+  if (!res.ok) return hardRunThreshold(undefined);
+  lthrCache = { at: Date.now(), lthr: runLthr(res.data) };
+  return hardRunThreshold(lthrCache.lthr);
+}
+
+/** Tandai aktivitas dengan ambang pribadi supaya `isHardRun` di server & client memakai angka yang sama. */
+export const withHardHr = (list: Activity[], t: HardRunThreshold): Activity[] => (t.personal ? list.map((a) => ({ ...a, hardHrBpm: t.bpm })) : list);
+
 export async function getActivities(days = 30, today = todayWib()): Promise<FetchResult<Activity[]>> {
-  if (isDemoMode()) return { ok: true, data: mockActivities(today), source: "demo" };
+  const threshold = await getRunThreshold();
+  if (isDemoMode()) return { ok: true, data: withHardHr(mockActivities(today), threshold), source: "demo" };
   const { athleteId } = getIntervalsConfig();
   const res = await intervalsGet(`/athlete/${encodeURIComponent(athleteId)}/activities`, {
     oldest: addDays(today, -(days - 1)),
@@ -23,8 +47,11 @@ export async function getActivities(days = 30, today = todayWib()): Promise<Fetc
   });
   if (!res.ok) return res;
   const data = dedupeActivities(normalizeList(res.data, normalizeActivity)).sort((a, b) => (b.startLocal ?? "").localeCompare(a.startLocal ?? ""));
-  return { ok: true, data, source: "live" };
+  return { ok: true, data: withHardHr(data, threshold), source: "live" };
 }
+
+/** Wellness untuk readiness: 60 hari supaya baseline pribadi 30 hari bisa dihitung (0.15.2). */
+export const READINESS_WELLNESS_DAYS = 60;
 
 export async function getWellness(days = 8, today = todayWib()): Promise<FetchResult<Wellness[]>> {
   if (isDemoMode()) return { ok: true, data: mockWellness(today), source: "demo" };
@@ -54,7 +81,7 @@ export interface InsightData {
 export async function getInsightData(today = todayWib()): Promise<InsightData> {
   if (isDemoMode()) {
     return {
-      activities: { ok: true, data: mockInsightActivities(today), source: "demo" },
+      activities: { ok: true, data: withHardHr(mockInsightActivities(today), await getRunThreshold()), source: "demo" },
       wellness: { ok: true, data: mockInsightWellness(today, INSIGHT_WELLNESS_DAYS), source: "demo" },
     };
   }
@@ -96,7 +123,7 @@ export interface TrainingContext {
 
 /** Konteks untuk halaman generator: readiness & cadence personal. Posisi blok dihitung di client dari profil perangkat. */
 export async function getTrainingContext(today = todayWib()): Promise<TrainingContext> {
-  const [acts, well] = await Promise.all([getActivities(15, today), getWellness(14, today)]);
+  const [acts, well] = await Promise.all([getActivities(15, today), getWellness(READINESS_WELLNESS_DAYS, today)]);
   if (!acts.ok && !well.ok) return { readiness: null, advice: [] };
   const activities = acts.ok ? acts.data : [];
   const readiness = assessReadiness(well.ok ? well.data : [], activities, today);

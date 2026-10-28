@@ -126,3 +126,17 @@ export function normalizeWellness(raw: unknown): Wellness | null {
 export function normalizeList<T>(raw: unknown, fn: (x: unknown) => T | null): T[] {
   return Array.isArray(raw) ? raw.map(fn).filter((x): x is T => x !== null) : [];
 }
+
+/**
+ * LTHR lari dari `GET /athlete/{id}` (0.15.2): `sportSettings[]` dengan `types` berisi "Run" dan `lthr` (bpm).
+ * Bentuk tidak dikenal atau tanpa LTHR → undefined.
+ */
+export function runLthr(raw: unknown): number | undefined {
+  const settings = (raw as { sportSettings?: unknown } | null)?.sportSettings;
+  if (!Array.isArray(settings)) return undefined;
+  for (const s of settings) {
+    const r = s as Record<string, unknown>;
+    if (Array.isArray(r?.types) && r.types.includes("Run") && typeof r.lthr === "number" && r.lthr > 0) return r.lthr;
+  }
+  return undefined;
+}
