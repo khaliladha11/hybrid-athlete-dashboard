@@ -8,7 +8,7 @@
  *   Sebelumnya: HRV hari ini < 85% rata-rata 7 hari.
  * - Resting HR: hari ini ≥ rata-rata 30 hari + 1 SD (minimal +3 bpm). Aktif bila ≥ 30 hari bernilai resting HR.
  *   Sebelumnya: ≥ rata-rata 7 hari + 5 bpm.
- * - "Aktif sejak" = hari setelah nilai ke-30 dalam data yang diambil (60 hari).
+ * - "Aktif sejak" = hari setelah nilai ke-30, hanya bila awal data terlihat dalam 60 hari yang diambil.
  */
 import { addDays } from "./date";
 import type { Wellness } from "./intervals/types";
@@ -59,7 +59,9 @@ function baseline(wellness: Wellness[], today: string, pick: (w: Wellness) => nu
   const days = series.length;
   if (days < BASELINE_DAYS) return { days, active: false };
   const values = series.slice(-BASELINE_DAYS).map((w) => map(pick(w)!));
-  return { days, active: true, since: addDays(series[BASELINE_DAYS - 1].date, 1), mean: mean(values), sd: sdOf(values) };
+  // "Sejak" hanya bila awal data terlihat di jendela; data yang lebih tua dari 60 hari tidak punya tanggal mulai.
+  const since = series[0].date > from ? addDays(series[BASELINE_DAYS - 1].date, 1) : undefined;
+  return { days, active: true, ...(since ? { since } : {}), mean: mean(values), sd: sdOf(values) };
 }
 
 export const hrvBaseline = (wellness: Wellness[], today: string) => baseline(wellness, today, (w) => (w.hrv && w.hrv > 0 ? w.hrv : undefined), Math.log);
@@ -84,6 +86,7 @@ const day = (d: string) => DAY.format(new Date(`${d}T00:00:00Z`)).replace(".", "
 
 /** Satu baris status ambang untuk ditampilkan. */
 export function baselineStatus(label: string, b: Baseline): string {
+  if (b.active && !b.since) return `${label}: ambang pribadi aktif (rata-rata 30 hari terakhir).`;
   return b.active
     ? `${label}: ambang pribadi aktif sejak ${day(b.since!)} (rata-rata 30 hari).`
     : `${label}: masih memakai ambang umum (${b.days} dari ${BASELINE_DAYS} hari data).`;

@@ -122,3 +122,13 @@ describe("baris status ambang", () => {
     ]);
   });
 });
+
+describe("tanggal mulai ambang pribadi", () => {
+  it("data lebih tua dari jendela 60 hari → aktif tanpa tanggal", () => {
+    const w = days(60, () => ({ restingHr: 52 }));
+    const b = rhrBaseline(w, TODAY);
+    expect(b.active).toBe(true);
+    expect(b.since).toBeUndefined();
+    expect(baselineStatus("Resting HR", b)).toBe("Resting HR: ambang pribadi aktif (rata-rata 30 hari terakhir).");
+  });
+});
