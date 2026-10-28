@@ -12,3 +12,16 @@ export function clock(sec: number): string {
   const s = Math.round(Math.abs(sec));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
+
+/** Pace detik/km → `5'50"` (sama dengan `formatPaceTag` di UI, untuk kalimat ringkasan dari lib). */
+export function paceTag(sec: number): string {
+  const s = Math.round(sec);
+  return `${Math.floor(s / 60)}'${String(s % 60).padStart(2, "0")}"`;
+}
+
+export function median(xs: number[]): number | undefined {
+  if (!xs.length) return undefined;
+  const s = [...xs].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
