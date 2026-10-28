@@ -5,6 +5,7 @@ import { CATEGORY_LABEL, summarizeLast7Days } from "@/lib/intervals/summary";
 import { KM_INCREASE_LIMIT, MAX_HARD_RUNS_7D, weekStats } from "@/lib/coach";
 import type { Activity, ActivityCategory, FetchResult } from "@/lib/intervals/types";
 import { StLoad7, WeekLedger } from "./WeekLedger";
+import { InsightLink } from "./InsightLink";
 
 const DAY_MONTH = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
 const WEEKDAY_SHORT = new Intl.DateTimeFormat("id-ID", { weekday: "short", timeZone: "UTC" });
@@ -51,6 +52,7 @@ export function WeeklySummary({ result, today }: { result: FetchResult<Activity[
       <IntensityAndTrend activities={result.data} today={today} />
       <StLoad7 activities={result.data} today={today} />
       <WeekLedger activities={result.data} from={s.calendarWeek.from} to={s.calendarWeek.to} totalKm={s.calendarWeek.runKm} />
+      <InsightLink />
     </Card>
   );
 }

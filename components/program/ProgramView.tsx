@@ -5,6 +5,7 @@ import { BUTTON, Card } from "@/components/ui/Card";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { INTENSITY_TONE, TONES, pillClasses, type Tone } from "@/components/ui/tones";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { InsightLink } from "@/components/profile/InsightLink";
 import { addDays, formatDateId, startOfWeekMonday } from "@/lib/date";
 import { DIFFICULTY_LABEL } from "@/lib/generator/types";
 import type { Activity } from "@/lib/intervals/types";
@@ -112,6 +113,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
                 )}
                 <WeekDetail week={currentWeek} sessions={weekSessions(currentWeek.index)} results={showStatus ? plan.results : undefined} />
                 {currentWeek.raceWeek && <RaceWeekChecklist program={program} predictedPaceSec={predictedPace} />}
+                <InsightLink />
               </Card>
             </div>
           )}

@@ -23,7 +23,7 @@ export function BottomNav() {
     >
       <ul className="mx-auto grid max-w-xl grid-cols-5">
         {ITEMS.map((item) => {
-          const active = item.href === "/" ? pathname === "/" || pathname.startsWith("/activity") : pathname.startsWith(item.href);
+          const active = item.href === "/" ? pathname === "/" || pathname.startsWith("/activity") || pathname.startsWith("/insight") : pathname.startsWith(item.href);
           return (
             <li key={item.href}>
               <Link
