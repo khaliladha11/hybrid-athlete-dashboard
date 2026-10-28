@@ -23,7 +23,7 @@ export default async function ProfilePage() {
   prevMonth.setUTCMonth(prevMonth.getUTCMonth() - 1);
   const oldest = prevMonth.toISOString().slice(0, 10);
   const days = Math.round((Date.parse(`${today}T00:00:00Z`) - prevMonth.getTime()) / 86_400_000) + 1;
-  const [activities, wellness] = await Promise.all([getActivities(Math.max(days, 30), today), getWellness(8, today)]);
+  const [activities, wellness] = await Promise.all([getActivities(Math.max(days, 30), today), getWellness(14, today)]);
   const readiness =
     activities.ok || wellness.ok
       ? assessReadiness(wellness.ok ? wellness.data : [], activities.ok ? activities.data : [], today)

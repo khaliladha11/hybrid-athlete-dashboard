@@ -121,12 +121,12 @@ describe("concurrent training (Wilson 2012)", () => {
 
 describe("gabungan dengan readiness", () => {
   it("readiness turun satu level; dikombinasikan dengan batas lain ambil yang paling ringan", () => {
-    const r = readinessAdvice({ caution: true, reasons: ["HRV turun"], hasData: true });
+    const r = readinessAdvice({ caution: true, reasons: ["HRV turun"], hasData: true, basis: "" });
     expect(suggestFor(r, "strength", { difficulty: "high", duration: 45, type: "upperPush" }).difficulty).toBe("moderate");
     const combined = [...r, ...weeklyAdvice([st(1, "Lower Body ST")], TODAY)];
     expect(suggestFor(combined, "run", { difficulty: "high", duration: 45 }).difficulty).toBe("moderate");
     expect(readinessAdvice(null)).toEqual([]);
-    expect(readinessAdvice({ caution: false, reasons: [], hasData: true })).toEqual([]);
+    expect(readinessAdvice({ caution: false, reasons: [], hasData: true, basis: "" })).toEqual([]);
   });
 
   it("data demo: +53% km dan long run kemarin terdeteksi, 80/20 aman", () => {
@@ -139,7 +139,7 @@ describe("gabungan dengan readiness", () => {
 
 describe("saran relatif tidak berantai", () => {
   it("ignoreLowerBy: setelah diterapkan, readiness tidak menurunkan lagi; batas absolut tetap berlaku", () => {
-    const r = readinessAdvice({ caution: true, reasons: ["HRV turun"], hasData: true });
+    const r = readinessAdvice({ caution: true, reasons: ["HRV turun"], hasData: true, basis: "" });
     expect(suggestFor(r, "run", { difficulty: "moderate", duration: 45 }, { ignoreLowerBy: true })).toEqual({});
     const withPolarized: Advice[] = [...r, { id: "polarized", targets: ["run"], title: "", message: "", maxDifficulty: "easy" }];
     expect(suggestFor(withPolarized, "run", { difficulty: "moderate", duration: 45 }, { ignoreLowerBy: true }).difficulty).toBe("easy");

@@ -72,7 +72,7 @@ export interface TrainingContext {
 
 /** Konteks untuk halaman generator: readiness & cadence personal. Posisi blok dihitung di client dari profil perangkat. */
 export async function getTrainingContext(today = todayWib()): Promise<TrainingContext> {
-  const [acts, well] = await Promise.all([getActivities(15, today), getWellness(8, today)]);
+  const [acts, well] = await Promise.all([getActivities(15, today), getWellness(14, today)]);
   if (!acts.ok && !well.ok) return { readiness: null, advice: [] };
   const activities = acts.ok ? acts.data : [];
   const readiness = assessReadiness(well.ok ? well.data : [], activities, today);
