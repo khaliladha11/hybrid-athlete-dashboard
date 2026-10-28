@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.14.3 (2026-10-28) |
+| **Versi saat ini** | 0.15.0 (2026-10-28) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 46 file test, 588 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
+| **Kualitas** | 52 file test, 644 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Spesifikasi 0.15: INSIGHT](INSIGHT.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -141,11 +141,11 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Split cocok dengan Strava | 🟡 | Contoh lari 4,4 km: total moving time sama (44:00), HR per km ±1 bpm, pace per km −9 sampai +7 detik (Strava menghitung ulang jarak 4,42 km, jam 4,44 km) |
 | Aktivitas ganda dari dua sumber (Huawei + Strava) dihitung sekali | ✅ | 0.10.1 · `lib/intervals/dedupe.ts`. Berlaku di kalender, ringkasan 7 hari, saran, dan Program |
 | Edit profil dari dalam aplikasi | ✅ | 0.11.0: nama, usia, gaya hidup, fokus, target lomba, tujuan, blok mingguan/mode bebas di Setting › Profil; kondisi, zona, alat, gerakan sejak 0.8 |
-| Halaman Insight `/insight` ("Lihat tren" dari Profil & kartu terkait, tanpa tab baru) | ⬜ | 0.15.0 ([INSIGHT.md](INSIGHT.md) I2). Grafik SVG sendiri (I1), tiap grafik punya ringkasan & "Lihat tabel" (I6) |
-| Tren kebugaran CTL/ATL/Form, 6/12 minggu | ⬜ | 0.15.0 ([INSIGHT.md](INSIGHT.md) #1) |
-| Km mingguan dengan pembagian 80/20, minggu cutback/deload, kenaikan > 30% ditandai | ⬜ | 0.15.0 ([INSIGHT.md](INSIGHT.md) #2) |
-| Easy run: median pace & HR mingguan, cadence vs target personal | ⬜ | 0.15.0 ([INSIGHT.md](INSIGHT.md) #3): HR/cadence yang tidak ada ditulis "tidak ada data" |
-| VDOT dari waktu ke waktu (keyakinan) dan selisih ke target lomba | ⬜ | 0.15.0 ([INSIGHT.md](INSIGHT.md) #9) |
+| Halaman Insight `/insight` ("Lihat tren" dari Profil & kartu terkait, tanpa tab baru) | ✅ | 0.15.0 ([INSIGHT.md](INSIGHT.md) I2): tautan di kartu 7 hari (Profil) dan kartu minggu ini (Program), rentang 6/12 minggu tanpa ambil data ulang. Grafik SVG sendiri (I1), tiap grafik punya ringkasan, `aria-label`, dan "Lihat tabel" (I6) |
+| Tren kebugaran CTL/ATL/Form, 6/12 minggu | ✅ | 0.15.0 ([INSIGHT.md](INSIGHT.md) #1): pita Form netral −10 sampai +5; CTL/ATL yang tidak dikirim 14 hari diganti kalimat |
+| Km mingguan dengan pembagian 80/20, minggu cutback/deload, kenaikan > 30% ditandai | ✅ | 0.15.0 ([INSIGHT.md](INSIGHT.md) #2): `isHardRun` & ambang coach yang sama, hanya penanda |
+| Easy run: median pace & HR mingguan, cadence vs target personal | ✅ | 0.15.0 ([INSIGHT.md](INSIGHT.md) #3): median hanya dari lari yang punya nilainya; HR/cadence yang tidak ada ditulis "tidak ada data" |
+| VDOT dari waktu ke waktu (keyakinan) dan selisih ke target lomba | ✅ | 0.15.0 ([INSIGHT.md](INSIGHT.md) #9): per minggu hanya dari data sampai minggu itu |
 | Kalender heatmap aktivitas (lari / ST / istirahat), 12–26 minggu | ⬜ | 0.15.1 ([INSIGHT.md](INSIGHT.md) #11) |
 | Kartu ringkasan bulanan (km, sesi ST, PR baru, perubahan VDOT, otot terlewat) | ⬜ | 0.15.2 ([INSIGHT.md](INSIGHT.md) #12) |
 
@@ -373,6 +373,8 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | **0.15 Insight** ([INSIGHT.md](INSIGHT.md)) | 0.15.0 tren lari (CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT); 0.15.1 tren kekuatan (volume ST, heatmap otot, tren PR, kepatuhan mingguan, kalender heatmap); 0.15.2 tubuh & saran (**check-in harian sebagai sinyal kesiapan subjektif utama**, ambang personal, ringkasan bulanan); baseline HRV personal hanya bila data HRV ada | Menjawab "makin bugar, makin kuat, tetap bebas cedera?" dengan tampilan mingguan & bulanan |
 | **1.0 Siap pakai penuh** | Offline, kirim workout ke intervals.icu/jam, test e2e | Stabil dan mandiri tanpa edit kode |
 
+> 2026-10-28 (3): **0.15.0 dirilis** (tren lari): rute `/insight` dengan CTL/ATL/Form, km mingguan 80/20 (penanda > 30%, cutback, deload), easy run pace/HR/cadence, dan VDOT per minggu; grafik SVG sendiri dengan skala murni, ringkasan & "Lihat tabel". Insight mengambil aktivitas 182 hari dan wellness 84 hari (2 request per buka halaman). Berikutnya 0.15.1 tren kekuatan.
+>
 > 2026-10-28 (2): **spesifikasi 0.15 Insight** ([INSIGHT.md](INSIGHT.md)). Tujuan: menjawab pertanyaan jangka panjang (makin bugar, makin kuat, tetap bebas cedera?) lewat tampilan mingguan & bulanan; sampai 0.14 aplikasi memutuskan hari ini. Keputusan: **I1** grafik SVG sendiri dengan logika skala murni yang diuji; **I2** tanpa tab baru, rute `/insight` dari Profil ("Lihat tren") & kartu terkait; **I3** grafik hanya menampilkan data di 0.15.0 & 0.15.1, perubahan saran hanya di 0.15.2 dengan sumber & persetujuan pemilik; **I4** tanpa ACWR sebagai alarm cedera, tren beban memakai load intervals.icu (lari) & session-RPE (ST); **I5** baseline HRV hanya bila HRV tersedia, check-in harian jadi sinyal kesiapan subjektif utama; **I6** setiap grafik punya ringkasan `aria-label` dan "Lihat tabel", jalan di 375px, gelap/terang, reduced motion. Rilis: 0.15.0 tren lari, 0.15.1 tren kekuatan, 0.15.2 tubuh & saran. Offline & kirim workout tetap 1.0; kartu story tetap backlog P2.
 >
 > 2026-10-28: **0.14.3 dirilis** (temuan uji manual): program **mingguan fleksibel** menggantikan pencocokan ±1 hari (D2 baru), kalender menampilkan aktivitas di tanggal aslinya, "Sesi minggu ini" dengan rekomendasi hari ini, catatan akhir minggu yang lembut, geser dihapus. HRV tidak tampil karena jam tidak mengirimnya (bukan bug); sinyal yang tidak dikirim disembunyikan dan readiness menyebut dasarnya.
@@ -423,7 +425,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P1 | **Kepatuhan program**: tandai sesi rencana ✓/✕ dari aktivitas intervals.icu, tampil di kalender | M | Tahu apakah masih di jalur. → Selesai di **0.13.0** |
 | P1 | **Prediksi waktu lomba** dari lari terbaik terbaru (usulan VDOT Daniels, Riegel sebagai pembanding) untuk mengecek target | S | Target realistis. → Selesai di **0.13.2** (tanpa best effort intervals.icu, lihat P2) |
 | P1 | **Check-in harian**: nyeri shin (0–10), pegal, kualitas tidur, mood → ikut ke saran | S | Sinyal dini shin splints yang tidak terlihat di HRV. → **0.15.2** |
-| P1 | **Grafik tren** CTL/ATL/Form & km mingguan | M | Melihat kebugaran dan kelelahan jangka panjang. → **0.15.0** |
+| P1 | **Grafik tren** CTL/ATL/Form & km mingguan | M | Melihat kebugaran dan kelelahan jangka panjang. → ✅ **0.15.0** |
 | P1 | **ST mengikuti fase program** (Base, Build, Peak, Taper) | M | ST kaki tidak berat menjelang lomba. → Selesai di **0.14.1** |
 | P1 | **Session-RPE untuk ST** masuk beban 7 hari, kepatuhan, Week Ledger | S | Saran lari ikut memperhitungkan sesi ST yang tidak tercatat di jam. → Selesai di **0.14.1** |
 | P2 | **Kirim workout ke kalender intervals.icu** (lalu ke jam yang terhubung) | M | Workout langsung muncul di jam. → **1.0** |
@@ -438,7 +440,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P2 | **Aturan lari + ST di hari yang sama** (jeda ≥ 3 jam) | S | Mengurangi interferensi pada kekuatan eksplosif. → Selesai di **0.14.1** (aturan concurrent lama tetap, D5) |
 | P2 | **Skema "Kekuatan" 5–6 rep @ RPE 7** untuk ★ di fase Build (butuh persetujuan pemilik) | S | Manfaat beban relatif tinggi untuk running economy. → Turun prioritas, ditinjau lagi bila alat bertambah |
 | P2 | **Tangga progresi saat beban mentok** (bilateral → split → RFESS → satu kaki, atau tempo/jeda) | M | Progres tetap jalan walau alat terbatas. → **0.14.0** (double progression saat mentok) |
-| P2 | **Grafik cadence & pace easy run** | S | Memantau perbaikan crossover gait. → **0.15.0** |
+| P2 | **Grafik cadence & pace easy run** | S | Memantau perbaikan crossover gait. → ✅ **0.15.0** |
 | P2 | **Tren volume ST** (set × rep × kg per pola gerakan) | S | Progres ST jangka panjang. → **0.15.1** |
 | P2 | **Heatmap otot dari log ST** (frekuensi atau volume per otot, mingguan/bulanan, memakai `MuscleMap` 0.14.2) | M | Melihat otot yang jarang dilatih. → **0.15.1** |
 | P3 | **Kalibrasi split vs Strava** (penghalusan GPS & skala jarak) dengan data mentah beberapa lari, target ±2 detik/km | S | Split sama persis dengan yang dilihat di Strava |
@@ -488,6 +490,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.13.1 | 2026-10-26 | Program hidup tahap 2: "Kerjakan sesi hari ini" (isian generator lari & ST dari rencana, kartu sesi program untuk long run & sesi spesifik lomba), saran hari ini terhadap rencana |
 | 0.13.2 | 2026-10-26 | Program hidup selesai: perkiraan waktu lomba (VDOT, Riegel pembanding), hasil lomba tersimpan, saran update zona, geser/lewati sesi terlewat, hitung mundur & checklist minggu lomba |
 | 0.13.3 | 2026-10-26 | Hari H dipilih atlet: kalender dengan saran lama program, kesiapan HM/FM, jarak antar maraton, panjang program variabel & pre-Base, arsip program |
+| 0.15.0 | 2026-10-28 | Insight tahap 1, tren lari: rute `/insight` (tanpa tab baru), CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT per minggu; grafik SVG sendiri dengan "Lihat tabel" |
 | 0.14.3 | 2026-10-28 | Program mingguan fleksibel (sesi di hari apa pun dalam minggunya, Sesi minggu ini, catatan akhir minggu, tanpa geser), kalender di tanggal asli, sinyal wellness yang tidak dikirim jam disembunyikan & dasar readiness |
 | 0.14.2 | 2026-10-27 | Strength hidup selesai: 11 gerakan baru (bisep, trisep, lats, betis, tibialis, varian satu sisi untuk gerakan mentok) dengan gambar free-exercise-db, gambar Dead Hang & Negative Pull-Up, relasi varian lebih sulit, peta otot per gerakan di detail gerakan; 56 gerakan |
 | 0.14.1 | 2026-10-27 | Sesi ST: mode latihan layar penuh (centang per set, timer istirahat & tahan, layar tetap menyala), session-RPE (RPE × menit) ke beban 7 hari, kepatuhan & Week Ledger tanpa hitung dobel, ST mengikuti fase program (Peak maintenance, taper volume setengah, ST kaki terakhir ≥ 8 hari), jeda ≥ 3 jam lari + ST, peta otot sesi, cadangan v5 & sinkron `sessions` |

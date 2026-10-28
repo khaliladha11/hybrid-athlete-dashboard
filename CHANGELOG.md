@@ -4,6 +4,23 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [0.15.0] · 2026-10-28 · Insight: tren lari
+
+Tahap pertama [INSIGHT.md](docs/INSIGHT.md) (§8 0.15.0, keputusan I1, I2, I3, I6).
+
+### Ditambahkan
+- **Halaman `/insight` ("Tren")** tanpa tab baru, dibuka lewat "Lihat tren" di kartu 7 hari (Profil) dan kartu minggu ini (Program). Rentang **6 atau 12 minggu**, Senin sampai Minggu WIB; ganti rentang tidak mengambil data ulang.
+- **Kebugaran CTL/ATL/Form** per hari dengan pita Form netral −10 sampai +5 (#1).
+- **Km mingguan 80/20**: batang easy (hijau) dan berat (merah) memakai klasifikasi coach, penanda kenaikan > 30%, minggu cutback program dan deload blok (#2).
+- **Easy run**: median pace, median HR, dan median cadence per minggu dengan garis target cadence personal; median hanya dari lari yang punya nilainya, minggu tanpa data tertulis "tidak ada data" (#3).
+- **VDOT per minggu** dengan tingkat keyakinan sebagai gaya titik, garis target program aktif, dan selisih detik/km ke target (#9).
+- **Grafik SVG sendiri** (`LineChart`, `BarChart`, `ChartCard`) dengan logika skala murni (`chart-scale.ts`): satu kalimat ringkasan per grafik, `aria-label`, tombol "Lihat tabel", ≤ 6 label sumbu di 375px, tanpa tooltip hover, tanpa animasi. Data kurang → kalimat yang menyebut apa yang kurang, bukan grafik kosong.
+- **Data**: Insight mengambil aktivitas 182 hari dan wellness 84 hari di server (2 request, API key tetap di server; satu sumber gagal tidak mematikan yang lain). Demo Mode punya riwayat 26 minggu yang realistis (minggu tanpa lari, lonjakan > 30%, HR/cadence kadang kosong).
+- 56 test baru (`chart-scale`, `insight-weeks`, `insight-fitness`, `insight-run-trends`, `insight-vdot`, `insight-demo`); total 644 di 52 file.
+
+### Dokumentasi
+- PRD (header, §4.1, §7, §8, backlog), DESIGN-SYSTEM §6 (grafik Insight), ARCHITECTURE (modul `lib/insight/*`, rentang ambil data, test), TRAINING-LOGIC §7 (cara hitung tren), README.
+
 ## [0.14.3] · 2026-10-28 · Program mingguan & sinyal wellness
 
 Temuan uji manual pemilik 2026-10-28.

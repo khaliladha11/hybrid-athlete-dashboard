@@ -65,7 +65,7 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | Modul | Tanggung jawab | Berjalan di |
 | --- | --- | --- |
 | `lib/intervals/client.ts` | HTTP ke intervals.icu, Basic Auth, error terstruktur (401/403/404/5xx/timeout) | Server |
-| `lib/intervals/data-source.ts` | Pilih data live atau Demo Mode, rakit `TrainingContext` | Server |
+| `lib/intervals/data-source.ts` | Pilih data live atau Demo Mode, rakit `TrainingContext`; `getInsightData` (0.15.0): aktivitas 182 hari (12 minggu + jendela VDOT 90 hari + minggu pembanding) dan wellness 84 hari, 2 request paralel per buka `/insight`, tanpa cache data bersama | Server |
 | `lib/intervals/normalize.ts` | Respons mentah → tipe aman | Server (dan mock) |
 | `lib/intervals/dedupe.ts` | Buang rekaman ganda sesi yang sama (mis. Huawei + salinan Strava kosong), simpan yang paling lengkap | Server (dan mock) |
 | `lib/intervals/splits.ts` | Split per km dari stream time/distance/HR/cadence. `buildTrack` membersihkan jarak (hanya naik, tolak lonjakan > 12 m/s & reset) dan meratakan jarak bertangga; status bergerak dari kecepatan antar titik-ubah (ambang lari 30:00/mil seperti Strava). Batas km diinterpolasi, sisa < 50 m digabung. Jarak yang hanya dibagi rata diganti GPS (`latlng`). Hasil divalidasi terhadap ringkasan aktivitas | Server (dan mock) |
@@ -93,6 +93,12 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/progression.ts` | Aturan 2-for-2 (aturan lama), penerapan ke workout; sejak 0.14.0 saat aturan batas beban aktif: syarat naik relatif (RPE ≤ target − 1), double progression saat mentok (rentang tetap, tempo/jeda, varian `harderVariant`), alasan berangka (saran Gita), titik awal dari PR | Client |
 | `lib/st-session.ts`, `lib/st-session-store.ts` | Sesi ST mode latihan (0.14.1): validasi, gabungan per id dengan tombstone, session-RPE (RPE × menit), kelengkapan set, dedupe dengan aktivitas strength intervals.icu; penyimpanan perangkat (`hybrid-athlete.st-sessions.v1`) | Murni / client |
 | `lib/workout-state.ts` | Keadaan mode latihan (0.14.1): centang set, timer istirahat/tahan berbasis jam, lanjut setelah ditinggal, `finishWorkout` → sesi + log ★ | Murni |
+| `lib/insight/weeks.ts` | Minggu Insight Senin sampai Minggu (WIB, string UTC bebas DST), minggu berjalan, label minggu (0.15.0) | Server & client (murni) |
+| `lib/insight/fitness.ts` | Seri harian CTL/ATL/Form 6/12 minggu, hari kosong tetap kosong, sinyal `load` tidak tersedia, kalimat ringkasan (0.15.0) | Server & client (murni) |
+| `lib/insight/run-trends.ts` | Km mingguan easy/berat (`isHardRun`), kenaikan > 30% (ambang coach), cutback/deload, median pace/HR/cadence easy run, target cadence, kalimat ringkasan (0.15.0) | Server & client (murni) |
+| `lib/insight/vdot-trend.ts` | VDOT per minggu dari sumber `prediction.ts` dengan data sampai minggu itu, keyakinan, VDOT target & selisih detik/km (0.15.0) | Server & client (murni) |
+| `components/charts/chart-scale.ts`, `LineChart.tsx`, `BarChart.tsx`, `ChartCard.tsx` | Skala & tata letak murni; grafik garis & batang bertumpuk SVG; kerangka ringkasan + "Lihat tabel" (0.15.0) | Murni / client |
+| `app/insight/page.tsx`, `components/insight/InsightView.tsx` | Rute `/insight` (tanpa tab baru): data intervals.icu dari server, hasil lomba/program/blok dari perangkat, rentang 6/12 minggu dipotong di client | Server + client |
 | `lib/week-ledger.ts` | Baris Week Ledger per hari: km lari + ST per sesi setelah dedupe | Murni |
 | `lib/movements/muscle-regions.ts` | Nama otot kurasi → region SVG depan/belakang, otot tanpa region & gerakan teks saja (dengan alasan), ringkasan otot sesi | Murni |
 | `lib/buy-reminder.ts` | Pengingat beli plat per area (lower, upper push, upper pull): syarat 80% mentok di batas alat selama 2 sesi, plat yang membuka progresi terbanyak, tanda tangan untuk tutup/muncul lagi | Server & client (murni) |
@@ -192,6 +198,9 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `progression.test.ts` | Aturan 2-for-2, tahan/turun, batas library, deload, gerakan tahan & band, validasi data impor. |
 | `data.test.ts` | Tanggal WIB, normalisasi field null & cadence, ringkasan 7 hari, readiness. |
 | `activity-data.test.ts` | Dedupe Huawei + salinan Strava (urutan apa pun, tanpa pasangan, beda jenis, dua rekaman berisi), split per km (konstan, berhenti, HR berbobot, data rusak, cadence per-kaki), sumber jarak (dibagi rata, GPS, tanpa GPS), kasus tepi data jam (jarak bertangga, berhenti, lonjakan, reset, GPS hilang, validasi ringkasan, ambang lari/jalan), detail demo. |
+| `chart-scale.test.ts`, `insight-weeks.test.ts` | Domain & tick ≤ 6, satu titik, nilai sama, label tipis & tidak bertabrakan, garis putus di nilai kosong; minggu WIB Senin sampai Minggu, minggu berjalan, 6 vs 12. |
+| `insight-fitness.test.ts`, `insight-run-trends.test.ts`, `insight-vdot.test.ts` | Form = CTL − ATL, hari kosong, CTL/ATL tidak tersedia; 80/20 sama dengan `isHardRun`, > 30% sama dengan coach, cutback/deload, median dengan data hilang, target cadence; VDOT hanya dari data sampai minggu itu, keyakinan, selisih ke target; kalimat ringkasan & kondisi kosong. |
+| `insight-demo.test.ts` | Riwayat demo Insight deterministik: 12+ minggu, minggu tanpa lari, lonjakan > 30%, HR/cadence kadang kosong, wellness 84 hari menyambung dengan Profil. |
 | `program.test.ts` | Program target: fase, long run ≤ 10%/2 km, cutback, taper, peringatan, `kind` & `minutes` per sesi, hitung mundur, checklist H-1, tawaran catat hasil H+1 sampai H+14. 0.13.3: panjang standar + Hari H Minggu identik, urutan pemangkasan (Base lalu Build, Peak & taper utuh), aturan kenaikan di semua panjang, peringatan puncak dibatasi, pre-Base, Hari H selain Minggu. |
 | `program-baseline.test.ts` | 112 hash `buildProgram` + `planSessions` panjang tetap (dibuat dari kode sebelum 0.13.3): 4 jarak × 3/4 lari × long run awal × target. |
 | `timeline.test.ts` | Minggu berbasis Senin, batas teknis & tanggal paling awal, band per jarak, toggle FM 16 → 12, panjang standar tetap hijau, minimum data (0 / 8 km / dekat puncak), alasan tanpa dash, ringkasan fase, kesiapan HM/FM, pernah menyelesaikan jarak, jarak antar maraton, selisih VDOT. |

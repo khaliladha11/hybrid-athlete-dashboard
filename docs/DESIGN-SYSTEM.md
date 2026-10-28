@@ -145,6 +145,15 @@ Grafik bar SVG tanpa library. **Lebar bar ∝ durasi, tinggi bar ∝ kecepatan.*
 - **Warna (D7):** otot utama `--brand`, sekunder `--brand-soft` **dengan garis `--brand`** (tanpa garis, `brand-soft` hampir sama dengan `subtle-strong` di kedua tema), otot lain `--subtle-strong`, garis antar otot `--surface`. Peta otot bukan rencana maupun status selesai; oranye di sini berarti "dilatih sesi ini".
 - Tanpa animasi. Path dari MuscleMapJS (MIT, NOTICE.md), model pria saja untuk menjaga ukuran (±42 KB, ±20 KB gzip).
 
+### Grafik Insight (0.15.0, `components/charts/LineChart.tsx`, `BarChart.tsx`, `ChartCard.tsx`)
+- **Logika murni terpisah** di `components/charts/chart-scale.ts` (domain & tick rapi ≤ 6, skala linear, tata letak batang, label sumbu-x yang ditipiskan dan tidak bertabrakan, path garis/area yang putus di nilai kosong), diuji seperti Segment Skyline. Komponen SVG hanya menggambar.
+- **Kerangka `ChartCard`:** judul pendek, **satu kalimat ringkasan** di atas grafik (dari `lib/insight/*`), grafik, legenda mono 11px, lalu tombol **"Lihat tabel"** (≥ 44px, `aria-expanded`) yang membuka tabel teks berisi data yang sama (`tabular-nums`, nilai kosong `·` faint atau "tidak ada data"). Data tidak cukup → hanya kalimatnya, **tidak pernah grafik kosong**.
+- **Aksesibilitas:** `<svg role="img" aria-label="Grafik …. {ringkasan}">`; tabel adalah sumber data teksnya.
+- **375px:** lebar dari `ResizeObserver` (tanpa scroll horizontal), ≤ 6 label sumbu-x, label tepi digeser masuk; tanpa tooltip hover, detail lewat tabel.
+- **Warna:** garis data aktivitas `--brand` (CTL, median easy run, VDOT), garis pembanding `--muted` (ATL), area Form & pita konteks `--track`/`--subtle` (netral, tanpa label "bahaya"), target putus-putus `--ink`. Batang km: easy `--success`, berat `--danger` (tone intensitas); minggu berjalan redup. Penanda teks mono di atas batang (`+35%`, `CB`, `DL`).
+- **Keyakinan VDOT** sebagai gaya titik: penuh (tinggi), cincin tebal (sedang), cincin tipis (rendah).
+- **Tanpa animasi** (reduced motion aman dengan sendirinya).
+
 ### Button (`BUTTON` di Card.tsx)
 - Primary: `bg-brand text-on-brand` (teks gelap), 600, tinggi 44/48, radius 12.
 - Secondary: border `--line-strong`, latar `surface`.

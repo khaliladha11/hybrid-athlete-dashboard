@@ -1,6 +1,6 @@
 # Spesifikasi 0.15 Insight
 
-> Status: **spesifikasi, 2026-10-28**. Simpan di `docs/INSIGHT.md`.
+> Status: **spesifikasi, 2026-10-28**. 0.15.0 (tren lari) dirilis 2026-10-28; 0.15.1 dan 0.15.2 belum.
 > Bergantung pada 0.13 (program & kepatuhan), 0.14 (session-RPE, PR, `MuscleMap`, model mingguan 0.14.3, aturan sinyal yang tidak tersedia). Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Desain mengikuti [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md).
 
 ## 1. Tujuan

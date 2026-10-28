@@ -362,6 +362,16 @@ Di model mingguan sesi boleh dikerjakan di hari apa pun dalam minggunya, jadi ge
 
 **Mode bebas:** program blok mingguan (bagian 4) bisa dimatikan lewat toggle. Saat mati, tidak ada minggu deload, dan gerakan utama ★ dipilih per sesi (tetap multi-joint dan tetap dicatat untuk progresi beban).
 
+### Tren Insight (0.15.0)
+
+Grafik Insight **hanya menampilkan data**; tidak ada saran yang berubah karenanya ([INSIGHT.md](INSIGHT.md) I3).
+
+- **Minggu** = Senin sampai Minggu WIB, sama dengan program dan Week Ledger. Minggu berjalan ditandai "minggu ini" dan tidak masuk rata-rata ringkasan.
+- **CTL/ATL/Form:** nilai harian dari wellness intervals.icu, Form = CTL − ATL. Hari tanpa nilai tetap kosong (garis putus). Bila CTL/ATL tidak dikirim dalam 14 hari (aturan sinyal 0.14.3) atau kurang dari 14 hari terisi, grafik diganti kalimat. Pita −10 sampai +5 hanya konteks.
+- **Km mingguan 80/20:** jumlah jarak lari per minggu, dibagi easy dan berat memakai `isHardRun` yang sama dengan coach. Kenaikan dibanding minggu sebelumnya ditandai bila > 30% dan basis ≥ 5 km (konstanta coach, Nielsen dkk. 2014). Minggu cutback dari program tersimpan, minggu deload dari blok periodisasi bila aktif.
+- **Easy run:** lari yang tidak berat dan bukan long run (< 12 km). Per minggu: median pace (waktu ÷ jarak), median HR, median cadence, masing-masing **hanya dari lari yang punya nilainya**. Target cadence = aturan cadence personal (rata-rata 14 hari, naik ±5% bertahap, maks 180).
+- **VDOT per minggu:** sumber perkiraan waktu lomba (hasil lomba 90 hari lebih diutamakan, keyakinan tinggi; lalu lari ≥ 3 km 90 hari dengan VDOT tertinggi, keyakinan rendah) dihitung ulang dengan data sampai akhir minggu itu. Target dari tujuan program aktif; selisih = perkiraan waktu dari VDOT terakhir dibanding target, dalam detik per km.
+
 ## 8. Referensi
 
 Buku:
