@@ -63,6 +63,7 @@ export function StrengthVolume({ rows }: { rows: StrengthWeek[] }) {
           stacks={[{ values: rows.map((r) => r.patterns[cat].sets), tone: "brand" }]}
           marks={rows.map((r) => (r.estimated && r.patterns[cat].sets ? "*" : undefined))}
           partial={current >= 0 ? current : undefined}
+          integer
         />
       </ChartCard>
       <ChartCard

@@ -164,7 +164,6 @@ function Fitness({ wellness, today, weeks }: { wellness: Wellness[]; today: stri
         ]}
         area={s.days.map((d) => d.form)}
         band={FORM_BAND}
-        yFormat={(v) => String(v)}
       />
     </ChartCard>
   );
@@ -301,7 +300,6 @@ function Vdot({
         labels={rows.map((r) => weekLabel(r.start))}
         series={[{ values: rows.map((r) => r.vdot), tone: "brand", dots: rows.map((r) => DOT[r.confidence ?? "rendah"]) }]}
         target={goal?.vdot}
-        yFormat={(v) => String(v)}
       />
     </ChartCard>
   );

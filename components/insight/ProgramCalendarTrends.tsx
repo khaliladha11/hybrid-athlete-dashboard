@@ -30,6 +30,7 @@ export function ComplianceTrend({ rows }: { rows: ComplianceWeek[] }) {
           { values: rows.map((r) => r[k].belum), tone: "track" },
         ]}
         partial={current >= 0 ? current : undefined}
+        integer
       />
     </div>
   );
