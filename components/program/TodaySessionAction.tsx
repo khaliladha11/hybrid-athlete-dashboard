@@ -9,19 +9,22 @@ import { generatorHref, toGenerator } from "@/lib/program/to-generator";
 import { ProgramSessionCard } from "./ProgramSessionCard";
 
 /**
- * Tombol "Kerjakan sesi hari ini" (PROGRAM-HIDUP §4.4). Sesi lari/ST → generator dengan isian dari program.
+ * Tombol membuka sesi program (PROGRAM-HIDUP §4.4). Sesi lari/ST → generator dengan isian dari program.
  * Long run, lomba, dan sesi spesifik lomba → kartu sesi program (di halaman Program dibuka di tempat).
+ * 0.14.3: dipakai "Sesi minggu ini" untuk sesi yang direkomendasikan hari ini; `label` menyebut sesinya.
  */
 export function TodaySessionAction({
   session,
   program,
   where,
   longAdjust,
+  label = "Kerjakan sesi ini",
 }: {
   session: PlannedSession;
   program: Program;
   where: "program" | "profile";
   longAdjust?: { km: number; easy: boolean };
+  label?: string;
 }) {
   const t = toGenerator(session);
   const [open, setOpen] = useState(!!longAdjust);
@@ -34,21 +37,21 @@ export function TodaySessionAction({
   if (href) {
     return (
       <Link href={href} className={cls}>
-        Kerjakan sesi hari ini
+        {label}
       </Link>
     );
   }
   if (where === "profile") {
     return (
       <Link href="/program#sesi-hari-ini" className={cls}>
-        Kerjakan sesi hari ini
+        {label}
       </Link>
     );
   }
   return (
     <div className="space-y-2">
       <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={cls}>
-        {open ? "Tutup sesi hari ini" : "Kerjakan sesi hari ini"}
+        {open ? "Tutup kartu sesi" : label}
       </button>
       {open && <ProgramSessionCard session={session} program={program} km={longAdjust?.km} easyOnly={longAdjust?.easy} />}
     </div>

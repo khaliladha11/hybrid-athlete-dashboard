@@ -6,7 +6,8 @@ import { suggestFor, todayDone, withStSessions, type Advice } from "@/lib/coach"
 import { isRunKind } from "@/lib/program/sessions";
 import { useStSessions } from "@/lib/st-session-store";
 import type { Activity } from "@/lib/intervals/types";
-import { generatorHref, planToday, shortTitle, todaySession, toGenerator } from "@/lib/program/to-generator";
+import { generatorHref, planToday, shortTitle, toGenerator } from "@/lib/program/to-generator";
+import { recommendToday, weekSessions } from "@/lib/program/week-plan";
 import { useProgramPlan } from "@/lib/program/use-program-plan";
 import { planLine } from "./planText";
 
@@ -18,13 +19,14 @@ import { planLine } from "./planText";
 export function ProfileCoach({ advice: serverAdvice, activities, oldest, today }: { advice: Advice[]; activities: Activity[]; oldest: string; today: string }) {
   const plan = useProgramPlan({ activities, oldest, today });
   const stSessions = useStSessions();
+  // 0.14.3: rencana hari ini = sesi minggu ini yang direkomendasikan untuk hari ini (bukan yang jatuh di tanggal ini).
+  const week = plan.active && !plan.loading ? weekSessions(plan.sessions, plan.results, today) : null;
+  const session = week ? recommendToday(week.remaining, { today, weekEnd: week.end, activities: plan.activities, stSessions }).session : null;
   // Sesi mode latihan di perangkat & aturan hari yang sama (0.14.1).
   const advice = useMemo(() => {
-    const planned = plan.active ? plan.sessions.filter((x) => x.date === today && x.override?.action !== "skip") : [];
-    const plannedToday = { run: planned.some((x) => isRunKind(x.kind)), strength: planned.some((x) => !isRunKind(x.kind)) };
+    const plannedToday = { run: !!session && isRunKind(session.kind), strength: !!session && !isRunKind(session.kind) };
     return withStSessions(serverAdvice, { sessions: stSessions, today, done: todayDone(activities, today), plannedToday });
-  }, [serverAdvice, stSessions, today, activities, plan.active, plan.sessions]);
-  const session = plan.active && !plan.loading ? todaySession(plan.sessions, plan.results, today) : null;
+  }, [serverAdvice, stSessions, today, activities, session]);
   const pt = session ? planToday(session, plan.sessions) : null;
   let line: { text: string; href?: string } | undefined;
   if (session && pt) {

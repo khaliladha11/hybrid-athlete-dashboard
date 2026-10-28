@@ -4,17 +4,15 @@ import Link from "next/link";
 import type { Activity } from "@/lib/intervals/types";
 import { PHASE_LABEL, currentWeekIndex, postRaceOffer } from "@/lib/program";
 import { weekSummary } from "@/lib/program/compliance";
-import { todaySession } from "@/lib/program/to-generator";
 import { useProgramPlan } from "@/lib/program/use-program-plan";
 import { useAthleteSettings } from "@/lib/settings-store";
-import { MissedSessions } from "./MissedSessions";
 import { PostRaceOffer, countdownText } from "./RaceDay";
-import { TodaySessionAction } from "./TodaySessionAction";
+import { WeekSessions } from "./WeekSessions";
 
 /**
  * Ringkasan minggu program di Profil (docs/PROGRAM-HIDUP.md §4.3):
- * `MINGGU 5/12 · BUILD · 3/5 SESI · LONG RUN 14 KM ✓`, hitung mundur lomba (§4.9), sesi terlewat yang
- * menunggu keputusan (§4.8, maks. 2), dan tombol "Kerjakan sesi hari ini" (§4.4).
+ * `MINGGU 5/12 · BUILD · 3/5 SESI · LONG RUN 14 KM ✓`, hitung mundur lomba (§4.9), dan "Sesi minggu ini" (0.14.3:
+ * sesi sisa, saran untuk hari ini, lewati, catatan akhir minggu).
  * Tanpa program aktif tidak tampil, kecuali tawaran mencatat hasil sampai 14 hari setelah lomba.
  */
 export function ProgramWeekSummary({ activities, oldest, today }: { activities: Activity[]; oldest: string; today: string }) {
@@ -31,11 +29,10 @@ export function ProgramWeekSummary({ activities, oldest, today }: { activities: 
   const sum = weekSummary(plan.sessions, plan.results, index);
   const long = sum.longRun;
   const longText = long
-    ? `${week.raceWeek ? "Lomba" : "Long run"} ${long.km ?? "·"} km${long.status === "selesai" ? " ✓" : long.status === "terlewat" ? " ✕" : long.status === "sebagian" ? " · sebagian" : ""}`
+    ? `${week.raceWeek ? "Lomba" : "Long run"} ${long.km ?? "·"} km${long.status === "terpenuhi" ? " ✓" : long.status === "sebagian" ? " · sebagian" : long.status === "dilewati" ? " · dilewati" : ""}`
     : null;
   const parts = [`Minggu ${index}/${program.weeks.length}`, PHASE_LABEL[week.phase], `${sum.done}/${sum.total} sesi`, longText].filter(Boolean);
   const countdown = countdownText(program, today);
-  const todayS = todaySession(plan.sessions, plan.results, today);
   return (
     <div className="space-y-2 rounded-card border border-line bg-surface p-2 shadow-card">
       <Link
@@ -52,10 +49,9 @@ export function ProgramWeekSummary({ activities, oldest, today }: { activities: 
           ›
         </span>
       </Link>
-      <div className="empty:hidden">
-        <MissedSessions plan={plan} today={today} max={2} />
+      <div className="px-2 pb-2">
+        <WeekSessions plan={plan} today={today} where="profile" />
       </div>
-      {todayS && <TodaySessionAction session={todayS} program={program} where="profile" />}
     </div>
   );
 }

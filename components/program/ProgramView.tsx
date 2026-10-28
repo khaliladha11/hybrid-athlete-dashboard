@@ -14,13 +14,11 @@ import type { PlannedSession } from "@/lib/program/sessions";
 import { predictRaces } from "@/lib/program/prediction";
 import { useProgramPlan } from "@/lib/program/use-program-plan";
 import { useAthleteSettings } from "@/lib/settings-store";
-import { todaySession } from "@/lib/program/to-generator";
 import { SessionStatusChip, sessionNote } from "./SessionStatusChip";
-import { MissedSessions } from "./MissedSessions";
 import { PredictionCard } from "./PredictionCard";
 import { PostRaceOffer, RaceWeekChecklist, countdownText } from "./RaceDay";
 import { TargetForm } from "./TargetForm";
-import { TodaySessionAction } from "./TodaySessionAction";
+import { WeekSessions } from "./WeekSessions";
 
 /** Warna fase: Base hijau (ringan), Build kuning, Peak merah (paling berat), Taper biru. */
 const PHASE_STYLE: Record<Phase, { fill: string; text: string }> = {
@@ -46,8 +44,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
   // Status hanya ditampilkan untuk program tersimpan dan setelah data aktivitas lengkap.
   const showStatus = plan.saved && !plan.loading;
   const weekSessions = (w: number) => plan.sessions.filter((s) => s.week === w);
-  const doneOf = (w: number) => weekSessions(w).filter((s) => plan.results.get(s.id)?.status === "selesai").length;
-  const todayS = plan.active && !plan.loading ? todaySession(plan.sessions, plan.results, today) : null;
+  const doneOf = (w: number) => weekSessions(w).filter((s) => plan.results.get(s.id)?.status === "terpenuhi").length;
   const [athlete] = useAthleteSettings();
   const prediction = useMemo(
     () => (plan.loading ? null : predictRaces({ raceResults: athlete.raceResults, activities: plan.activities, today })),
@@ -108,14 +105,9 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
                 title={`Minggu ini · ${PHASE_LABEL[currentWeek.phase]}`}
                 action={<CopyButton text={weekToText(program, currentWeek)} label="Copy" className={`${BUTTON.secondary} min-h-9 px-3 text-[13px]`} />}
               >
-                {todayS && program && (
-                  <div className="mb-4">
-                    <TodaySessionAction session={todayS} program={program} where="program" longAdjust={todayS.kind === "long" ? longAdjust : undefined} />
-                  </div>
-                )}
                 {showStatus && plan.active && (
-                  <div className="mb-4 empty:hidden">
-                    <MissedSessions plan={plan} today={today} />
+                  <div id="sesi-minggu-ini" className="mb-4 scroll-mt-4 border-b border-line pb-4 empty:hidden">
+                    <WeekSessions plan={plan} today={today} where="program" longAdjust={longAdjust} />
                   </div>
                 )}
                 <WeekDetail week={currentWeek} sessions={weekSessions(currentWeek.index)} results={showStatus ? plan.results : undefined} />
@@ -144,7 +136,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
                           {showStatus && w.start <= today && (
                             <span className="tabular">
                               {" "}
-                              · {doneOf(w.index)}/{weekSessions(w.index).length} selesai
+                              · {doneOf(w.index)}/{weekSessions(w.index).length} terpenuhi
                             </span>
                           )}
                         </p>
@@ -167,7 +159,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
               <ul className="divide-y divide-line">
                 {[...plan.archived].reverse().map((a) => {
                   const weeks = a.program.weeks.filter((w) => a.sessions.some((s) => s.week === w.index));
-                  const done = a.sessions.filter((s) => plan.results.get(s.id)?.status === "selesai").length;
+                  const done = a.sessions.filter((s) => plan.results.get(s.id)?.status === "terpenuhi").length;
                   return (
                     <li key={a.archive.id}>
                       <details className="group">
@@ -175,7 +167,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
                           <div className="min-w-0 flex-1">
                             <p className="text-body font-semibold">{a.program.spec.label}</p>
                             <p className="tabular text-[13px] text-muted">
-                              {formatDateId(a.archive.startDate)} sampai {formatDateId(addDays(a.archive.endedAt, -1))} · Hari H {formatDateId(a.archive.raceDate)} · {done}/{a.sessions.length} selesai
+                              {formatDateId(a.archive.startDate)} sampai {formatDateId(addDays(a.archive.endedAt, -1))} · Hari H {formatDateId(a.archive.raceDate)} · {done}/{a.sessions.length} terpenuhi
                             </p>
                           </div>
                           <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
@@ -265,7 +257,7 @@ function WeekDetail({ week, sessions, results }: { week: ProgramWeek; sessions: 
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-body font-semibold">
-                    <span className="text-muted">{s.day} · </span>
+                    <span className="text-muted">{s.day} (disarankan) · </span>
                     {s.title}
                   </p>
                   {st ? (
@@ -275,7 +267,7 @@ function WeekDetail({ week, sessions, results }: { week: ProgramWeek; sessions: 
                   )}
                 </div>
                 {s.detail && <p className="mt-0.5 text-[13px] text-muted">{s.detail}</p>}
-                {results && (r?.status !== "mendatang" || note) && (
+                {results && ((r && r.status !== "belum") || note) && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-2">
                     <SessionStatusChip session={s} result={r} />
                     {note && <span className="text-[12px] text-muted">{note}</span>}
@@ -286,7 +278,9 @@ function WeekDetail({ week, sessions, results }: { week: ProgramWeek; sessions: 
           );
         })}
       </ul>
-      <p className="text-[12px] text-faint">Total ±{week.totalKm} km · {formatDateId(week.start)} sampai {formatDateId(addDays(week.start, 6))}</p>
+      <p className="text-[12px] text-faint">
+        Total ±{week.totalKm} km · {formatDateId(week.start)} sampai {formatDateId(addDays(week.start, 6))}. Hari hanya saran; sesi boleh dikerjakan di hari apa pun minggu ini.
+      </p>
     </div>
   );
 }
