@@ -110,3 +110,15 @@ describe("LTHR dari respons athlete intervals.icu", () => {
     expect(runLthr(null)).toBeUndefined();
   });
 });
+
+describe("baris status ambang", () => {
+  it("sinyal tidak dikirim disebut, aturannya tidak dipakai", async () => {
+    const { thresholdLines } = await import("@/lib/thresholds");
+    const lines = thresholdLines({ hard: hardRunThreshold(undefined), hrv: { days: 0, active: false }, restingHr: { days: 12, active: false }, hrvAvailable: false, rhrAvailable: true });
+    expect(lines).toEqual([
+      "Lari berat: ≥ 155 bpm (ambang umum; isi LTHR lari di intervals.icu untuk ambang pribadi).",
+      "HRV: tidak dikirim jam, aturan HRV tidak dipakai.",
+      "Resting HR: masih memakai ambang umum (12 dari 30 hari data).",
+    ]);
+  });
+});

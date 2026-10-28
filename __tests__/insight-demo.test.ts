@@ -48,3 +48,24 @@ describe("riwayat demo Insight", () => {
     expect(vdotWeeks(mockInsightActivities(TODAY), [], TODAY, 12).every((r) => r.vdot !== undefined)).toBe(true);
   });
 });
+
+describe("transisi ambang 30 hari di Demo Mode (0.15.2)", () => {
+  it("Profil demo (8 hari) = ambang umum, Insight demo (84 hari) = ambang pribadi", async () => {
+    const { hrvBaseline, rhrBaseline } = await import("@/lib/thresholds");
+    expect(hrvBaseline(mockWellness(TODAY), TODAY).active).toBe(false);
+    expect(rhrBaseline(mockWellness(TODAY), TODAY).active).toBe(false);
+    expect(hrvBaseline(mockInsightWellness(TODAY), TODAY).active).toBe(true);
+    expect(rhrBaseline(mockInsightWellness(TODAY), TODAY).active).toBe(true);
+  });
+});
+
+describe("check-in demo (0.15.2)", () => {
+  it("valid, deterministik, tidak sampai hari ini", async () => {
+    const { mockInsightCheckins } = await import("@/lib/mock-data");
+    const { normalizeCheckins } = await import("@/lib/checkin");
+    const c = mockInsightCheckins(TODAY);
+    expect(normalizeCheckins(c)).toHaveLength(c.length);
+    expect(c.every((x) => x.date < TODAY)).toBe(true);
+    expect(mockInsightCheckins(TODAY)).toEqual(c);
+  });
+});

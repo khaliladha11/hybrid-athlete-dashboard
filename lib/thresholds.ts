@@ -94,3 +94,12 @@ export function hardRunStatus(t: HardRunThreshold): string {
     ? `Lari berat: ≥ ${t.bpm} bpm (90% LTHR ${t.lthr} di intervals.icu).`
     : `Lari berat: ≥ ${t.bpm} bpm (ambang umum; isi LTHR lari di intervals.icu untuk ambang pribadi).`;
 }
+
+/** Baris status ambang untuk sinyal yang dikirim jam (sinyal yang tidak dikirim disebut, aturannya tidak dipakai). */
+export function thresholdLines(o: { hard: HardRunThreshold; hrv: Baseline; restingHr: Baseline; hrvAvailable: boolean; rhrAvailable: boolean }): string[] {
+  return [
+    hardRunStatus(o.hard),
+    o.hrvAvailable ? baselineStatus("HRV", o.hrv) : "HRV: tidak dikirim jam, aturan HRV tidak dipakai.",
+    o.rhrAvailable ? baselineStatus("Resting HR", o.restingHr) : "Resting HR: tidak dikirim jam, aturan resting HR tidak dipakai.",
+  ];
+}

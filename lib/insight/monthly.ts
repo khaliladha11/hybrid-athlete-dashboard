@@ -90,9 +90,9 @@ const kg = (v: number) => `${num1(v).replace(",0", "")} kg`;
 
 /** Baris teks ringkasan (kartu Profil & Insight). */
 export function monthlyLines(s: MonthlySummary): string[] {
-  const lines = [s.runs ? `Lari ${num1(s.runKm)} km dalam ${s.runs} lari.` : "Belum ada lari tercatat bulan ini.", s.stDays ? `ST di ${s.stDays} hari.` : "Belum ada sesi ST tercatat."];
+  const lines = [s.runs ? `Lari ${num1(s.runKm)} km dalam ${s.runs} lari.` : "Belum ada lari tercatat bulan itu.", s.stDays ? `ST di ${s.stDays} hari.` : "Belum ada sesi ST tercatat."];
   lines.push(
-    s.newPrs.length ? `PR baru: ${s.newPrs.map((p) => `${p.movement} ${kg(p.loadKg)}${p.reps ? ` × ${p.reps}` : ""}`).join(", ")}.` : "Belum ada PR baru bulan ini.",
+    s.newPrs.length ? `PR baru: ${s.newPrs.map((p) => `${p.movement} ${kg(p.loadKg)}${p.reps ? ` × ${p.reps}` : ""}`).join(", ")}.` : "Belum ada PR baru bulan itu.",
   );
   if (s.vdot) {
     const d = s.vdot.from !== undefined ? s.vdot.to - s.vdot.from : undefined;

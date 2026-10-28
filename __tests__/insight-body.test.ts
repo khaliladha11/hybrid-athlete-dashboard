@@ -76,9 +76,9 @@ describe("ringkasan bulanan", () => {
     const empty = monthlySummary({ today: TODAY, activities: [], stSessions: [], log: [], prs: [], raceResults: [], available: [] });
     expect(empty.rarely).toBeNull();
     expect(monthlyLines(empty)).toEqual([
-      "Belum ada lari tercatat bulan ini.",
+      "Belum ada lari tercatat bulan itu.",
       "Belum ada sesi ST tercatat.",
-      "Belum ada PR baru bulan ini.",
+      "Belum ada PR baru bulan itu.",
       "VDOT belum bisa dihitung (butuh hasil lomba atau lari ≥ 3 km dalam 90 hari).",
     ]);
     for (const l of lines) expect(l).not.toMatch(/[—–]/);

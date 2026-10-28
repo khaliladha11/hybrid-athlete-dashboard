@@ -247,7 +247,8 @@ export function mockInsightActivities(today: string): Activity[] {
 
 /**
  * Wellness demo Insight: CTL/ATL dihitung dari load harian (rata-rata eksponensial 42 & 7 hari, seperti
- * intervals.icu), digeser supaya 8 hari terakhir menyambung dengan `mockWellness` (yang dipakai Profil).
+ * intervals.icu), digeser supaya 8 hari terakhir menyambung dengan `mockWellness` (yang dipakai Profil). Hari lama
+ * berisi HRV & resting HR fiktif (0.15.2): Profil demo (8 hari) memakai ambang umum, Insight demo ambang pribadi.
  */
 export function mockInsightWellness(today: string, days = 84): Wellness[] {
   const start = addDays(startOfWeekMonday(today), -7 * (INSIGHT_HISTORY_WEEKS - 1));
@@ -267,7 +268,8 @@ export function mockInsightWellness(today: string, days = 84): Wellness[] {
   const dCtl = recent[0].ctl! - series[join - 1].ctl;
   const dAtl = recent[0].atl! - series[join - 1].atl;
   const r1 = (v: number) => Math.round(v * 10) / 10;
-  const older = series.slice(0, join).map((s) => ({ id: s.date, ctl: r1(s.ctl + dCtl), atl: r1(s.atl + dAtl) }));
+  // HRV & resting HR fiktif yang stabil (0.15.2) supaya baseline pribadi 30 hari terlihat aktif di Insight demo.
+  const older = series.slice(0, join).map((s, i) => ({ id: s.date, ctl: r1(s.ctl + dCtl), atl: r1(s.atl + dAtl), hrv: 58 + ((i * 7) % 9), restingHR: 51 + ((i * 5) % 3) }));
   const all = [...normalizeList(older, normalizeWellness), ...recent];
   return all.slice(-days);
 }
@@ -393,4 +395,15 @@ export function mockInsightStrength(today: string): { sessions: StSession[]; log
     { id: "demo-pr-2", movement: "Floor Press", loadKg: 8, sets: 3, reps: 10, date: addDays(first, -10), source: "manual", updatedAt: `${first}T00:00:00.000Z` },
   ];
   return { sessions, log, prs };
+}
+
+/** Check-in demo untuk Insight (0.15.2, fiktif, tidak ditulis ke perangkat): ±5 dari 7 hari, nyeri shin turun pelan. */
+export function mockInsightCheckins(today: string): import("@/lib/checkin").Checkin[] {
+  const out: import("@/lib/checkin").Checkin[] = [];
+  for (let i = 83; i >= 1; i--) {
+    if (i % 7 === 2 || i % 7 === 5) continue;
+    const date = addDays(today, -i);
+    out.push({ date, shin: Math.max(0, Math.round(1 + (i / 83) * 4 + ((i * 7) % 3) - 1)), soreness: (i * 5) % 7, sleep: 2 + ((i * 3) % 4), mood: 3 + (i % 3), updatedAt: `${date}T00:30:00.000Z` });
+  }
+  return out;
 }
