@@ -67,7 +67,7 @@ export function BarChart({
               {stacks.map((s, si) => {
                 const v = s.values[i] ?? 0;
                 if (v <= 0) return null;
-                const h = Math.max(1, base - y(domain[0] + v));
+                const h = Math.max(1, HEIGHT - BOTTOM - y(domain[0] + v));
                 base -= h;
                 return <rect key={si} x={LEFT + b.x} y={base} width={b.w} height={h} className={FILL[s.tone]} />;
               })}
