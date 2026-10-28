@@ -1,5 +1,7 @@
 "use client";
 
+import { withCheckin } from "@/lib/checkin";
+import { filledCheckin, useCheckins } from "@/lib/checkin-store";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -85,7 +87,11 @@ export function StrengthGenerator({
 }) {
   const router = useRouter();
   const sessions = useStSessions();
-  const advice = useMemo(() => withStSessions(serverAdvice, { sessions, today: todayWib(), done: todayDone, current: "strength" }), [serverAdvice, sessions, todayDone]);
+  const checkins = useCheckins();
+  const advice = useMemo(
+    () => withCheckin(withStSessions(serverAdvice, { sessions, today: todayWib(), done: todayDone, current: "strength" }), filledCheckin(checkins, todayWib())),
+    [serverAdvice, sessions, todayDone, checkins],
+  );
   const [activeRaw, setActiveRaw] = useStoredString(PREF_KEYS.activeWorkout, "");
   const active = useMemo(() => parseActiveWorkout(activeRaw), [activeRaw]);
   const [type, setType] = useState<StrengthType>(prefill?.type ?? "fullBody");

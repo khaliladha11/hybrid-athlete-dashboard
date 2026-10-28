@@ -1,3 +1,4 @@
+import { ReadinessBasis } from "./ReadinessBasis";
 import { Card, StatRow } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { formatDateId } from "@/lib/date";
@@ -14,7 +15,7 @@ function sleep(sec: number | undefined) {
 }
 
 /** `basis`: kalimat sinyal yang dipakai readiness (0.14.3). Sinyal yang tidak dikirim jam dalam 14 hari tidak ditampilkan. */
-export function WellnessCard({ result, today, basis }: { result: FetchResult<Wellness[]>; today: string; basis?: string }) {
+export function WellnessCard({ result, today, basis, used }: { result: FetchResult<Wellness[]>; today: string; basis?: string; used?: string[] }) {
   if (!result.ok) {
     return (
       <Card title="Wellness">
@@ -68,9 +69,9 @@ export function WellnessCard({ result, today, basis }: { result: FetchResult<Wel
           {missing} metrik kosong (·). Biasanya karena jam belum sinkron atau tidak dipakai saat tidur.
         </p>
       )}
-      {(basis || absent.length > 0) && (
+      {(basis || used || absent.length > 0) && (
         <p className="mt-3 text-[13px] text-muted">
-          {basis}
+          {used ? <ReadinessBasis used={used} today={today} /> : basis}
           {absent.length > 0 && ` Jammu tidak mengirim ${joinId(absent.map((s) => SIGNAL_LABEL[s]))} dalam 14 hari terakhir, jadi tidak ditampilkan.`}
         </p>
       )}

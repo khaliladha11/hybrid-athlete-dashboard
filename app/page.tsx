@@ -6,6 +6,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { ProfileHeader, TargetsCard } from "@/components/profile/ProfileDetails";
 import { WeeklySummary } from "@/components/profile/WeeklySummary";
 import { WellnessCard } from "@/components/profile/WellnessCard";
+import { CheckinCard } from "@/components/profile/CheckinCard";
 import { ProfileCoach } from "@/components/program/ProfileCoach";
 import { ProgramWeekSummary } from "@/components/program/ProgramWeekSummary";
 import { ZoneOffer } from "@/components/settings/ZoneOffer";
@@ -39,6 +40,9 @@ export default async function ProfilePage() {
       {/* Saran update zona (0.13.2): hanya bila dua hasil lomba menunjukkan kebugaran naik. */}
       <ZoneOffer today={today} />
 
+      {/* Check-in harian (0.15.2): sekali per hari, opsional; hanya menurunkan saran. */}
+      <CheckinCard today={today} />
+
       <ProfileCoach
         advice={[...readinessAdvice(readiness), ...(activities.ok ? weeklyAdvice(activities.data, today) : [])]}
         activities={activities.ok ? activities.data : []}
@@ -61,7 +65,7 @@ export default async function ProfilePage() {
         </Link>
       </div>
 
-      <WellnessCard result={wellness} today={today} basis={readiness?.basis} />
+      <WellnessCard result={wellness} today={today} basis={readiness?.basis} used={readiness?.used} />
       <WeeklySummary result={activities} today={today} />
       {activities.ok ? (
         <ActivityCalendar activities={activities.data} today={today} oldest={oldest} />

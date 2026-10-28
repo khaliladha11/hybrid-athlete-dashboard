@@ -1,5 +1,7 @@
 "use client";
 
+import { withCheckin } from "@/lib/checkin";
+import { filledCheckin, useCheckins } from "@/lib/checkin-store";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { SegmentSkyline } from "@/components/charts/SegmentSkyline";
 import { planSegments } from "@/components/charts/skyline-scale";
@@ -65,8 +67,13 @@ export function RunGenerator({
   todayDone?: TodayDone;
 }) {
   const stSessions = useStSessions();
+  const checkins = useCheckins();
   // Sesi mode latihan di perangkat: ST kaki → lari maks Moderate, dan jeda ≥ 3 jam di hari yang sama (0.14.1).
-  const advice = useMemo(() => withStSessions(serverAdvice, { sessions: stSessions, today: todayWib(), done: todayDone, current: "run" }), [serverAdvice, stSessions, todayDone]);
+  // Check-in hari ini (0.15.2) hanya menurunkan.
+  const advice = useMemo(
+    () => withCheckin(withStSessions(serverAdvice, { sessions: stSessions, today: todayWib(), done: todayDone, current: "run" }), filledCheckin(checkins, todayWib())),
+    [serverAdvice, stSessions, todayDone, checkins],
+  );
   const [duration, setDuration] = useState<Duration>(prefill?.duration ?? 45);
   const [difficulty, setDifficulty] = useState<Difficulty>(prefill?.difficulty ?? "easy");
   const [seed, setSeed] = useState(initialSeed);
