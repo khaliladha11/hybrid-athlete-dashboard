@@ -11,7 +11,9 @@ import { ProfileCoach } from "@/components/program/ProfileCoach";
 import { ProgramWeekSummary } from "@/components/program/ProgramWeekSummary";
 import { ZoneOffer } from "@/components/settings/ZoneOffer";
 import { todayWib } from "@/lib/date";
-import { READINESS_WELLNESS_DAYS, getActivities, getWellness } from "@/lib/intervals/data-source";
+import { READINESS_WELLNESS_DAYS, getActivities, getRunThreshold, getWellness } from "@/lib/intervals/data-source";
+import { thresholdLines } from "@/lib/thresholds";
+import { MonthlyProfileCard } from "@/components/profile/MonthlyProfileCard";
 import { readinessAdvice, weeklyAdvice } from "@/lib/coach";
 import { assessReadiness } from "@/lib/readiness";
 
@@ -24,7 +26,7 @@ export default async function ProfilePage() {
   prevMonth.setUTCMonth(prevMonth.getUTCMonth() - 1);
   const oldest = prevMonth.toISOString().slice(0, 10);
   const days = Math.round((Date.parse(`${today}T00:00:00Z`) - prevMonth.getTime()) / 86_400_000) + 1;
-  const [activities, wellness] = await Promise.all([getActivities(Math.max(days, 30), today), getWellness(READINESS_WELLNESS_DAYS, today)]);
+  const [activities, wellness, runThreshold] = await Promise.all([getActivities(Math.max(days, 30), today), getWellness(READINESS_WELLNESS_DAYS, today), getRunThreshold()]);
   const readiness =
     activities.ok || wellness.ok
       ? assessReadiness(wellness.ok ? wellness.data : [], activities.ok ? activities.data : [], today)
@@ -39,6 +41,9 @@ export default async function ProfilePage() {
 
       {/* Saran update zona (0.13.2): hanya bila dua hasil lomba menunjukkan kebugaran naik. */}
       <ZoneOffer today={today} />
+
+      {/* Ringkasan bulan lalu (0.15.2): tanggal 1–7, sekali per bulan. */}
+      <MonthlyProfileCard today={today} />
 
       {/* Check-in harian (0.15.2): sekali per hari, opsional; hanya menurunkan saran. */}
       <CheckinCard today={today} />
@@ -65,7 +70,23 @@ export default async function ProfilePage() {
         </Link>
       </div>
 
-      <WellnessCard result={wellness} today={today} basis={readiness?.basis} used={readiness?.used} />
+      <WellnessCard
+        result={wellness}
+        today={today}
+        basis={readiness?.basis}
+        used={readiness?.used}
+        thresholds={
+          readiness
+            ? thresholdLines({
+                hard: runThreshold,
+                hrv: readiness.baselines.hrv,
+                restingHr: readiness.baselines.restingHr,
+                hrvAvailable: readiness.used.includes("HRV"),
+                rhrAvailable: readiness.used.includes("resting HR"),
+              })
+            : undefined
+        }
+      />
       <WeeklySummary result={activities} today={today} />
       {activities.ok ? (
         <ActivityCalendar activities={activities.data} today={today} oldest={oldest} />

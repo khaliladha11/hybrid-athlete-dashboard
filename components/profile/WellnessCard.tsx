@@ -15,7 +15,7 @@ function sleep(sec: number | undefined) {
 }
 
 /** `basis`: kalimat sinyal yang dipakai readiness (0.14.3). Sinyal yang tidak dikirim jam dalam 14 hari tidak ditampilkan. */
-export function WellnessCard({ result, today, basis, used }: { result: FetchResult<Wellness[]>; today: string; basis?: string; used?: string[] }) {
+export function WellnessCard({ result, today, basis, used, thresholds }: { result: FetchResult<Wellness[]>; today: string; basis?: string; used?: string[]; thresholds?: string[] }) {
   if (!result.ok) {
     return (
       <Card title="Wellness">
@@ -74,6 +74,13 @@ export function WellnessCard({ result, today, basis, used }: { result: FetchResu
           {used ? <ReadinessBasis used={used} today={today} /> : basis}
           {absent.length > 0 && ` Jammu tidak mengirim ${joinId(absent.map((s) => SIGNAL_LABEL[s]))} dalam 14 hari terakhir, jadi tidak ditampilkan.`}
         </p>
+      )}
+      {thresholds && (
+        <ul className="mt-2 space-y-1 text-[13px] text-muted">
+          {thresholds.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
       )}
     </Card>
   );

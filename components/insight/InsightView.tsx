@@ -28,6 +28,13 @@ import { mergeSessions } from "@/lib/st-session";
 import { useStSessions } from "@/lib/st-session-store";
 import { useTrainingLog } from "@/lib/training-log";
 import { ActivityHeatmap, ComplianceTrend } from "./ProgramCalendarTrends";
+import { CheckinTrend, MonthlyCard, ThresholdCard } from "./BodyTrends";
+import { mergeCheckins } from "@/lib/checkin";
+import { useCheckins } from "@/lib/checkin-store";
+import { monthlySummary } from "@/lib/insight/monthly";
+import { mockInsightCheckins } from "@/lib/mock-data";
+import { hrvBaseline, rhrBaseline, thresholdLines, type HardRunThreshold } from "@/lib/thresholds";
+import { availableSignals } from "@/lib/wellness-signals";
 import { MuscleHeatmap, PrTrend, StrengthVolume, availableMovements } from "./StrengthTrends";
 
 const PATTERNS = patternMap(baseProfile.movementLibrary);
@@ -44,7 +51,17 @@ const DOT: Record<Confidence, DotStyle> = { tinggi: "filled", sedang: "ring", re
  * PR, hasil lomba, program, blok) di sini. Demo Mode menambah data ST fiktif tanpa menulis ke perangkat. Pilihan
  * 6/12 minggu hanya memotong data yang sudah ada. Grafik tidak mengubah saran (I3).
  */
-export function InsightView({ activities, wellness, today }: { activities: FetchResult<Activity[]>; wellness: FetchResult<Wellness[]>; today: string }) {
+export function InsightView({
+  activities,
+  wellness,
+  today,
+  runThreshold,
+}: {
+  activities: FetchResult<Activity[]>;
+  wellness: FetchResult<Wellness[]>;
+  today: string;
+  runThreshold: HardRunThreshold;
+}) {
   const [weeks, setWeeks] = useState<RangeWeeks>(6);
   const acts = useMemo(() => (activities.ok ? activities.data : []), [activities]);
   const plan = useProgramPlan({ activities: acts, oldest: addDays(today, -181), today });
@@ -81,6 +98,19 @@ export function InsightView({ activities, wellness, today }: { activities: Fetch
     return cap ?? (demo && movement === "Barbell Squat" ? DEMO_BARBELL_CAP_KG : undefined);
   };
   const logDates = useMemo(() => log.map((e) => e.date), [log]);
+
+  // Tubuh (0.15.2): check-in perangkat (+ fiktif di Demo Mode), status ambang, ringkasan bulan lalu.
+  const deviceCheckins = useCheckins();
+  const checkins = useMemo(() => (demo ? mergeCheckins(deviceCheckins, mockInsightCheckins(today)) : deviceCheckins), [demo, deviceCheckins, today]);
+  const thresholds = useMemo(() => {
+    const w = wellness.ok ? wellness.data : [];
+    const signals = availableSignals(w, today);
+    return thresholdLines({ hard: runThreshold, hrv: hrvBaseline(w, today), restingHr: rhrBaseline(w, today), hrvAvailable: signals.has("hrv"), rhrAvailable: signals.has("restingHr") });
+  }, [wellness, today, runThreshold]);
+  const monthly = useMemo(
+    () => monthlySummary({ today, activities: acts, stSessions, log, prs, raceResults: athlete.raceResults, available }),
+    [today, acts, stSessions, log, prs, athlete.raceResults, available],
+  );
   const compliance = useMemo(
     // Hanya program yang benar-benar disimpan (bukan pratinjau default) dan arsipnya.
     () => complianceWeeks(plan.saved ? [...plan.sessions, ...plan.archived.flatMap((a) => a.sessions)] : [], plan.results, today, weeks),
@@ -118,6 +148,11 @@ export function InsightView({ activities, wellness, today }: { activities: Fetch
       <StrengthVolume rows={stRows} />
       <MuscleHeatmap work={work} today={today} available={available} />
       <PrTrend prs={prs} log={log} capOf={capOf} />
+
+      <h2 className="t-label pt-2 text-ink">Tubuh</h2>
+      <CheckinTrend checkins={checkins} today={today} weeks={weeks} />
+      <ThresholdCard lines={thresholds} />
+      <MonthlyCard summary={monthly} />
 
       <h2 className="t-label pt-2 text-ink">Program & kalender</h2>
       {!plan.loading && <ComplianceTrend rows={compliance} />}
