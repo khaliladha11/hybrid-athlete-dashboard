@@ -55,7 +55,7 @@ export interface ProgramPlan {
   /** Simpan perubahan pengaturan (override ikut dipertahankan). */
   save: (patch: Partial<ProgramSettings>) => void;
   /** Keputusan geser/lewati satu sesi (0.13.2); digabung per sesi, keputusan terbaru menang. */
-  decide: (o: Pick<ProgramOverride, "sessionId" | "action" | "toDate">) => void;
+  decide: (o: Pick<ProgramOverride, "sessionId" | "action">) => void;
   /** "Buat program" (0.13.3): program lama yang punya riwayat diarsipkan. */
   create: (draft: ProgramDraft) => void;
   /** Program arsip (riwayat): sesi sebelum program berikutnya berlaku, statusnya ada di `results`. */
@@ -166,7 +166,7 @@ export function useProgramPlan({ activities, oldest, today }: { activities: Acti
     setRaw(serializeProgramSettings(next));
   };
 
-  const decide = (o: Pick<ProgramOverride, "sessionId" | "action" | "toDate">) =>
+  const decide = (o: Pick<ProgramOverride, "sessionId" | "action">) =>
     save({ overrides: mergeOverrides(settings.overrides, [{ ...o, decidedAt: new Date().toISOString() }]) });
 
   const active = isProgramActive(raw, program, today);

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generateRunWorkout } from "@/lib/generator";
 import { buildProgram, RACES, type RaceTarget } from "@/lib/program";
-import { evaluateCompliance } from "@/lib/program/compliance";
 import { planSessions, type PlannedSession } from "@/lib/program/sessions";
 import { ST_PHASE_RULES } from "@/lib/program/st-phase";
 import {
@@ -12,7 +11,6 @@ import {
   planToday,
   sessionCardText,
   shortTitle,
-  todaySession,
   toGenerator,
 } from "@/lib/program/to-generator";
 
@@ -141,14 +139,6 @@ describe("prefill generator lewat query", () => {
 
 describe("sesi hari ini & rencana untuk saran", () => {
   const hm = all("hm", 3);
-
-  it("sesi hari ini belum selesai, lari didahulukan; hari istirahat → null", () => {
-    const tue = hm.find((s) => s.week === 5 && s.day === "Selasa")!;
-    expect(todaySession(hm, new Map(), tue.date)?.id).toBe(tue.id);
-    expect(todaySession(hm, new Map(), "2026-02-06")).toBeNull(); // Jumat, 3 lari/minggu
-    const r = evaluateCompliance(hm, [{ id: "a", name: "Tempo", type: "Run", category: "run", date: tue.date, distanceKm: 7, movingTimeSec: 2700 }], [], tue.date);
-    expect(todaySession(hm, r, tue.date)).toBeNull();
-  });
 
   it("planToday: level & durasi generator, jarak, long run minggu lalu", () => {
     const tempo = hm.find((s) => s.week === 6 && s.kind === "quality")!;

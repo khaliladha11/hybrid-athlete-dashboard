@@ -5,6 +5,10 @@
  * 0.13.3 (§4.10): Hari H (`raceDate`) dipilih atlet. Program lama tanpa Hari H dimigrasikan ke mulai + panjang
  * lamanya, dengan id lama, jadi status & override tidak berubah. Mengganti Hari H/mulai/jarak di tengah program
  * mengarsipkan program lama (`archived`) beserta override-nya, lalu program baru berjalan mulai hari ini.
+ *
+ * 0.14.3 (model mingguan): override hanya `skip`. Entri `move` lama dibuang saat dibaca (juga di arsip dan saat
+ * sinkron) karena sesi kini boleh dikerjakan di hari apa pun dalam minggunya. `weekNotesSeen` = catatan akhir minggu
+ * yang sudah ditutup (`{programId}:{minggu}`), digabung union saat sinkron.
  */
 import { addDays, startOfWeekMonday } from "@/lib/date";
 import type { Activity } from "@/lib/intervals/types";
@@ -12,12 +16,12 @@ import { RACES, formatGoal, goalFromProfile, type Program, type RaceTarget } fro
 
 export interface ProgramOverride {
   sessionId: string;
-  action: "move" | "skip";
-  /** YYYY-MM-DD WIB, untuk `move`. */
-  toDate?: string;
+  action: "skip";
   /** ISO. */
   decidedAt: string;
 }
+
+export const MAX_WEEK_NOTES = 60;
 
 export interface ProgramSettings {
   race: RaceTarget;
@@ -36,6 +40,8 @@ export interface ProgramSettings {
   riskAckAt?: string;
   /** Pilihan atlet "Pernah menyelesaikan jarak ini?"; kosong = dari data. */
   completedBefore?: boolean;
+  /** Catatan akhir minggu yang sudah ditutup (0.14.3), `{programId}:{minggu}`. */
+  weekNotesSeen?: string[];
   archived: ArchivedProgram[];
 }
 
@@ -64,8 +70,17 @@ export function isOverride(x: unknown): x is ProgramOverride {
   if (!x || typeof x !== "object") return false;
   const o = x as Record<string, unknown>;
   if (typeof o.sessionId !== "string" || !o.sessionId || o.sessionId.length > 120 || !isIso(o.decidedAt)) return false;
-  if (o.action === "skip") return o.toDate === undefined || (typeof o.toDate === "string" && DATE_RE.test(o.toDate));
-  return o.action === "move" && typeof o.toDate === "string" && DATE_RE.test(o.toDate);
+  // 0.14.3: `move` tidak berlaku lagi di model mingguan → dibuang (migrasi).
+  return o.action === "skip";
+}
+
+/** Override bersih (tanpa field lama `toDate`). */
+const cleanOverride = (o: ProgramOverride): ProgramOverride => ({ sessionId: o.sessionId, action: "skip", decidedAt: o.decidedAt });
+
+/** Daftar catatan minggu yang sudah ditutup: valid, unik, urut, maksimal 60 terbaru. */
+export function mergeWeekNotes(...lists: unknown[]): string[] {
+  const all = lists.flatMap((l) => (Array.isArray(l) ? l : [])).filter((x): x is string => typeof x === "string" && x.length > 0 && x.length <= 120);
+  return [...new Set(all)].sort().slice(-MAX_WEEK_NOTES);
 }
 
 /** Hari H panjang lama (0.13.2 ke bawah): Minggu terakhir program panjang standar. */
@@ -172,6 +187,7 @@ export function parseProgramSettings(raw: string | null | undefined, today: stri
       ...(isDate(s.activeFrom) ? { activeFrom: s.activeFrom } : {}),
       ...(isIso(s.riskAckAt) ? { riskAckAt: s.riskAckAt } : {}),
       ...(typeof s.completedBefore === "boolean" ? { completedBefore: s.completedBefore } : {}),
+      ...(Array.isArray(s.weekNotesSeen) && mergeWeekNotes(s.weekNotesSeen).length ? { weekNotesSeen: mergeWeekNotes(s.weekNotesSeen) } : {}),
       archived: routed.archived,
     };
   } catch {
@@ -186,6 +202,7 @@ export function serializeProgramSettings(s: ProgramSettings): string {
   if (s.activeFrom) out.activeFrom = s.activeFrom;
   if (s.riskAckAt) out.riskAckAt = s.riskAckAt;
   if (s.completedBefore !== undefined) out.completedBefore = s.completedBefore;
+  if (s.weekNotesSeen?.length) out.weekNotesSeen = mergeWeekNotes(s.weekNotesSeen);
   if (s.overrides.length) out.overrides = mergeOverrides(s.overrides);
   if (s.archived.length) out.archived = mergeArchived(s.archived);
   return JSON.stringify(out);
@@ -202,7 +219,9 @@ export const newProgramId = (race: RaceTarget, startDate: string, raceDate: stri
 export function mergeOverrides(...lists: ProgramOverride[][]): ProgramOverride[] {
   const by = new Map<string, ProgramOverride>();
   for (const list of lists) {
-    for (const o of list) {
+    for (const raw of list) {
+      if (!isOverride(raw)) continue;
+      const o = cleanOverride(raw);
       const cur = by.get(o.sessionId);
       if (!cur) by.set(o.sessionId, o);
       else if (o.decidedAt !== cur.decidedAt) by.set(o.sessionId, o.decidedAt > cur.decidedAt ? o : cur);

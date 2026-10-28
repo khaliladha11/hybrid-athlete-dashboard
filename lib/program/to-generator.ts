@@ -13,7 +13,6 @@
 import type { PlanToday } from "@/lib/coach";
 import { isRunPattern, type RunPattern } from "@/lib/generator/run";
 import { DIFFICULTIES, DURATIONS, STRENGTH_TYPES, type Difficulty, type Duration, type StrengthType } from "@/lib/generator/types";
-import type { SessionResult } from "./compliance";
 import { isRunKind, type PlanKind, type PlannedSession } from "./sessions";
 import { isStPhaseKey, ST_PHASE_RULES, type StPhaseKey } from "./st-phase";
 
@@ -188,12 +187,6 @@ export function parseStrengthPrefill(params: Params): StrengthPrefill | null {
 }
 
 // ---------- Sesi hari ini & rencana untuk saran ----------
-
-/** Sesi hari ini yang belum selesai atau dilewati; lari didahulukan dari ST. */
-export function todaySession(sessions: PlannedSession[], results: Map<string, SessionResult>, today: string): PlannedSession | null {
-  const open = sessions.filter((s) => s.date === today && !["selesai", "dilewati"].includes(results.get(s.id)?.status ?? ""));
-  return open.find((s) => isRunKind(s.kind)) ?? open[0] ?? null;
-}
 
 /** Rencana hari ini untuk `suggestFor`: level & durasi generator, jarak, dan long run minggu lalu. */
 export function planToday(s: PlannedSession, sessions: PlannedSession[]): PlanToday | null {

@@ -16,7 +16,7 @@ import { mergeLogs } from "@/lib/log-entries";
 import { mergePrs } from "@/lib/prs";
 import { mergeSessions } from "@/lib/st-session";
 import { STEPS, type OnboardingState } from "@/lib/onboarding";
-import { isArchived, isOverride, mergeArchived, mergeOverrides, routeOverrides, type ArchivedProgram, type ProgramOverride } from "@/lib/program/settings";
+import { isArchived, isOverride, mergeArchived, mergeOverrides, mergeWeekNotes, routeOverrides, type ArchivedProgram, type ProgramOverride } from "@/lib/program/settings";
 import { PREFERENCE_KEYS, SETTINGS_KEYS, type PartData, type PartName } from "./parts";
 
 export const WHOLE = "*";
@@ -51,17 +51,18 @@ export const PROGRAM_OVERRIDES = "overrides";
 export const PROGRAM_ARCHIVED = "archived";
 
 /** String program di perangkat → pengaturan + override (urut per sesi) + arsip. Rusak → null. */
-function parseProgram(raw: string | null): { settings: Record<string, unknown>; overrides: ProgramOverride[]; archived: ArchivedProgram[] } | null {
+function parseProgram(raw: string | null): { settings: Record<string, unknown>; overrides: ProgramOverride[]; archived: ArchivedProgram[]; weekNotesSeen: string[] } | null {
   if (!raw) return null;
   try {
     const v = JSON.parse(raw) as unknown;
     if (!v || typeof v !== "object" || Array.isArray(v)) return null;
-    const { overrides, archived, ...rest } = v as Record<string, unknown>;
+    const { overrides, archived, weekNotesSeen, ...rest } = v as Record<string, unknown>;
     const settings = Object.fromEntries(Object.keys(rest).sort().map((k) => [k, rest[k]]));
     return {
       settings,
       overrides: mergeOverrides(Array.isArray(overrides) ? overrides.filter(isOverride) : []),
       archived: mergeArchived(Array.isArray(archived) ? archived.filter(isArchived) : []),
+      weekNotesSeen: mergeWeekNotes(weekNotesSeen),
     };
   } catch {
     return null;
@@ -78,7 +79,14 @@ function mergeProgram(server: string | null, local: string | null, dirty: string
   const useLocal = !first && (dirty.includes(WHOLE) || dirty.includes(PROGRAM_SETTINGS));
   const routed = routeOverrides(mergeOverrides(s.overrides, l.overrides), mergeArchived(s.archived, l.archived));
   const { overrides, archived } = routed;
-  return JSON.stringify({ ...(useLocal ? l.settings : s.settings), ...(overrides.length ? { overrides } : {}), ...(archived.length ? { archived } : {}) });
+  // Catatan akhir minggu yang sudah ditutup di perangkat mana pun tetap tertutup (0.14.3).
+  const weekNotesSeen = mergeWeekNotes(s.weekNotesSeen, l.weekNotesSeen);
+  return JSON.stringify({
+    ...(useLocal ? l.settings : s.settings),
+    ...(overrides.length ? { overrides } : {}),
+    ...(archived.length ? { archived } : {}),
+    ...(weekNotesSeen.length ? { weekNotesSeen } : {}),
+  });
 }
 
 const minIso = (a?: string, b?: string) => (a && b ? (a < b ? a : b) : a ?? b);

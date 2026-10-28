@@ -68,18 +68,19 @@ describe("sesi rencana ber-id", () => {
     expect(three.every((id) => four.includes(id))).toBe(true);
   });
 
-  it("override move mengubah tanggal efektif; skip menandai", () => {
+  it("0.14.3: tanggal = hari disarankan (tanpa geser); skip menandai", () => {
     const tempo = sessionId("x", 5, "Selasa", "quality");
-    const s = planSessions(build("hm"), "x", [ov(tempo, "2026-02-03T01:00:00Z", { action: "move", toDate: "2026-02-05" }), ov("x:5:kamis:easy", "2026-02-03T01:00:00Z")]);
-    const moved = s.find((x) => x.id === tempo)!;
-    expect([moved.plannedDate, moved.date, moved.override?.action]).toEqual(["2026-02-03", "2026-02-05", "move"]);
+    const s = planSessions(build("hm"), "x", [ov("x:5:kamis:easy", "2026-02-03T01:00:00Z")]);
+    const t = s.find((x) => x.id === tempo)!;
+    expect([t.plannedDate, t.date, t.override]).toEqual(["2026-02-03", "2026-02-03", undefined]);
     expect(s.find((x) => x.id === "x:5:kamis:easy")?.override?.action).toBe("skip");
   });
 });
 
 describe("pengaturan program", () => {
-  it("parse/serialize mempertahankan override; override rusak dibuang; urutan kunci stabil", () => {
-    const raw = JSON.stringify({ goal: "2:30:00", race: "hm", runsPerWeek: 4, startDate: START, overrides: [ov("a", "2026-01-06T00:00:00Z"), { sessionId: "b" }, ov("c", "2026-01-06T00:00:00Z", { action: "move" })] });
+  it("parse/serialize mempertahankan override lewati; override rusak & geser lama dibuang (migrasi 0.14.3); urutan kunci stabil", () => {
+    const move = { sessionId: "d", action: "move", toDate: "2026-01-08", decidedAt: "2026-01-06T00:00:00Z" };
+    const raw = JSON.stringify({ goal: "2:30:00", race: "hm", runsPerWeek: 4, startDate: START, overrides: [ov("a", "2026-01-06T00:00:00Z"), { sessionId: "b" }, move] });
     const s = parseProgramSettings(raw, "2026-01-10");
     expect(s.overrides.map((o) => o.sessionId)).toEqual(["a"]);
     expect(serializeProgramSettings(s)).toBe(
@@ -92,9 +93,9 @@ describe("pengaturan program", () => {
 
   it("gabungan override per sesi: keputusan terbaru menang, komutatif & idempoten", () => {
     const a = [ov("s1", "2026-01-06T00:00:00Z"), ov("s2", "2026-01-06T00:00:00Z")];
-    const b = [ov("s1", "2026-01-07T00:00:00Z", { action: "move", toDate: "2026-01-08" })];
+    const b = [ov("s1", "2026-01-07T00:00:00Z")];
     const m = mergeOverrides(a, b);
-    expect(m.find((o) => o.sessionId === "s1")?.action).toBe("move");
+    expect(m.find((o) => o.sessionId === "s1")?.decidedAt).toBe("2026-01-07T00:00:00Z");
     expect(mergeOverrides(b, a)).toEqual(m);
     expect(mergeOverrides(m, m)).toEqual(m);
   });

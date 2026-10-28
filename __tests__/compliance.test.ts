@@ -4,7 +4,7 @@ import { evaluateCompliance, weekSummary } from "@/lib/program/compliance";
 import type { PlannedSession } from "@/lib/program/sessions";
 import type { StSession } from "@/lib/st-session";
 
-// Sesi & aktivitas fiktif (minggu 2026-01-05 s.d. 2026-01-11).
+// Sesi & aktivitas fiktif. Minggu 1: Senin 2026-01-05 s.d. Minggu 2026-01-11; minggu 2 mulai 2026-01-12.
 const sess = (id: string, date: string, kind: PlannedSession["kind"], extra: Partial<PlannedSession> = {}): PlannedSession => ({
   id,
   week: 1,
@@ -29,109 +29,79 @@ const act = (date: string, extra: Partial<Activity> = {}): Activity => ({
   avgHr: 140,
   ...extra,
 });
-const TODAY = "2026-01-12";
+const hard = (date: string, extra: Partial<Activity> = {}) => act(date, { name: "Tempo", avgHr: 160, distanceKm: 7, movingTimeSec: 45 * 60, ...extra });
+const TODAY = "2026-01-14";
 const status = (r: ReturnType<typeof evaluateCompliance>, id: string) => r.get(id)?.status;
 
-describe("kepatuhan sesi lari", () => {
-  const easy = sess("easy", "2026-01-08", "easy", { minutes: 40, km: 4.7 });
+describe("program mingguan: hari apa pun dalam minggu yang sama", () => {
+  const quality = sess("q", "2026-01-06", "quality", { minutes: 45, km: 7 });
 
-  it("tepat hari dan ±1 hari → selesai; lebih dari 1 hari tidak dihitung", () => {
-    expect(status(evaluateCompliance([easy], [act("2026-01-08")], [], TODAY), "easy")).toBe("selesai");
-    expect(status(evaluateCompliance([easy], [act("2026-01-09")], [], TODAY), "easy")).toBe("selesai");
-    expect(status(evaluateCompliance([easy], [act("2026-01-07")], [], TODAY), "easy")).toBe("selesai");
-    expect(status(evaluateCompliance([easy], [act("2026-01-10")], [], TODAY), "easy")).toBe("terlewat");
+  it("quality yang dikerjakan Rabu atau Jumat memenuhi quality Selasa; tanggal aktual dicatat", () => {
+    expect(evaluateCompliance([quality], [hard("2026-01-07")], [], TODAY).get("q")).toMatchObject({ status: "terpenuhi", actualDate: "2026-01-07" });
+    expect(evaluateCompliance([quality], [hard("2026-01-09")], [], TODAY).get("q")).toMatchObject({ status: "terpenuhi", actualDate: "2026-01-09" });
+    // Senin sebelum hari disarankan juga boleh.
+    expect(status(evaluateCompliance([quality], [hard("2026-01-05")], [], TODAY), "q")).toBe("terpenuhi");
   });
 
-  it("durasi atau jarak di bawah 80% → sebagian", () => {
-    const r = evaluateCompliance([easy], [act("2026-01-08", { movingTimeSec: 25 * 60, distanceKm: 3 })], [], TODAY);
-    expect(r.get("easy")).toMatchObject({ status: "sebagian", ratio: 0.64 });
-    // Cukup salah satu (durasi ATAU jarak).
-    expect(status(evaluateCompliance([easy], [act("2026-01-08", { movingTimeSec: 20 * 60, distanceKm: 4 })], [], TODAY), "easy")).toBe("selesai");
+  it("aktivitas di minggu lain tidak dihitung", () => {
+    expect(status(evaluateCompliance([quality], [hard("2026-01-12")], [], TODAY), "q")).toBe("belum");
+    expect(status(evaluateCompliance([quality], [hard("2026-01-04")], [], TODAY), "q")).toBe("belum");
   });
 
-  it("easy yang dikerjakan berat → selesai dengan catatan lebih-berat", () => {
-    const r = evaluateCompliance([easy], [act("2026-01-08", { avgHr: 165 })], [], TODAY);
-    expect(r.get("easy")).toMatchObject({ status: "selesai", note: "lebih-berat" });
+  it("satu aktivitas untuk satu sesi; jenis cocok lebih dulu, lalu hari disarankan terdekat", () => {
+    const easyThu = sess("easy-kam", "2026-01-08", "easy", { minutes: 40 });
+    const easyFri = sess("easy-jum", "2026-01-09", "recovery", { minutes: 30 });
+    // Lari berat Kamis → quality (jenis cocok), bukan easy Kamis walau harinya sama.
+    const r = evaluateCompliance([quality, easyThu, easyFri], [hard("2026-01-08"), act("2026-01-09")], [], TODAY);
+    expect(r.get("q")).toMatchObject({ status: "terpenuhi", actualDate: "2026-01-08" });
+    // Easy Jumat → sesi easy dengan hari disarankan terdekat (Jumat), Kamis tetap belum.
+    expect(status(r, "easy-jum")).toBe("terpenuhi");
+    expect(status(r, "easy-kam")).toBe("belum");
   });
 
-  it("quality dikerjakan ringan → sebagian; berat → selesai; quality ringan (strides) cukup lari apa pun", () => {
-    const q = sess("q", "2026-01-06", "quality", { km: 6.5 });
-    expect(status(evaluateCompliance([q], [act("2026-01-06", { distanceKm: 7 })], [], TODAY), "q")).toBe("sebagian");
-    expect(status(evaluateCompliance([q], [act("2026-01-06", { distanceKm: 7, name: "Tempo 2x10" })], [], TODAY), "q")).toBe("selesai");
-    const strides = sess("s", "2026-01-06", "quality", { intensity: "easy", minutes: 30, km: 3.5 });
-    expect(status(evaluateCompliance([strides], [act("2026-01-06", { movingTimeSec: 30 * 60 })], [], TODAY), "s")).toBe("selesai");
-  });
-
-  it("long run: jarak ≥ 80% rencana; aktivitas ganda sehari dijumlah", () => {
+  it("long run dikerjakan Kamis tetap memenuhi long run Minggu (jarak cocok), bukan easy Kamis", () => {
+    const easyThu = sess("easy-kam", "2026-01-08", "easy", { minutes: 40 });
     const long = sess("long", "2026-01-11", "long", { km: 14 });
-    expect(status(evaluateCompliance([long], [act("2026-01-11", { distanceKm: 10 })], [], TODAY), "long")).toBe("sebagian");
-    const r = evaluateCompliance([long], [act("2026-01-11", { distanceKm: 7 }), act("2026-01-11", { distanceKm: 5, startLocal: "2026-01-11T17:00:00" })], [], TODAY);
-    expect(r.get("long")?.status).toBe("selesai");
+    const r = evaluateCompliance([easyThu, long], [act("2026-01-08", { distanceKm: 14, movingTimeSec: 100 * 60 })], [], TODAY);
+    expect(r.get("long")).toMatchObject({ status: "terpenuhi", actualDate: "2026-01-08" });
+    expect(status(r, "easy-kam")).toBe("belum");
+  });
+
+  it("ambang 80%: di bawahnya sebagian; quality dikerjakan ringan → sebagian", () => {
+    const easy = sess("easy", "2026-01-08", "easy", { minutes: 40, km: 4.7 });
+    expect(evaluateCompliance([easy], [act("2026-01-10", { movingTimeSec: 25 * 60, distanceKm: 3 })], [], TODAY).get("easy")).toMatchObject({ status: "sebagian", ratio: 0.64 });
+    expect(status(evaluateCompliance([quality], [act("2026-01-06")], [], TODAY), "q")).toBe("sebagian");
+  });
+
+  it("easy yang dikerjakan berat tetap terpenuhi dengan catatan lebih-berat", () => {
+    const easy = sess("easy", "2026-01-08", "easy", { minutes: 40 });
+    expect(evaluateCompliance([easy], [hard("2026-01-08")], [], TODAY).get("easy")).toMatchObject({ status: "terpenuhi", note: "lebih-berat" });
+  });
+
+  it("long run dipecah dua di hari yang sama dijumlah", () => {
+    const long = sess("long", "2026-01-11", "long", { km: 14 });
+    const r = evaluateCompliance([long], [act("2026-01-10", { distanceKm: 7 }), act("2026-01-10", { distanceKm: 5, startLocal: "2026-01-10T17:00:00" })], [], TODAY);
+    expect(r.get("long")).toMatchObject({ status: "terpenuhi", actualDate: "2026-01-10" });
     expect(r.get("long")?.activityIds).toHaveLength(2);
   });
 
-  it("dua sesi berebut satu aktivitas: satu aktivitas hanya untuk satu sesi, tanggal terdekat menang", () => {
-    const tue = sess("tue", "2026-01-06", "quality", { km: 6 });
-    const wed = sess("wed", "2026-01-07", "easy", { minutes: 40 });
-    const r = evaluateCompliance([tue, wed], [act("2026-01-07")], [], TODAY);
-    expect(status(r, "wed")).toBe("selesai");
-    expect(status(r, "tue")).toBe("terlewat");
-  });
-
-  it("tanpa aktivitas: mendatang, hari ini, kemarin masih bisa, lewat dari itu terlewat", () => {
-    const list = [sess("future", "2026-01-14", "easy"), sess("today", TODAY, "easy"), sess("yesterday", "2026-01-11", "easy"), sess("old", "2026-01-10", "easy")];
-    const r = evaluateCompliance(list, [], [], TODAY);
-    expect(list.map((s) => status(r, s.id))).toEqual(["mendatang", "hari-ini", "hari-ini", "terlewat"]);
-    expect(r.get("yesterday")?.masihBisa).toBe(true);
-  });
-
-  it("override: dilewati tidak dicocokkan; digeser dinilai di tanggal baru", () => {
+  it("tanpa aktivitas → belum (tanpa terlewat); dilewati tidak dicocokkan", () => {
     const skip = sess("skip", "2026-01-08", "easy", { override: { sessionId: "skip", action: "skip", decidedAt: "2026-01-08T00:00:00Z" } });
-    const moved = sess("moved", "2026-01-14", "quality", { plannedDate: "2026-01-06", override: { sessionId: "moved", action: "move", toDate: "2026-01-14", decidedAt: "2026-01-07T00:00:00Z" } });
-    const r = evaluateCompliance([skip, moved], [act("2026-01-08"), act("2026-01-06", { name: "Tempo" })], [], TODAY);
+    const r = evaluateCompliance([quality, skip, sess("next", "2026-01-15", "easy", { week: 2 })], [act("2026-01-08")], [], TODAY);
+    expect(status(r, "q")).toBe("sebagian"); // lari easy Kamis dipakai quality (satu-satunya sesi yang tersisa)
     expect(r.get("skip")).toEqual({ status: "dilewati", activityIds: [] });
-    expect(status(r, "moved")).toBe("digeser");
+    expect(status(r, "next")).toBe("belum");
   });
 
-  it("data kosong/null aman: aktivitas tanpa tanggal atau tanpa metrik", () => {
+  it("data kosong/null aman", () => {
+    const easy = sess("easy", "2026-01-08", "easy", { minutes: 40 });
     const r = evaluateCompliance([easy], [act("2026-01-08", { distanceKm: undefined, movingTimeSec: undefined }), { ...act("x"), date: undefined }], [], TODAY);
-    expect(status(r, "easy")).toBe("selesai");
+    expect(status(r, "easy")).toBe("terpenuhi");
     expect(evaluateCompliance([], [], [], TODAY).size).toBe(0);
   });
 });
 
-describe("kepatuhan sesi ST", () => {
-  const lower = sess("lower", "2026-01-05", "st-lower");
-  const upper = sess("upper", "2026-01-07", "st-upper");
-
-  it("dari log ST lokal (±1 hari) dan dari aktivitas strength intervals.icu", () => {
-    const r = evaluateCompliance([lower, upper], [act("2026-01-07", { category: "strength", type: "WeightTraining", name: "Upper" })], ["2026-01-06"], TODAY);
-    expect(r.get("lower")).toMatchObject({ status: "selesai", logDate: "2026-01-06" });
-    expect(r.get("upper")).toMatchObject({ status: "selesai", activityIds: [expect.any(String)] });
-  });
-
-  it("aktivitas lari tidak memenuhi sesi ST; tanpa log → terlewat", () => {
-    const r = evaluateCompliance([lower], [act("2026-01-05")], [], TODAY);
-    expect(status(r, "lower")).toBe("terlewat");
-  });
-});
-
-describe("ringkasan minggu", () => {
-  it("selesai dari total sesi minggu (lari + ST) dan status long run", () => {
-    const list = [
-      sess("lower", "2026-01-05", "st-lower"),
-      sess("q", "2026-01-06", "quality", { km: 6 }),
-      sess("easy", "2026-01-08", "easy", { minutes: 40 }),
-      sess("long", "2026-01-11", "long", { km: 14 }),
-      sess("next", "2026-01-13", "easy", { week: 2 }),
-    ];
-    const r = evaluateCompliance(list, [act("2026-01-06", { name: "Tempo" }), act("2026-01-11", { distanceKm: 14 })], ["2026-01-05"], TODAY);
-    expect(weekSummary(list, r, 1)).toEqual({ week: 1, done: 3, total: 4, longRun: { km: 14, status: "selesai" } });
-    expect(weekSummary(list, r, 2)).toEqual({ week: 2, done: 0, total: 1 });
-  });
-});
-
-describe("kepatuhan ST dari sesi mode latihan (0.14.1)", () => {
+describe("ST di minggu yang sama", () => {
   const lower = sess("p:1:senin:st-lower", "2026-01-05", "st-lower", { intensity: "moderate" });
   const upper = sess("p:1:rabu:st-upper", "2026-01-07", "st-upper", { intensity: "moderate" });
   const ses = (id: string, date: string, over: Partial<StSession> = {}): StSession => ({
@@ -150,28 +120,59 @@ describe("kepatuhan ST dari sesi mode latihan (0.14.1)", () => {
     ...over,
   });
 
-  it("set ≥ 80% → selesai; di bawahnya → sebagian dengan rasio", () => {
-    expect(evaluateCompliance([lower], [], [], TODAY, [ses("s1", "2026-01-05")]).get(lower.id)).toMatchObject({ status: "selesai", stSessionId: "s1", ratio: 1 });
-    expect(evaluateCompliance([lower], [], [], TODAY, [ses("s1", "2026-01-05", { setsDone: 6 })]).get(lower.id)).toMatchObject({ status: "sebagian", ratio: 0.5 });
+  it("ST Lower dikerjakan Kamis memenuhi ST Lower Senin; Senin tetap tanpa aktivitas", () => {
+    const r = evaluateCompliance([lower, upper], [], [], TODAY, [ses("s1", "2026-01-08")]);
+    expect(r.get(lower.id)).toMatchObject({ status: "terpenuhi", actualDate: "2026-01-08", stSessionId: "s1" });
+    expect(status(r, upper.id)).toBe("belum");
   });
 
-  it("aktivitas strength intervals.icu yang sama tidak dipakai lagi untuk sesi lain", () => {
+  it("tipe cocok diutamakan: sesi Upper memenuhi ST Upper walau dekat hari Senin", () => {
+    const r = evaluateCompliance([lower, upper], [], [], TODAY, [ses("u", "2026-01-05", { type: "upperPull" })]);
+    expect(r.get(upper.id)?.stSessionId).toBe("u");
+    expect(status(r, lower.id)).toBe("belum");
+  });
+
+  it("set ≥ 80% → terpenuhi; di bawahnya sebagian dengan rasio", () => {
+    expect(evaluateCompliance([lower], [], [], TODAY, [ses("s1", "2026-01-06", { setsDone: 6 })]).get(lower.id)).toMatchObject({ status: "sebagian", ratio: 0.5 });
+  });
+
+  it("aktivitas strength intervals.icu yang sama dengan sesi lokal tidak dihitung dua kali", () => {
     const dup = act("2026-01-06", { category: "strength", type: "WeightTraining", startLocal: "2026-01-06T17:10:00" });
     const r = evaluateCompliance([lower, upper], [dup], [], TODAY, [ses("s1", "2026-01-06")]);
     expect(r.get(lower.id)?.stSessionId).toBe("s1");
-    // Tanpa dedupe, aktivitas yang sama akan "memenuhi" ST Upper Rabu (±1 hari).
-    expect(status(r, upper.id)).toBe("terlewat");
+    expect(status(r, upper.id)).toBe("belum");
   });
 
-  it("log ★ di tanggal sesi lokal tidak dihitung dua kali; log tanpa sesi tetap selesai", () => {
-    const r = evaluateCompliance([lower, upper], [], ["2026-01-06"], TODAY, [ses("s1", "2026-01-06")]);
-    expect(status(r, upper.id)).toBe("terlewat");
-    expect(evaluateCompliance([upper], [], ["2026-01-07"], TODAY).get(upper.id)).toMatchObject({ status: "selesai", logDate: "2026-01-07" });
+  it("log ★ di tanggal sesi lokal tidak dihitung dua kali; log tanpa sesi terpenuhi; lari tidak memenuhi ST", () => {
+    const r = evaluateCompliance([lower, upper], [act("2026-01-05")], ["2026-01-06"], TODAY, [ses("s1", "2026-01-06")]);
+    expect(status(r, upper.id)).toBe("belum");
+    expect(evaluateCompliance([upper], [], ["2026-01-10"], TODAY).get(upper.id)).toMatchObject({ status: "terpenuhi", logDate: "2026-01-10", actualDate: "2026-01-10" });
   });
 
   it("sesi yang dimulai dari sesi program diutamakan untuk sesi itu", () => {
-    const s = ses("s1", "2026-01-06", { planSessionId: upper.id, type: "upperPull" });
-    const r = evaluateCompliance([lower, upper], [], [], TODAY, [s]);
+    const r = evaluateCompliance([lower, upper], [], [], TODAY, [ses("s1", "2026-01-06", { planSessionId: upper.id })]);
     expect(r.get(upper.id)?.stSessionId).toBe("s1");
+  });
+});
+
+describe("ringkasan & status minggu", () => {
+  const list = [
+    sess("lower", "2026-01-05", "st-lower"),
+    sess("q", "2026-01-06", "quality", { km: 7, minutes: 45 }),
+    sess("easy", "2026-01-08", "easy", { minutes: 40 }),
+    sess("long", "2026-01-11", "long", { km: 14 }),
+    sess("next", "2026-01-13", "easy", { week: 2 }),
+  ];
+
+  it("terpenuhi dari total sesi minggu; long run; minggu sebagian bila ada yang belum", () => {
+    const r = evaluateCompliance(list, [hard("2026-01-09"), act("2026-01-10", { distanceKm: 14 })], ["2026-01-07"], TODAY);
+    expect(weekSummary(list, r, 1)).toEqual({ week: 1, done: 3, total: 4, status: "sebagian", longRun: { km: 14, status: "terpenuhi" } });
+    expect(weekSummary(list, r, 2)).toEqual({ week: 2, done: 0, total: 1, status: "sebagian" });
+  });
+
+  it("semua yang tidak dilewati terpenuhi → minggu terpenuhi", () => {
+    const withSkip = list.map((s) => (s.id === "easy" ? { ...s, override: { sessionId: "easy", action: "skip" as const, decidedAt: "2026-01-08T00:00:00Z" } } : s));
+    const r = evaluateCompliance(withSkip, [hard("2026-01-09"), act("2026-01-10", { distanceKm: 14 })], ["2026-01-07"], TODAY);
+    expect(weekSummary(withSkip, r, 1).status).toBe("terpenuhi");
   });
 });

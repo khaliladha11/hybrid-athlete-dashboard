@@ -180,7 +180,7 @@ describe("aktivasi pertama", () => {
 });
 
 describe("program: override digabung per sesi (0.13)", () => {
-  const ov = (sessionId: string, decidedAt: string, action: "move" | "skip" = "skip", toDate?: string) => ({ sessionId, action, decidedAt, ...(toDate ? { toDate } : {}) });
+  const ov = (sessionId: string, decidedAt: string, action: string = "skip", toDate?: string) => ({ sessionId, action, decidedAt, ...(toDate ? { toDate } : {}) });
   const prog = (goal: string, overrides: unknown[] = []) => JSON.stringify({ race: "hm", goal, startDate: "2026-01-05", runsPerWeek: 3, ...(overrides.length ? { overrides } : {}) });
   const parsed = (s: string | null) => JSON.parse(s ?? "null");
 
@@ -193,7 +193,7 @@ describe("program: override digabung per sesi (0.13)", () => {
 
   it("override dari dua perangkat sama-sama bertahan; pengaturan mengikuti aturan dirty", () => {
     const server = prog("2:20:00", [ov("s1", "2026-01-06T00:00:00Z")]); // HP: target baru + lewati s1
-    const local = prog("2:30:00", [ov("s2", "2026-01-07T00:00:00Z", "move", "2026-01-09")]); // laptop: geser s2
+    const local = prog("2:30:00", [ov("s2", "2026-01-07T00:00:00Z")]); // laptop: lewati s2
     const m = parsed(mergePart("program", server, local, ["overrides"]));
     expect(m.goal).toBe("2:20:00");
     expect(m.overrides.map((o: { sessionId: string }) => o.sessionId)).toEqual(["s1", "s2"]);
@@ -223,11 +223,20 @@ describe("program: override digabung per sesi (0.13)", () => {
 
   it("keputusan terbaru untuk sesi yang sama menang; komutatif & idempoten", () => {
     const a = prog("2:30:00", [ov("s1", "2026-01-06T00:00:00Z")]);
-    const b = prog("2:30:00", [ov("s1", "2026-01-08T00:00:00Z", "move", "2026-01-09")]);
+    const b = prog("2:30:00", [ov("s1", "2026-01-08T00:00:00Z")]);
     const ab = mergePart("program", a, b, ["overrides"]);
-    expect(parsed(ab).overrides).toEqual([ov("s1", "2026-01-08T00:00:00Z", "move", "2026-01-09")]);
+    expect(parsed(ab).overrides).toEqual([ov("s1", "2026-01-08T00:00:00Z")]);
     expect(parsed(mergePart("program", b, a, ["overrides"])).overrides).toEqual(parsed(ab).overrides);
     expect(mergePart("program", ab, ab, ["overrides"])).toBe(ab);
+  });
+
+  it("0.14.3: override geser (move) dari perangkat lama dibuang; lewati tetap; catatan minggu digabung union", () => {
+    const old = JSON.stringify({ race: "hm", goal: "2:30:00", startDate: "2026-01-05", runsPerWeek: 3, overrides: [ov("s1", "2026-01-06T00:00:00Z", "move", "2026-01-08"), ov("s2", "2026-01-06T00:00:00Z")], weekNotesSeen: ["p:1"] });
+    const now = JSON.stringify({ race: "hm", goal: "2:30:00", startDate: "2026-01-05", runsPerWeek: 3, weekNotesSeen: ["p:2"] });
+    const m = parsed(mergePart("program", old, now, ["overrides"]));
+    expect(m.overrides).toEqual([ov("s2", "2026-01-06T00:00:00Z")]);
+    expect(m.weekNotesSeen).toEqual(["p:1", "p:2"]);
+    expect(parsed(mergePart("program", now, old, ["overrides"])).weekNotesSeen).toEqual(["p:1", "p:2"]);
   });
 
   it("aktivasi pertama: pengaturan server menang, override tetap digabung; reset lokal menghapus", () => {

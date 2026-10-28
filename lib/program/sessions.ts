@@ -3,7 +3,9 @@
  * Id = `{programId}:{minggu}:{hari}:{jenis}`, stabil selama jarak lomba & tanggal mulai tidak berubah.
  * Sesi ST diturunkan dari jadwal TRAINING-LOGIC §7: Senin Lower/Full & Rabu Upper. Sejak 0.14.1 isinya mengikuti
  * fase (`st-phase.ts`): minggu taper sebelum minggu lomba tetap 2× dengan volume setengah, ST kaki terakhir ≥ 8 hari
- * sebelum Hari H, minggu lomba hanya Upper ringan ≥ 3 hari sebelum Hari H. Override `move` mengubah tanggal; `skip` menandai.
+ * sebelum Hari H, minggu lomba hanya Upper ringan ≥ 3 hari sebelum Hari H.
+ * 0.14.3: hari di rencana hanya **hari disarankan** (`date` = `plannedDate`); sesi boleh dikerjakan di hari apa pun dalam
+ * minggunya. Override hanya `skip`.
  */
 import { addDays } from "@/lib/date";
 import type { Difficulty } from "@/lib/generator/types";
@@ -21,9 +23,9 @@ export interface PlannedSession {
   /** 1-based. */
   week: number;
   day: string;
-  /** Tanggal menurut program. */
+  /** Tanggal menurut program (hari disarankan). */
   plannedDate: string;
-  /** Tanggal efektif (setelah override `move`). */
+  /** Sama dengan `plannedDate` sejak 0.14.3 (tanpa geser). */
   date: string;
   kind: PlanKind;
   title: string;
@@ -51,7 +53,7 @@ export function planSessions(program: Program, programId: string, overrides: Pro
     if ((activeFrom && s.plannedDate < activeFrom) || s.plannedDate > program.raceDate) return;
     const id = sessionId(programId, s.week, s.day, s.kind);
     const override = byId.get(id);
-    out.push({ ...s, id, date: override?.action === "move" && override.toDate ? override.toDate : s.plannedDate, ...(override ? { override } : {}) });
+    out.push({ ...s, id, date: s.plannedDate, ...(override ? { override } : {}) });
   };
   for (const w of program.weeks) {
     const stPhase = stPhaseKey(w);
