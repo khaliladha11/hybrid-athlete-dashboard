@@ -10,7 +10,8 @@
     "test": "vitest run",
     "icons": "node scripts/generate-icons.mjs",
     "e2e": "playwright test",
-    "check:bundle": "node scripts/check-client-bundle.mjs"
+    "check:bundle": "node scripts/check-client-bundle.mjs",
+    "lighthouse": "node scripts/lighthouse-budget.mjs"
   },
   "dependencies": {
     "next": "^16.4.2",
