@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { ls, seed } from "./helpers";
+import { expectNoA11yViolations, ls, seed } from "./helpers";
 
 test.describe("latihan", () => {
   test.beforeEach(async ({ page }) => seed(page));
@@ -23,6 +23,7 @@ test.describe("latihan", () => {
     await page.goto("/strength");
     await page.getByRole("button", { name: "Mulai sesi", exact: true }).click();
     await expect(page).toHaveURL(/\/strength\/sesi/);
+    await expectNoA11yViolations(page);
     // Centang beberapa set (pindah gerakan bila perlu).
     for (let i = 0; i < 8; i++) {
       const done = page.getByRole("button", { name: /^Selesai set/ });

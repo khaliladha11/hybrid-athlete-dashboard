@@ -91,7 +91,7 @@
   --subtle: #f1f1ef;
   --subtle-strong: #e8e8e5;
   --line: #ecebe8;
-  --line-strong: #cfcdc8;
+  --line-strong: #8c8b87;
   --ink: #141414;
   --muted: #4a4946;
   --faint: #6b6a66;
@@ -103,7 +103,7 @@
   /* Teks di atas oranye: gelap (±5.8:1). Putih hanya ±3.4:1 dan gagal AA. */
   --on-brand: #0b0b0c;
   /* Bar segmen non-kerja (pemanasan, recovery): ≥ 3:1 terhadap surface. */
-  --track: #8f8e8a;
+  --track: #8a8985;
   --info: #0060d0;
   --info-soft: #eaf2fd;
   --inverse: #141414;
@@ -112,7 +112,7 @@
   --success: #16a34a;
   --success-ink: #15803d;
   --success-soft: #e8f7ee;
-  --warning: #eab308;
+  --warning: #b98d06;
   --warning-ink: #a16207;
   --warning-soft: #fdf6d8;
   --danger: #dc2626;
@@ -131,7 +131,7 @@
   --subtle: #1f1f20;
   --subtle-strong: #27272a;
   --line: #2a2a2c;
-  --line-strong: #3e3e42;
+  --line-strong: #6b6b70;
   --ink: #f5f4f1;
   --muted: #a8a7a3;
   --faint: #8c8b88;
@@ -168,7 +168,7 @@
     --subtle: #1f1f20;
     --subtle-strong: #27272a;
     --line: #2a2a2c;
-    --line-strong: #3e3e42;
+    --line-strong: #6b6b70;
     --ink: #f5f4f1;
     --muted: #a8a7a3;
     --faint: #8c8b88;
