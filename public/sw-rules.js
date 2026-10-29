@@ -6,6 +6,7 @@
  *   lewat cache (bypass). Data intervals.icu & sinkron hanya lewat server, API key tidak pernah di klien.
  * - Aset build (`/_next/static`), manifest, ikon: cache-first per versi. Gambar gerakan: cache-first.
  * - Halaman: network-first; salinan terakhir yang berhasil (200, HTML, bukan redirect ke /unlock) dipakai saat offline.
+ *   Cache halaman per versi build karena HTML merujuk chunk versi itu.
  * - Redirect ke /unlock atau 401 = sesi tidak berlaku → cache halaman (berisi data) dihapus.
  */
 (function (root, factory) {
@@ -93,10 +94,16 @@
     return Array.from(out);
   }
 
-  /** Nama cache. Aset build per versi; gambar & halaman lintas versi (halaman berisi data, bukan kode). */
+  /**
+   * Nama cache. Aset build & halaman per versi (salinan halaman merujuk chunk versi yang sama, jadi ikut dihapus dan
+   * dihangatkan ulang setelah versi baru aktif); gambar lintas versi.
+   */
   function cacheNames(version) {
-    return { static: "ha-static-" + version, images: "ha-images-v1", pages: "ha-pages-v1" };
+    return { static: "ha-static-" + version, images: "ha-images-v1", pages: "ha-pages-" + version };
   }
+
+  /** Semua cache halaman (berisi data), untuk dihapus saat "Kunci perangkat ini". */
+  const isPageCache = (name) => name.startsWith("ha-pages-");
 
   /** Cache lama yang dihapus saat versi baru aktif. */
   function staleCaches(all, version) {
@@ -104,5 +111,5 @@
     return all.filter((n) => n.startsWith("ha-") && !keep.includes(n));
   }
 
-  return { WARM_ROUTES, OFFLINE_PAGE, STATIC_FILES, classify, isCacheablePage, isLockSignal, pageKey, staticUrlsFromHtml, cacheNames, staleCaches };
+  return { WARM_ROUTES, OFFLINE_PAGE, STATIC_FILES, classify, isCacheablePage, isLockSignal, pageKey, staticUrlsFromHtml, cacheNames, staleCaches, isPageCache };
 });

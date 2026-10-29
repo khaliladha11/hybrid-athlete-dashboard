@@ -58,6 +58,12 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+/** Hapus semua salinan halaman (berisi data), semua versi. */
+async function clearPages() {
+  const names = await caches.keys();
+  await Promise.all(names.filter(R.isPageCache).map((n) => caches.delete(n)));
+}
+
 async function cacheFirst(req, name) {
   const cache = await caches.open(name);
   const hit = await cache.match(req);
@@ -78,7 +84,7 @@ async function pageNetworkFirst(req) {
   const key = R.pageKey(req.url);
   const net = fetch(req).then(async (res) => {
     if (R.isLockSignal({ status: res.status, url: res.url, type: res.type })) {
-      await caches.delete(C.pages);
+      await clearPages();
     } else if (R.isCacheablePage({ status: res.status, url: res.url, type: res.type, contentType: res.headers.get("Content-Type") })) {
       await cache.put(key, res.clone());
       res
@@ -140,6 +146,6 @@ async function warm() {
 self.addEventListener("message", (event) => {
   const type = event.data && event.data.type;
   if (type === "SKIP_WAITING") self.skipWaiting();
-  else if (type === "CLEAR_DATA") event.waitUntil(caches.delete(C.pages));
+  else if (type === "CLEAR_DATA") event.waitUntil(clearPages());
   else if (type === "WARM") event.waitUntil(warm());
 });

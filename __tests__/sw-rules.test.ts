@@ -12,6 +12,7 @@ interface Rules {
   staticUrlsFromHtml(html: string): string[];
   cacheNames(v: string): { static: string; images: string; pages: string };
   staleCaches(all: string[], v: string): string[];
+  isPageCache(name: string): boolean;
 }
 const rules = createRequire(import.meta.url)("../public/sw-rules.js") as Rules;
 
@@ -78,9 +79,11 @@ describe("kunci, ekstraksi, dan nama cache", () => {
     expect(rules.staticUrlsFromHtml("")).toEqual([]);
   });
 
-  it("aset per versi, halaman & gambar lintas versi; cache lama dibersihkan", () => {
-    expect(rules.cacheNames("abc")).toEqual({ static: "ha-static-abc", images: "ha-images-v1", pages: "ha-pages-v1" });
-    expect(rules.staleCaches(["ha-static-old", "ha-static-abc", "ha-pages-v1", "ha-images-v1", "lain"], "abc")).toEqual(["ha-static-old"]);
+  it("aset & halaman per versi (halaman merujuk chunk versinya), gambar lintas versi; cache lama dibersihkan", () => {
+    expect(rules.cacheNames("abc")).toEqual({ static: "ha-static-abc", images: "ha-images-v1", pages: "ha-pages-abc" });
+    expect(rules.staleCaches(["ha-static-old", "ha-static-abc", "ha-pages-old", "ha-pages-abc", "ha-images-v1", "lain"], "abc")).toEqual(["ha-static-old", "ha-pages-old"]);
+    expect(rules.isPageCache("ha-pages-old")).toBe(true);
+    expect(rules.isPageCache("ha-static-old")).toBe(false);
   });
 
   it("rute yang dihangatkan mencakup semua tab dan mode latihan", () => {
