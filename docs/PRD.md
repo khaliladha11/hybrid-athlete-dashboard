@@ -10,7 +10,7 @@
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
 | **Kualitas** | 60 file test, 719 unit test lolos · build produksi lolos · CI GitHub Actions di setiap push & PR |
-| **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Spesifikasi 0.15: INSIGHT](INSIGHT.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
+| **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Spesifikasi 0.15: INSIGHT](INSIGHT.md) · [Rencana 0.16 sampai 1.0: RELEASE-1.0](RELEASE-1.0.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
 
@@ -173,6 +173,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Target pace dari zona di Setting, target cadence personal | ✅ | Cadence dari rata-rata 14 hari, maks 180 |
 | Cue & catatan mengikuti kondisi aktif (cadence, rel kereta, Achilles tanpa 15/15, dll.) | ✅ | 0.8 |
 | Variasi lain (seed berbeda), tombol **Copy Set** (format Huawei) | ✅ | Tampilan tab Set Huawei disembunyikan sementara (0.8) |
+| Kirim workout lari ke kalender intervals.icu sebagai workout terstruktur (diteruskan ke jam yang terhubung); Copy Set tetap sebagai cadangan | ⬜ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #6): atas ketukan pengguna, kirim ulang memperbarui, bisa ditarik; ST tidak dikirim |
 | Mengikuti blok mingguan / mode bebas | ✅ | |
 | Mengirim workout ke kalender intervals.icu / jam | ⬜ | 1.0 |
 
@@ -228,6 +229,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Hitung mundur & minggu lomba (sisa hari, catatan taper, checklist hari H) | ✅ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #11): `14 HARI LAGI · HALF MARATHON` di Program dan Profil, checklist umum H-1 dengan rencana pace dari perkiraan, dan tawaran mencatat hasil lomba H+1 sampai H+14 |
 | Hari H dipilih atlet, panjang program = minggu di antara mulai dan Hari H | ✅ | 0.13.3 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.10): kalender bulan dengan warna band (rekomendasi umum + minimum dari data long run), alasan, tanggal paling awal, ringkasan fase, long run puncak, info VDOT. Merah butuh konfirmasi, abu-abu menambah pre-Base, di bawah taper + 2 tidak bisa disusun |
 | Kesiapan HM/FM & jarak antar maraton | ✅ | 0.13.3: rata-rata km mingguan & long run terjauh, catatan maraton pertama, jarak dari FM sebelumnya. Peringatan lunak |
+| Kirim sesi lari program ke kalender intervals.icu | ⬜ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #6): memakai pengirim yang sama dengan generator lari |
 | Tren kepatuhan mingguan (model mingguan 0.14.3), lari & ST terpisah | ✅ | 0.15.1 ([INSIGHT.md](INSIGHT.md) #10): terpenuhi / sebagian / belum, dilewati tidak dihitung, program aktif & arsip; tanpa merah & streak |
 | Arsip program saat Hari H/mulai/jarak diganti | ✅ | 0.13.3: riwayat sesi & override tetap terbaca di Program › Program sebelumnya dan kalender, disinkron per id. Program lama tanpa Hari H dimigrasikan tanpa perubahan |
 
@@ -261,7 +263,13 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Sistem warna intensitas (hijau/kuning/merah) & status (hijau/merah) | ✅ | |
 | Navigasi 5 tab (Profil, Lari, Program, Strength, Setting) | ✅ | Log → Setting di 0.8; `/log` diarahkan ke Strength |
 | Efek hover (bayangan tipis) di semua tombol | ✅ | Hanya perangkat dengan pointer |
-| Mode offline (service worker) | ⬜ | Tanpa internet aplikasi tidak terbuka. Direncanakan 1.0 |
+| Mode offline (service worker): aplikasi terbuka tanpa sinyal dengan workout, program, dan log terakhir | ⬜ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #1). Sekarang tanpa internet aplikasi tidak terbuka |
+| Mode latihan dan log ST berjalan offline, terkirim lewat antrean sinkron 0.12; banner "Sedang offline" | ⬜ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #1) |
+| Tes end-to-end (Playwright) dan tes komponen di CI | ⬜ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #2) |
+| Audit aksesibilitas (kontras non-teks, keyboard, pembaca layar) dan anggaran performa Lighthouse mobile | ⬜ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #3) |
+| Copy konsisten: tanpa em dash di string `lib/`, istilah seragam termasuk "Gita" | ⬜ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #8) |
+| Pemasangan mudah: tombol Deploy to Vercel dengan variabel lingkungan berdeskripsi, INSTALL-WITH-AI.md (rahasia diketik pengguna sendiri), AGENTS.md, jalur Vercel CLI | ⬜ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #9) |
+| Panduan pengguna lengkap (README) dan bantuan singkat di dalam aplikasi | ⬜ | 1.0 ([RELEASE-1.0](RELEASE-1.0.md) #11) |
 | Login / proteksi akses | ✅ | 0.12.0: sandi aplikasi opsional (`APP_PASSCODE` + `SESSION_SECRET`), lihat §4.10. Vercel Authentication tetap dianjurkan sebagai lapisan luar |
 | Notifikasi / pengingat latihan | ⬜ | |
 
@@ -279,7 +287,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Menambah gerakan sendiri (custom) | ⬜ | Gerakan hanya dari kurasi developer |
 | Tema & blok mingguan, Data & cadangan | ✅ | |
 | Nav bagian sticky: smooth scroll, highlight kartu tujuan, scroll spy | ✅ | 0.8.1, menghormati reduced motion |
-| Zona HR & RPE bisa diubah | ⬜ | Sekarang hanya pace |
+| Zona HR & RPE bisa diubah | ⬜ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #7). Sekarang hanya pace. Tidak mengubah ambang saran kecuali disetujui pemilik |
 | Edit nama, target lomba, tanggal mulai blok | ✅ | 0.11.0, bagian Profil (paling atas). Target lomba lewat pemilih waktu |
 | Hasil lomba / time trial tersimpan (jarak, waktu, tanggal) | ✅ | 0.13.2: dari kalkulator VDOT ("Terapkan ke semua zona" atau "Simpan hasil saja"), bisa dihapus, tersinkron per kunci. Sumber utama perkiraan waktu lomba dan saran update zona |
 
@@ -324,6 +332,9 @@ Selesai di 0.12 (0.12.0 sampai 0.12.2), spesifikasi lengkap di [SYNC.md](SYNC.md
 | Cadangan otomatis harian (7 snapshot) + Riwayat cadangan & Pulihkan | ✅ | 0.12.2: snapshot saat sinkron pertama tiap hari WIB (SET NX); Pulihkan menyimpan keadaan sekarang dulu (bisa dibatalkan) dan menaikkan `epoch` sehingga semua perangkat mengganti datanya; kemajuan onboarding tidak ikut mundur |
 | Onboarding langkah 1: **Sambungkan perangkat ini** | ✅ | 0.12.2: hanya saat sinkron aktif; sandi diminta proxy lebih dulu; wizard dilewati bila server sudah punya onboarding selesai, disclaimer tampil bila versinya belum disetujui |
 | Disclaimer diperbarui untuk sinkron (`TERMS_VERSION` naik) + README panduan Upstash | ✅ | 0.12.2: `TERMS_VERSION` 2; README dengan batas paket gratis (dicek 2026-10-23) |
+| Header keamanan (CSP dan lainnya), audit dependensi di CI, tinjauan sandi, sinkron, dan pencatatan | ⬜ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #4) |
+| Latihan pemulihan data (HP hilang, data browser terhapus, perangkat baru, cadangan v2 sampai v6) sebagai test dan checklist | ⬜ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #5) |
+| Jalur pembaruan untuk clone dan fork: GitHub Action terjadwal yang membuka pull request, migrasi data aman, catatan rilis menandai langkah manual | ⬜ | 1.0 ([RELEASE-1.0](RELEASE-1.0.md) #10) |
 
 ## 5. Persyaratan non-fungsional
 
@@ -338,8 +349,8 @@ Selesai di 0.12 (0.12.0 sampai 0.12.2), spesifikasi lengkap di [SYNC.md](SYNC.md
 | Lisensi aset | Hanya aset berlisensi bebas, atribusi di `NOTICE.md` | ✅ free-exercise-db (Unlicense). ✅ 0.14.1: path SVG anatomi depan/belakang dari MuscleMapJS (MIT; turunan MuscleMap SwiftUI, MIT; nama region sama dengan react-native-body-highlighter, MIT) disalin ke `components/charts/muscle-paths.ts`, bukan dependensi; ketiga pemberitahuan MIT di `NOTICE.md` (keputusan D8) |
 | Ukuran aset & performa | Gambar lokal WebP ≤ 600 px, lazy loading, tanpa hotlink | ✅ 72 gambar, ±1,3 MB total |
 | Ketersediaan | Tetap jalan tanpa API key / saat intervals.icu error | ✅ |
-| Offline | Bisa dibuka tanpa sinyal | ⬜ |
-| Pengujian UI | Test komponen / end-to-end | ⬜ Hanya unit test logika (termasuk logika murni Segment Skyline). Screenshot dokumentasi diperbarui tiap rilis UI (terakhir 0.11.2: onboarding & tur) |
+| Offline | Bisa dibuka tanpa sinyal | ⬜ 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #1) |
+| Pengujian UI | Test komponen / end-to-end | ⬜ 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #2). Sekarang hanya unit test logika (termasuk logika murni Segment Skyline). Screenshot dokumentasi diperbarui tiap rilis UI (terakhir 0.11.2: onboarding & tur) |
 | CI | Test & build otomatis tiap push/PR | ✅ 0.12.0: GitHub Actions (typecheck, test, build) tanpa env rahasia |
 
 ## 6. Keterbatasan & utang teknis
@@ -351,7 +362,7 @@ Diurutkan dari yang paling berdampak.
 3. **Data per detik dari jam tidak selalu bisa dipercaya.** Untuk data Huawei, intervals.icu kadang hanya punya total jarak yang dibagi rata, atau jarak bertangga (datar lalu melompat). Split lalu dihitung dari GPS dan diskalakan ke jarak jam, sehingga per km bisa beda beberapa detik dari Strava yang menghitung ulang jarak sendiri. Kalibrasi lebih lanjut butuh data mentah (lihat backlog).
 4. **Isi aktivitas Strava tidak bisa dibaca.** Kebijakan Strava melarang intervals.icu meneruskan data Strava lewat API. Salinan Strava dibuang bila ada rekaman lain; aktivitas yang hanya ada di Strava tampil sebagai "Aktivitas Strava" tanpa data.
 5. **Kalender tanpa program terbatas 2 bulan.** Sejak 0.13.0 rentang mengikuti program tersimpan (awal program sampai bulan lomba, maks 200 hari ke belakang); tanpa program hanya bulan ini dan bulan lalu. Program hanya ada di perangkat (atau disinkron), jadi data lama diambil di client setelah halaman terbuka.
-6. **Belum offline.** Belum ada service worker. Direncanakan 1.0.
+6. **Belum offline.** Belum ada service worker. Direncanakan 0.16.
 7. **Pengujian UI manual.** Belum ada test komponen/e2e (CI GitHub Actions menjalankan unit test & build sejak 0.12.0). Animasi bottom sheet & crossfade 0.9 baru diverifikasi secara logika (state, posisi, reduced motion), belum di perangkat nyata.
 8. **Script media & ikon memakai `sharp` dari Next.js** (dependensi tidak langsung). Bila Next.js berhenti membawanya, `sharp` perlu ditambahkan sebagai devDependency.
 9. **Batas percobaan sandi tanpa Redis hanya upaya terbaik.** Tanpa Upstash, hitungan gagal disimpan di memori per instance serverless, jadi bisa ter-reset saat instance baru dibuat. IP diambil dari `x-forwarded-for` yang di Vercel diisi oleh platform; di hosting lain header ini bisa dipalsukan.
@@ -371,8 +382,12 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | Usulan versi | Isi | Alasan |
 | --- | --- | --- |
 | ~~**0.15 Insight**~~ ✅ ([INSIGHT.md](INSIGHT.md)) | 0.15.0 tren lari (CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT); 0.15.1 tren kekuatan (volume ST, heatmap otot, tren PR, kepatuhan mingguan, kalender heatmap); 0.15.2 tubuh & saran (**check-in harian sebagai sinyal kesiapan subjektif utama**, ambang personal, ringkasan bulanan); baseline HRV personal hanya bila data HRV ada | Menjawab "makin bugar, makin kuat, tetap bebas cedera?" dengan tampilan mingguan & bulanan |
-| **1.0 Siap pakai penuh** | Offline, kirim workout ke intervals.icu/jam, test e2e | Stabil dan mandiri tanpa edit kode |
+| **0.16 Siap offline & teruji** ([RELEASE-1.0](RELEASE-1.0.md)) | Mode offline (aplikasi terbuka tanpa sinyal, mode latihan dan log ST offline lewat antrean sinkron 0.12); tes e2e Playwright dan tes komponen di CI; audit aksesibilitas dan performa; pengerasan keamanan (header/CSP, audit dependensi, tinjauan sandi dan sinkron); latihan pemulihan data | Dipakai di gym tanpa sinyal dengan keyakinan: alur inti teruji otomatis dan data bisa dipulihkan |
+| **0.17 Terhubung & mudah dipasang** ([RELEASE-1.0](RELEASE-1.0.md)) | Kirim workout lari (generator dan program) ke kalender intervals.icu sebagai workout terstruktur, diteruskan ke jam (ST tetap di aplikasi, Copy Set tetap); zona HR dan RPE di Setting; rapikan copy (em dash di `lib/`, istilah "Gita"); pemasangan mudah (Deploy to Vercel, INSTALL-WITH-AI.md, AGENTS.md, Vercel CLI) | Workout sampai ke jam tanpa menyalin, dan orang lain bisa memasang sendiri |
+| **1.0 Rilis** ([RELEASE-1.0](RELEASE-1.0.md)) | Jalur pembaruan untuk fork (GitHub Action membuka PR dari upstream, migrasi aman, langkah manual ditandai); panduan pengguna lengkap dan bantuan di aplikasi; feature freeze, semua dokumen diselaraskan, tag versi | Stabil dan mudah diperbarui tanpa edit kode |
 
+> 2026-10-29: **rencana 0.16, 0.17, dan 1.0** ([RELEASE-1.0](RELEASE-1.0.md)). Tujuan: stabil, teruji, bisa dipakai tanpa sinyal, mudah dipasang dan diperbarui orang lain. **0.16 Siap offline & teruji:** mode offline (mode latihan dan log ST offline lewat antrean sinkron 0.12, banner "Sedang offline"), tes e2e Playwright dan komponen di CI, audit aksesibilitas dan performa, pengerasan keamanan, latihan pemulihan data. **0.17 Terhubung & mudah dipasang:** workout lari dikirim ke kalender intervals.icu sebagai workout terstruktur lalu diteruskan ke jam (Garmin: workout seminggu ke depan; Coros; Huawei: hanya lari/jalan/hiking, lari terencana berikutnya dalam seminggu tampil sebagai running course), ST tetap di aplikasi, Copy Set tetap; zona HR dan RPE di Setting; rapikan copy; Deploy to Vercel, INSTALL-WITH-AI.md (rahasia diketik pengguna sendiri), AGENTS.md, Vercel CLI. Huawei tidak membuka HRV harian lewat API-nya (Health Sync sebagai jalan keluar). **1.0 Rilis:** jalur pembaruan fork lewat PR terjadwal, panduan pengguna lengkap, feature freeze, tag versi. Aturan saran tidak berubah tanpa sumber dan persetujuan pemilik. Fakta perangkat diverifikasi ke dokumentasi intervals.icu sebelum 0.17.
+>
 > 2026-10-28 (5): **0.15.2 dirilis, 0.15 Insight selesai** (tubuh & saran, aturan disetujui pemilik): check-in harian (nyeri shin, pegal, tidur, mood) yang hanya menurunkan saran tanpa berantai, ambang pribadi (HR berat 90% LTHR, baseline HRV & resting HR 30 hari) dengan status yang terlihat, ringkasan bulanan, bagian Tubuh di Insight. Bagian sinkron `checkins` dan cadangan v6. Berikutnya 1.0.
 >
 > 2026-10-28 (4): **0.15.1 dirilis** (tren kekuatan): volume ST per pola (set; kg × rep; detik tahan; rep tanpa beban) + beban session-RPE mingguan, heatmap otot 7/30 hari dengan otot jarang dilatih, tren PR dengan tahap rep/tempo/varian dan batas alat, tren kepatuhan lari & ST, kalender heatmap 12/26 minggu. Sesi mode latihan menyimpan rincian set. Berikutnya 0.15.2 tubuh & saran.
@@ -432,13 +447,13 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P1 | **Grafik tren** CTL/ATL/Form & km mingguan | M | Melihat kebugaran dan kelelahan jangka panjang. → ✅ **0.15.0** |
 | P1 | **ST mengikuti fase program** (Base, Build, Peak, Taper) | M | ST kaki tidak berat menjelang lomba. → Selesai di **0.14.1** |
 | P1 | **Session-RPE untuk ST** masuk beban 7 hari, kepatuhan, Week Ledger | S | Saran lari ikut memperhitungkan sesi ST yang tidak tercatat di jam. → Selesai di **0.14.1** |
-| P2 | **Kirim workout ke kalender intervals.icu** (lalu ke jam yang terhubung) | M | Workout langsung muncul di jam. → **1.0** |
+| P2 | **Kirim workout ke kalender intervals.icu** (lalu ke jam yang terhubung) | M | Workout langsung muncul di jam. → **0.17** (hanya lari; ST tetap di aplikasi) |
 | P2 | **Edit sisa profil di aplikasi** (target lomba, tanggal mulai blok, zona HR/RPE) | S | Tanpa edit JSON sama sekali. → Terserap ke **0.11** ([ONBOARDING.md](ONBOARDING.md) §4.5), kecuali zona HR/RPE yang tetap di backlog |
 | P2 | **Enkripsi sisi klien (opsional)**: passphrase + WebCrypto sebelum data dikirim ke database | M | Database pun tidak bisa membaca data kesehatan. Tidak di 0.12 ([SYNC.md](SYNC.md) §4, §11) |
 | P2 | **Best effort intervals.icu sebagai sumber kedua prediksi** (`GET /api/v1/athlete/{id}/pace-curves`, `type=Run`, `curves=90d`) | S | Perkiraan lebih yakin tanpa harus lomba. Butuh kepastian satuan `values` (tidak dijelaskan di skema API) dan penyaring untuk data per detik jam yang rusak, karena best effort juga bisa memicu saran update zona |
 | P2 | **Isian awal VDOT dari lari terbaik 90 hari** di onboarding & Setting (butuh data intervals.icu di client) | S | Zona lari tepat tanpa harus ingat hasil lomba |
 | P2 | **Ambang personal** (HR berat dari zona/LTHR, baseline HRV 30 hari) | S | Saran lebih akurat. Baseline HRV hanya bila data HRV ada (jam pemilik tidak mengirimnya, 0.14.3) |
-| P2 | **Mode offline** (service worker, cache workout terakhir) | M | Tetap bisa dibuka di gym tanpa sinyal. Relevan untuk rasa native setelah onboarding mengajak pasang ke layar utama (0.11). → **1.0** |
+| P2 | **Mode offline** (service worker, cache workout terakhir) | M | Tetap bisa dibuka di gym tanpa sinyal. Relevan untuk rasa native setelah onboarding mengajak pasang ke layar utama (0.11). → **0.16** |
 | P2 | **Mode latihan ST**: layar penuh per gerakan, timer istirahat & hitung mundur tahan, centang per set langsung tercatat (menggantikan "Timer sesi ST") | M | Tidak perlu aplikasi timer lain dan tidak mencatat belakangan. → Selesai di **0.14.1** |
 | P2 | **Tes kekuatan berkala** di minggu deload + **milestone pull-up** & gerakan baru otomatis aktif saat siap (mis. negative pull-up) | S–M | Progres ST terlihat seperti pace/VDOT di lari. → Sebagian besar tergantikan PR kemampuan (**0.14.0**); milestone pull-up tetap |
 | P2 | **Aturan lari + ST di hari yang sama** (jeda ≥ 3 jam) | S | Mengurangi interferensi pada kekuatan eksplosif. → Selesai di **0.14.1** (aturan concurrent lama tetap, D5) |
@@ -451,7 +466,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P2 | **Gerakan custom** (tambah gerakan sendiri + alat + rentang beban, tetap lewat validator) | M | Library mengikuti alat baru tanpa menunggu developer |
 | P1 | **Kontras non-teks**: `line-strong` → `#636366` (gelap) / `#959490` (terang), `warning` terang → `#B98D06` (semua ≥ 3:1) | S | Border input & bar Moderate terlihat jelas |
 | P2 | **Bagikan kartu story** dari `/activity/[id]`: RunTag → PNG transparan 1920×1280 lewat `<canvas>` (DESIGN-SYSTEM §9) | M | Berbagi sesi ke Instagram/WA dengan gaya app |
-| P3 | Bersihkan em dash di string `lib/` (56 string di 12 file: coach, generator, program, progression, media) | S | Copy konsisten dengan aturan desain |
+| P3 | Bersihkan em dash di string `lib/` (56 string di 12 file: coach, generator, program, progression, media) | S | Copy konsisten dengan aturan desain. → **0.17** |
 | P3 | Pengingat/notifikasi (web push) | L | Konsisten latihan |
 | P3 | Tampilkan kembali tab **Set Huawei** (pratinjau format set) | S | Disembunyikan sementara di 0.8 |
 | P3 | Saran ringkas satu baris di **Generator Strength** | S | Konsisten dengan Generator Lari |
