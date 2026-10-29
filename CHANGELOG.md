@@ -4,6 +4,19 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+Bagian dari 0.16 Siap offline & teruji ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #1). Dirilis setelah uji e2e (prompt 2).
+
+### Ditambahkan
+- **Mode offline**: service worker tulisan sendiri (tanpa library). Profil, Lari, Program, Strength, Setting, Insight, dan mode latihan terbuka tanpa sinyal dari salinan terakhir; halaman yang belum pernah tersimpan menampilkan `/offline`.
+- **"Data terakhir {waktu}"** di halaman yang memuat data intervals.icu saat dibuka offline, karena saran dan angka belum diperbarui.
+- **Banner "Sedang offline"** di atas (netral, `aria-live="polite"`), hilang saat online.
+- **Generator, mode latihan, log ST, dan check-in** berjalan offline; perubahan terkirim lewat antrean sinkron 0.12 saat online. Masukan generator terakhir dipulihkan saat halaman dibuka offline.
+- **Prompt "Versi baru tersedia · Muat ulang"**; tidak pernah memuat ulang sendiri dan disembunyikan selama sesi latihan berjalan.
+- 16 test baru (aturan service worker, akses publik SW, logika offline, antrean sinkron offline).
+
+### Keamanan & privasi
+- `/api/*` (sinkron, unlock, lock, jalur intervals.icu), `/unlock`, dan permintaan RSC tidak pernah di-cache. Salinan halaman (berisi data) dihapus saat sesi tidak berlaku (redirect ke /unlock, 401) dan saat "Kunci perangkat ini".
+
 ## [0.15.2] · 2026-10-28 · Insight: tubuh & saran
 
 Tahap terakhir [INSIGHT.md](docs/INSIGHT.md) (§8 0.15.2, keputusan I3, I4, I5). Rilis ini **mengubah logika saran**; aturan dan sumbernya disetujui pemilik dan ditulis di [TRAINING-LOGIC](docs/TRAINING-LOGIC.md) §5 "Check-in harian" dan "Ambang pribadi".

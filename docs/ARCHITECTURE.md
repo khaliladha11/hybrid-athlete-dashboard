@@ -126,7 +126,7 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/backup-store.ts` | `BackupStore` di atas localStorage, ekspor/impor file | Client |
 | `components/onboarding/*` | `OnboardingGate` (di layout), `OnboardingWizard` (`/onboarding`, memakai ulang komponen Setting), `TermsStep`, `ConnectionStep`, `ProtectStep`, `InstallStep` (juga dipakai `components/settings/PendingCard.tsx`), `Tour` (`TourProvider` di layout: spotlight, pindah tab, `useTour().start` dari ringkasan onboarding & Setting) | Client |
 | `lib/intervals/connection.ts` | Pemetaan hasil `GET /athlete/{id}` → status koneksi (`ok`, `missing`, `unauthorized`, `forbidden`, `not_found`, `network`) + nama atlet saja | Server & client (murni) |
-| `proxy.ts` | Kunci sandi aplikasi (Next.js 16: middleware = proxy, runtime Node.js). Tanpa `APP_PASSCODE` meneruskan semua; selain itu halaman → `/unlock?next`, API → 401. Matcher mengecualikan `_next/static`, manifest, ikon | Server (proxy) |
+| `proxy.ts` | Kunci sandi aplikasi (Next.js 16: middleware = proxy, runtime Node.js; sejak 0.16 `sw.js`, `sw-rules.js`, `/offline` publik). Tanpa `APP_PASSCODE` meneruskan semua; selain itu halaman → `/unlock?next`, API → 401. Matcher mengecualikan `_next/static`, manifest, ikon | Server (proxy) |
 | `lib/auth/config.ts` | `passcodeConfig(env)`: `off` / `misconfigured` (sandi < 8 karakter atau secret < 32 byte, gagal tertutup) / `on` | Server (murni) |
 | `lib/auth/session.ts` | Cookie `ha_session` = `v1.<exp>.<HMAC>`; tanda tangan menyertakan sidik jari sandi; `checkPasscode` & verifikasi memakai `timingSafeEqual` | Server |
 | `lib/auth/access.ts` | Keputusan proxy murni (`decide`), daftar path publik, `sanitizeNext` (hanya path di situs ini) | Server (murni) |
@@ -149,6 +149,28 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/movements/media.ts` | Gambar (path lokal), sumber & lisensi, cue, otot, catatan kondisi per gerakan | Server & client (juga dibaca script Node) |
 | `scripts/audit-movement-media.mjs` | Audit pencocokan library ↔ free-exercise-db; gagal bila ada gerakan belum diaudit | Dev |
 | `scripts/fetch-movement-media.mjs` | Unduh gambar yang dipakai → WebP ≤ 600 px di `public/movements/` | Dev |
+| `public/sw.js`, `public/sw-rules.js` | Service worker tulisan sendiri (0.16, tanpa library) dan aturan murninya (diuji Vitest lewat `require`); lihat "Offline" di bawah | Browser |
+| `lib/offline.ts` | Murni (0.16): teks "Data terakhir {waktu}", keputusan prompt versi baru (tidak selama latihan), masukan generator yang dipulihkan saat offline | Murni |
+| `components/offline/*` | `OfflineAgent` di layout (daftar SW di produksi, banner "Sedang offline", prompt "Versi baru tersedia · Muat ulang"), `SnapshotTime`, `useOnline`, `clearOfflineData` | Client |
+| `app/offline/page.tsx` | Cadangan statis publik untuk halaman yang belum tersimpan | Server (statis) |
+
+## Offline (0.16)
+
+Service worker ditulis sendiri karena kebutuhannya kecil dan aturan privasinya khusus; Serwist tidak dipakai (plugin build berbasis webpack, dependensi runtime baru). Aturan ada di `public/sw-rules.js` dan diuji.
+
+| Jenis permintaan | Strategi | Cache |
+| --- | --- | --- |
+| `/_next/static/*`, manifest, ikon | Cache-first | `ha-static-{versi}` |
+| Gambar gerakan `/movements/*` | Cache-first (redirect tidak disimpan) | `ha-images-v1` |
+| Halaman (navigasi dokumen) | Network-first; bila sudah ada salinan, tunggu jaringan maksimal 4 detik. Offline: salinan terakhir, lalu `/offline` | `ha-pages-{versi}`, kunci tanpa query |
+| `/api/*` (sinkron, unlock, lock, status, connection, activities), `/unlock`, permintaan RSC, beda origin, bukan GET | Tidak pernah lewat cache | · |
+
+- **Halaman berisi data.** Halaman server (`force-dynamic`) memuat data intervals.icu di HTML-nya. Salinan hanya tersimpan bila respons 200, HTML, dan tidak berakhir di `/unlock`. Halaman yang tampil dari salinan menulis "Data terakhir {waktu}" (`SnapshotTime`, waktu render server).
+- **Kunci tetap berlaku.** Redirect halaman ke `/unlock` (navigasi memakai redirect manual, jadi terlihat sebagai `opaqueredirect`; `/log` dikecualikan) atau 401 menghapus semua salinan halaman. "Kunci perangkat ini" juga menghapusnya (`clearOfflineData` + pesan `CLEAR_DATA`). Offline, sesi tidak bisa diperiksa; begitu online, request pertama kembali ke server dan kunci berlaku.
+- **Menghangatkan cache.** Setelah SW aktif dan saat online, halaman mengirim `WARM`; SW mengambil rute utama yang belum tersimpan (`/`, `/run`, `/program`, `/strength`, `/strength/sesi`, `/setting`, `/insight`) beserta chunk JS/CSS yang dirujuk HTML-nya, berhenti bila sesi terkunci. Sekali per perangkat dan per versi (±14 request intervals.icu).
+- **Versi.** SW didaftarkan sebagai `/sw.js?v={NEXT_PUBLIC_BUILD_ID}` (commit Vercel atau waktu build, `next.config.ts`). Versi baru menunggu; prompt "Versi baru tersedia · Muat ulang" disembunyikan selama sesi latihan berjalan atau di `/strength/sesi`, dan reload hanya terjadi setelah pengguna mengetuk. Saat versi baru aktif, cache aset dan halaman versi lama dihapus lalu rute utama dihangatkan ulang.
+- **Data perangkat.** Generator, mode latihan, log, PR, check-in, dan program sudah murni di client (localStorage); perubahan offline dikirim lewat antrean sinkron 0.12 saat online. Masukan generator terakhir dipulihkan hanya saat halaman dibuka offline.
+- `sw.js`, `sw-rules.js`, dan `/offline` publik di `proxy.ts`/`PUBLIC_PATHS` supaya pendaftaran tidak terkunci; `sw.js` dikirim dengan `Cache-Control: no-cache`.
 
 ## Penyimpanan
 

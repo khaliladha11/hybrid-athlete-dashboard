@@ -76,6 +76,7 @@ Aturan log:
 - Saat aplikasi dibuka dan saat kembali terlihat (`visibilitychange`).
 - Setelah perubahan lokal, dengan jeda 2 detik (debounce).
 - Tombol **Sinkron sekarang** di Setting.
+- Sejak 0.16 aplikasi terbuka offline (service worker, docs/ARCHITECTURE.md "Offline"): log ST, mode latihan, check-in, dan program tetap ditulis ke perangkat; banner "Sedang offline" memberi tahu. `/api/sync` tidak pernah di-cache.
 - Offline atau gagal: perubahan ditandai "belum terkirim" di perangkat dan dicoba lagi pada pemicu berikutnya. Tidak ada data lokal yang dibuang karena gagal kirim.
 
 ### Cadangan otomatis

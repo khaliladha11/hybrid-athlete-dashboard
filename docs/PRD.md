@@ -263,8 +263,8 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Sistem warna intensitas (hijau/kuning/merah) & status (hijau/merah) | ✅ | |
 | Navigasi 5 tab (Profil, Lari, Program, Strength, Setting) | ✅ | Log → Setting di 0.8; `/log` diarahkan ke Strength |
 | Efek hover (bayangan tipis) di semua tombol | ✅ | Hanya perangkat dengan pointer |
-| Mode offline (service worker): aplikasi terbuka tanpa sinyal dengan workout, program, dan log terakhir | ⬜ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #1). Sekarang tanpa internet aplikasi tidak terbuka |
-| Mode latihan dan log ST berjalan offline, terkirim lewat antrean sinkron 0.12; banner "Sedang offline" | ⬜ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #1) |
+| Mode offline (service worker): aplikasi terbuka tanpa sinyal dengan workout, program, dan log terakhir | ✅ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #1, belum dirilis): SW tulisan sendiri; tab utama, Insight, dan mode latihan tersimpan; "Data terakhir {waktu}"; `/api/*` tidak pernah di-cache; salinan dihapus saat terkunci. Uji e2e menyusul |
+| Mode latihan dan log ST berjalan offline, terkirim lewat antrean sinkron 0.12; banner "Sedang offline" | ✅ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #1, belum dirilis): juga prompt "Versi baru tersedia · Muat ulang" tanpa reload paksa selama latihan |
 | Tes end-to-end (Playwright) dan tes komponen di CI | ⬜ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #2) |
 | Audit aksesibilitas (kontras non-teks, keyboard, pembaca layar) dan anggaran performa Lighthouse mobile | ⬜ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #3) |
 | Copy konsisten: tanpa em dash di string `lib/`, istilah seragam termasuk "Gita" | ⬜ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #8) |
@@ -349,7 +349,7 @@ Selesai di 0.12 (0.12.0 sampai 0.12.2), spesifikasi lengkap di [SYNC.md](SYNC.md
 | Lisensi aset | Hanya aset berlisensi bebas, atribusi di `NOTICE.md` | ✅ free-exercise-db (Unlicense). ✅ 0.14.1: path SVG anatomi depan/belakang dari MuscleMapJS (MIT; turunan MuscleMap SwiftUI, MIT; nama region sama dengan react-native-body-highlighter, MIT) disalin ke `components/charts/muscle-paths.ts`, bukan dependensi; ketiga pemberitahuan MIT di `NOTICE.md` (keputusan D8) |
 | Ukuran aset & performa | Gambar lokal WebP ≤ 600 px, lazy loading, tanpa hotlink | ✅ 72 gambar, ±1,3 MB total |
 | Ketersediaan | Tetap jalan tanpa API key / saat intervals.icu error | ✅ |
-| Offline | Bisa dibuka tanpa sinyal | ⬜ 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #1) |
+| Offline | Bisa dibuka tanpa sinyal | 🟡 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #1): diuji di build produksi dengan server mati; uji e2e otomatis menyusul |
 | Pengujian UI | Test komponen / end-to-end | ⬜ 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #2). Sekarang hanya unit test logika (termasuk logika murni Segment Skyline). Screenshot dokumentasi diperbarui tiap rilis UI (terakhir 0.11.2: onboarding & tur) |
 | CI | Test & build otomatis tiap push/PR | ✅ 0.12.0: GitHub Actions (typecheck, test, build) tanpa env rahasia |
 
@@ -362,7 +362,7 @@ Diurutkan dari yang paling berdampak.
 3. **Data per detik dari jam tidak selalu bisa dipercaya.** Untuk data Huawei, intervals.icu kadang hanya punya total jarak yang dibagi rata, atau jarak bertangga (datar lalu melompat). Split lalu dihitung dari GPS dan diskalakan ke jarak jam, sehingga per km bisa beda beberapa detik dari Strava yang menghitung ulang jarak sendiri. Kalibrasi lebih lanjut butuh data mentah (lihat backlog).
 4. **Isi aktivitas Strava tidak bisa dibaca.** Kebijakan Strava melarang intervals.icu meneruskan data Strava lewat API. Salinan Strava dibuang bila ada rekaman lain; aktivitas yang hanya ada di Strava tampil sebagai "Aktivitas Strava" tanpa data.
 5. **Kalender tanpa program terbatas 2 bulan.** Sejak 0.13.0 rentang mengikuti program tersimpan (awal program sampai bulan lomba, maks 200 hari ke belakang); tanpa program hanya bulan ini dan bulan lalu. Program hanya ada di perangkat (atau disinkron), jadi data lama diambil di client setelah halaman terbuka.
-6. **Belum offline.** Belum ada service worker. Direncanakan 0.16.
+6. **Offline terbatas pada halaman yang pernah tersimpan.** Sejak 0.16 rute utama disimpan otomatis; halaman lain (mis. detail aktivitas) hanya bila pernah dibuka online. Data intervals.icu offline adalah salinan terakhir.
 7. **Pengujian UI manual.** Belum ada test komponen/e2e (CI GitHub Actions menjalankan unit test & build sejak 0.12.0). Animasi bottom sheet & crossfade 0.9 baru diverifikasi secara logika (state, posisi, reduced motion), belum di perangkat nyata.
 8. **Script media & ikon memakai `sharp` dari Next.js** (dependensi tidak langsung). Bila Next.js berhenti membawanya, `sharp` perlu ditambahkan sebagai devDependency.
 9. **Batas percobaan sandi tanpa Redis hanya upaya terbaik.** Tanpa Upstash, hitungan gagal disimpan di memori per instance serverless, jadi bisa ter-reset saat instance baru dibuat. IP diambil dari `x-forwarded-for` yang di Vercel diisi oleh platform; di hosting lain header ini bisa dipalsukan.
