@@ -128,6 +128,19 @@ GitHub Actions di setiap push dan PR: `npm ci`, typecheck, `npm test`, `next bui
 - Tanpa env database/sandi: aplikasi dan semua test lama tetap lolos.
 - Manual: dua perangkat (HP + laptop), offline lalu online, hapus data browser lalu pulihkan, iOS PWA standalone dengan cookie sandi.
 
+### Latihan pemulihan (0.16)
+
+Diuji otomatis di `__tests__/recovery.test.ts` (data fiktif). Checklist manual di bawah dilakukan sekali per rilis besar, di perangkat sungguhan.
+
+| Skenario | Langkah | Hasil yang diharapkan |
+| --- | --- | --- |
+| **HP hilang → perangkat baru** (sinkron aktif) | Buka deploy di perangkat baru → masukkan sandi aplikasi → onboarding langkah 1 **Sambungkan perangkat ini** | Wizard dilewati; log, sesi ST (dengan rincian set), PR, check-in, program, Setting, dan profil muncul. Data di server tidak berubah. Dari perangkat lain: Setting › Sinkron & keamanan › **Kunci perangkat ini** di HP lama tidak bisa, jadi ganti `APP_PASSCODE` di Vercel supaya semua sesi lama batal |
+| **Data browser terhapus** (sinkron aktif) | Hapus data situs → buka lagi → sandi → Sambungkan perangkat ini | Sama seperti perangkat baru |
+| **Data browser terhapus** (tanpa sinkron) | Setting › Data & cadangan › **Impor JSON** file ekspor terakhir | Ringkasan "x entri log baru, x PR baru, x sesi ST baru, x check-in baru"; impor dua kali tidak menggandakan |
+| **Cadangan lama** (v2 sampai v6) | Impor file lama ke perangkat kosong, lalu ke perangkat berisi | Tidak ada entri hilang atau ganda; file `kind: defaults` hanya mengisi yang kosong |
+| **Salah hapus / data rusak** | Setting › Riwayat cadangan → pilih snapshot harian → **Pulihkan** | Data kembali di semua perangkat (epoch naik); snapshot "sebelum pulihkan" muncul untuk membatalkan |
+| **Offline lama** | Catat sesi ST offline beberapa hari → online | Status "belum terkirim" lalu tersinkron tanpa data hilang |
+
 ## 10. Rencana rilis
 
 | Versi | Isi |
