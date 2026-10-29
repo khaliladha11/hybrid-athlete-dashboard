@@ -27,6 +27,9 @@ export function errorFromStatus(status: number): IntervalsError {
   }
 }
 
+/** Path untuk log: ID atlet dan ID aktivitas diganti placeholder. */
+export const redactPath = (path: string) => path.replace(/\/athlete\/[^/?]+/, "/athlete/:id").replace(/\/activity\/[^/?]+/, "/activity/:id");
+
 /**
  * GET ke intervals.icu. Hanya dijalankan di server — API key tidak pernah dikirim ke browser.
  * Error dikembalikan sebagai objek terstruktur (tanpa stack trace / API key).
@@ -53,7 +56,8 @@ export async function intervalsGet<T = unknown>(path: string, query?: Record<str
     return { ok: true, data: (await res.json()) as T, source: "live" };
   } catch (err) {
     const timeout = err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");
-    console.error(`[intervals] ${path} gagal:`, err instanceof Error ? err.message : "unknown error");
+    // Tanpa ID atlet, key, atau isi respons di log (0.16): hanya pola path dan pesan error jaringan.
+    console.error(`[intervals] ${redactPath(path)} gagal:`, err instanceof Error ? err.message : "unknown error");
     return {
       ok: false,
       error: {

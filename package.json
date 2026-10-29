@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "icons": "node scripts/generate-icons.mjs",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "check:bundle": "node scripts/check-client-bundle.mjs"
   },
   "dependencies": {
     "next": "^16.4.2",
