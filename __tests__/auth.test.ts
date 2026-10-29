@@ -198,6 +198,12 @@ describe("keputusan proxy", () => {
     expect(isPublicPath("/movements/push-up/0.webp")).toBe(false);
   });
 
+  it("service worker & halaman offline (0.16) terbuka tanpa sesi; API tetap terkunci", () => {
+    for (const p of ["/sw.js", "/sw-rules.js", "/offline"]) expect(d(p), p).toEqual({ type: "next" });
+    for (const p of ["/api/sync", "/api/activities"]) expect(d(p), p).toEqual({ type: "unauthorized" });
+    expect(d("/strength/sesi")).toEqual({ type: "redirect", to: "/unlock?next=%2Fstrength%2Fsesi" });
+  });
+
   it("tanpa sesi: halaman → /unlock?next, API → 401", () => {
     expect(d("/")).toEqual({ type: "redirect", to: "/unlock" });
     expect(d("/run", undefined, undefined, "?d=45")).toEqual({ type: "redirect", to: "/unlock?next=%2Frun%3Fd%3D45" });

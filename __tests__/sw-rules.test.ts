@@ -7,7 +7,7 @@ interface Rules {
   OFFLINE_PAGE: string;
   classify(r: { url: string; origin: string; method: string; mode?: string; accept?: string; rsc?: boolean }): Kind;
   isCacheablePage(r: { status: number; url: string; contentType?: string; type?: string } | null): boolean;
-  isLockSignal(r: { status: number; url: string } | null): boolean;
+  isLockSignal(r: { status: number; url: string; type?: string } | null): boolean;
   pageKey(url: string): string;
   staticUrlsFromHtml(html: string): string[];
   cacheNames(v: string): { static: string; images: string; pages: string };
@@ -60,6 +60,9 @@ describe("halaman yang boleh disimpan & sinyal kunci", () => {
     expect(rules.isLockSignal({ status: 200, url: O + "/unlock?next=%2Frun" })).toBe(true);
     expect(rules.isLockSignal({ status: 200, url: O + "/run" })).toBe(false);
     expect(rules.isLockSignal(null)).toBe(false);
+    // Navigasi memakai redirect manual: tujuan tidak terlihat, jadi redirect selain /log dianggap kunci.
+    expect(rules.isLockSignal({ status: 0, url: O + "/run", type: "opaqueredirect" })).toBe(true);
+    expect(rules.isLockSignal({ status: 0, url: O + "/log", type: "opaqueredirect" })).toBe(false);
   });
 });
 

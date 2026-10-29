@@ -26,5 +26,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // JS/CSS/font build, manifest, dan ikon tidak pernah butuh sandi (PWA tetap bisa dipasang & dibuka).
-  matcher: ["/((?!_next/static/|manifest\\.json$|icon-192\\.png$|icon-512\\.png$|icon\\.svg$|apple-touch-icon\\.png$|favicon).*)"],
+  // Service worker (0.16) juga dikecualikan; halaman /offline lewat PUBLIC_PATHS.
+  matcher: ["/((?!_next/static/|manifest\\.json$|icon-192\\.png$|icon-512\\.png$|icon\\.svg$|apple-touch-icon\\.png$|favicon|sw\\.js$|sw-rules\\.js$).*)"],
 };

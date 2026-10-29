@@ -54,10 +54,23 @@
     return true;
   }
 
-  /** Sesi tidak berlaku: 401, atau dokumen berakhir di /unlock setelah redirect. */
+  /** Redirect halaman yang sah saat sesi berlaku (next.config: /log → /strength). */
+  const KNOWN_REDIRECTS = ["/log"];
+
+  /**
+   * Sesi tidak berlaku: 401, dokumen berakhir di /unlock, atau redirect halaman (navigasi memakai redirect manual, jadi
+   * tujuannya tidak terlihat: `opaqueredirect`) selain redirect yang sah.
+   */
   function isLockSignal(res) {
     if (!res) return false;
     if (res.status === 401) return true;
+    if (res.type === "opaqueredirect") {
+      try {
+        return !KNOWN_REDIRECTS.includes(new URL(res.url).pathname);
+      } catch (e) {
+        return true;
+      }
+    }
     try {
       return new URL(res.url).pathname === "/unlock";
     } catch (e) {

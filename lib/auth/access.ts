@@ -18,6 +18,10 @@ export const PUBLIC_PATHS: readonly string[] = [
   "/favicon-16.png",
   "/favicon-32.png",
   "/favicon.ico",
+  // Service worker & halaman cadangan offline (0.16): tanpa data, harus bisa dimuat sebelum membuka kunci.
+  "/sw.js",
+  "/sw-rules.js",
+  "/offline",
 ];
 
 export const isPublicPath = (path: string) => PUBLIC_PATHS.includes(path) || path.startsWith("/_next/static/");
