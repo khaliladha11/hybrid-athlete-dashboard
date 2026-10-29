@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { OfflineAgent } from "@/components/offline/OfflineAgent";
 import type { Metadata, Viewport } from "next";
 import { Archivo, Geist_Mono } from "next/font/google";
@@ -56,12 +57,14 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Nonce CSP dari proxy.ts (0.16) untuk script tema inline.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     // data-theme dipasang oleh script boot sebelum hydrate → abaikan perbedaan atribut.
     <html lang="id" suppressHydrationWarning className={`${archivo.variable} ${geistMono.variable}`}>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
       <body className="min-h-dvh pt-[env(safe-area-inset-top)]">
         {/* iOS standalone + black-translucent: konten tembus ke bawah status bar.
