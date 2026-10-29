@@ -160,7 +160,7 @@ Awalnya ini cuma buat saya sendiri. Tapi kondisi, alat, zona lari, dan pilihan g
 | **Salin cepat** | Workout ST sebagai teks ringkas; workout lari lewat tombol **Copy Set** (format "Set" Huawei Health). |
 | **Onboarding & tur** | Saat pertama dibuka: disclaimer, profil, kondisi, zona lari, alat, cek koneksi intervals.icu, pengingat amankan deploy, pasang ke HP. Lalu tur singkat 5 sorotan; bisa diulang dari Setting › Tampilan. |
 | **Demo Mode** | Tanpa API key, aplikasi tetap berjalan penuh memakai data dummy. |
-| **PWA & design system** | Bisa di-install ke HP dan full-screen. Design system "Tag": dark-first, satu aksen oranye `#FC4C02`, Archivo + Geist Mono, Segment Skyline & Week Ledger, dengan **toggle tema terang/gelap** yang tersimpan di perangkat. |
+| **PWA & design system** | Bisa di-install ke HP dan full-screen. Sejak 0.16 **tetap terbuka tanpa sinyal** (mis. di gym): mode latihan, log ST, dan check-in tersimpan di HP lalu tersinkron saat online; versi baru tidak pernah memuat ulang di tengah latihan. Design system "Tag": dark-first, satu aksen oranye `#FC4C02`, Archivo + Geist Mono, Segment Skyline & Week Ledger, dengan **toggle tema terang/gelap** yang tersimpan di perangkat. |
 | **Sistem warna** | Intensitas: **Easy = hijau, Moderate = kuning, High = merah**. Status: **aktif/tercapai = hijau, nonaktif/belum = merah**. Kontras dijaga di tema terang maupun gelap. |
 
 Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](docs/TRAINING-LOGIC.md)**.
@@ -327,7 +327,9 @@ Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di pera
 | **0.13** Program hidup | ✅ Selesai | Kepatuhan rencana vs aktual, rencana di kalender, ringkasan minggu di Profil, "Kerjakan sesi hari ini" ke generator, saran tahu rencana, perkiraan waktu lomba, saran update zona, geser/lewati sesi terlewat, hitung mundur. Spesifikasi: [docs/PROGRAM-HIDUP.md](docs/PROGRAM-HIDUP.md) |
 | **0.14** Strength hidup | ✅ Selesai | 0.14.0 batas beban dari alat & keamanan, alat berbobot tetap, PR kemampuan, double progression, saran Gita, pengingat beli plat. 0.14.1 mode latihan + timer, session-RPE, ST mengikuti fase program, jeda 3 jam lari + ST, peta otot sesi. 0.14.2 11 gerakan baru (bisep, trisep, lats, betis, tibialis, varian satu sisi) & peta otot per gerakan. Cakupan: [docs/STRENGTH-HIDUP.md](docs/STRENGTH-HIDUP.md) |
 | **0.15** Insight | ✅ Selesai | 0.15.0 halaman Tren: CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT per minggu, setiap grafik dengan "Lihat tabel". 0.15.1 tren kekuatan: volume ST & session-RPE, heatmap otot, tren PR, kepatuhan, kalender heatmap. 0.15.2 check-in harian yang hanya menurunkan saran, ambang pribadi (LTHR, HRV, resting HR), ringkasan bulanan. Spesifikasi: [docs/INSIGHT.md](docs/INSIGHT.md) |
-| **1.0** Siap pakai penuh | 💡 Rencana | Offline, kirim workout ke intervals.icu/jam, test e2e. Detail: [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
+| **0.16** Siap offline & teruji | ✅ Selesai | Aplikasi terbuka tanpa sinyal (mode latihan & log ST offline, sinkron saat online), test e2e Playwright di CI, kontras & axe, anggaran Lighthouse, CSP dan header keamanan, latihan pemulihan data. Rencana: [docs/RELEASE-1.0.md](docs/RELEASE-1.0.md) |
+| **0.17** Terhubung & mudah dipasang | 💡 Rencana | Kirim workout lari ke kalender intervals.icu (lalu ke jam), zona HR & RPE di Setting, tombol Deploy to Vercel, panduan pasang dengan AI |
+| **1.0** Rilis | 💡 Rencana | Pembaruan otomatis lewat PR untuk fork, panduan pengguna lengkap, feature freeze. Detail: [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
 
 Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 
@@ -374,6 +376,9 @@ API key hanya dibaca di server (`import "server-only"`) dan tidak pernah dikirim
 | --- | --- |
 | `npm run dev` | Server development |
 | `npm test` | Semua unit test (Vitest) |
+| `npm run e2e` | Test end-to-end Playwright (setelah `npm run build`; Demo Mode, lokal memakai Microsoft Edge) |
+| `npm run lighthouse -- http://localhost:3400` | Anggaran Lighthouse mobile terhadap server produksi yang berjalan |
+| `npm run check:bundle` | Memastikan rahasia server tidak ada di bundle klien |
 | `npm run typecheck` | Pemeriksaan TypeScript |
 | `npm run build` | Build produksi |
 | `npm run icons` | Render ulang ikon PWA & favicon dari `public/icon.svg` dan `public/favicon.svg` |

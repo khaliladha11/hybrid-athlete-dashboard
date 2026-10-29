@@ -126,7 +126,7 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `lib/backup-store.ts` | `BackupStore` di atas localStorage, ekspor/impor file | Client |
 | `components/onboarding/*` | `OnboardingGate` (di layout), `OnboardingWizard` (`/onboarding`, memakai ulang komponen Setting), `TermsStep`, `ConnectionStep`, `ProtectStep`, `InstallStep` (juga dipakai `components/settings/PendingCard.tsx`), `Tour` (`TourProvider` di layout: spotlight, pindah tab, `useTour().start` dari ringkasan onboarding & Setting) | Client |
 | `lib/intervals/connection.ts` | Pemetaan hasil `GET /athlete/{id}` → status koneksi (`ok`, `missing`, `unauthorized`, `forbidden`, `not_found`, `network`) + nama atlet saja | Server & client (murni) |
-| `proxy.ts` | Kunci sandi aplikasi (Next.js 16: middleware = proxy, runtime Node.js; sejak 0.16 `sw.js`, `sw-rules.js`, `/offline` publik). Tanpa `APP_PASSCODE` meneruskan semua; selain itu halaman → `/unlock?next`, API → 401. Matcher mengecualikan `_next/static`, manifest, ikon | Server (proxy) |
+| `proxy.ts` | Kunci sandi aplikasi dan CSP dengan nonce per request (0.16; nonce lewat header `x-nonce` ke layout) (Next.js 16: middleware = proxy, runtime Node.js; sejak 0.16 `sw.js`, `sw-rules.js`, `/offline` publik). Tanpa `APP_PASSCODE` meneruskan semua; selain itu halaman → `/unlock?next`, API → 401. Matcher mengecualikan `_next/static`, manifest, ikon | Server (proxy) |
 | `lib/auth/config.ts` | `passcodeConfig(env)`: `off` / `misconfigured` (sandi < 8 karakter atau secret < 32 byte, gagal tertutup) / `on` | Server (murni) |
 | `lib/auth/session.ts` | Cookie `ha_session` = `v1.<exp>.<HMAC>`; tanda tangan menyertakan sidik jari sandi; `checkPasscode` & verifikasi memakai `timingSafeEqual` | Server |
 | `lib/auth/access.ts` | Keputusan proxy murni (`decide`), daftar path publik, `sanitizeNext` (hanya path di situs ini) | Server (murni) |
@@ -150,6 +150,8 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `scripts/audit-movement-media.mjs` | Audit pencocokan library ↔ free-exercise-db; gagal bila ada gerakan belum diaudit | Dev |
 | `scripts/fetch-movement-media.mjs` | Unduh gambar yang dipakai → WebP ≤ 600 px di `public/movements/` | Dev |
 | `public/sw.js`, `public/sw-rules.js` | Service worker tulisan sendiri (0.16, tanpa library) dan aturan murninya (diuji Vitest lewat `require`); lihat "Offline" di bawah | Browser |
+| `lib/security/headers.ts` | CSP (nonce, `strict-dynamic`, `frame-ancestors 'none'`) dan header statis (nosniff, Referrer-Policy, X-Frame-Options, Permissions-Policy) untuk `proxy.ts` & `next.config.ts` (0.16) | Server (murni) |
+| `scripts/check-client-bundle.mjs`, `scripts/lighthouse-budget.mjs` | Pemeriksa rahasia di bundle klien (nilai sentinel) dan anggaran Lighthouse mobile (Lighthouse lewat `npx`, tidak masuk lockfile) (0.16) | Dev / CI |
 | `lib/offline.ts` | Murni (0.16): teks "Data terakhir {waktu}", keputusan prompt versi baru (tidak selama latihan), masukan generator yang dipulihkan saat offline | Murni |
 | `components/offline/*` | `OfflineAgent` di layout (daftar SW di produksi, banner "Sedang offline", prompt "Versi baru tersedia · Muat ulang"), `SnapshotTime`, `useOnline`, `clearOfflineData` | Client |
 | `app/offline/page.tsx` | Cadangan statis publik untuk halaman yang belum tersimpan | Server (statis) |
@@ -216,8 +218,13 @@ Sumber kebenaran desain: **[DESIGN-SYSTEM.md](DESIGN-SYSTEM.md)** (design system
 ## Testing
 
 ```bash
-npm test
+npm test                 # unit (Vitest)
+npm run build && npm run e2e         # e2e Playwright (Demo Mode; lokal memakai Microsoft Edge)
+npm run check:bundle     # rahasia tidak ada di bundle klien (jalankan setelah build dengan nilai sentinel)
+npm run lighthouse -- http://localhost:3400   # anggaran Lighthouse mobile (server produksi berjalan)
 ```
+
+**E2E (0.16, `e2e/*`, `playwright.config.ts`):** server produksi Demo Mode di :3300 dan server dengan sandi aplikasi fiktif khusus test di :3301 (tanpa Redis). Proyek `mobile-dark` (375×812, gelap, semua alur), `desktop-light` (1280×800, terang, alur bertanda `@smoke`), `locked` (sandi). Axe (WCAG 2.1 AA) di halaman utama & mode latihan; header keamanan & CSP diperiksa per halaman. CI: typecheck → unit → `npm audit --audit-level=high` → build dengan nilai sentinel rahasia → `check:bundle` → e2e → Lighthouse.
 
 Test aturan (generator, periodization, media, settings) memakai profil contoh anonim `__tests__/fixtures/example-athlete.json` lewat `vi.mock` pada JSON profil, karena JSON di repo netral.
 

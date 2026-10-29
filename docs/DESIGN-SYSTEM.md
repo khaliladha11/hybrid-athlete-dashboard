@@ -43,6 +43,8 @@ Nama token **tetap sama dengan 0.9** supaya semua kelas Tailwind yang ada (`bg-s
 
 **Kontras (sudah dihitung, WCAG):** ink di surface gelap 16.5:1 · muted 7.5:1 · faint 5.3:1 · brand-ink gelap 6.3:1 · brand-ink terang di putih 5.2:1 · faint terang di putih 5.4:1.
 
+**Kontras non-teks (0.16, WCAG 1.4.11, dijaga `__tests__/contrast.test.ts`):** `line-strong` (border input, tombol sekunder, Segmented) gelap `#6b6b70` ≥ 3.1:1 dan terang `#8c8b87` ≥ 3.0:1 di bg, surface, dan subtle; `track` terang `#8a8985`; `warning` terang `#b98d06` 3.05:1. Fokus keyboard: outline `--brand` 2px (3.4:1 di putih, 5.3:1 di gelap). Hari di luar bulan di kalender memakai `faint` penuh (tanpa opasitas); pemilih Hari H mengosongkan hari di luar bulan.
+
 **Temuan penting:** teks putih di atas `#FC4C02` hanya **3.4:1**, sehingga tombol oranye 0.9 (teks putih 15 sampai 16px) **tidak lolos AA**, padahal PRD §5 mencatat AA ✅. Di sistem ini `--on-brand` diganti `#0B0B0C` (5.8:1), seperti stiker kartu lari. Bar `--track` sudah dipilih ≥ 3:1 terhadap surface (objek grafis): 3.6:1 gelap, 3.3:1 terang.
 
 **Aturan pemakaian warna**

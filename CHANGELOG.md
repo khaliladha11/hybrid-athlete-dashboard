@@ -4,7 +4,9 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
-Bagian dari 0.16 Siap offline & teruji ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #1). Dirilis setelah uji e2e (prompt 2).
+## [0.16.0] · 2026-10-29 · Siap offline & teruji
+
+Rilis pertama menuju 1.0 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) §8 0.16: #1–#5).
 
 ### Ditambahkan
 - **Mode offline**: service worker tulisan sendiri (tanpa library). Profil, Lari, Program, Strength, Setting, Insight, dan mode latihan terbuka tanpa sinyal dari salinan terakhir; halaman yang belum pernah tersimpan menampilkan `/offline`.
@@ -12,10 +14,23 @@ Bagian dari 0.16 Siap offline & teruji ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #1
 - **Banner "Sedang offline"** di atas (netral, `aria-live="polite"`), hilang saat online.
 - **Generator, mode latihan, log ST, dan check-in** berjalan offline; perubahan terkirim lewat antrean sinkron 0.12 saat online. Masukan generator terakhir dipulihkan saat halaman dibuka offline.
 - **Prompt "Versi baru tersedia · Muat ulang"**; tidak pernah memuat ulang sendiri dan disembunyikan selama sesi latihan berjalan.
-- 16 test baru (aturan service worker, akses publik SW, logika offline, antrean sinkron offline).
+- **E2E Playwright** (devDependency) di CI, Demo Mode tanpa rahasia: 43 test di 375px gelap dan desktop terang, plus server dengan sandi uji. Alur: onboarding (baru, pengguna lama, disclaimer naik), sandi, generate lari + Copy Set, ST + mode latihan + RPE sesi, program + Hari H, Insight + Lihat tabel, offline, ekspor/impor cadangan, header keamanan.
+- **Axe** (devDependency) di e2e: gagal pada pelanggaran WCAG 2.1 AA serius/kritis.
+- **Anggaran Lighthouse mobile** (`npm run lighthouse`): performa ≥ 0,85, aksesibilitas & best practices ≥ 0,95, LCP ≤ 2,5 detik, TBT ≤ 350 ms, CLS ≤ 0,1. Hasil 0.16: Profil 0,93 · Lari 0,99 · Strength 0,96 · Program 0,92 · Insight 0,99.
+- **Latihan pemulihan data**: `recovery.test.ts` (HP hilang, data browser terhapus, cadangan v2 sampai v6, pulihkan snapshot lalu batalkan) dan checklist di SYNC.md.
+- 54 test unit baru; total 757 di 67 file.
+
+### Diperbaiki
+- **Kontras non-teks** (backlog P1): `line-strong` gelap `#6b6b70` / terang `#8c8b87`, `track` terang `#8a8985`, `warning` terang `#b98d06`, semua ≥ 3:1 dan dijaga test.
+- **Kalender**: pemilih Hari H memakai baris `row`, label hari diawali angka yang tampil, hari di luar bulan dikosongkan; tanggal di luar bulan di kalender Profil tidak lagi pudar (ditemukan axe).
+- **Cache halaman offline per versi build**, supaya salinan lama tidak merujuk JS yang sudah dihapus setelah update.
 
 ### Keamanan & privasi
 - `/api/*` (sinkron, unlock, lock, jalur intervals.icu), `/unlock`, dan permintaan RSC tidak pernah di-cache. Salinan halaman (berisi data) dihapus saat sesi tidak berlaku (redirect ke /unlock, 401) dan saat "Kunci perangkat ini".
+- **CSP dengan nonce per request** (`script-src 'nonce-…' 'strict-dynamic'`, tanpa `unsafe-inline` untuk script), `frame-ancestors 'none'`, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy`. Semua halaman kini dirender dinamis supaya nonce bisa dipasang.
+- **Pemeriksa bundle klien**: build CI memakai nilai sentinel untuk semua rahasia dan gagal bila nilainya muncul di berkas yang dikirim ke browser.
+- **Audit dependensi** di CI (`--audit-level=high`): 0 temuan. Lighthouse dijalankan lewat `npx` supaya dependensinya (16 temuan di `@lhci/cli`) tidak masuk proyek.
+- Log server tidak lagi memuat ID atlet/aktivitas.
 
 ## [0.15.2] · 2026-10-28 · Insight: tubuh & saran
 
