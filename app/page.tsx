@@ -1,3 +1,4 @@
+import { SnapshotTime } from "@/components/offline/SnapshotTime";
 import Link from "next/link";
 import { BUTTON } from "@/components/ui/Card";
 import { ActivityCalendar } from "@/components/profile/ActivityCalendar";
@@ -34,6 +35,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="space-y-4">
+      <SnapshotTime at={new Date().toISOString()} />
       <ProfileHeader />
 
       {/* Ringkasan minggu program (0.13): hanya bila ada program aktif di perangkat ini. */}

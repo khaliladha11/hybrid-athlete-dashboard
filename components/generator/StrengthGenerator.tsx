@@ -1,10 +1,11 @@
 "use client";
 
+import { parseStrengthInputs, restoreOffline } from "@/lib/offline";
 import { withCheckin } from "@/lib/checkin";
 import { filledCheckin, useCheckins } from "@/lib/checkin-store";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BUTTON, Chip } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
 import { Switch } from "@/components/ui/Switch";
@@ -34,7 +35,7 @@ import { applyPhaseRule, ST_PHASE_RULES } from "@/lib/program/st-phase";
 import { withStSessions, type Advice, type TodayDone } from "@/lib/coach";
 import { todayWib } from "@/lib/date";
 import { PREF_KEYS } from "@/lib/preference-keys";
-import { useStoredString } from "@/lib/preferences";
+import { readStored, useStoredString, writeStored } from "@/lib/preferences";
 import { useStSessions } from "@/lib/st-session-store";
 import { newEntryId } from "@/lib/training-log";
 import { parseActiveWorkout, startWorkout } from "@/lib/workout-state";
@@ -101,6 +102,17 @@ export function StrengthGenerator({
   // ST mengikuti fase program (0.14.1) selama isian dari program tidak diubah.
   const phaseRule = fromPlan && prefill?.phase ? ST_PHASE_RULES[prefill.phase] : undefined;
   const [seed, setSeed] = useState(initialSeed);
+  // Offline (0.16): workout terakhir muncul lagi saat halaman dibuka tanpa sinyal; online tidak berubah.
+  useEffect(() => {
+    const saved = restoreOffline(parseStrengthInputs(readStored(PREF_KEYS.lastStrengthInputs)), { offline: !navigator.onLine, prefilled: !!prefill });
+    if (!saved) return;
+    setType(saved.type);
+    setDuration(saved.duration);
+    setDifficulty(saved.difficulty);
+    setSeed(saved.seed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => writeStored(PREF_KEYS.lastStrengthInputs, JSON.stringify({ type, duration, difficulty, seed })), [type, duration, difficulty, seed]);
 
   const [logging, setLogging] = useState(false);
   const [blockEnabled, setBlockEnabled] = useBlockMode();

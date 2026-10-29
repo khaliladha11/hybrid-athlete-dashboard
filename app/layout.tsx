@@ -1,3 +1,4 @@
+import { OfflineAgent } from "@/components/offline/OfflineAgent";
 import type { Metadata, Viewport } from "next";
 import { Archivo, Geist_Mono } from "next/font/google";
 import { AppBar } from "@/components/ui/AppBar";
@@ -67,6 +68,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             Strip gelap ini menjaga jam/baterai (teks putih) tetap terbaca di light mode. */}
         <div aria-hidden className="fixed inset-x-0 top-0 z-30 h-[env(safe-area-inset-top)] bg-black" />
         {isDemoMode() && <DemoBanner />}
+        {/* Mode offline (0.16): service worker, banner "Sedang offline", prompt versi baru. */}
+        <OfflineAgent />
         <AppBar />
         {/* Sinkron hanya bila server menyatakan aktif (sandi + database); browser hanya menerima boolean. */}
         <SyncAgent enabled={availability(passcodeConfig(), redisEnv()).sync} />

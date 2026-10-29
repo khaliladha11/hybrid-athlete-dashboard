@@ -1,8 +1,11 @@
 "use client";
 
+import { parseRunInputs, restoreOffline } from "@/lib/offline";
 import { withCheckin } from "@/lib/checkin";
 import { filledCheckin, useCheckins } from "@/lib/checkin-store";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PREF_KEYS } from "@/lib/preference-keys";
+import { readStored, writeStored } from "@/lib/preferences";
 import { SegmentSkyline } from "@/components/charts/SegmentSkyline";
 import { planSegments } from "@/components/charts/skyline-scale";
 import { Chip, StatRow } from "@/components/ui/Card";
@@ -77,6 +80,16 @@ export function RunGenerator({
   const [duration, setDuration] = useState<Duration>(prefill?.duration ?? 45);
   const [difficulty, setDifficulty] = useState<Difficulty>(prefill?.difficulty ?? "easy");
   const [seed, setSeed] = useState(initialSeed);
+  // Offline (0.16): workout terakhir muncul lagi saat halaman dibuka tanpa sinyal; online tidak berubah.
+  useEffect(() => {
+    const saved = restoreOffline(parseRunInputs(readStored(PREF_KEYS.lastRunInputs)), { offline: !navigator.onLine, prefilled: !!prefill });
+    if (!saved) return;
+    setDuration(saved.duration);
+    setDifficulty(saved.difficulty);
+    setSeed(saved.seed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => writeStored(PREF_KEYS.lastRunInputs, JSON.stringify({ duration, difficulty, seed })), [duration, difficulty, seed]);
   const [blockEnabled, setBlockEnabled] = useBlockMode();
   const block = useBlockContext();
   const free = !blockEnabled;

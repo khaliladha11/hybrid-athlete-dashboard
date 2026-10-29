@@ -1,3 +1,4 @@
+import { SnapshotTime } from "@/components/offline/SnapshotTime";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { InsightView } from "@/components/insight/InsightView";
@@ -17,6 +18,7 @@ export default async function InsightPage() {
       <Link href="/" className="inline-flex min-h-11 items-center text-body text-muted hover:text-ink">
         ← Profil
       </Link>
+      <SnapshotTime at={new Date().toISOString()} />
       <InsightView activities={activities} wellness={wellness} today={today} runThreshold={runThreshold} />
     </div>
   );

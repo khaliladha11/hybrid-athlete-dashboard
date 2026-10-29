@@ -1,3 +1,4 @@
+import { SnapshotTime } from "@/components/offline/SnapshotTime";
 import type { Metadata } from "next";
 import { BlockBadge } from "@/components/generator/BlockBadge";
 import { StrengthGenerator } from "@/components/generator/StrengthGenerator";
@@ -19,6 +20,7 @@ export default async function StrengthPage({ searchParams }: { searchParams: Pro
   const prefill = parseStrengthPrefill(params);
   return (
     <div className="space-y-4">
+      <SnapshotTime at={new Date().toISOString()} />
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-[22px] leading-tight font-semibold">Generator Strength</h1>

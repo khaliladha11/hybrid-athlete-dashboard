@@ -1,3 +1,4 @@
+import { SnapshotTime } from "@/components/offline/SnapshotTime";
 import type { Metadata } from "next";
 import { RunGenerator } from "@/components/generator/RunGenerator";
 import { BlockBadge } from "@/components/generator/BlockBadge";
@@ -14,6 +15,7 @@ export default async function RunPage({ searchParams }: { searchParams: Promise<
   const prefill = parseRunPrefill(params);
   return (
     <div className="space-y-4">
+      <SnapshotTime at={new Date().toISOString()} />
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-[22px] leading-tight font-semibold">Generator Lari</h1>

@@ -1,3 +1,4 @@
+import { SnapshotTime } from "@/components/offline/SnapshotTime";
 import type { Metadata } from "next";
 import { ProgramView } from "@/components/program/ProgramView";
 import { addDays, todayWib } from "@/lib/date";
@@ -16,6 +17,7 @@ export default async function ProgramPage({ searchParams }: { searchParams: Prom
   const acts = await getActivities(90, today);
   return (
     <div className="space-y-4">
+      <SnapshotTime at={new Date().toISOString()} />
       <header>
         <h1 className="text-[22px] leading-tight font-semibold">Program Target</h1>
         <p className="mt-0.5 text-[13px] text-muted">Program mingguan menuju PB 5K, 10K, Half atau Full Marathon.</p>

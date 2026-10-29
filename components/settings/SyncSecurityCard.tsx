@@ -1,5 +1,6 @@
 "use client";
 
+import { clearOfflineData } from "@/components/offline/useOnline";
 import { useEffect, useState } from "react";
 import { statusView } from "@/components/sync/syncStatus";
 import { BUTTON, Card, Chip } from "@/components/ui/Card";
@@ -35,6 +36,8 @@ export function SyncSecurityCard({ status }: { status: Availability }) {
     try {
       const res = await fetch("/api/lock", { method: "POST", cache: "no-store" });
       if (!res.ok && res.status !== 401) throw new Error(String(res.status));
+      // Salinan halaman offline (berisi data) ikut dihapus (0.16).
+      await clearOfflineData();
       window.location.replace("/unlock");
     } catch {
       setError("Gagal mengunci. Periksa koneksi lalu coba lagi.");

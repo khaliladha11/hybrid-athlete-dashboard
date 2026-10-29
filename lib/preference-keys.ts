@@ -15,6 +15,9 @@ export const PREF_KEYS = {
   sessions: "hybrid-athlete.st-sessions.v1",
   /** Check-in harian (0.15.2, `lib/checkin-store.ts`). */
   checkins: "hybrid-athlete.checkins.v1",
+  /** Masukan generator terakhir (0.16; hanya perangkat ini), dipulihkan saat dibuka offline. */
+  lastRunInputs: "hybrid-athlete.last-run",
+  lastStrengthInputs: "hybrid-athlete.last-strength",
   /** Bulan ringkasan bulanan yang sudah ditutup (YYYY-MM, 0.15.2; hanya perangkat ini). */
   monthlyDismissed: "hybrid-athlete.monthly-dismissed",
   /** Sesi latihan yang sedang berjalan (0.14.1, tidak disinkron). */
