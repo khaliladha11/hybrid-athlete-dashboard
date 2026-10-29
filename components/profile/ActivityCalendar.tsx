@@ -188,7 +188,7 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
                         )}
                       </button>
                     ) : (
-                      <span className={`flex h-9 w-9 items-center justify-center text-[14px] tabular ${own ? "rounded-full border border-line text-muted" : "text-faint/60"}`}>
+                      <span className={`flex h-9 w-9 items-center justify-center text-[14px] tabular ${own ? "rounded-full border border-line text-muted" : "text-faint"}`}>
                         {Number(d.slice(8))}
                       </span>
                     )}

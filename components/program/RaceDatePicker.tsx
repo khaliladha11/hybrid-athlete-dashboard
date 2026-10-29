@@ -67,34 +67,41 @@ export function RaceDatePicker({
         </button>
       </div>
       <div role="grid" aria-label="Pilih Hari H" className="mt-1 grid grid-cols-7 gap-1">
-        {DOW.map((d) => (
-          <span key={d} role="columnheader" className="t-label py-1 text-center">
-            {d}
-          </span>
+        <div role="row" className="contents">
+          {DOW.map((d) => (
+            <span key={d} role="columnheader" className="t-label py-1 text-center">
+              {d}
+            </span>
+          ))}
+        </div>
+        {Array.from({ length: rows }, (_, r) => (
+          <div key={r} role="row" className="contents">
+            {days.slice(r * 7, r * 7 + 7).map((d) => {
+              // Hari di luar bulan dikosongkan (pindah bulan lewat tombol ‹ ›), supaya tidak ada sel pudar berkontras rendah.
+              if (d.slice(0, 7) !== month.slice(0, 7)) return <div key={d} role="gridcell" aria-hidden className="min-h-11" />;
+              const b = bandOf(d);
+              const blocked = b.band === "blocked";
+              const selected = d === value;
+              const earliest = d === earliestDate;
+              return (
+                <div key={d} role="gridcell" aria-selected={selected}>
+                  <button
+                    type="button"
+                    aria-label={`${Number(d.slice(8))}, ${d}: ${BAND_LABEL[b.band]}${blocked ? "" : `, ${b.weeks} minggu`}`}
+                    aria-pressed={selected}
+                    disabled={blocked}
+                    onClick={() => onChange(d)}
+                    className={`pressable tabular relative flex min-h-11 w-full items-center justify-center rounded-inner text-[14px] ${BAND_CELL[b.band]} ${
+                      selected ? "ring-2 ring-ink ring-offset-1 ring-offset-surface font-bold" : earliest ? "ring-1 ring-line-strong" : ""
+                    } disabled:cursor-not-allowed`}
+                  >
+                    {Number(d.slice(8))}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         ))}
-        {days.slice(0, rows * 7).map((d) => {
-          const inMonth = d.slice(0, 7) === month.slice(0, 7);
-          const b = bandOf(d);
-          const blocked = b.band === "blocked";
-          const selected = d === value;
-          const earliest = d === earliestDate;
-          return (
-            <button
-              key={d}
-              type="button"
-              role="gridcell"
-              aria-selected={selected}
-              aria-label={`${d}: ${BAND_LABEL[b.band]}${blocked ? "" : `, ${b.weeks} minggu`}`}
-              disabled={blocked}
-              onClick={() => onChange(d)}
-              className={`pressable tabular relative flex min-h-11 items-center justify-center rounded-inner text-[14px] ${inMonth ? "" : "opacity-40"} ${BAND_CELL[b.band]} ${
-                selected ? "ring-2 ring-ink ring-offset-1 ring-offset-surface font-bold" : earliest ? "ring-1 ring-line-strong" : ""
-              } disabled:cursor-not-allowed`}
-            >
-              {Number(d.slice(8))}
-            </button>
-          );
-        })}
       </div>
       <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5 text-[12px] text-muted" aria-label="Keterangan warna">
         {(["red", "yellow", "green", "grey"] as Band[]).map((b) => (
