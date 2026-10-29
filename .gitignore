@@ -12,3 +12,8 @@ next-env.d.ts
 
 # file lokal berisi data pribadi (mis. owner-settings.local.json): jangan commit
 *.local.json
+
+# Playwright (0.16)
+/test-results/
+/playwright-report/
+/blob-report/
