@@ -168,7 +168,9 @@ Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](docs/TRAININ
 
 ## Pasang di HP-mu sendiri
 
-Gratis, Install sekitar 15 menit aja, tanpa menulis kode. Hasilnya: aplikasi di layar utama HP yang membaca data latihanmu sendiri dari intervals.icu, berjalan di akun Vercel milikmu sendiri.
+Gratis, sekitar 15 menit, tanpa menulis kode. Hasilnya: aplikasi di layar utama HP yang membaca data latihanmu sendiri dari intervals.icu, berjalan di akun Vercel milikmu sendiri.
+
+> Mau dipandu asisten AI (ChatGPT, Claude, Gemini, dll.)? Tempel prompt di **[INSTALL-WITH-AI.md](INSTALL-WITH-AI.md)**. Asisten memandu langkah demi langkah; rahasia (API key, sandi) tetap kamu ketik sendiri di Vercel, tidak pernah di chat.
 
 ### Yang kamu butuhkan
 
@@ -177,69 +179,63 @@ Gratis, Install sekitar 15 menit aja, tanpa menulis kode. Hasilnya: aplikasi di 
 - Akun **[GitHub](https://github.com)** (gratis).
 - Akun **[Vercel](https://vercel.com/signup)** paket Hobby (gratis). Paling mudah daftar dengan akun GitHub.
 - HP Android dengan Chrome, atau iPhone dengan Safari.
+- **Huawei:** HRV harian tidak dibuka lewat API Huawei, jadi baris HRV tidak tampil. Jalan keluarnya aplikasi Health Sync yang mengirim HRV ke intervals.icu; tanpa HRV, readiness memakai resting HR dan sesi kemarin.
 
-### Langkah 1 · Salin repo ke akun GitHub-mu (fork)
+### Cara A · Tombol Deploy to Vercel (paling mudah)
 
-1. Login ke GitHub, buka halaman repo ini, klik **Fork** lalu **Create fork**.
-2. Langkah selanjutnya memakai fork milikmu: `github.com/<username-mu>/hybrid-athlete-dashboard`.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkhaliladha11%2Fhybrid-athlete-dashboard&project-name=hybrid-athlete&repository-name=hybrid-athlete&env=INTERVALS_API_KEY%2CAPP_PASSCODE%2CSESSION_SECRET&envDescription=API+key+intervals.icu%2C+sandi+aplikasi%2C+dan+teks+acak+untuk+sesi.+Cara+mendapatkannya+ada+di+README.&envLink=https%3A%2F%2Fgithub.com%2Fkhaliladha11%2Fhybrid-athlete-dashboard%23variabel-lingkungan)
 
-### Langkah 2 · Isi profilmu
+1. Siapkan tiga nilai dulu (penjelasan di [Variabel lingkungan](#variabel-lingkungan)): **API key intervals.icu**, **sandi aplikasi** buatanmu, dan **`SESSION_SECRET`** acak.
+2. Klik tombol di atas, login ke Vercel dengan GitHub, lalu biarkan Vercel membuat repo baru di akun GitHub-mu.
+3. Vercel meminta `INTERVALS_API_KEY`, `APP_PASSCODE`, dan `SESSION_SECRET`. Ketik sendiri nilainya di kolom itu. Tombol tidak membawa nilai apa pun.
+4. Klik **Deploy**, tunggu 1 sampai 2 menit, lalu buka alamat yang diberikan. Masukkan sandi aplikasi, lalu ikuti **onboarding**.
+5. Lanjutkan: [Upstash Redis](#upstash-redis) (opsional), [kunci aksesnya](#setelah-deploy-kunci-aksesnya), [pasang di HP](#pasang-aplikasi-di-hp), dan [hubungkan jam](#kirim-workout-ke-jam).
 
-> Sejak 0.11.0 profil diisi lewat **onboarding** saat aplikasi pertama dibuka, jadi langkah ini opsional. Nilai di file ini hanya jadi default.
+> **Salinan (clone), bukan fork.** Tombol membuat repo baru yang tidak terhubung ke repo ini, jadi tombol **Sync fork** di GitHub tidak ada. Pembaruan untuk salinan seperti ini disiapkan di 1.0 lewat workflow yang membuka pull request otomatis. Sampai saat itu, lihat [Memperbarui ke versi terbaru](#memperbarui-ke-versi-terbaru).
 
-Di fork-mu, buka [`config/athlete-profile.json`](config/athlete-profile.json), klik ikon pensil (**Edit this file**), ubah isinya, lalu klik **Commit changes**.
+### Variabel lingkungan
 
-| Field | Isi | Bisa diubah lagi di aplikasi? |
-| --- | --- | --- |
-| `name`, `age`, `occupation`, `category` | Nama dan keterangan di header Profil | Belum, hanya di file ini |
-| `targets.goals`, `targets.raceTargets` | Tujuan latihan & target lomba di Profil, juga target default Program | Belum |
-| `training.blockStart` | Tanggal **Senin** awal blok latihan 4 minggu (`YYYY-MM-DD`). Isi Senin minggu ini | Belum |
-| `conditions` | Kondisi cedera yang aktif: `apt`, `shin`, `overpronation`, `mcu`, `lbp`, `pfp`, `itbs`, `achilles`, `plantar`, `shoulder` (lihat [`lib/conditions.ts`](lib/conditions.ts)). Isi `[]` bila tidak ada | Ya, Setting › Kondisi |
-| `equipment` | Alat di rumah: dumbbell (jumlah handle), barbell, plat (`kg` × `count`), band, pull-up bar, kursi | Ya, Setting › Alat |
-| `runZones` | Pace default per zona latihan | Ya, Setting › Zona lari (manual atau hitung dari hasil lomba) |
-| `movementLibrary` | Gerakan yang boleh dipakai & batas bebannya | Pilihan gerakan ya; batas beban hanya di file |
+Isi di **Vercel › project-mu › Settings › Environment Variables** (atau di `.env.local` saat menjalankan di komputer). Daftar ini berasal dari [`lib/env-schema.ts`](lib/env-schema.ts) dan dijaga test.
 
-Fork dari repo publik ikut publik, jadi jangan isi file ini dengan data yang tidak mau dilihat orang lain. Kalau ragu, biarkan nilai bawaannya dan atur sisanya di aplikasi (langkah 7).
+| Nama | Wajib di tombol | Untuk apa | Dari mana |
+| --- | --- | --- | --- |
+| `INTERVALS_API_KEY` | Ya | API key intervals.icu: membaca aktivitas & wellness dan mengirim workout ke kalender. Kosong = Demo Mode | [intervals.icu › Settings](https://intervals.icu/settings) › **Developer Settings** (paling bawah) › **API Key** |
+| `APP_PASSCODE` | Ya | Sandi aplikasi, minimal 8 karakter. Mengunci semua halaman dan API | Buat sendiri. Jangan pakai ulang sandi akun lain |
+| `SESSION_SECRET` | Ya | Teks acak minimal 32 karakter untuk menandatangani sesi sandi | Lihat [Membuat SESSION_SECRET](#membuat-session_secret) |
+| `INTERVALS_ATHLETE_ID` | Tidak | ID atlet intervals.icu. Kosong atau `0` = pemilik API key | intervals.icu › Settings, di bawah nama (diawali `i`). Biasanya tidak perlu |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Tidak | Database sinkron antar perangkat. Nama `KV_REST_API_URL` / `KV_REST_API_TOKEN` juga diterima | Diisi otomatis saat [Upstash Redis](#upstash-redis) dihubungkan |
 
-### Langkah 3 · Ambil API key intervals.icu
+- Perlakukan semua nilai di atas seperti kata sandi: jangan ditulis ke file di repo, jangan ditempel ke chat (termasuk asisten AI).
+- **Setiap kali mengubah env, redeploy:** Vercel › **Deployments** › **⋯** › **Redeploy**. Perubahan baru berlaku setelah itu.
+- API key, sandi, dan secret hanya dibaca di server. Tidak pernah dikirim ke HP atau browser.
 
-1. Login ke intervals.icu, buka **[Settings](https://intervals.icu/settings)**, lalu gulir ke bagian **Developer Settings** di paling bawah.
-2. Buat atau tampilkan **API Key**, lalu salin. Catat juga **Athlete ID** (contoh `i123456`), atau cukup pakai `0` yang berarti pemilik API key.
-3. Perlakukan API key seperti kata sandi: jangan ditulis ke file di repo dan jangan dibagikan.
+#### Membuat SESSION_SECRET
 
-### Langkah 4 · Deploy ke Vercel
+Jalankan salah satu di terminal, lalu salin hasilnya sendiri ke Vercel. Nilainya tidak disimpan di mana pun.
 
-1. Buka **[vercel.com/new](https://vercel.com/new)**, pilih fork-mu, klik **Import** (izinkan Vercel membaca repo bila diminta).
-2. Ubah **Project Name** bila mau. Nama ini menjadi alamat aplikasimu: `nama-project.vercel.app`.
-3. Buka bagian **Environment Variables** dan tambahkan dua variable:
+```bash
+npm run secret
+```
 
-   | Key | Value |
-   | --- | --- |
-   | `INTERVALS_API_KEY` | API key dari langkah 3 |
-   | `INTERVALS_ATHLETE_ID` | Athlete ID-mu, atau `0` |
-   | `APP_PASSCODE` | *(opsional, dianjurkan)* sandi aplikasi, minimal 8 karakter |
-   | `SESSION_SECRET` | *(wajib bila `APP_PASSCODE` diisi)* teks acak minimal 32 karakter, lihat di bawah |
+```bash
+openssl rand -base64 32
+```
 
-4. Klik **Deploy** dan tunggu 1 sampai 2 menit, lalu buka alamat yang diberikan. Aplikasi membuka **onboarding**; langkah 3 mengecek koneksi ke intervals.icu dan menampilkan "Tersambung sebagai {namamu}" bila key benar.
+Tanpa clone repo: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`. Jangan pakai ulang secret dari tempat lain.
 
-> **Mengisi atau mengubah environment variable setelah deploy?** Perubahannya baru berlaku setelah **redeploy**: Vercel › **Deployments** › **⋯** › **Redeploy**. Lalu buka lagi langkah 3 (atau Setting › Belum selesai) dan ketuk **Cek lagi**.
+### Sandi aplikasi
 
-API key hanya disimpan di Vercel dan dibaca di server. Kunci itu tidak pernah dikirim ke HP atau browser.
+Dengan `APP_PASSCODE`, setiap perangkat harus memasukkan sandi sekali sebelum aplikasi terbuka, lalu tetap terbuka 90 hari. Tombol Deploy mewajibkan sandi ini; di komputer sendiri boleh dikosongkan.
 
-#### Sandi aplikasi (opsional, sejak 0.12.0)
-
-Dengan `APP_PASSCODE`, setiap perangkat harus memasukkan sandi sekali sebelum aplikasi terbuka, lalu tetap terbuka 90 hari. Tanpa `APP_PASSCODE` aplikasi terbuka seperti versi sebelumnya.
-
-- **Membuat `SESSION_SECRET`:** jalankan `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` lalu tempel hasilnya. Jangan pakai ulang secret dari tempat lain.
 - **Salah sandi** 5 kali dari alamat yang sama → harus menunggu 15 menit.
 - **Mengganti sandi:** ubah `APP_PASSCODE` di Vercel › Settings › Environment Variables, lalu **Redeploy**. Semua perangkat langsung terkunci dan perlu sandi baru. Mengganti `SESSION_SECRET` juga mengunci semua perangkat.
 - **Mengunci satu perangkat** (mis. HP yang dipinjamkan): **Setting › Data › Kunci perangkat ini**.
 - Bila `APP_PASSCODE` diisi tapi kurang dari 8 karakter atau `SESSION_SECRET` kurang dari 32 karakter, aplikasi tetap terkunci dan halaman sandi meminta konfigurasi dilengkapi.
 - Sandi dan secret hanya dibaca di server; tidak pernah dikirim ke browser atau ditulis di log.
 
-#### Sinkron antar perangkat (opsional, sejak 0.12.1)
+### Upstash Redis
 
-Dengan database milikmu sendiri, log, Setting, program, dan profil sama di HP dan laptop, dan kembali sendiri setelah data browser dihapus. Butuh sandi aplikasi di atas.
+Dengan database milikmu sendiri, log, Setting, program, dan profil sama di HP dan laptop, dan kembali sendiri setelah data browser dihapus. Butuh sandi aplikasi. Tombol Deploy belum bisa memasang database ini secara resmi (slug Upstash untuk tombol tidak didokumentasikan Vercel), jadi pasang sendiri setelah deploy:
 
 1. Di Vercel, buka project-mu › **Storage** (atau **Marketplace**) › **Upstash Redis** › **Create** / **Install**. Paket **Free** sudah cukup.
 2. **Connect** database ke project ini. Vercel mengisi env var otomatis: `KV_REST_API_URL` + `KV_REST_API_TOKEN` atau `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (keduanya didukung).
@@ -251,9 +247,46 @@ Dengan database milikmu sendiri, log, Setting, program, dan profil sama di HP da
 - **Batas paket Free Upstash** (halaman harga resmi, dicek 2026-10-23): 500K perintah/bulan, data 256 MB, request maks 10 MB, bandwidth 10 GB/bulan. Satu sinkron memakai sekitar 2 perintah tulis/baca per bagian yang berubah, jauh di bawah batas untuk satu orang. Cek ulang di [upstash.com/pricing/redis](https://upstash.com/pricing/redis) karena bisa berubah.
 - **Privasi:** database ada di akun Vercel-mu, hanya diakses server aplikasi setelah sandi diperiksa, dan pemilik repo tidak menerima apa pun. Data disimpan tanpa enkripsi tambahan dari aplikasi (Upstash mengenkripsi saat disimpan). **Menghapus data:** hapus database di Vercel › Storage.
 
-### Langkah 5 · Kunci aksesnya (penting)
+### Cara B · Vercel CLI
 
-Tanpa proteksi, siapa pun yang tahu alamatnya bisa melihat data latihan dan kesehatanmu. Sandi aplikasi (di atas) sudah mengunci aplikasinya; Vercel Authentication menambah lapisan di luarnya dan tetap dianjurkan. Onboarding langkah 4 menampilkan langkah yang sama; bila dilewati, pengingatnya ada di **Setting › Belum selesai**.
+Untuk yang terbiasa dengan terminal. Rahasia diketik di prompt CLI, tidak pernah ditulis di perintah atau file.
+
+```bash
+npm i -g vercel
+```
+
+1. **Fork** repo ini ke akun GitHub-mu, lalu clone ke komputer dan masuk ke foldernya.
+2. Hubungkan ke project Vercel baru: `vercel link`.
+3. Tambahkan env satu per satu; CLI menanyakan nilainya dan kamu yang mengetik: `vercel env add INTERVALS_API_KEY production`, lalu `APP_PASSCODE`, lalu `SESSION_SECRET`.
+4. Deploy: `vercel deploy --prod`.
+
+### Cara C · Fork manual
+
+1. Login ke GitHub, buka halaman repo ini, klik **Fork** lalu **Create fork**.
+2. Buka **[vercel.com/new](https://vercel.com/new)**, pilih fork-mu, klik **Import**. Nama project menjadi alamat aplikasimu: `nama-project.vercel.app`.
+3. Di **Environment Variables**, isi tiga env wajib dari [Variabel lingkungan](#variabel-lingkungan), lalu **Deploy**.
+
+Dengan fork, pembaruan cukup lewat **Sync fork** (lihat [Memperbarui ke versi terbaru](#memperbarui-ke-versi-terbaru)).
+
+#### Isi profil lewat file (opsional)
+
+Sejak 0.11.0 profil diisi lewat **onboarding** saat aplikasi pertama dibuka, jadi langkah ini opsional. Nilai di [`config/athlete-profile.json`](config/athlete-profile.json) hanya jadi default.
+
+| Field | Isi | Bisa diubah lagi di aplikasi? |
+| --- | --- | --- |
+| `name`, `age`, `occupation`, `category` | Nama dan keterangan di header Profil | Belum, hanya di file ini |
+| `targets.goals`, `targets.raceTargets` | Tujuan latihan & target lomba di Profil, juga target default Program | Belum |
+| `training.blockStart` | Tanggal **Senin** awal blok latihan 4 minggu (`YYYY-MM-DD`). Isi Senin minggu ini | Belum |
+| `conditions` | Kondisi cedera yang aktif: `apt`, `shin`, `overpronation`, `mcu`, `lbp`, `pfp`, `itbs`, `achilles`, `plantar`, `shoulder` (lihat [`lib/conditions.ts`](lib/conditions.ts)). Isi `[]` bila tidak ada | Ya, Setting › Kondisi |
+| `equipment` | Alat di rumah: dumbbell (jumlah handle), barbell, plat (`kg` × `count`), band, pull-up bar, kursi | Ya, Setting › Alat |
+| `runZones` | Pace default per zona latihan | Ya, Setting › Zona lari (manual atau hitung dari hasil lomba) |
+| `movementLibrary` | Gerakan yang boleh dipakai & batas bebannya | Pilihan gerakan ya; batas beban hanya di file |
+
+Repo publik ikut publik, jadi jangan isi file ini dengan data yang tidak mau dilihat orang lain. Kalau ragu, biarkan nilai bawaannya dan atur sisanya di aplikasi.
+
+### Setelah deploy: kunci aksesnya
+
+Tanpa proteksi, siapa pun yang tahu alamatnya bisa melihat data latihan dan kesehatanmu. Sandi aplikasi sudah mengunci aplikasinya; Vercel Authentication menambah lapisan di luarnya dan tetap dianjurkan. Onboarding langkah 4 menampilkan langkah yang sama; bila dilewati, pengingatnya ada di **Setting › Belum selesai**.
 
 1. Di Vercel, buka project-mu, lalu **Settings › Deployment Protection**.
 2. Aktifkan **Vercel Authentication** dengan cakupan **All Deployments**. Pilihan ini gratis di paket Hobby. Jangan berhenti di **Standard Protection**, karena cakupan itu tidak melindungi alamat utama `nama-project.vercel.app`.
@@ -261,14 +294,14 @@ Tanpa proteksi, siapa pun yang tahu alamatnya bisa melihat data latihan dan kese
 
 Aplikasi yang dipasang di iPhone memakai penyimpanan terpisah dari Safari, jadi mungkin perlu login sekali lagi dari dalam aplikasi. Kombinasi proteksi ini dengan aplikasi yang dipasang belum diuji di semua HP.
 
-### Langkah 6 · Pasang di HP
+### Pasang aplikasi di HP
 
 - **Android (Chrome):** buka alamat Vercel-mu, ketuk menu **⋮**, lalu **Instal aplikasi** atau **Tambahkan ke layar utama**.
 - **iPhone (Safari):** buka alamat Vercel-mu, ketuk **Bagikan**, lalu **Tambah ke Layar Utama**.
 
 Aplikasi terbuka layar penuh dengan ikon "Forward H", seperti aplikasi biasa. Onboarding langkah 9 membantu hal yang sama: di Android/Chrome ada tombol **Pasang aplikasi**, di iPhone ada petunjuk Bagikan › Tambah ke Layar Utama. Aplikasi masih butuh internet untuk dibuka.
 
-### Langkah 7 · Atur di dalam aplikasi
+### Atur di dalam aplikasi
 
 Onboarding sudah menanyakan profil, kondisi, zona lari, dan alat. Langkah yang kamu lewati muncul lagi di **Setting › Belum selesai**. Untuk mengubah semuanya nanti, buka tab **Setting**:
 
@@ -284,12 +317,12 @@ Tombol **Kirim ke jam** (Generator Lari dan sesi program) menaruh workout di kal
 
 | Jam | Yang perlu diaktifkan | Yang diterima |
 | --- | --- | --- |
-| **Huawei** | Kotak **HUAWEI Health** › centang **Upload planned workouts**. Di aplikasi Huawei Health, Health Service Kit harus tertaut (Me › 3rd Party Services). **Isi threshold pace lari** di intervals.icu › Settings › Run › Pace settings: tanpa itu unggah gagal ("Workout has no suitable steps") | Hanya lari, jalan, dan hiking. **Satu** workout: lari terencana berikutnya dalam seminggu, **tidak langsung**. Di jam: **Workout › Outdoor Run › Courses › Custom Courses**. Supaya segera, atau untuk workout lain, ketuk **Upload to Huawei** di event kalender |
+| **Huawei** | Kotak **HUAWEI Health** › centang **Upload planned workouts**. Di aplikasi Huawei Health, Health Service Kit harus tertaut (Me › 3rd Party Services). **Isi threshold pace lari** di intervals.icu › Settings › Run › Pace settings: tanpa itu unggah gagal ("Workout has no suitable steps") | Hanya lari, jalan, dan hiking. **Satu** workout: lari terencana berikutnya dalam seminggu; biasanya masuk sendiri ke Huawei Health beberapa saat setelah dikirim. Di jam: **Workout › Outdoor Run › Courses › Custom Courses**; bila belum ada, kirim dari Huawei Health (My running courses › ikon jam). Untuk workout lain, ketuk **Upload to Huawei** di event kalender |
 | **Garmin** | Kotak Garmin › centang **Upload planned workouts**, lalu izinkan di Garmin Connect | Workout terencana seminggu ke depan, muncul setelah sinkron Garmin Connect |
 | **Coros** | Kotak **Coros** › aktifkan unggah workout terencana | Seminggu ke depan. Bila belum muncul, tambahkan "Intervals.icu Training Plan" di kalender aplikasi Coros |
 | Lainnya | Lihat halaman integrasi intervals.icu | Tanpa jam yang tersambung, pakai **Copy Set** |
 
-Kirim ulang setelah workout diubah memperbarui event yang sama. API key intervals.icu milikmu sudah bisa menulis ke kalender; tanpa key (Demo Mode) tidak ada yang dikirim. Strength tidak dikirim sebagai workout; catatan teks di kalender bisa diaktifkan di **Setting › Tampilan & program**.
+Pilih merek jam sekali di kartu **Kirim ke jam**: setelah kirim, aplikasi menampilkan langkah sampai di jam, memeriksa (hanya membaca) apakah unggah ke merekmu aktif di intervals.icu, dan menyediakan **Cek status unggah** untuk melihat error unggah. intervals.icu tidak punya API untuk mendorong workout ke jam, jadi aplikasi tidak pernah mengklaim workout sudah di jam. Kirim ulang setelah workout diubah memperbarui event yang sama. API key intervals.icu milikmu sudah bisa menulis ke kalender; tanpa key (Demo Mode) tidak ada yang dikirim. Strength tidak dikirim sebagai workout; catatan teks di kalender bisa diaktifkan di **Setting › Tampilan & program**.
 
 ### Sudah memasang sebelum 0.11?
 
@@ -304,8 +337,9 @@ Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di pera
 
 ### Memperbarui ke versi terbaru
 
-1. Buka fork-mu di GitHub, klik **Sync fork**, lalu **Update branch**. Vercel otomatis men-deploy ulang.
-2. Bila GitHub melaporkan konflik (biasanya di `config/athlete-profile.json`), salin dulu isi file profilmu, pilih **Discard commits** untuk mengikuti versi terbaru, lalu isi lagi profilmu seperti langkah 2.
+1. **Fork:** buka fork-mu di GitHub, klik **Sync fork**, lalu **Update branch**. Vercel otomatis men-deploy ulang.
+   **Salinan dari tombol Deploy:** belum ada Sync fork. Workflow pembaruan otomatis (pull request) datang di 1.0; sampai itu, salin perubahan dari repo ini secara manual atau deploy ulang salinan baru (data di HP tetap, cadangkan dulu lewat Setting › Data & cadangan).
+2. Bila GitHub melaporkan konflik (biasanya di `config/athlete-profile.json`), salin dulu isi file profilmu, pilih **Discard commits** untuk mengikuti versi terbaru, lalu isi lagi profilmu (lihat Isi profil lewat file).
 3. Di HP, tutup lalu buka lagi aplikasinya agar memuat versi baru.
 
 ### Kalau ada masalah
@@ -379,10 +413,10 @@ INTERVALS_API_KEY=isi_api_key_kamu
 INTERVALS_ATHLETE_ID=0   # 0 = pemilik API key, atau ID seperti i123456
 # Opsional: kunci aplikasi dengan sandi
 # APP_PASSCODE=minimal-8-karakter
-# SESSION_SECRET=teks-acak-minimal-32-karakter
+# SESSION_SECRET=teks-acak-minimal-32-karakter   # buat: npm run secret
 ```
 
-API key hanya dibaca di server (`import "server-only"`) dan tidak pernah dikirim ke browser. Error 401/403/404/5xx ditampilkan sebagai pesan singkat tanpa stack trace. Cara deploy sama dengan [langkah 4](#langkah-4--deploy-ke-vercel); setiap `git push` ke `main` men-deploy ulang otomatis.
+API key hanya dibaca di server (`import "server-only"`) dan tidak pernah dikirim ke browser. Error 401/403/404/5xx ditampilkan sebagai pesan singkat tanpa stack trace. Cara deploy ada di [Pasang di HP-mu sendiri](#pasang-di-hp-mu-sendiri); setiap `git push` ke `main` men-deploy ulang otomatis.
 
 ### Perintah
 
@@ -395,6 +429,7 @@ API key hanya dibaca di server (`import "server-only"`) dan tidak pernah dikirim
 | `npm run check:bundle` | Memastikan rahasia server tidak ada di bundle klien |
 | `npm run typecheck` | Pemeriksaan TypeScript |
 | `npm run build` | Build produksi |
+| `npm run secret` | Mencetak `SESSION_SECRET` acak ke terminal (tidak disimpan) |
 | `npm run icons` | Render ulang ikon PWA & favicon dari `public/icon.svg` dan `public/favicon.svg` |
 
 ## Struktur project
