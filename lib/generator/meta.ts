@@ -50,7 +50,7 @@ export const META: Record<string, MovementMeta> = {
   "Eccentric Calf Raise": { reps: "10–12 (turun 3 detik)", unilateral: true, cue: "Naik dua kaki, turun satu kaki perlahan." },
   // 0.9 — gerakan baru (docs/movement-library-proposal.md).
   "Band Reverse Fly": { reps: "12–15", cue: "Lengan setinggi dada, tarik band ke samping. Bahu turun, jangan mengangkat bahu." },
-  "Single-Leg Glute Bridge": { reps: { easy: "8/sisi", moderate: "10/sisi", high: "12/sisi" }, unilateral: true, cue: "Panggul tetap rata kiri–kanan, punggung bawah tidak melengkung di atas." },
+  "Single-Leg Glute Bridge": { reps: { easy: "8/sisi", moderate: "10/sisi", high: "12/sisi" }, unilateral: true, cue: "Panggul tetap rata kiri dan kanan, punggung bawah tidak melengkung di atas." },
   "Rear-Foot-Elevated Split Squat": { reps: { easy: "8/kaki", moderate: "8–10/kaki", high: "10/kaki" }, unilateral: true, cue: "Kaki belakang di kursi, turun lurus ke bawah; lutut depan searah jari kaki." },
   "DB Step-Up": { reps: { easy: "8/kaki", moderate: "8–10/kaki", high: "10/kaki" }, unilateral: true, cue: "Dorong lewat tumit kaki di atas pijakan, jangan menolak dengan kaki bawah." },
   "DB Plié Squat": { cue: "Kaki lebar, jari kaki serong keluar; dumbbell menggantung di tengah, dada tegak.", harderVariant: "Rear-Foot-Elevated Split Squat" },
@@ -79,7 +79,7 @@ export const META: Record<string, MovementMeta> = {
     cue: "Satu dumbbell, siku ±45°; tahan badan agar tidak berputar, punggung bawah menempel lantai.",
   },
   "Seated Band Hamstring Curl": { reps: "12–15", cue: "Tarik tumit ke bawah kursi, kembalikan perlahan melawan band." },
-  "Side Plank": { holdSec: { easy: 20, moderate: 30, high: 40 }, unilateral: true, cue: "Siku tepat di bawah bahu, badan lurus kepala–kaki; panggul jangan turun." },
+  "Side Plank": { holdSec: { easy: 20, moderate: 30, high: 40 }, unilateral: true, cue: "Siku tepat di bawah bahu, badan lurus dari kepala sampai kaki; panggul jangan turun." },
   "Standing Band Hip Abduction": { reps: "12–15/sisi", unilateral: true, cue: "Badan tegak, angkat kaki ke samping tanpa memiringkan badan." },
   Plank: { holdSec: { easy: 20, moderate: 30, high: 45 }, cue: "Posterior pelvic tilt ringan, glute aktif. Punggung bawah tidak melengkung." },
   "Seated Single-Leg Calf Raise": { reps: "12–15/kaki", unilateral: true, cue: "Dumbbell di paha dekat lutut, angkat tumit setinggi mungkin, turun perlahan." },

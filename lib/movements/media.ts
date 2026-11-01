@@ -260,7 +260,7 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     conditionNotes: { apt: "Posterior pelvic tilt di puncak, punggung tidak melengkung." },
   }),
   fromDb("Single-Leg Glute Bridge", "Single_Leg_Glute_Bridge", {
-    cues: ["Satu kaki diangkat, dorong lewat tumit kaki tumpu.", "Panggul tetap rata kiri–kanan."],
+    cues: ["Satu kaki diangkat, dorong lewat tumit kaki tumpu.", "Panggul tetap rata kiri dan kanan."],
     primaryMuscles: ["Gluteus"],
     secondaryMuscles: ["Hamstring"],
     conditionNotes: { apt: "Punggung bawah tidak melengkung di puncak." },
@@ -322,7 +322,7 @@ export const MOVEMENT_MEDIA: Record<string, MovementMedia> = Object.fromEntries(
     secondaryMuscles: [],
   }),
   fromDb("Side Plank", "Side_Bridge", {
-    cues: ["Siku tepat di bawah bahu, badan lurus kepala–kaki.", "Panggul jangan turun; versi lutut di lantai untuk awal."],
+    cues: ["Siku tepat di bawah bahu, badan lurus dari kepala sampai kaki.", "Panggul jangan turun; versi lutut di lantai untuk awal."],
     primaryMuscles: ["Perut (oblique)", "Gluteus medius"],
     secondaryMuscles: ["Bahu"],
     conditionNotes: { shoulder: "Batasi durasi; hentikan bila nyeri di bahu tumpu." },

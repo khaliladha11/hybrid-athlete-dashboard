@@ -137,7 +137,7 @@ export const CONDITIONS: Record<ConditionId, ConditionDef> = {
       runNotes: ["Lutut depan: kurangi turunan curam; naikkan cadence 5–10% untuk menurunkan beban sendi patellofemoral."],
     },
     sources: [
-      { label: "Willy RW, et al. Patellofemoral Pain: Clinical Practice Guidelines. JOSPT. 2019;49(9):CPG1–CPG95", url: "https://doi.org/10.2519/jospt.2019.0302" },
+      { label: "Willy RW, et al. Patellofemoral Pain: Clinical Practice Guidelines. JOSPT. 2019;49(9):CPG1-CPG95", url: "https://doi.org/10.2519/jospt.2019.0302" },
       { label: "Crossley KM, et al. 2016 Patellofemoral pain consensus statement. Br J Sports Med. 2016;50(14):839–43", url: "https://doi.org/10.1136/bjsports-2016-096384" },
     ],
   },
@@ -179,7 +179,7 @@ export const CONDITIONS: Record<ConditionId, ConditionDef> = {
       runNotes: ["Tumit: nyeri langkah pertama di pagi hari yang memburuk → kurangi volume lari. Regangkan betis setelah lari."],
     },
     sources: [
-      { label: "Martin RL, et al. Heel pain—plantar fasciitis: revision 2014. Clinical Practice Guidelines. JOSPT. 2014;44(11):A1–33", url: "https://doi.org/10.2519/jospt.2014.0303" },
+      { label: "Martin RL, et al. Heel pain: plantar fasciitis, revision 2014. Clinical Practice Guidelines. JOSPT. 2014;44(11):A1–33", url: "https://doi.org/10.2519/jospt.2014.0303" },
       { label: "Rathleff MS, et al. High-load strength training improves outcome in patients with plantar fasciitis. Scand J Med Sci Sports. 2015;25(3):e292–300", url: "https://doi.org/10.1111/sms.12313" },
     ],
   },
