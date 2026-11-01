@@ -2,7 +2,7 @@
 
 /** `BackupStore` di atas localStorage perangkat (dipakai Setting › Data & cadangan dan onboarding langkah 1). */
 import { parseSettings } from "./athlete-settings";
-import { applyBackup, buildBackup, parseBackup, type BackupFile, type BackupStore } from "./backup";
+import { applyBackup, backupIsNewer, buildBackup, parseBackup, type BackupFile, type BackupStore } from "./backup";
 import { parseOnboardingState } from "./onboarding";
 import { PREF_KEYS } from "./preference-keys";
 import { applyTheme, readStored, writeStored } from "./preferences";
@@ -31,7 +31,7 @@ export const deviceBackupStore: BackupStore = {
   mergeCheckins: (entries) => checkinStore.merge(entries),
 };
 
-/** Cadangan v6 dari isi perangkat sekarang. */
+/** Cadangan (versi terbaru, `BACKUP_VERSION`) dari isi perangkat sekarang. */
 export function exportDeviceBackup(now = new Date().toISOString()): BackupFile {
   const settingsRaw = readStored(PREF_KEYS.settings);
   const theme = readStored(PREF_KEYS.theme);
@@ -58,15 +58,21 @@ export async function importBackupFile(file: File): Promise<{ ok: boolean; messa
   } catch {
     return { ok: false, message: "✕ File tidak bisa dibaca. Pastikan itu file JSON hasil ekspor." };
   }
+  if (backupIsNewer(data)) return { ok: false, message: "✕ File dari versi aplikasi yang lebih baru. Perbarui aplikasi dulu, lalu impor lagi." };
   const parsed = parseBackup(data);
   if (!parsed) return { ok: false, message: "✕ File tidak berisi data yang dikenali." };
   const parts = applyBackup(parsed, deviceBackupStore, baseProfile);
   return { ok: true, kind: parsed.kind, message: parts.length ? `✓ Impor selesai: ${parts.join("; ")}.` : "✓ Impor selesai." };
 }
 
-/** Unduh cadangan v5 sebagai file JSON. */
+/** Unduh cadangan sebagai file JSON. */
 export function downloadDeviceBackup(fileName: string) {
-  const blob = new Blob([JSON.stringify(exportDeviceBackup(), null, 2)], { type: "application/json" });
+  downloadJson(exportDeviceBackup(), fileName);
+}
+
+/** Unduh objek apa pun sebagai file JSON. */
+export function downloadJson(data: unknown, fileName: string) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

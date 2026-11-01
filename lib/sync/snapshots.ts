@@ -1,6 +1,6 @@
 /**
  * Cadangan otomatis di server (murni, docs/SYNC.md §4 "Cadangan otomatis"): snapshot harian saat sinkron
- * pertama hari itu (WIB) dan snapshot "sebelum pulihkan". Simpan 7 terbaru dari semua jenis.
+ * pertama hari itu (WIB), snapshot "sebelum pulihkan", dan snapshot "sebelum migrasi" (1.0). Simpan 7 terbaru dari semua jenis.
  * Ringkasan hanya berisi hitungan/ada-tidak, bukan data mentah.
  */
 import type { LogEntry } from "@/lib/progression";
@@ -8,7 +8,7 @@ import { hasData, PART_NAMES, type PartName } from "./parts";
 
 export const MAX_SNAPSHOTS = 7;
 
-export type SnapshotKind = "daily" | "before-restore";
+export type SnapshotKind = "daily" | "before-restore" | "before-migrate";
 
 export interface SnapshotSummary {
   logEntries: number;
@@ -29,7 +29,8 @@ export type SnapshotParts = Record<PartName, { rev: number; data: unknown }>;
 
 export const dailyId = (dateWib: string) => `daily-${dateWib}`;
 export const beforeRestoreId = (iso: string) => `before-restore-${iso.replace(/\D/g, "").slice(0, 17)}`;
-export const isSnapshotId = (x: unknown): x is string => typeof x === "string" && /^(daily-\d{4}-\d{2}-\d{2}|before-restore-\d{8,17})$/.test(x);
+export const beforeMigrateId = (iso: string, from: number) => `before-migrate-${from}-${iso.replace(/\D/g, "").slice(0, 17)}`;
+export const isSnapshotId = (x: unknown): x is string => typeof x === "string" && /^(daily-\d{4}-\d{2}-\d{2}|before-restore-\d{8,17}|before-migrate-\d{1,4}-\d{8,17})$/.test(x);
 
 export function summarize(parts: SnapshotParts): SnapshotSummary {
   const log = Array.isArray(parts.log?.data) ? (parts.log.data as LogEntry[]) : [];

@@ -60,6 +60,7 @@ function device(store: SyncStore, initial: Partial<PartData> = {}) {
   const io: SyncIO = {
     async get() {
       const out = await handleGet(store, baseProfile, at(5));
+      if ("blocked" in out) throw new Error(out.blocked);
       const parts = Object.fromEntries(PART_NAMES.map((p) => [p, { ...out.parts[p], data: out.parts[p].data ?? emptyPart(p) }])) as ServerParts;
       return { enabled: true, parts };
     },
@@ -153,13 +154,14 @@ function backupDevice(init: { settings?: string; log?: LogEntry[] } = {}) {
   return { st, store };
 }
 
-describe("skenario 3 · cadangan lama v2 sampai v6", () => {
+describe("skenario 3 · cadangan lama v2 sampai v7", () => {
   const files: [number, Record<string, unknown>][] = [
     [2, { version: 2, log: [log("a")], settings: { conditions: ["apt"] }, preferences: { theme: "dark" } }],
     [3, { version: 3, kind: "backup", log: [log("a")], settings: { conditions: ["apt"], profile: { name: "Atlet Uji" } } }],
     [4, { version: 4, kind: "backup", log: [log("a")], prs: [pr] }],
     [5, { version: 5, kind: "backup", log: [log("a")], prs: [pr], sessions: [session] }],
-    [6, buildBackup({ log: [log("a")], settings: null, program: null, onboarding: null, prs: [pr], sessions: [session], checkins: [checkin], now: "2026-01-06T00:00:00.000Z" }) as unknown as Record<string, unknown>],
+    [6, { version: 6, kind: "backup", log: [log("a")], prs: [pr], sessions: [session], checkins: [checkin] }],
+    [7, buildBackup({ log: [log("a")], settings: null, program: null, onboarding: null, prs: [pr], sessions: [session], checkins: [checkin], now: "2026-01-06T00:00:00.000Z" }) as unknown as Record<string, unknown>],
   ];
 
   for (const [v, file] of files) {

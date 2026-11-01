@@ -28,13 +28,15 @@ export interface SyncMeta {
   lastSyncAt?: string;
   /** Sejak kapan ada perubahan yang belum terkirim. */
   pendingSince?: string;
+  /** Server berisi data dari versi aplikasi yang lebih baru (1.0): sinkron berhenti, data perangkat tidak dikirim. */
+  blocked?: "schema-newer";
 }
 
 export const emptyMeta = (): SyncMeta => ({ parts: {}, state: "ok" });
 const partMeta = (m: SyncMeta, p: PartName): PartMeta => m.parts[p] ?? { rev: null, dirty: [], gen: 0 };
 
 export type ServerParts = Record<PartName, { rev: number; epoch?: number; data: unknown }>;
-export type GetResponse = { enabled: true; parts: ServerParts } | { enabled: false };
+export type GetResponse = { enabled: true; parts: ServerParts } | { enabled: true; blocked: "schema-newer" } | { enabled: false };
 export type PostResult = { part: PartName; ok: true; rev: number } | { part: PartName; ok: false; rev: number; data: unknown };
 
 export interface SyncIO {
@@ -73,6 +75,16 @@ export async function syncOnce(io: SyncIO): Promise<SyncMeta> {
     res = await io.get();
   } catch {
     return fail(io);
+  }
+  if ("blocked" in res) {
+    const meta = io.getMeta();
+    const m: SyncMeta = { ...meta, blocked: res.blocked, ...(anyDirty(meta) ? { state: "pending" as const, pendingSince: meta.pendingSince ?? io.now() } : {}) };
+    io.setMeta(m);
+    return m;
+  }
+  if (io.getMeta().blocked) {
+    const { blocked: _b, ...rest } = io.getMeta();
+    io.setMeta(rest);
   }
   if (!res.enabled) {
     const m = { ...io.getMeta(), state: "off" as const };

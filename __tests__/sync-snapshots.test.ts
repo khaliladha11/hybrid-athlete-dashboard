@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DATA_SCHEMA_VERSION } from "@/lib/migrations/schema";
 import { tombstone } from "@/lib/log-entries";
 import { baseProfile } from "@/lib/profile";
 import type { LogEntry } from "@/lib/progression";
@@ -146,6 +147,7 @@ describe.each(makers)("snapshot harian & pulihkan (%s)", (_n, make) => {
 
   it("sekali per hari WIB, dibuat sebelum tulisan hari itu", async () => {
     const store = await seeded();
+    await store.setSchema(DATA_SCHEMA_VERSION); // snapshot migrasi diuji di migrations.test.ts
     await handleGet(store, baseProfile, at(5, 6));
     await store.writeMany([{ part: "program", baseRev: 0, data: "p" }]);
     await handleGet(store, baseProfile, at(5, 23)); // masih 5 Jan WIB
@@ -218,6 +220,7 @@ describe("epoch di klien: pulihkan ikut ke semua perangkat", () => {
     const io: SyncIO = {
       async get() {
         const out = await handleGet(store, baseProfile, at(5));
+        if ("blocked" in out) throw new Error(out.blocked);
         const parts = Object.fromEntries(PART_NAMES.map((p) => [p, { ...out.parts[p], data: out.parts[p].data ?? emptyPart(p) }])) as ServerParts;
         return { enabled: true, parts };
       },

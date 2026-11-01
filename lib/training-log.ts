@@ -10,6 +10,7 @@ import { emitLocalChange } from "@/lib/local-change";
 import { isLive, mergeLogs, normalizeLog, tombstone } from "@/lib/log-entries";
 import type { LogEntry } from "@/lib/progression";
 import { PREF_KEYS } from "@/lib/preference-keys";
+import { ensureDeviceMigrated } from "@/lib/migrations/device";
 
 const KEY = PREF_KEYS.log;
 const EMPTY: LogEntry[] = [];
@@ -32,6 +33,7 @@ function readAll(): LogEntry[] {
   if (cache) return cache.all;
   let raw: unknown = [];
   try {
+    ensureDeviceMigrated();
     raw = JSON.parse(localStorage.getItem(KEY) ?? "[]");
   } catch {
     raw = [];

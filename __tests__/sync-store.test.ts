@@ -111,7 +111,9 @@ describe("logika /api/sync", () => {
     const s = memorySyncStore();
     s.raw.set("profile", { rev: 3, data: '"bukan objek"' });
     s.raw.set("log", { rev: 1, data: JSON.stringify([entry("a"), { rusak: 1 }]) });
+    s.schema.value = "1";
     const out = await handleGet(s, baseProfile);
+    if ("blocked" in out) throw new Error(out.blocked);
     expect(out.parts.profile).toEqual({ rev: 3, epoch: 0, data: null });
     expect(out.parts.log).toEqual({ rev: 1, epoch: 0, data: [entry("a")] });
     expect(out.parts.preferences).toEqual({ rev: 0, epoch: 0, data: {} });

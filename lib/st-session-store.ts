@@ -8,6 +8,7 @@ import { useSyncExternalStore } from "react";
 import { emitLocalChange } from "@/lib/local-change";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import { isLiveSession, mergeSessions, normalizeSessions, tombstoneSession, type StSession } from "@/lib/st-session";
+import { ensureDeviceMigrated } from "@/lib/migrations/device";
 
 const KEY = PREF_KEYS.sessions;
 const EMPTY: StSession[] = [];
@@ -20,6 +21,7 @@ function readAll(): StSession[] {
   if (cache) return cache.all;
   let raw: unknown = [];
   try {
+    ensureDeviceMigrated();
     raw = JSON.parse(localStorage.getItem(KEY) ?? "[]");
   } catch {
     raw = [];

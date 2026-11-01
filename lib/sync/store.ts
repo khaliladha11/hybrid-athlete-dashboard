@@ -4,8 +4,10 @@
  * selain itu mengembalikan versi terbaru supaya klien bisa menggabungkan lalu mengulang.
  * Pulihkan menaikkan `epoch` semua bagian dalam satu EVAL: klien mengganti datanya, bukan menggabungkan.
  * Snapshot: isi di `ha:sync:snap:<id>`, daftar ringkas di hash `ha:sync:snapmeta`.
+ * Versi skema data (1.0, `lib/migrations/schema.ts`) di `ha:sync:schema`; tidak ada = 0 (data sebelum 1.0).
  * Akses database hanya lewat modul ini, dan modul ini hanya dipakai route server.
  */
+import { parseSchemaVersion } from "@/lib/migrations/schema";
 import { redisPipeline, type RedisConfig } from "@/lib/redis";
 import { PART_NAMES, type PartName } from "./parts";
 import type { SnapshotMeta, SnapshotParts } from "./snapshots";
@@ -26,8 +28,10 @@ export type WriteResult = { part: PartName; ok: true; rev: number } | { part: Pa
 
 export interface SyncStore {
   readAll(): Promise<Record<PartName, StoredPart>>;
-  /** `readAll` + apakah snapshot `snapshotId` sudah ada, dalam satu request. */
-  readForSync(snapshotId: string): Promise<{ parts: Record<PartName, StoredPart>; hasSnapshot: boolean }>;
+  /** `readAll` + apakah snapshot `snapshotId` sudah ada + versi skema, dalam satu request. */
+  readForSync(snapshotId: string): Promise<{ parts: Record<PartName, StoredPart>; hasSnapshot: boolean; schema: number }>;
+  getSchema(): Promise<number>;
+  setSchema(version: number): Promise<void>;
   writeMany(writes: PartWrite[]): Promise<WriteResult[]>;
   /** Simpan snapshot hanya bila id belum ada. Mengembalikan true bila baru dibuat. */
   saveSnapshot(meta: SnapshotMeta, parts: SnapshotParts): Promise<boolean>;
@@ -41,6 +45,7 @@ export interface SyncStore {
 export const syncKey = (part: PartName) => `ha:sync:${part}`;
 export const snapKey = (id: string) => `ha:sync:snap:${id}`;
 export const SNAP_META_KEY = "ha:sync:snapmeta";
+export const SCHEMA_KEY = "ha:sync:schema";
 
 const parseJson = (s: unknown): unknown => {
   if (typeof s !== "string" || !s) return null;
@@ -52,17 +57,25 @@ const parseJson = (s: unknown): unknown => {
 };
 
 /** Untuk test dan pengembangan: semantik sama dengan Redis. */
-export function memorySyncStore(): SyncStore & { raw: Map<PartName, { rev: number; epoch?: number; data: string }>; snaps: Map<string, { meta: SnapshotMeta; parts: string }> } {
+export function memorySyncStore(): SyncStore & { raw: Map<PartName, { rev: number; epoch?: number; data: string }>; snaps: Map<string, { meta: SnapshotMeta; parts: string }>; schema: { value: string | null } } {
   const raw = new Map<PartName, { rev: number; epoch?: number; data: string }>();
+  const schema = { value: null as string | null };
   const snaps = new Map<string, { meta: SnapshotMeta; parts: string }>();
   const readAll = async () =>
     Object.fromEntries(PART_NAMES.map((p) => [p, { rev: raw.get(p)?.rev ?? 0, epoch: raw.get(p)?.epoch ?? 0, data: parseJson(raw.get(p)?.data) }])) as Record<PartName, StoredPart>;
   return {
     raw,
     snaps,
+    schema,
     readAll,
     async readForSync(id) {
-      return { parts: await readAll(), hasSnapshot: snaps.has(id) };
+      return { parts: await readAll(), hasSnapshot: snaps.has(id), schema: parseSchemaVersion(schema.value) };
+    },
+    async getSchema() {
+      return parseSchemaVersion(schema.value);
+    },
+    async setSchema(v) {
+      schema.value = String(v);
     },
     async writeMany(writes) {
       return writes.map(({ part, baseRev, data }) => {
@@ -130,8 +143,15 @@ export function redisSyncStore(cfg: RedisConfig, fetchImpl: typeof fetch = fetch
       return partsFromHashes(await pipeline(reads()));
     },
     async readForSync(id) {
-      const results = await pipeline([...reads(), ["EXISTS", snapKey(id)]]);
-      return { parts: partsFromHashes(results), hasSnapshot: Number(results[PART_NAMES.length]) === 1 };
+      const results = await pipeline([...reads(), ["EXISTS", snapKey(id)], ["GET", SCHEMA_KEY]]);
+      return { parts: partsFromHashes(results), hasSnapshot: Number(results[PART_NAMES.length]) === 1, schema: parseSchemaVersion(results[PART_NAMES.length + 1]) };
+    },
+    async getSchema() {
+      const [v] = await pipeline([["GET", SCHEMA_KEY]]);
+      return parseSchemaVersion(v);
+    },
+    async setSchema(v) {
+      await pipeline([["SET", SCHEMA_KEY, String(v)]]);
     },
     async writeMany(writes) {
       if (!writes.length) return [];

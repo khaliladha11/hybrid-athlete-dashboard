@@ -9,6 +9,7 @@ import { useSyncExternalStore } from "react";
 import { checkinOn, hasValues, isLiveCheckin, mergeCheckins, normalizeCheckins, tombstoneCheckin, type Checkin, type CheckinField } from "@/lib/checkin";
 import { emitLocalChange } from "@/lib/local-change";
 import { PREF_KEYS } from "@/lib/preference-keys";
+import { ensureDeviceMigrated } from "@/lib/migrations/device";
 
 const KEY = PREF_KEYS.checkins;
 const EMPTY: Checkin[] = [];
@@ -21,6 +22,7 @@ function readAll(): Checkin[] {
   if (cache) return cache.all;
   let raw: unknown = [];
   try {
+    ensureDeviceMigrated();
     raw = JSON.parse(localStorage.getItem(KEY) ?? "[]");
   } catch {
     raw = [];

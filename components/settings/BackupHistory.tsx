@@ -6,7 +6,7 @@ import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import { syncNow } from "@/lib/sync/client";
 import type { SnapshotMeta } from "@/lib/sync/snapshots";
 
-const KIND_LABEL: Record<SnapshotMeta["kind"], string> = { daily: "Harian", "before-restore": "Sebelum pulihkan" };
+const KIND_LABEL: Record<SnapshotMeta["kind"], string> = { daily: "Harian", "before-restore": "Sebelum pulihkan", "before-migrate": "Sebelum pembaruan data" };
 
 const formatWhen = (iso: string) =>
   new Date(iso).toLocaleString("id-ID", { timeZone: "Asia/Jakarta", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " WIB";

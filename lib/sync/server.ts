@@ -1,8 +1,13 @@
 /**
  * Logika /api/sync dan /api/status tanpa Next.js (bisa diuji). Setiap bagian divalidasi dengan
  * parser yang sama seperti impor cadangan; tombstone log lama dipadatkan saat ditulis.
+ *
+ * Versi skema (1.0): data server versi lama dimigrasi saat GET pertama (snapshot `before-migrate-*` dulu,
+ * tulis bersyarat per bagian, lalu versi disimpan). Data dari versi aplikasi yang lebih baru (deploy dimundurkan)
+ * tidak dibaca maupun ditimpa: GET menjawab `blocked`, POST 409.
  */
 import { todayWib } from "@/lib/date";
+import { DATA_SCHEMA_VERSION, migrate, type DataParts } from "@/lib/migrations/schema";
 import { compactTombstones } from "@/lib/log-entries";
 import { compactPrTombstones } from "@/lib/prs";
 import { compactSessionTombstones } from "@/lib/st-session";
@@ -13,7 +18,7 @@ import type { PasscodeConfig } from "@/lib/auth/config";
 import type { RedisConfig } from "@/lib/redis";
 import { emptyPart, isPartName, PART_NAMES, validatePart, type PartData, type PartName } from "./parts";
 import { mergeOnboarding } from "./merge";
-import { beforeRestoreId, dailyId, isSnapshotId, pruneIds, serverHasData, sortSnapshots, summarize, type SnapshotKind, type SnapshotParts } from "./snapshots";
+import { beforeMigrateId, beforeRestoreId, dailyId, isSnapshotId, pruneIds, serverHasData, sortSnapshots, summarize, type SnapshotKind, type SnapshotParts } from "./snapshots";
 import type { PartWrite, StoredPart, SyncStore, WriteResult } from "./store";
 
 export const MAX_BODY_BYTES = 1024 * 1024;
@@ -46,10 +51,37 @@ async function takeSnapshot(store: SyncStore, kind: SnapshotKind, id: string, pa
   return created;
 }
 
+/**
+ * Migrasi data server ke versi skema sekarang. Snapshot dulu; setiap bagian ditulis bersyarat (`rev`), jadi
+ * tulisan perangkat lain di saat yang sama tidak tertimpa. Bila ada yang bentrok, versi tidak disimpan dan
+ * migrasi diulang pada GET berikutnya (idempoten). Mengembalikan true bila versi sudah tersimpan.
+ */
+export async function migrateServer(store: SyncStore, all: Record<PartName, StoredPart>, from: number, base: AthleteProfile, now: Date): Promise<boolean> {
+  const raw = Object.fromEntries(PART_NAMES.filter((p) => all[p].data !== null && all[p].data !== undefined).map((p) => [p, all[p].data])) as DataParts;
+  if (serverHasData(all)) {
+    const iso = now.toISOString();
+    await takeSnapshot(store, "before-migrate", beforeMigrateId(iso, from), all, iso);
+  }
+  const r = migrate(raw, from, { base, today: todayWib(now) });
+  const writes: PartWrite[] = PART_NAMES.filter((p) => p in r.parts && JSON.stringify(r.parts[p]) !== JSON.stringify(all[p].data)).map((p) => ({
+    part: p,
+    baseRev: all[p].rev,
+    data: r.parts[p],
+  }));
+  const results = writes.length ? await store.writeMany(writes) : [];
+  if (results.some((x) => !x.ok)) return false;
+  await store.setSchema(r.to);
+  return true;
+}
+
+export type GetBody = { enabled: true; parts: Record<PartName, StoredPart> } | { enabled: true; blocked: "schema-newer" };
+
 /** Semua bagian + snapshot harian saat sinkron pertama hari itu (WIB), sebelum ada tulisan hari itu. */
-export async function handleGet(store: SyncStore, base: AthleteProfile, now = new Date()) {
+export async function handleGet(store: SyncStore, base: AthleteProfile, now = new Date()): Promise<GetBody> {
   const id = dailyId(todayWib(now));
-  const { parts: all, hasSnapshot } = await store.readForSync(id);
+  let { parts: all, hasSnapshot, schema } = await store.readForSync(id);
+  if (schema > DATA_SCHEMA_VERSION) return { enabled: true, blocked: "schema-newer" };
+  if (schema < DATA_SCHEMA_VERSION && (await migrateServer(store, all, schema, base, now).catch(() => false))) all = await store.readAll();
   const parts = cleanAll(all, base);
   if (!hasSnapshot && serverHasData(parts)) {
     // Snapshot gagal tidak boleh menggagalkan sinkron.
@@ -86,7 +118,7 @@ export async function handleRestore(store: SyncStore, rawBody: string, base: Ath
   return { status: 200, body: { enabled: true, restored: id, undoId } };
 }
 
-export type PostOutcome = { status: 200; body: { enabled: true; results: WriteResult[] } } | { status: 400 | 413; body: { error: string } };
+export type PostOutcome = { status: 200; body: { enabled: true; results: WriteResult[] } } | { status: 400 | 409 | 413; body: { error: string } };
 
 export async function handlePost(store: SyncStore, rawBody: string, base: AthleteProfile, nowMs = Date.now()): Promise<PostOutcome> {
   if (Buffer.byteLength(rawBody, "utf8") > MAX_BODY_BYTES) return { status: 413, body: { error: "too_large" } };
@@ -113,6 +145,7 @@ export async function handlePost(store: SyncStore, rawBody: string, base: Athlet
     seen.add(part);
     valid.push({ part, baseRev, data });
   }
+  if ((await store.getSchema()) > DATA_SCHEMA_VERSION) return { status: 409, body: { error: "schema_newer" } };
   const results = await store.writeMany(valid);
   return {
     status: 200,

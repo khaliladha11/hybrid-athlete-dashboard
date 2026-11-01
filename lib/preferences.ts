@@ -6,6 +6,7 @@
  */
 import { useCallback, useSyncExternalStore } from "react";
 import { emitLocalChange } from "./local-change";
+import { ensureDeviceMigrated } from "./migrations/device";
 import { PREF_KEYS } from "./preference-keys";
 
 export type ThemePreference = "system" | "light" | "dark";
@@ -22,6 +23,7 @@ const DEFAULTS: Preferences = { theme: "system" };
 const listeners = new Set<() => void>();
 
 export function readStored(key: string): string | null {
+  ensureDeviceMigrated();
   try {
     return localStorage.getItem(key);
   } catch {

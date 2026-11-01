@@ -11,6 +11,7 @@ import { allMovementNames, baseProfile } from "@/lib/profile";
 import { detectPrs, isLivePr, mergePrs, normalizePrs, tombstonePr, type PrEntry } from "@/lib/prs";
 import type { LogEntry } from "@/lib/progression";
 import { newEntryId } from "@/lib/training-log";
+import { ensureDeviceMigrated } from "@/lib/migrations/device";
 
 const KEY = PREF_KEYS.prs;
 const EMPTY: PrEntry[] = [];
@@ -26,6 +27,7 @@ function readAll(): PrEntry[] {
   if (cache) return cache.all;
   let raw: unknown = [];
   try {
+    ensureDeviceMigrated();
     raw = JSON.parse(localStorage.getItem(KEY) ?? "[]");
   } catch {
     raw = [];

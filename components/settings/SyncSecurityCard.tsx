@@ -53,7 +53,9 @@ export function SyncSecurityCard({ status }: { status: Availability }) {
       </div>
       {status.sync ? (
         <p className="text-[13px] text-muted">
-          {meta.state === "pending"
+          {meta.blocked === "schema-newer"
+            ? "Data sinkron berasal dari versi aplikasi yang lebih baru. Perbarui deploy ini dulu; data di perangkat ini tidak dikirim sampai itu."
+            : meta.state === "pending"
             ? "Perubahan tersimpan di perangkat ini dan dikirim saat koneksi kembali."
             : meta.state === "conflict"
               ? "Data diubah di perangkat lain pada saat yang sama. Ketuk Sinkron sekarang untuk mencoba lagi."

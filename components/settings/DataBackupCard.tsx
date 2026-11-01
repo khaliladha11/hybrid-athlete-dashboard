@@ -3,8 +3,9 @@
 import { useRef, useState } from "react";
 import { BUTTON, Card } from "@/components/ui/Card";
 import { ConfirmButton } from "@/components/ui/ConfirmButton";
-import { downloadDeviceBackup, importBackupFile } from "@/lib/backup-store";
-import { todayWib } from "@/lib/date";
+import { downloadDeviceBackup, downloadJson, importBackupFile } from "@/lib/backup-store";
+import { formatDateId, todayWib } from "@/lib/date";
+import { parsePreMigration, PRE_MIGRATION_KEY, preMigrationBackup } from "@/lib/migrations/device";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import { useStoredString } from "@/lib/preferences";
 import { trainingLog, useTrainingLog } from "@/lib/training-log";
@@ -12,12 +13,15 @@ import { BackupHistory } from "./BackupHistory";
 
 /**
  * Cadangan semua data perangkat: log sesi, pengaturan & profil, program target, preferensi, dan
- * status onboarding (format v3, `lib/backup.ts`). File v1 dan v2 tetap bisa diimpor; log selalu digabung.
+ * status onboarding (`lib/backup.ts`). File v1 sampai versi sekarang bisa diimpor; log selalu digabung.
+ * Bila data perangkat pernah dimigrasi (1.0), salinan sebelum migrasi bisa diunduh sebagai file cadangan.
  */
 /** `synced`: sinkron aktif di deploy ini (data juga ada di database milik pengguna). */
 export function DataBackupCard({ synced = false }: { synced?: boolean }) {
   const entries = useTrainingLog();
   const [, setSettingsRaw] = useStoredString(PREF_KEYS.settings, "");
+  const [preRaw] = useStoredString(PRE_MIGRATION_KEY, "");
+  const pre = parsePreMigration(preRaw || null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -58,6 +62,18 @@ export function DataBackupCard({ synced = false }: { synced?: boolean }) {
         <p role="status" className={`mt-2 text-[13px] font-semibold ${status.startsWith("✓") ? "text-success-ink" : "text-danger-ink"}`}>
           {status}
         </p>
+      )}
+      {pre && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-card bg-subtle px-3 py-2">
+          <span className="text-[13px] text-muted">Cadangan sebelum pembaruan data · {formatDateId(todayWib(new Date(pre.at)))}</span>
+          <button
+            type="button"
+            onClick={() => downloadJson(preMigrationBackup(pre), `hybrid-athlete-sebelum-pembaruan-${pre.at.slice(0, 10)}.json`)}
+            className="inline-flex min-h-11 items-center text-[13px] font-semibold text-brand-ink underline underline-offset-2"
+          >
+            Unduh
+          </button>
+        </div>
       )}
       {synced && <BackupHistory />}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">

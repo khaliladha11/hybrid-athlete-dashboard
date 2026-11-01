@@ -6,7 +6,21 @@ import { advance, initialState, type OnboardingState } from "@/lib/onboarding";
 import { baseProfile } from "@/lib/profile";
 
 const NOW = "2026-10-22T03:00:00.000Z";
-const entry = (id: string) => ({ id, date: "2026-01-05", movement: "Glute Bridge", kind: "reps", value: 12, sets: 3, target: { lo: 8, hi: 12 }, rpe: 6, targetRpe: 7 });
+/** Entri log valid (fiktif); `updatedAt` diisi supaya migrasi tidak mengubahnya. */
+const entry = (id: string) => ({
+  id,
+  date: "2026-01-05",
+  movement: "Glute Bridge",
+  load: 0,
+  value: 12,
+  valueUnit: "reps",
+  target: { lo: 8, hi: 12 },
+  rpe: 6,
+  targetRpe: 7,
+  deload: false,
+  blockIndex: 1,
+  updatedAt: "2026-01-05T00:00:00.000Z",
+});
 
 /** Penyimpanan di memori dengan perilaku log yang sama seperti `trainingLog.merge`. */
 function memStore(init: Partial<{ settings: string; program: string; theme: string; block: string; log: { id: string }[] }> = {}) {
@@ -44,14 +58,14 @@ function memStore(init: Partial<{ settings: string; program: string; theme: stri
   return { st, store };
 }
 
-describe("ekspor v6", () => {
+describe("ekspor v7", () => {
   it("berisi profil dasar dan status onboarding, lalu bisa dibaca kembali", () => {
     const settings = { ...defaultSettings(baseProfile), profile: { name: "Atlet Contoh", blockStart: "2026-01-05" } };
     const onboarding = advance(initialState(), {}, NOW);
     const file = buildBackup({ log: [entry("a")], settings, program: "{}", theme: "dark", blockEnabled: true, onboarding, now: NOW });
-    expect(file).toMatchObject({ app: "hybrid-athlete", version: 6, kind: "backup" });
+    expect(file).toMatchObject({ app: "hybrid-athlete", version: 7, schema: 1, kind: "backup" });
     const parsed = parseBackup(JSON.parse(JSON.stringify(file)))!;
-    expect(parsed.version).toBe(6);
+    expect(parsed.version).toBe(7);
     expect(parsed.settings?.profile).toEqual({ name: "Atlet Contoh", blockStart: "2026-01-05" });
     expect(parsed.onboarding).toEqual(onboarding);
   });
@@ -204,7 +218,7 @@ describe("check-in di cadangan v6 (0.15.2)", () => {
   const c = { date: "2026-03-02", shin: 4, sleep: 2, updatedAt: "2026-03-02T01:00:00.000Z" };
   it("ekspor v6 membawa check-in; impor v6 menggabungkan check-in", () => {
     const file = buildBackup({ log: [], settings: null, program: null, onboarding: null, checkins: [c], now: NOW });
-    expect(file).toMatchObject({ version: 6, checkins: [c] });
+    expect(file).toMatchObject({ version: 7, checkins: [c] });
     const { st, store } = memStore();
     const parts = applyBackup(parseBackup(JSON.parse(JSON.stringify(file)))!, store, baseProfile);
     expect(st.checkins).toEqual([c]);

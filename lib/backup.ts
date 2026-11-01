@@ -11,18 +11,25 @@
  *
  * - v4 (0.14.0): v3 + `prs` (PR kemampuan).
  * - v5 (0.14.1): v4 + `sessions` (sesi ST mode latihan).
- * - v6 (0.15.2): v5 + `checkins` (check-in harian). v1–v5 tetap bisa diimpor.
+ * - v6 (0.15.2): v5 + `checkins` (check-in harian).
+ * - v7 (1.0.0-rc.1): v6 + `schema` (versi skema data, `lib/migrations/schema.ts`).
+ *
+ * Impor (1.0): file dinaikkan berurutan v1 → v2 → … → v7 (`upgradeBackup`, satu langkah per versi), lalu isinya
+ * dimigrasi dengan migrasi yang sama seperti perangkat dan server. File dengan `schema` lebih tinggi dari aplikasi
+ * ini ditolak (`backupIsNewer`), tidak pernah diimpor sebagian.
  *
  * Log, PR, sesi, dan check-in selalu digabung (`mergeLog`, `mergePrs`, `mergeSessions`, `mergeCheckins`), tidak pernah dihapus: file tanpa
  * bagian itu tidak menyentuhnya.
  */
 import { mergeRaceResults, parseProfileSettings, parseSettings, type AthleteSettings } from "./athlete-settings";
 import { parseOnboardingState, type OnboardingState } from "./onboarding";
-import type { AthleteProfile } from "./profile";
+import { baseProfile, type AthleteProfile } from "./profile";
+import { todayWib } from "./date";
+import { DATA_SCHEMA_VERSION, migrate, parseSchemaVersion, type DataParts } from "./migrations/schema";
 import { ZONE_KEYS } from "./run-zones";
 
 export const BACKUP_APP = "hybrid-athlete";
-export const BACKUP_VERSION = 6;
+export const BACKUP_VERSION = 7;
 
 export type ThemeValue = "system" | "light" | "dark";
 export type BackupKind = "backup" | "defaults";
@@ -30,6 +37,8 @@ export type BackupKind = "backup" | "defaults";
 export interface BackupFile {
   app: typeof BACKUP_APP;
   version: typeof BACKUP_VERSION;
+  /** Versi skema data saat ekspor (v7). */
+  schema: number;
   kind: BackupKind;
   exportedAt: string;
   log: unknown[];
@@ -44,7 +53,8 @@ export interface BackupFile {
 
 /** Isi file cadangan yang sudah dibaca; bagian yang tidak ada = undefined. */
 export interface ParsedBackup {
-  version: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Versi file asli (sebelum dinaikkan). */
+  version: BackupFileVersion;
   kind: BackupKind;
   log?: unknown[];
   /** Objek mentah: dipakai untuk tahu field mana yang benar-benar ada di file. */
@@ -92,6 +102,7 @@ export function buildBackup(input: {
   return {
     app: BACKUP_APP,
     version: BACKUP_VERSION,
+    schema: DATA_SCHEMA_VERSION,
     kind: "backup",
     exportedAt: input.now,
     log: input.log,
@@ -105,18 +116,78 @@ export function buildBackup(input: {
   };
 }
 
-/** File JSON (sudah di-parse) → isi cadangan, atau null bila tidak dikenali. */
-export function parseBackup(data: unknown): ParsedBackup | null {
-  if (Array.isArray(data)) return { version: 1, kind: "backup", log: data };
+export type BackupFileVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type Doc = Record<string, unknown>;
+
+/** Langkah naik versi file, berurutan. Setiap langkah hanya mengubah yang berbeda antara dua versi. */
+const UPGRADES: Record<Exclude<BackupFileVersion, 7>, (d: Doc) => Doc> = {
+  // v1: array log saja.
+  1: (d) => ({ version: 2, log: d.log }),
+  // v3 menambah `kind` dan `onboarding`; v2 selalu cadangan biasa tanpa onboarding.
+  2: ({ kind: _k, onboarding: _o, ...d }) => ({ ...d, version: 3, kind: "backup" }),
+  // `prs` baru ada sejak v4, `sessions` sejak v5, `checkins` sejak v6: field itu di file lama tidak dipercaya.
+  3: ({ prs: _p, ...d }) => ({ ...d, version: 4 }),
+  4: ({ sessions: _s, ...d }) => ({ ...d, version: 5 }),
+  5: ({ checkins: _c, ...d }) => ({ ...d, version: 6 }),
+  // v6 dan sebelumnya = data sebelum 1.0 (skema 0).
+  6: (d) => ({ ...d, version: 7, schema: 0 }),
+};
+
+const fileVersion = (data: unknown): BackupFileVersion | null => {
+  if (Array.isArray(data)) return 1;
   if (!data || typeof data !== "object") return null;
-  const d = data as Record<string, unknown>;
-  const version = d.version === 6 ? 6 : d.version === 5 ? 5 : d.version === 4 ? 4 : d.version === 3 ? 3 : 2;
-  const out: ParsedBackup = { version, kind: version >= 3 && d.kind === "defaults" ? "defaults" : "backup" };
+  const v = (data as Doc).version;
+  return v === 7 || v === 6 || v === 5 || v === 4 || v === 3 ? v : 2;
+};
+
+/** File apa pun (v1–v7) → bentuk v7. */
+export function upgradeBackup(data: unknown): Doc | null {
+  const from = fileVersion(data);
+  if (from === null) return null;
+  let d: Doc = from === 1 ? { log: data } : { ...(data as Doc) };
+  for (let v = from; v < 7; v++) d = UPGRADES[v as Exclude<BackupFileVersion, 7>](d);
+  return d;
+}
+
+/** File dari versi aplikasi yang lebih baru (skema lebih tinggi)? Diperiksa sebelum `parseBackup`. */
+export const backupIsNewer = (data: unknown) => fileVersion(data) === 7 && parseSchemaVersion((data as Doc).schema) > DATA_SCHEMA_VERSION;
+
+const isDoc = (v: unknown): v is Doc => !!v && typeof v === "object" && !Array.isArray(v);
+
+/** Isi file v7 → migrasi skema. Setting tetap hanya berisi kunci yang ada di file (penting untuk kind "defaults"). */
+function migrateDoc(d: Doc, today: string, base: AthleteProfile): Doc {
+  const parts: DataParts = {};
+  for (const k of ["log", "prs", "sessions", "checkins"] as const) if (Array.isArray(d[k])) parts[k] = d[k];
+  if (typeof d.program === "string") parts.program = d.program;
+  if (isDoc(d.onboarding)) parts.onboarding = d.onboarding;
+  const settings = isDoc(d.settings) ? d.settings : undefined;
+  if (settings) {
+    const { profile, ...rest } = settings;
+    parts.settings = rest;
+    if (isDoc(profile)) parts.profile = profile;
+  }
+  const r = migrate(parts, parseSchemaVersion(d.schema), { base, today });
+  const out: Doc = { ...d, ...r.parts };
+  delete out.profile;
+  if (settings) {
+    const migrated = isDoc(r.parts.settings) ? r.parts.settings : {};
+    const kept = Object.fromEntries(Object.keys(settings).filter((k) => k !== "profile" && k in migrated).map((k) => [k, migrated[k]]));
+    out.settings = { ...kept, ...("profile" in settings ? { profile: isDoc(r.parts.profile) ? r.parts.profile : settings.profile } : {}) };
+  }
+  return out;
+}
+
+/** File JSON (sudah di-parse) → isi cadangan, atau null bila tidak dikenali atau berasal dari versi yang lebih baru. */
+export function parseBackup(data: unknown, base: AthleteProfile = baseProfile, today = todayWib()): ParsedBackup | null {
+  const version = fileVersion(data);
+  if (version === null || backupIsNewer(data)) return null;
+  const d = migrateDoc(upgradeBackup(data)!, today, base);
+  const out: ParsedBackup = { version, kind: d.kind === "defaults" ? "defaults" : "backup" };
   if (Array.isArray(d.log)) out.log = d.log;
-  if (version >= 4 && Array.isArray(d.prs)) out.prs = d.prs;
-  if (version >= 5 && Array.isArray(d.sessions)) out.sessions = d.sessions;
-  if (version >= 6 && Array.isArray(d.checkins)) out.checkins = d.checkins;
-  if (d.settings && typeof d.settings === "object" && !Array.isArray(d.settings)) out.settings = d.settings as Record<string, unknown>;
+  if (Array.isArray(d.prs)) out.prs = d.prs;
+  if (Array.isArray(d.sessions)) out.sessions = d.sessions;
+  if (Array.isArray(d.checkins)) out.checkins = d.checkins;
+  if (isDoc(d.settings)) out.settings = d.settings;
   if (typeof d.program === "string") out.program = d.program;
   const prefs = d.preferences && typeof d.preferences === "object" ? (d.preferences as Record<string, unknown>) : {};
   if (isTheme(prefs.theme)) out.theme = prefs.theme;
