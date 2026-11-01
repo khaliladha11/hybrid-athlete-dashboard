@@ -169,3 +169,11 @@ Diuji otomatis di `__tests__/recovery.test.ts` (data fiktif). Checklist manual d
 - ARCHITECTURE: diagram (Redis, middleware), tabel modul, tabel Penyimpanan, paragraf keterbatasan; catat perubahan prinsip "data kesehatan tidak keluar dari HP".
 - README: env var baru, panduan Upstash, badge CI.
 - CHANGELOG per rilis.
+
+## Versi skema & migrasi (1.0.0-rc.1)
+
+- Data server punya versi skema di `ha:sync:schema` (tidak ada = 0, data sebelum 1.0). Versi aplikasi ada di `DATA_SCHEMA_VERSION` (`lib/migrations/schema.ts`).
+- **Versi server lebih rendah:** GET pertama membuat snapshot **"Sebelum pembaruan data"** (`before-migrate-<versi>-<waktu>`, ikut batas 7 snapshot dan bisa dipulihkan dari Riwayat cadangan), lalu menulis setiap bagian yang berubah secara bersyarat (`rev`). Bila ada yang bentrok dengan tulisan perangkat lain, versi tidak disimpan dan migrasi diulang pada GET berikutnya (idempoten).
+- **Versi server lebih tinggi** (deploy dimundurkan ke versi lama): GET menjawab `{ enabled: true, blocked: "schema-newer" }`, POST 409. Perangkat tidak mengirim apa pun dan Setting › Sinkron & keamanan meminta deploy diperbarui. Data di server dan di perangkat tidak berubah.
+- Perangkat memigrasi datanya sendiri dengan migrasi yang sama (snapshot `hybrid-athlete.pre-migration`, bisa diunduh di Setting › Data & cadangan) dan tidak memicu sinkron karena itu; parser sinkron menerima bentuk lama.
+- **Sejak 1.0.0-rc.1**, `settings` juga membawa `hrZones`, `strengthRpe`, dan `watchBrand` (0.17), digabung per kunci seperti setting lain.

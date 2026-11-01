@@ -395,7 +395,7 @@ Setiap rilis di repo ini punya tag (`v1.0.0`, …) dan catatan rilis. Repo salin
 | **0.15** Insight | ✅ Selesai | 0.15.0 halaman Tren: CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT per minggu, setiap grafik dengan "Lihat tabel". 0.15.1 tren kekuatan: volume ST & session-RPE, heatmap otot, tren PR, kepatuhan, kalender heatmap. 0.15.2 check-in harian yang hanya menurunkan saran, ambang pribadi (LTHR, HRV, resting HR), ringkasan bulanan. Spesifikasi: [docs/INSIGHT.md](docs/INSIGHT.md) |
 | **0.16** Siap offline & teruji | ✅ Selesai | Aplikasi terbuka tanpa sinyal (mode latihan & log ST offline, sinkron saat online), test e2e Playwright di CI, kontras & axe, anggaran Lighthouse, CSP dan header keamanan, latihan pemulihan data. Rencana: [docs/RELEASE-1.0.md](docs/RELEASE-1.0.md) |
 | **0.17** Terhubung & mudah dipasang | ✅ Selesai | Kirim workout lari ke kalender intervals.icu (lalu ke jam), zona HR & RPE di Setting, tombol Deploy to Vercel, panduan pasang dengan AI |
-| **1.0** Rilis | 💡 Rencana | Pembaruan otomatis lewat PR untuk fork, panduan pengguna lengkap, feature freeze. Detail: [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
+| **1.0** Rilis | 🟡 rc.1 | rc.1: pembaruan lewat PR untuk salinan & fork, migrasi data berversi, lisensi MIT, kontribusi, Tentang & versi. Berikutnya: panduan pengguna lengkap, feature freeze, tag 1.0.0. Detail: [roadmap di PRD](docs/PRD.md#7-roadmap--saran-pengembangan) |
 
 Riwayat lengkap per versi ada di **[CHANGELOG.md](CHANGELOG.md)**.
 

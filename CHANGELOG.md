@@ -4,6 +4,39 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] · 2026-11-01 · Kandidat rilis 1.0
+
+Kandidat rilis pertama 1.0 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #10, #12–#15). Sisa untuk 1.0.0: panduan pengguna & bantuan di aplikasi, feature freeze (#11).
+
+### Langkah manual
+- Pemilik repo upstream: aktifkan **Discussions** (Settings › General › Features › Discussions) dan **Private vulnerability reporting** (Settings › Code security › Private vulnerability reporting).
+- Salinan & fork yang ingin menerima pembaruan otomatis: aktifkan Actions (fork) dan centang **Settings › Actions › General › Allow GitHub Actions to create and approve pull requests** (README › Menerima pembaruan).
+
+### Ditambahkan · pembaruan untuk salinan & fork
+- **`.github/workflows/upstream-update.yml`**: setiap Senin 08:00 WIB dan manual (bisa memilih tag). Membandingkan `version` di package.json dengan rilis stabil terbaru upstream, lalu membuka **pull request** berisi perubahan, **Langkah manual** dari CHANGELOG, dan catatan rilis. Tidak pernah merge otomatis dan tidak berjalan di repo upstream.
+- Patch = tag dasar → tag target, diterapkan dengan `git apply --3way`, jadi berlaku untuk fork maupun salinan dari tombol Deploy Vercel (riwayat berbeda). Konflik → PR **draft** dengan daftar file; gagal total → issue + job gagal. CI dipicu untuk branch PR (`ci.yml` kini punya `workflow_dispatch`).
+- Tanpa secret `UPSTREAM_UPDATE_TOKEN`, perubahan `.github/workflows/` tidak ikut dan ditulis sebagai langkah manual (token bawaan tidak boleh mengubah workflow).
+- **`.github/workflows/release.yml`**: tag `v*` di upstream → GitHub Release dari bagian CHANGELOG; tag berisi `-` menjadi prarilis.
+- `actionlint` di CI.
+
+### Ditambahkan · migrasi data
+- **Satu versi skema** (`lib/migrations/schema.ts`) untuk data perangkat, data sinkron, dan cadangan, dengan migrasi berurutan yang idempoten. Migrasi 1 menggabungkan migrasi ad-hoc sampai 0.17 (id & updatedAt log, Hari H program, alat `items`, override geser dibuang).
+- **Perangkat**: sebelum menulis, isi lama disimpan sebagai **"Cadangan sebelum pembaruan data"** yang bisa diunduh dan diimpor dari Setting › Data & cadangan. Gagal menulis = versi tidak naik, dicoba lagi.
+- **Server sinkron**: snapshot "Sebelum pembaruan data" di Riwayat cadangan, lalu tulis bersyarat per bagian. Data dari versi aplikasi yang lebih baru (deploy dimundurkan) tidak dibaca maupun ditimpa; Setting menjelaskannya.
+- **Cadangan v7** (= v6 + `schema`). Impor menaikkan file v1–v6 berurutan lalu menjalankan migrasi yang sama; file dari versi yang lebih baru ditolak utuh. Fixture fiktif v1–v7 diuji: impor, impor dua kali, ekspor ulang.
+
+### Ditambahkan · lisensi, kontribusi, Tentang
+- **Lisensi MIT** (`LICENSE`, Copyright (c) 2026 Muhammad Khalil Adha). **NOTICE.md** kini mencantumkan setiap aset pihak ketiga dengan sumber, lisensi, dan tautan; yang sebelumnya belum tercatat: font Archivo & Geist Mono (OFL 1.1) dan path ikon dari Feather (MIT) & Lucide (ISC).
+- **CONTRIBUTING.md** (Indonesia + ringkasan Inggris), **CODE_OF_CONDUCT.md** (Contributor Covenant 2.1), **SECURITY.md** (laporan privat, jangan pernah menempel rahasia), templat issue (bug, ide fitur, masukan logika latihan dengan kolom sumber wajib) dan templat PR dengan checklist PRD §3. README menunjuk GitHub Discussions untuk masukan.
+- **Setting › Tentang & versi**: versi terpasang, tanggal rilis, tautan repo, CHANGELOG, lisensi, kredit, referensi, dan "Ada versi baru" dari GitHub Releases (tanpa token, cache 6 jam, gagal tanpa suara).
+- PRD §9: kebijakan versi (semver; MAYOR hanya untuk langkah manual atau perubahan data besar).
+
+### Diperbaiki
+- **Zona HR, RPE ST, dan merek jam (0.17) ikut sinkron.** Sebelumnya ketiganya tidak disinkron dan bisa terhapus dari perangkat saat setting dari server diterapkan.
+
+### Dihapus
+- Kode mati: `conditionsRequiring`, `conditionsExcluding`, `parsePlates`, `workoutToText`, `DAY_CLASS_LABEL`, `REQUIRED` (onboarding), `statusTone`; komentar usang tentang geser dan tab Set Huawei.
+
 ## [0.17.0] · 2026-11-01 · Terhubung & mudah dipasang
 
 Rilis kedua menuju 1.0 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) §8 0.17: #6–#9).

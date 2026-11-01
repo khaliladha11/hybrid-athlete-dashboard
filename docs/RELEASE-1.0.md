@@ -1,6 +1,6 @@
 # Rencana 0.16, 0.17, dan 1.0
 
-> Status: **0.16 dirilis 2026-10-29, 0.17 dirilis 2026-11-01; 1.0 berikutnya (1.0.0-rc.1 dulu).** Rencana awal 2026-10-29; item #12 sampai #15 dan perincian #10 ditambahkan 2026-11-01. Simpan di `docs/RELEASE-1.0.md`.
+> Status: **0.16 dirilis 2026-10-29, 0.17 dirilis 2026-11-01, 1.0.0-rc.1 dirilis 2026-11-01 (#10, #12–#15); sisa 1.0: #11.** Rencana awal 2026-10-29; item #12 sampai #15 dan perincian #10 ditambahkan 2026-11-01. Simpan di `docs/RELEASE-1.0.md`.
 > Bergantung pada 0.12 (sinkron & antrean "belum terkirim"), 0.13 (program), 0.15 (Insight). Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Desain mengikuti [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Fakta tentang perangkat dan intervals.icu di §3 berasal dari catatan pemilik dan **diverifikasi ke dokumentasi resmi sebelum implementasi 0.17**.
 
 ## 1. Tujuan
@@ -229,6 +229,6 @@ HUAWEI Watch Fit 4 tidak disebut di daftar model; diuji lewat checklist manual 0
 2. **Service worker sendiri atau library.** Usulan: ditulis sendiri tanpa library, mengikuti aturan tanpa dependensi baru; dikonfirmasi di prompt 0.16.
 3. **Batas anggaran Lighthouse.** Angka awal ditetapkan dari pengukuran 0.16 lalu dikunci di CI.
 4. **Catatan ST di kalender intervals.icu.** Usulan: mati secara bawaan, diaktifkan pengguna.
-5. **Frekuensi workflow pembaruan.** Usulan: mingguan.
+5. **Frekuensi workflow pembaruan.** Usulan: mingguan. **Diterapkan 1.0.0-rc.1:** Senin 01:00 UTC (08:00 WIB), plus manual.
 6. **Fakta perangkat (§3).** Diverifikasi ke dokumentasi intervals.icu sebelum 0.17; tabel diperbarui bila berbeda.
-7. **Lisensi (2026-11-01).** Dipilih pemilik saat 1.0.0-rc.1. Semua aset pihak ketiga yang dikirim berlisensi permisif (lihat NOTICE.md), jadi tidak membatasi pilihan.
+7. **Lisensi (2026-11-01).** **MIT**, dipilih pemilik saat 1.0.0-rc.1. Semua aset pihak ketiga yang dikirim berlisensi permisif (lihat NOTICE.md), jadi tidak membatasi pilihan.

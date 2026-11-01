@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 0.17.0 (2026-11-01) |
+| **Versi saat ini** | 1.0.0-rc.1 (2026-11-01) |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 76 file test, 836 unit test lolos · 51 test e2e Playwright (30 mobile gelap, 19 desktop terang, 2 sandi) · build produksi lolos · CI GitHub Actions di setiap push & PR (unit, audit, bundle, e2e, Lighthouse) |
+| **Kualitas** | 80 file test, 904 unit test lolos · 55 test e2e Playwright (33 mobile gelap, 20 desktop terang, 2 sandi) · build produksi lolos · CI GitHub Actions di setiap push & PR (actionlint, unit, audit, bundle, e2e, Lighthouse) |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Spesifikasi 0.15: INSIGHT](INSIGHT.md) · [Rencana 0.16 sampai 1.0: RELEASE-1.0](RELEASE-1.0.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -269,6 +269,10 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Copy konsisten: tanpa em dash di string `lib/`, istilah seragam termasuk "Gita" | ✅ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #8): sisa 4 cue dan 1 judul referensi dirapikan (catatan 56 string sudah usang); `copy-lib-strings.test.ts` memindai semua string `lib/` (em dash dilarang, en dash hanya di rentang angka) dan teks UI memakai "Gita", bukan "coach" |
 | Pemasangan mudah: tombol Deploy to Vercel dengan variabel lingkungan berdeskripsi, INSTALL-WITH-AI.md (rahasia diketik pengguna sendiri), AGENTS.md, jalur Vercel CLI | ✅ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #9): tombol mewajibkan `INTERVALS_API_KEY`, `APP_PASSCODE`, `SESSION_SECRET` (deploy baru langsung terkunci), URL dirakit dari `lib/env-schema.ts` dan dijaga test; Upstash dipasang manual karena slug tombol tidak didokumentasikan Vercel; `npm run secret`; tautan dari onboarding |
 | Panduan pengguna lengkap (README) dan bantuan singkat di dalam aplikasi | ⬜ | 1.0 ([RELEASE-1.0](RELEASE-1.0.md) #11) |
+| Setting › Tentang & versi: versi terpasang, tanggal rilis, tautan repo/changelog/lisensi/kredit/referensi, "Ada versi baru" | ✅ | 1.0.0-rc.1 ([RELEASE-1.0](RELEASE-1.0.md) #14): versi dari package.json di server, tanggal dijaga test terhadap CHANGELOG; `/api/app/latest` membaca GitHub Releases tanpa token (cache 6 jam, batas 3 detik, gagal tanpa suara); prarilis tidak ditawarkan |
+| Lisensi MIT dan atribusi lengkap | ✅ | 1.0.0-rc.1 ([RELEASE-1.0](RELEASE-1.0.md) #12): `LICENSE` atas nama Muhammad Khalil Adha; NOTICE.md mencantumkan sumber, lisensi, dan tautan setiap aset (gambar Unlicense, SVG anatomi MIT, font Archivo & Geist Mono OFL 1.1, ikon Feather MIT & Lucide ISC, dependensi); tanpa kode openGym |
+| Kontribusi: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, templat issue & PR, GitHub Discussions | ✅ | 1.0.0-rc.1 ([RELEASE-1.0](RELEASE-1.0.md) #13): masukan logika latihan wajib kolom sumber; templat PR berisi checklist §3; laporan keamanan & perilaku lewat laporan privat GitHub |
+| Kode mati dari fitur yang diganti dihapus | ✅ | 1.0.0-rc.1 ([RELEASE-1.0](RELEASE-1.0.md) #15): 7 export tanpa pemakai dan komentar usang geser & Set Huawei |
 | Login / proteksi akses | ✅ | 0.12.0: sandi aplikasi opsional (`APP_PASSCODE` + `SESSION_SECRET`), lihat §4.10. Vercel Authentication tetap dianjurkan sebagai lapisan luar |
 | Notifikasi / pengingat latihan | ⬜ | |
 
@@ -297,7 +301,7 @@ Selesai di 0.11 (0.11.0 sampai 0.11.2), spesifikasi lengkap di [ONBOARDING.md](O
 | Fitur | Status | Catatan |
 | --- | --- | --- |
 | Wizard `/onboarding` 10 langkah, lanjut dari langkah terakhir, tombol Kembali | ✅ | 0.11.0 (langkah 1, 2, 5–8, 10) + 0.11.1 (langkah 3, 4, 9). Langkah 9 selesai sendiri bila aplikasi sudah terpasang |
-| Disclaimer kesehatan & lisensi wajib, tampil ulang bila versi naik | ✅ | 0.11.0. Repo belum punya file lisensi; poin lisensi menautkan NOTICE.md |
+| Disclaimer kesehatan & lisensi wajib, tampil ulang bila versi naik | ✅ | 0.11.0. Poin lisensi menautkan NOTICE.md; sejak 1.0.0-rc.1 repo berlisensi MIT (`LICENSE`) |
 | Profil dasar (nama, usia, fokus, target lomba, blok/mode bebas) di onboarding & Setting | ✅ | 0.11.0 |
 | Kondisi wajib eksplisit, opsi "Tidak ada kondisi" | ✅ | 0.11.0 |
 | Zona lari: VDOT / manual / "belum tahu" (zona perkiraan) | ✅ | 0.11.0. Isian awal VDOT dari lari terbaik 90 hari dipindah ke backlog (P2) |
@@ -332,8 +336,9 @@ Selesai di 0.12 (0.12.0 sampai 0.12.2), spesifikasi lengkap di [SYNC.md](SYNC.md
 | Onboarding langkah 1: **Sambungkan perangkat ini** | ✅ | 0.12.2: hanya saat sinkron aktif; sandi diminta proxy lebih dulu; wizard dilewati bila server sudah punya onboarding selesai, disclaimer tampil bila versinya belum disetujui |
 | Disclaimer diperbarui untuk sinkron (`TERMS_VERSION` naik) + README panduan Upstash | ✅ | 0.12.2: `TERMS_VERSION` 2; README dengan batas paket gratis (dicek 2026-10-23) |
 | Header keamanan (CSP dan lainnya), audit dependensi di CI, tinjauan sandi, sinkron, dan pencatatan | ✅ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #4): CSP dengan nonce per request (`strict-dynamic`, tanpa `unsafe-inline` di script), `frame-ancestors none`, nosniff, Referrer-Policy, Permissions-Policy; `npm audit --audit-level=high` di CI; rahasia sentinel tidak ada di bundle klien; log server tanpa ID atlet |
-| Latihan pemulihan data (HP hilang, data browser terhapus, perangkat baru, cadangan v2 sampai v6) sebagai test dan checklist | ✅ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #5): `recovery.test.ts` + checklist di [SYNC.md](SYNC.md) "Latihan pemulihan" |
-| Jalur pembaruan untuk clone dan fork: GitHub Action terjadwal yang membuka pull request, migrasi data aman, catatan rilis menandai langkah manual | ⬜ | 1.0 ([RELEASE-1.0](RELEASE-1.0.md) #10) |
+| Latihan pemulihan data (HP hilang, data browser terhapus, perangkat baru, cadangan v2 sampai v7) sebagai test dan checklist | ✅ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #5): `recovery.test.ts` + checklist di [SYNC.md](SYNC.md) "Latihan pemulihan" |
+| Jalur pembaruan untuk clone dan fork: GitHub Action terjadwal yang membuka pull request, migrasi data aman, catatan rilis menandai langkah manual | ✅ | 1.0.0-rc.1 ([RELEASE-1.0](RELEASE-1.0.md) #10): `upstream-update.yml` mingguan + manual, patch tag dasar → tag target (fork dan salinan tombol Deploy), konflik = PR draft berisi daftar file, tidak pernah merge; `release.yml` membuat GitHub Release dari CHANGELOG. Kerangka migrasi `lib/migrations/` dengan satu versi skema untuk perangkat, server, dan cadangan v7; snapshot sebelum migrasi; fixture v1–v7 |
+| Zona HR, RPE ST, dan merek jam ikut sinkron | ✅ | 1.0.0-rc.1: perbaikan, sejak 0.17 ketiganya tidak disinkron dan bisa terhapus saat setting dari server diterapkan |
 
 ## 5. Persyaratan non-fungsional
 
@@ -387,8 +392,10 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | ~~**0.15 Insight**~~ ✅ ([INSIGHT.md](INSIGHT.md)) | 0.15.0 tren lari (CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT); 0.15.1 tren kekuatan (volume ST, heatmap otot, tren PR, kepatuhan mingguan, kalender heatmap); 0.15.2 tubuh & saran (**check-in harian sebagai sinyal kesiapan subjektif utama**, ambang personal, ringkasan bulanan); baseline HRV personal hanya bila data HRV ada | Menjawab "makin bugar, makin kuat, tetap bebas cedera?" dengan tampilan mingguan & bulanan |
 | ~~**0.16 Siap offline & teruji**~~ ✅ ([RELEASE-1.0](RELEASE-1.0.md)) | Mode offline (aplikasi terbuka tanpa sinyal, mode latihan dan log ST offline lewat antrean sinkron 0.12); tes e2e Playwright dan tes komponen di CI; audit aksesibilitas dan performa; pengerasan keamanan (header/CSP, audit dependensi, tinjauan sandi dan sinkron); latihan pemulihan data | Dipakai di gym tanpa sinyal dengan keyakinan: alur inti teruji otomatis dan data bisa dipulihkan |
 | ~~**0.17 Terhubung & mudah dipasang**~~ ✅ ([RELEASE-1.0](RELEASE-1.0.md)) | Kirim workout lari (generator dan program) ke kalender intervals.icu sebagai workout terstruktur, diteruskan ke jam (ST tetap di aplikasi, Copy Set tetap); zona HR dan RPE di Setting; rapikan copy (em dash di `lib/`, istilah "Gita"); pemasangan mudah (Deploy to Vercel, INSTALL-WITH-AI.md, AGENTS.md, Vercel CLI) | Workout sampai ke jam tanpa menyalin, dan orang lain bisa memasang sendiri |
-| **1.0 Rilis** ([RELEASE-1.0](RELEASE-1.0.md)) | Jalur pembaruan untuk fork (GitHub Action membuka PR dari upstream, migrasi aman, langkah manual ditandai); panduan pengguna lengkap dan bantuan di aplikasi; feature freeze, semua dokumen diselaraskan, tag versi | Stabil dan mudah diperbarui tanpa edit kode |
+| **1.0 Rilis** ([RELEASE-1.0](RELEASE-1.0.md)) · rc.1 ✅ | Jalur pembaruan untuk fork (GitHub Action membuka PR dari upstream, migrasi aman, langkah manual ditandai); panduan pengguna lengkap dan bantuan di aplikasi; feature freeze, semua dokumen diselaraskan, tag versi | Stabil dan mudah diperbarui tanpa edit kode |
 
+> 2026-11-01 (2): **1.0.0-rc.1 dirilis** (kandidat rilis 1.0): workflow pembaruan untuk salinan & fork lewat PR, kerangka migrasi data berversi dengan snapshot dan fixture v1–v7, lisensi MIT + NOTICE lengkap, berkas kontribusi, Setting › Tentang & versi, kode mati dihapus, dan perbaikan sinkron zona HR/RPE/merek jam. Sisa 1.0: panduan pengguna & bantuan di aplikasi, feature freeze, tag 1.0.0.
+>
 > 2026-11-01: **0.17.0 dirilis** (terhubung & mudah dipasang): kirim workout lari ke kalender intervals.icu sebagai workout terstruktur (langkah sampai di jam per merek, cek sakelar unggah & error unggah, peringatan threshold pace), zona HR & RPE di Setting (tidak mengubah ambang saran), copy `lib/` dijaga pemindai, tombol Deploy to Vercel + INSTALL-WITH-AI.md + AGENTS.md + jalur Vercel CLI. Uji pemilik di Huawei Watch Fit 4: workout masuk ke Huawei Health setelah threshold pace lari diisi. Berikutnya 1.0.
 >
 > 2026-10-29 (2): **0.16.0 dirilis** (siap offline & teruji): mode offline, 43 test e2e Playwright, axe & kontras non-teks, anggaran Lighthouse mobile, CSP dengan nonce dan header keamanan, pemeriksaan rahasia di bundle klien, latihan pemulihan data. Berikutnya 0.17.
@@ -518,6 +525,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | 0.13.3 | 2026-10-26 | Hari H dipilih atlet: kalender dengan saran lama program, kesiapan HM/FM, jarak antar maraton, panjang program variabel & pre-Base, arsip program |
 | 0.16.0 | 2026-10-29 | Siap offline & teruji: service worker & mode offline, e2e Playwright di CI, axe & kontras non-teks, anggaran Lighthouse, CSP dengan nonce & header keamanan, pemeriksaan bundle, latihan pemulihan |
 | 0.17.0 | 2026-11-01 | Terhubung & mudah dipasang: kirim workout lari ke kalender intervals.icu (lalu ke jam), zona HR & RPE di Setting, rapikan copy, tombol Deploy to Vercel, INSTALL-WITH-AI.md, AGENTS.md, Vercel CLI |
+| 1.0.0-rc.1 | 2026-11-01 | Kandidat rilis 1.0: pembaruan lewat PR untuk salinan & fork, migrasi data berversi, lisensi MIT & NOTICE lengkap, berkas kontribusi, Tentang & versi |
 | 0.15.2 | 2026-10-28 | Insight selesai, tubuh & saran: check-in harian (hanya menurunkan, tanpa berantai), ambang pribadi LTHR/HRV/resting HR, ringkasan bulanan, bagian Tubuh, sinkron `checkins` & cadangan v6 |
 | 0.15.1 | 2026-10-28 | Insight tahap 2, tren kekuatan: rincian set di mode latihan, volume ST per pola & session-RPE, heatmap otot (jarang dilatih, ketuk otot), tren PR dengan tahap, kepatuhan mingguan, kalender heatmap |
 | 0.15.0 | 2026-10-28 | Insight tahap 1, tren lari: rute `/insight` (tanpa tab baru), CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT per minggu; grafik SVG sendiri dengan "Lihat tabel" |
@@ -530,9 +538,26 @@ Detail tiap versi ada di [CHANGELOG.md](../CHANGELOG.md).
 
 ## 9. Cara memperbarui dokumen ini
 
+### Kebijakan versi (sejak 1.0.0-rc.1)
+
+Versi mengikuti [Semantic Versioning](https://semver.org/lang/id/) `MAYOR.MINOR.PATCH`:
+
+| Naik | Kapan | Contoh |
+| --- | --- | --- |
+| **PATCH** (1.0.**1**) | Perbaikan bug, keamanan, dependensi, dan dokumen. Tanpa fitur baru dan tanpa langkah manual | Pesan error salah, celah CSP |
+| **MINOR** (1.**1**.0) | Fitur yang kompatibel. Migrasi data **otomatis** boleh (lewat `lib/migrations/schema.ts`, idempoten, dengan fixture) | Grafik baru, setting baru |
+| **MAYOR** (**2**.0.0) | **Hanya** bila pemilik deploy harus melakukan langkah manual (env wajib baru, setelan Vercel/GitHub, database baru) **atau** ada perubahan data besar yang tidak bisa dimigrasi otomatis tanpa risiko | Env wajib baru, format sinkron baru |
+
+- Sebelum rilis besar ada prarilis `-rc.N` (prarilis tidak ditawarkan otomatis ke salinan; tag-nya bisa diisi manual di workflow pembaruan).
+- Setiap rilis = tag `vX.Y.Z` yang sama dengan `version` di `package.json`, dan bagian `## [X.Y.Z] · tanggal · judul` di CHANGELOG. Push tag membuat GitHub Release (`release.yml`).
+- Tindakan untuk pemilik deploy selalu ditulis di `### Langkah manual` di bagian rilis itu; workflow pembaruan mengangkatnya ke atas PR.
+- Setelah 1.0 berlaku feature freeze (RELEASE-1.0 R7): hanya patch sampai rencana minor berikutnya disetujui.
+
+### Langkah setiap rilis
+
 Setiap kali ada rilis:
 
-1. Naikkan versi di `package.json` dan tambahkan entri di `CHANGELOG.md`.
+1. Naikkan versi di `package.json` dan `RELEASE_DATE` di `lib/app-info.ts`, lalu tambahkan entri di `CHANGELOG.md` (dengan `### Langkah manual` bila ada).
 2. Di dokumen ini:
    - ubah tabel di bagian atas (versi, tanggal, jumlah test),
    - ubah status fitur di §4 (⬜ → 🟡 → ✅),

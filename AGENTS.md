@@ -43,6 +43,9 @@ Before proposing a change as done: `npm run typecheck`, `npm test`, and `npm run
 5. **User-facing strings in `lib/` ship with their tests** in the same commit, separate from logic commits. `__tests__/copy-lib-strings.test.ts` scans every `lib/` string.
 6. **Privacy (public repo, health data):** never commit real intervals.icu/Strava activity IDs, session dates/times, HR/HRV/sleep values, or numbers taken from a live deploy. Tests and docs use fictitious data or Demo Mode. Screenshots only from Demo Mode. Never put the owner's deploy URL in docs.
 7. `formatPace` in `lib/` is frozen; display pace through `formatPaceTag` (`components/ui/format.ts`).
+8. **Stored data shapes are versioned.** Any change to the shape of device data, sync parts, or backup files adds a migration to `lib/migrations/schema.ts` (bump `DATA_SCHEMA_VERSION`, idempotent, never deletes unrecognized values) plus a fixture in `__tests__/fixtures/backups/`. Never edit an existing migration.
+9. **Releases:** semver as in PRD §9; bump `package.json` and `RELEASE_DATE` in `lib/app-info.ts` together; actions the deployer must take go under `### Langkah manual` in CHANGELOG (the upstream update workflow lifts them into the PR). The update workflow never merges.
+10. Third-party assets need a permissive license and an entry in [NOTICE.md](NOTICE.md). The project is MIT ([LICENSE](LICENSE)). Contribution rules: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Helping a user install
 
