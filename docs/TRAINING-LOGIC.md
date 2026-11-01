@@ -2,7 +2,7 @@
 
 Dokumen ini menjelaskan **semua aturan** yang dipakai generator dan sistem saran, beserta dasar ilmiahnya. Setiap aturan WAJIB dijaga oleh validator dan unit test. Aturan-aturan ini tidak hanya ditulis di dokumentasi.
 
-- [1. Aturan dasar (profil atlet)](#1-aturan-dasar-profil-atlet)
+- [1. Aturan dasar & kondisi atlet](#1-aturan-dasar--kondisi-atlet)
 - [2. Generator lari](#2-generator-lari)
 - [3. Generator strength training](#3-generator-strength-training)
 - [4. Periodisasi & variasi](#4-periodisasi--variasi)
@@ -11,7 +11,9 @@ Dokumen ini menjelaskan **semua aturan** yang dipakai generator dan sistem saran
 - [7. Program target (5K / 10K / HM / FM)](#7-program-target-5k--10k--hm--fm)
 - [8. Referensi](#8-referensi)
 - [9. Setting: kondisi, zona, alat & gerakan](#9-setting-kondisi-zona-alat--gerakan)
-- [10. Gerakan tambahan & media (0.9)](#10-gerakan-tambahan--media-09)
+- [10. Gerakan tambahan & media (0.9, 0.14.2)](#10-gerakan-tambahan--media-09-0142)
+- [11. Strength tanpa alat (0.11.2)](#11-strength-tanpa-alat-0112)
+- [12. Kirim ke jam (0.17)](#12-kirim-ke-jam-017)
 
 ---
 
