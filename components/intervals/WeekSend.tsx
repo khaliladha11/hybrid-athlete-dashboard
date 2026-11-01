@@ -7,7 +7,7 @@ import { forgetSent, sendToCalendar, useSent } from "@/lib/intervals/send-store"
 import { eventHash, exportPlannedSession, externalId } from "@/lib/intervals/workout-export";
 import { formatPaceSec, type Program } from "@/lib/program";
 import { isRunKind, type PlannedSession } from "@/lib/program/sessions";
-import { useBlockContext, useResolvedProfile } from "@/lib/settings-store";
+import { useAthleteSettings, useBlockContext, useResolvedProfile } from "@/lib/settings-store";
 
 /**
  * "Kirim minggu ini" (0.17): sisa sesi lari minggu ini dikirim berurutan ke kalender intervals.icu (versi rencana;
@@ -18,6 +18,7 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
   const p = useResolvedProfile();
   const block = useBlockContext();
   const sent = useSent();
+  const [{ watchBrand }] = useAthleteSettings();
   const [busy, setBusy] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const runs = remaining.filter((s) => isRunKind(s.kind));
@@ -28,7 +29,7 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
   const sendWeek = async () => {
     setBusy(true);
     const tally = { sent: 0, failed: 0, queued: 0, skipped: 0 };
-    let warning: string | undefined;
+    let warnings: string[] | undefined;
     const racePace = formatPaceSec(program.racePaceSec);
     try {
       for (const s of runs) {
@@ -38,10 +39,10 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
           continue;
         }
         const date = sendDateFor(s.plannedDate, today);
-        const out = await sendToCalendar({ action: "upsert", externalId: externalId.session(s.id), date, event: r.event }, eventHash(r.event, date));
+        const out = await sendToCalendar({ action: "upsert", externalId: externalId.session(s.id), date, event: r.event, ...(watchBrand ? { watch: watchBrand } : {}) }, eventHash(r.event, date));
         if (out.kind === "sent") {
           tally.sent++;
-          warning ??= out.warning;
+          warnings ??= out.warnings;
         }
         else if (out.kind === "queued") tally.queued++;
         else if (out.kind === "demo") {
@@ -49,7 +50,7 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
           return;
         } else tally.failed++;
       }
-      setSummary(warning ? `${batchSummary(tally)}. ${warning}` : batchSummary(tally));
+      setSummary([batchSummary(tally), ...(warnings ?? [])].join(" "));
     } finally {
       setBusy(false);
     }

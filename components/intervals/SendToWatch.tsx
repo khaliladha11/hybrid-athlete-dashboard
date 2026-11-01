@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { BUTTON } from "@/components/ui/Card";
+import { Segmented } from "@/components/ui/Segmented";
 import { ConfirmButton } from "@/components/ui/ConfirmButton";
-import { DEVICE_HELP, DEVICE_NOTE, HUAWEI_LIMITS, REMOVE_LABEL, RESEND_LABEL, SEND_LABEL, changedText, sentText } from "@/lib/intervals/send-status";
-import { sendToCalendar, useSendQueue, useSent, type SendOutcome } from "@/lib/intervals/send-store";
+import { CHECK_LABEL, DEVICE_HELP, DEVICE_NOTE, HUAWEI_LIMITS, REMOVE_LABEL, RESEND_LABEL, SEND_LABEL, changedText, sentText } from "@/lib/intervals/send-status";
+import { checkUpload, sendToCalendar, useSendQueue, useSent, type SendOutcome } from "@/lib/intervals/send-store";
+import { WATCH_BRANDS, WATCH_LABEL, WATCH_STEPS, type WatchBrand } from "@/lib/intervals/watch";
+import { useAthleteSettings } from "@/lib/settings-store";
 import { eventHash, type ExportResult } from "@/lib/intervals/workout-export";
 
 /**
@@ -35,6 +38,13 @@ export function SendToWatch({
   const queued = useSendQueue()[externalId];
   const [busy, setBusy] = useState(false);
   const [last, setLast] = useState<SendOutcome | null>(null);
+  const [settings, saveSettings] = useAthleteSettings();
+  const watch = settings.watchBrand;
+  const [pickWatch, setPickWatch] = useState(false);
+  const setWatch = (w: WatchBrand) => {
+    saveSettings({ ...settings, watchBrand: w });
+    setPickWatch(false);
+  };
 
   if (!result.ok) {
     return (
@@ -52,10 +62,19 @@ export function SendToWatch({
     try {
       setLast(
         await sendToCalendar(
-          action === "upsert" ? { action, externalId, date, event: result.event } : { action, externalId, date: sent?.date ?? date },
+          action === "upsert" ? { action, externalId, date, event: result.event, ...(watch ? { watch } : {}) } : { action, externalId, date: sent?.date ?? date },
           action === "upsert" ? hash : undefined,
         ),
       );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const check = async () => {
+    setBusy(true);
+    try {
+      setLast(await checkUpload({ externalId, date: sent?.date ?? date, ...(watch ? { watch } : {}) }));
     } finally {
       setBusy(false);
     }
@@ -102,8 +121,40 @@ export function SendToWatch({
       <p role="status" aria-live="polite" className={`text-[13px] ${tone}`}>
         {status}
         {changed && !queued && last?.kind !== "error" ? <span className="block text-muted">{changedText}</span> : null}
-        {last?.warning ? <span className="mt-1 block font-semibold text-warning-ink">{last.warning}</span> : null}
+        {last?.warnings?.map((w) => (
+          <span key={w} className="mt-1 block font-semibold text-warning-ink">
+            {w}
+          </span>
+        ))}
       </p>
+
+      {deviceNote && (
+        <div className="space-y-2 text-[13px]">
+          {!watch || pickWatch ? (
+            <Segmented label="Jam kamu" value={watch ?? "other"} onChange={setWatch} options={WATCH_BRANDS.map((w) => ({ value: w, label: WATCH_LABEL[w] }))} />
+          ) : (
+            <p className="text-muted">
+              Jam: <span className="font-semibold text-ink">{WATCH_LABEL[watch]}</span>{" "}
+              <button type="button" onClick={() => setPickWatch(true)} className="pressable inline-flex min-h-11 items-center px-1 font-semibold text-ink underline">
+                Ganti
+              </button>
+            </p>
+          )}
+          {sent && watch && !pickWatch && (
+            <>
+              <p className="t-label">Sampai di jam</p>
+              <ol className="list-decimal space-y-1 pl-5 text-ink">
+                {WATCH_STEPS[watch].map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ol>
+              <button type="button" disabled={busy} onClick={() => void check()} className={`${BUTTON.base} ${BUTTON.ghost} w-full text-[13px]`}>
+                {CHECK_LABEL}
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {deviceNote && (
         <details className="text-[13px] text-muted">

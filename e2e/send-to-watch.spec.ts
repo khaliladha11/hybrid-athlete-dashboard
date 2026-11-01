@@ -15,6 +15,10 @@ test.describe("kirim ke jam (0.17)", () => {
     const body = await (await res).json();
     expect(body).toEqual({ status: "demo" });
     await expect(card.getByRole("status")).toContainText("Mode demo");
+    // Merek jam (0.17): dipilih sekali di kartu, tersimpan di pengaturan.
+    await card.getByRole("radio", { name: "Huawei" }).click();
+    await expect(card).toContainText("Jam: Huawei");
+    expect(JSON.parse((await ls(page, "hybrid-athlete.settings.v1")) ?? "{}").watchBrand).toBe("huawei");
     await card.getByText("Apa ini?").click();
     await expect(card).toContainText("Custom Courses");
     await expect(card).toContainText("Upload planned workouts");
