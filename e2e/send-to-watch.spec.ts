@@ -37,6 +37,21 @@ test.describe("kirim ke jam (0.17)", () => {
     await expect.poll(async () => Object.keys(JSON.parse((await ls(page, "hybrid-athlete.send-queue.v1")) ?? "{}")).length).toBe(0);
   });
 
+  test("catatan ST: bawaan mati, aktif lewat Setting, NOTE di Demo Mode", async ({ page }) => {
+    await page.goto("/strength");
+    await expect(page.locator("main")).toContainText(/Pemanasan|Inti/);
+    await expect(page.getByRole("button", { name: "Catat di kalender" })).toHaveCount(0);
+    await page.goto("/setting");
+    await page.getByRole("switch", { name: /Catatan ST di kalender/ }).click();
+    await page.goto("/strength");
+    const res = page.waitForResponse((r) => r.url().endsWith("/api/intervals/workout"));
+    await page.getByRole("button", { name: "Catat di kalender" }).click();
+    const req = (await res).request().postDataJSON();
+    expect(req.externalId).toMatch(/^ha:st:\d{4}-\d{2}-\d{2}$/);
+    expect(req.event.category).toBe("NOTE");
+    expect(req.event.name).toMatch(/^ST .+ \d+ menit$/);
+  });
+
   test("rute menolak body tidak valid dan tidak membocorkan apa pun", async ({ request }) => {
     const bad = await request.post("/api/intervals/workout", { data: { action: "upsert", externalId: "evil", date: "x" } });
     expect(bad.status()).toBe(400);

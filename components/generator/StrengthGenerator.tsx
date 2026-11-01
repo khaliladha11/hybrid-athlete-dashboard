@@ -50,6 +50,8 @@ import { useTrainingLog } from "@/lib/training-log";
 import { MovementSheet } from "@/components/movements/MovementSheet";
 import { MovementThumb } from "@/components/movements/MovementThumb";
 import type { StrengthItem } from "@/lib/generator/types";
+import { SendToWatch } from "@/components/intervals/SendToWatch";
+import { exportStNote, externalId } from "@/lib/intervals/workout-export";
 import { CoachCard } from "./CoachCard";
 import { LogForm } from "./LogForm";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
@@ -94,6 +96,7 @@ export function StrengthGenerator({
     [serverAdvice, sessions, todayDone, checkins],
   );
   const [activeRaw, setActiveRaw] = useStoredString(PREF_KEYS.activeWorkout, "");
+  const [stNote] = useStoredString(PREF_KEYS.stCalendarNote, "");
   const active = useMemo(() => parseActiveWorkout(activeRaw), [activeRaw]);
   const [type, setType] = useState<StrengthType>(prefill?.type ?? "fullBody");
   const [duration, setDuration] = useState<Duration>(prefill?.duration ?? 45);
@@ -358,6 +361,8 @@ export function StrengthGenerator({
         </ul>
       </OutputShell>
 
+      {stNote === "1" && <StCalendarNote title={`ST ${STRENGTH_TYPE_LABEL[type]}`} minutes={duration} />}
+
       <GeneratorActions
         copyText={text}
         copyLabel="Copy teks"
@@ -403,4 +408,11 @@ function CoverageNote({ type, p, limited, duration }: { type: Parameters<typeof 
       {c.ok && limited && <p className="text-muted">Sesi lebih pendek dari {duration}&apos; karena gerakan aktif terbatas.</p>}
     </div>
   );
+}
+
+/** Catatan ST di kalender intervals.icu (0.17, opsional): teks saja, ST tidak dikirim sebagai workout terstruktur. */
+function StCalendarNote({ title, minutes }: { title: string; minutes: number }) {
+  const [date, setDate] = useState(() => todayWib());
+  const result = useMemo(() => exportStNote(title, minutes), [title, minutes]);
+  return <SendToWatch title="Catatan di kalender" sendLabel="Catat di kalender" deviceNote={false} externalId={externalId.stNote(date)} date={date} onDateChange={setDate} result={result} />;
 }
