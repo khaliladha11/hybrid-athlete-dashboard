@@ -60,7 +60,7 @@ jobs:
       - name: Anggaran Lighthouse mobile
         run: |
           npx next start -p 3400 &
-          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3400/offline && break; sleep 1; done
+          for _ in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3400/offline && break; sleep 1; done
           npm run lighthouse -- http://localhost:3400
         env:
           CHROME_PATH: /usr/bin/google-chrome

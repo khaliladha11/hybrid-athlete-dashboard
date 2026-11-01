@@ -25,8 +25,8 @@ jobs:
       - name: Buat rilis
         run: |
           node scripts/release-notes.mjs "$GITHUB_REF_NAME" > release-notes.md
-          flags=""
-          case "$GITHUB_REF_NAME" in *-*) flags="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --notes-file release-notes.md $flags
+          args=(--verify-tag --title "$GITHUB_REF_NAME" --notes-file release-notes.md)
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then args+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" "${args[@]}"
         env:
           GH_TOKEN: ${{ github.token }}
