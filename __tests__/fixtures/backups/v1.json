@@ -1,0 +1,32 @@
+[
+  {
+    "date": "2026-01-05",
+    "movement": "Goblet Squat",
+    "load": 10,
+    "value": 10,
+    "valueUnit": "reps",
+    "target": {
+      "lo": 8,
+      "hi": 10
+    },
+    "rpe": 6,
+    "targetRpe": 7,
+    "deload": false,
+    "blockIndex": 1
+  },
+  {
+    "date": "2026-01-07",
+    "movement": "Floor Press",
+    "load": 8,
+    "value": 12,
+    "valueUnit": "reps",
+    "target": {
+      "lo": 8,
+      "hi": 10
+    },
+    "rpe": 6,
+    "targetRpe": 7,
+    "deload": false,
+    "blockIndex": 1
+  }
+]

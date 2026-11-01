@@ -1,0 +1,142 @@
+{
+  "app": "hybrid-athlete",
+  "version": 6,
+  "kind": "backup",
+  "exportedAt": "2026-02-01T00:00:00.000Z",
+  "log": [
+    {
+      "date": "2026-01-05",
+      "movement": "Goblet Squat",
+      "load": 10,
+      "value": 10,
+      "valueUnit": "reps",
+      "target": {
+        "lo": 8,
+        "hi": 10
+      },
+      "rpe": 6,
+      "targetRpe": 7,
+      "deload": false,
+      "blockIndex": 1,
+      "id": "log-fiktif-1",
+      "updatedAt": "2026-01-05T08:00:00.000Z"
+    },
+    {
+      "date": "2026-01-07",
+      "movement": "Floor Press",
+      "load": 8,
+      "value": 12,
+      "valueUnit": "reps",
+      "target": {
+        "lo": 8,
+        "hi": 10
+      },
+      "rpe": 6,
+      "targetRpe": 7,
+      "deload": false,
+      "blockIndex": 1,
+      "id": "log-fiktif-2",
+      "updatedAt": "2026-01-08T08:00:00.000Z",
+      "deletedAt": "2026-01-08T08:00:00.000Z"
+    }
+  ],
+  "settings": {
+    "version": 1,
+    "conditions": [
+      "shin"
+    ],
+    "customConditions": [],
+    "runZones": {
+      "easy": "7:00–7:30/km"
+    },
+    "equipment": {
+      "dumbbell": {
+        "enabled": true,
+        "handleKg": 2,
+        "handles": 2
+      },
+      "barbell": {
+        "enabled": false
+      },
+      "plates": [
+        {
+          "kg": 2,
+          "count": 4
+        }
+      ],
+      "bands": [],
+      "items": []
+    },
+    "movements": {
+      "Push-Up": true
+    },
+    "profile": {
+      "name": "Atlet Fiktif",
+      "age": 30
+    }
+  },
+  "program": "{\"race\": \"10k\", \"goal\": \"1:05:00\", \"startDate\": \"2026-01-05\", \"raceDate\": \"2026-03-29\", \"runsPerWeek\": 3, \"id\": \"10k-2026-01-05-2026-03-29\", \"overrides\": [{\"sessionId\": \"10k-2026-01-05-2026-03-29:1:4:run\", \"action\": \"skip\", \"decidedAt\": \"2026-01-07T00:00:00.000Z\"}]}",
+  "preferences": {
+    "theme": "dark",
+    "blockEnabled": true
+  },
+  "onboarding": {
+    "version": 1,
+    "currentStep": "summary",
+    "completed": [
+      "welcome",
+      "terms",
+      "profile",
+      "conditions",
+      "zones"
+    ],
+    "skipped": [],
+    "termsVersion": 1,
+    "termsAcceptedAt": "2026-01-04T00:00:00.000Z",
+    "completedAt": "2026-01-04T00:10:00.000Z"
+  },
+  "prs": [
+    {
+      "id": "pr-fiktif-1",
+      "movement": "Floor Press",
+      "loadKg": 10,
+      "date": "2026-01-05",
+      "source": "manual",
+      "updatedAt": "2026-01-05T00:00:00.000Z"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "sesi-fiktif-1",
+      "date": "2026-01-05",
+      "startedAt": "2026-01-05T12:00:00.000Z",
+      "type": "lower",
+      "title": "Lower",
+      "difficulty": "moderate",
+      "durationMin": 40,
+      "rpe": 6,
+      "setsDone": 6,
+      "setsPlanned": 6,
+      "movements": [
+        "Goblet Squat"
+      ],
+      "sets": [
+        {
+          "movement": "Goblet Squat",
+          "load": 10,
+          "value": 10,
+          "unit": "reps"
+        }
+      ],
+      "updatedAt": "2026-01-05T13:00:00.000Z"
+    }
+  ],
+  "checkins": [
+    {
+      "date": "2026-01-05",
+      "shin": 3,
+      "sleep": 4,
+      "updatedAt": "2026-01-05T01:00:00.000Z"
+    }
+  ]
+}

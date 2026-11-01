@@ -1,0 +1,72 @@
+{
+  "app": "hybrid-athlete",
+  "version": 2,
+  "exportedAt": "2025-11-01T00:00:00.000Z",
+  "log": [
+    {
+      "date": "2026-01-05",
+      "movement": "Goblet Squat",
+      "load": 10,
+      "value": 10,
+      "valueUnit": "reps",
+      "target": {
+        "lo": 8,
+        "hi": 10
+      },
+      "rpe": 6,
+      "targetRpe": 7,
+      "deload": false,
+      "blockIndex": 1
+    },
+    {
+      "date": "2026-01-07",
+      "movement": "Floor Press",
+      "load": 8,
+      "value": 12,
+      "valueUnit": "reps",
+      "target": {
+        "lo": 8,
+        "hi": 10
+      },
+      "rpe": 6,
+      "targetRpe": 7,
+      "deload": false,
+      "blockIndex": 1
+    }
+  ],
+  "settings": {
+    "version": 1,
+    "conditions": [
+      "shin"
+    ],
+    "customConditions": [],
+    "runZones": {
+      "easy": "7:00–7:30/km"
+    },
+    "equipment": {
+      "dumbbell": {
+        "enabled": true,
+        "handleKg": 2,
+        "handles": 2
+      },
+      "barbell": {
+        "enabled": false
+      },
+      "plates": [
+        {
+          "kg": 2,
+          "count": 4
+        }
+      ],
+      "bands": []
+    },
+    "movements": {
+      "Push-Up": true
+    }
+  },
+  "program": "{\"race\": \"10k\", \"goal\": \"1:05:00\", \"startDate\": \"2026-01-05\", \"runsPerWeek\": 3, \"overrides\": [{\"sessionId\": \"10k-2026-01-05:1:2:run\", \"action\": \"move\", \"toDate\": \"2026-01-08\", \"decidedAt\": \"2026-01-06T00:00:00.000Z\"}, {\"sessionId\": \"10k-2026-01-05:1:4:run\", \"action\": \"skip\", \"decidedAt\": \"2026-01-07T00:00:00.000Z\"}]}",
+  "preferences": {
+    "theme": "dark",
+    "blockEnabled": true
+  }
+}
