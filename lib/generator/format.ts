@@ -1,5 +1,5 @@
 import { META } from "./meta";
-import { PHASE_LABEL, type LoadPrescription, type RunStep, type RunWorkout, type StrengthItem, type StrengthWorkout, type Workout } from "./types";
+import { PHASE_LABEL, type LoadPrescription, type RunStep, type RunWorkout, type StrengthItem, type StrengthWorkout } from "./types";
 
 export function formatMinutes(min: number): string {
   const totalSec = Math.round(min * 60);
@@ -89,8 +89,4 @@ export function strengthToText(w: StrengthWorkout): string {
   }
   lines.push("", "Catatan", ...w.notes.map((n) => `- ${n}`));
   return lines.join("\n");
-}
-
-export function workoutToText(w: Workout): string {
-  return w.kind === "run" ? runToText(w) : strengthToText(w);
 }

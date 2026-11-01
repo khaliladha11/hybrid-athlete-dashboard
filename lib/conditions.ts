@@ -231,11 +231,3 @@ export function combineRules(active: readonly ConditionId[]): ActiveRules {
   };
 }
 
-/** Kondisi aktif yang mewajibkan / melarang sebuah gerakan (untuk label di Setting). */
-export function conditionsRequiring(movement: string, active: readonly ConditionId[]): ConditionId[] {
-  return active.filter((id) => CONDITIONS[id].rules.requiredLower?.includes(movement));
-}
-
-export function conditionsExcluding(movement: string, active: readonly ConditionId[]): ConditionId[] {
-  return active.filter((id) => CONDITIONS[id].rules.exclude?.includes(movement));
-}

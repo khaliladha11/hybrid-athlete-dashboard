@@ -18,8 +18,6 @@ export interface HeatWeek extends WeekBucket {
   days: { date: string; cls: DayClass }[];
 }
 
-export const DAY_CLASS_LABEL: Record<DayClass, string> = { run: "Lari", st: "ST", both: "Lari + ST", rest: "Istirahat", future: "Belum" };
-
 export function heatmapWeeks(activities: Activity[], stSessions: StSession[], stLogDates: string[], today: string, weeks: number): HeatWeek[] {
   const items = calendarItems(activities, stSessions, stLogDates);
   const classOf = (date: string): DayClass => {

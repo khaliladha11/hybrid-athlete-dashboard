@@ -54,7 +54,7 @@ export interface ProgramPlan {
   settings: ProgramSettings;
   /** Simpan perubahan pengaturan (override ikut dipertahankan). */
   save: (patch: Partial<ProgramSettings>) => void;
-  /** Keputusan geser/lewati satu sesi (0.13.2); digabung per sesi, keputusan terbaru menang. */
+  /** Lewati satu sesi (0.13.2; sejak 0.14.3 hanya lewati); digabung per sesi, keputusan terbaru menang. */
   decide: (o: Pick<ProgramOverride, "sessionId" | "action">) => void;
   /** "Buat program" (0.13.3): program lama yang punya riwayat diarsipkan. */
   create: (draft: ProgramDraft) => void;

@@ -237,11 +237,6 @@ export function ownedBands(weight: string, eq: Equipment): string[] | undefined 
   return spec.options.filter((o) => eq.bands.some((b) => b.toLowerCase() === o.toLowerCase()));
 }
 
-/** Parse daftar plat dari teks profil lama: "Plat 4x1.25kg, 4x1.5kg, 4x2.0kg". */
-export function parsePlates(text: string): Plate[] {
-  return [...text.matchAll(/(\d+)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*kg/gi)].map((m) => ({ count: Number(m[1]), kg: Number(m[2].replace(",", ".")) }));
-}
-
 export function isEquipment(x: unknown): x is Equipment {
   if (!x || typeof x !== "object") return false;
   const e = x as Record<string, unknown>;

@@ -111,7 +111,7 @@ export function RunGenerator({
     () => generateRunWorkout({ duration, difficulty, seed, block, cadenceSpm, free, pattern }, p),
     [duration, difficulty, seed, block, cadenceSpm, free, pattern, p],
   );
-  // Tampilan Set Huawei disembunyikan sementara; tombol "Copy Set" tetap menyalin format set-nya.
+  // Format set Huawei Health untuk tombol "Copy Set" (cadangan bila tidak memakai Kirim ke jam).
   const setText = useMemo(() => runToHuaweiSets(workout), [workout]);
   const outputRef = useRef<HTMLElement>(null);
   // Kirim ke jam (0.17): dari program = event sesi itu; generator bebas = satu event per tanggal.

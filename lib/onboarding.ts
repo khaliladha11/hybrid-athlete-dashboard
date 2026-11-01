@@ -36,9 +36,6 @@ export interface StepEnv {
 
 const isAuto = (s: OnboardingStep, env?: StepEnv) => AUTO_SKIPPED.includes(s) || (s === "install" && env?.standalone === true);
 
-/** Langkah yang tidak bisa dilewati. Syarat lanjutnya ada di `canContinue`. */
-export const REQUIRED: readonly OnboardingStep[] = ["terms", "profile", "conditions", "zones"];
-
 /** Langkah yang boleh dilewati (muncul lagi sebagai pengingat di Setting, 0.11.1). */
 export const OPTIONAL: readonly OnboardingStep[] = ["connection", "protect", "equipment", "install"];
 

@@ -26,8 +26,6 @@ export const TONES: Record<Tone, ToneClasses> = {
 
 export const INTENSITY_TONE: Record<Difficulty, Tone> = { easy: "success", moderate: "warning", high: "danger" };
 
-export const statusTone = (ok: boolean): Tone => (ok ? "success" : "danger");
-
 /** Pill kecil berwarna (Geist Mono 11px UPPERCASE, tinggi 22px), mis. label kesulitan atau status. */
 export function pillClasses(tone: Tone): string {
   const t = TONES[tone];
