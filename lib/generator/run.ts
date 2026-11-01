@@ -1,3 +1,4 @@
+import { DEFAULT_TOPS, hrTargets } from "@/lib/hr-zones";
 import { profile, type AthleteProfile, type ResolvedProfile } from "@/lib/profile";
 import { DEFAULT_BLOCK, type BlockContext } from "./block";
 import { createRng } from "./rng";
@@ -5,20 +6,23 @@ import { DIFFICULTY_LABEL, type Difficulty, type Duration, type RunBlock, type R
 import { assertValidRun } from "./validate";
 
 /**
- * Preskripsi zona untuk generator. Pace diambil dari profil (dengan fallback),
- * sedangkan HR memakai acuan yang lebih konservatif dari profil:
- * Easy < 140, Tempo 160–170.
+ * Preskripsi zona untuk generator. Pace diambil dari profil (dengan fallback). HR dari zona efektif Setting › Zona
+ * (0.17, `lib/hr-zones.ts`); bawaannya angka konservatif lama: Easy < 140, Tempo 160–170, pemulihan < 130.
  */
 export function runTargets(p: AthleteProfile = profile) {
   const z = p.runZones ?? {};
+  const hr = hrTargets(p.hrTops ?? DEFAULT_TOPS);
   const str = (v: unknown, fallback: string) =>
     typeof v === "string" && v.trim() ? v.replace(/\/km$/, "") + "/km" : fallback;
   return {
-    easy: { pace: str(z.easy?.pace, "8:00–8:50/km"), hr: "< 140", rpe: "3–4" },
-    tempo: { pace: str(z.tempo?.pace, "6:15–6:30/km"), hr: "160–170", rpe: "6–7" },
-    mini: { pace: str(z.miniInterval?.pace, "5:15–5:35/km"), hr: "Z4–Z5", rpe: "7–8" },
-    norwegian: { pace: str(z.norwegian4x4?.pace, "5:50/km"), hr: "Z4", rpe: "7–8" },
-    recovery: { hr: "< 130", rpe: "2–3" },
+    easy: { pace: str(z.easy?.pace, "8:00–8:50/km"), hr: hr.easy, rpe: "3–4" },
+    tempo: { pace: str(z.tempo?.pace, "6:15–6:30/km"), hr: hr.tempo, rpe: "6–7" },
+    mini: { pace: str(z.miniInterval?.pace, "5:15–5:35/km"), hr: hr.interval, rpe: "7–8" },
+    norwegian: { pace: str(z.norwegian4x4?.pace, "5:50/km"), hr: hr.norwegian, rpe: "7–8" },
+    recovery: { hr: hr.recovery, rpe: "2–3" },
+    /** Jog lambat 15/15 dan batas Easy untuk catatan. */
+    jogDownHr: hr.jogDown,
+    easyBelow: hr.easyBelow,
   };
 }
 
@@ -184,7 +188,7 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
       ];
       notes.push("Cadence drill: pace tetap Z2. Yang berubah hanya frekuensi langkah, bukan kecepatan.");
     }
-    notes.push("Jaga HR < 140. Kalau HR naik, perlambat atau jalan sampai turun.");
+    notes.push(`Jaga HR < ${t.easyBelow}. Kalau HR naik, perlambat atau jalan sampai turun.`);
   } else if (difficulty === "moderate") {
     const fits = MODERATE_OPTIONS[duration].filter((x) => moderateFits(x, input.pattern));
     const o = rng.pick(fits.length ? fits : MODERATE_OPTIONS[duration]);
@@ -260,7 +264,7 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
           `15/15 Set ${i}`,
           [
             { kind: "run", label: 'Cepat 15"', durationMin: 0.25, ...t.mini },
-            { kind: "jog", label: 'Jog lambat 15"', durationMin: 0.25, pace: "santai", hr: "turun ke Z2", rpe: "3–4" },
+            { kind: "jog", label: 'Jog lambat 15"', durationMin: 0.25, pace: "santai", hr: t.jogDownHr, rpe: "3–4" },
           ],
           20,
         ),

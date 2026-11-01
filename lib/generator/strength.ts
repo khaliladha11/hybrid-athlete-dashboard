@@ -1,3 +1,4 @@
+import { strengthRpeFor, type StrengthRpe } from "@/lib/hr-zones";
 import { parseWeight, profile, type Movement, type MovementCategory, type ResolvedProfile } from "@/lib/profile";
 import type { ActiveRules } from "@/lib/conditions";
 import { blockLabel, DEFAULT_BLOCK, type BlockContext } from "./block";
@@ -18,8 +19,9 @@ import { assertValidStrength, DURATION_TOLERANCE_MIN, sanitizeStrength } from ".
 
 export const STRENGTH_RPE: Record<Difficulty, number> = { easy: 5, moderate: 6, high: 7 };
 /** Minggu deload: RPE turun satu (tidak di bawah 5). */
-export function strengthRpe(difficulty: Difficulty, deload: boolean): number {
-  return deload ? Math.max(5, STRENGTH_RPE[difficulty] - 1) : STRENGTH_RPE[difficulty];
+export function strengthRpe(difficulty: Difficulty, deload: boolean, levels: StrengthRpe = STRENGTH_RPE): number {
+  // 0.17: level dari Setting › Zona (4–7); deload tidak pernah menaikkan nilai pengguna.
+  return strengthRpeFor(levels, difficulty, deload);
 }
 
 const REST_SEC: Record<Difficulty, number> = { easy: 60, moderate: 75, high: 90 };
@@ -191,7 +193,7 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
   const lib = p.movementLibrary;
   const rules = p.rules;
   const deload = block.deload;
-  const rpe = strengthRpe(difficulty, deload);
+  const rpe = strengthRpe(difficulty, deload, p.strengthRpe);
   const loadLevel = deload ? LOWER_LEVEL[difficulty] : difficulty;
 
   const schemeKey = rng.pick(SCHEMES_BY_DIFFICULTY[difficulty]);

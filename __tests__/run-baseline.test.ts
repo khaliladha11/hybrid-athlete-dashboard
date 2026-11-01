@@ -10,6 +10,8 @@ import { baseProfile } from "@/lib/profile";
 /**
  * Keluaran generator lari tanpa parameter baru harus identik dengan sebelum 0.13.1 (seed yang sama).
  * Fixture dibuat sekali dari kode sebelum perubahan: `UPDATE_RUN_BASELINE=1 npx vitest run __tests__/run-baseline.test.ts`.
+ * Diperbarui 0.17: teks HR Mini, Norwegian 4×4, dan jog 15/15 dari zona efektif (`lib/hr-zones.ts`). Dengan teks HR
+ * lama hash identik dengan baseline sebelumnya, jadi struktur dan pemanggilan rng tidak berubah.
  */
 const FIXTURE = path.join(process.cwd(), "__tests__/fixtures/run-generator-baseline.json");
 const SEEDS = Array.from({ length: 25 }, (_, i) => i * 7919 + 1);

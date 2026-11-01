@@ -7,6 +7,7 @@
  *    (±75%) — selaras dengan blok 4 minggu & peringatan kenaikan volume (Nielsen 2014).
  *  - 3–4 lari/minggu (sisanya untuk ST), hari quality & long run dijauhkan dari ST kaki (Wilson 2012).
  */
+import { DEFAULT_TOPS, hrTargets } from "./hr-zones";
 import { addDays } from "@/lib/date";
 import type { Difficulty } from "@/lib/generator/types";
 import { profile, type AthleteProfile } from "@/lib/profile";
@@ -236,6 +237,8 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
   const spec = RACES[input.race];
   const racePaceSec = input.goalSec / spec.km;
   const easy = zone(p, "easy", "8:00–8:50/km");
+  // Batas Easy dari zona HR efektif (0.17); bawaan 140.
+  const easyBelow = hrTargets(p.hrTops ?? DEFAULT_TOPS).easyBelow;
   const tempo = zone(p, "tempo", "6:15–6:30/km");
   const interval = zone(p, "miniInterval", "5:15–5:35/km");
   const norwegian = zone(p, "norwegian4x4", "5:50/km");
@@ -264,7 +267,7 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
     const easySession: ProgramSession = {
       day: raceWeek ? "Rabu" : "Kamis",
       title: `Easy run ${easyMin}'`,
-      detail: `Z2 @ ${easy}, HR < 140. Fokus cadence 175–180.`,
+      detail: `Z2 @ ${easy}, HR < ${easyBelow}. Fokus cadence 175–180.`,
       kind: "easy",
       minutes: easyMin,
       intensity: "easy",
@@ -307,7 +310,7 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
         title: `Long run ${longKm} km`,
         detail: progressive
           ? `Z2 @ ${easy}; 3 km terakhir @ race pace ${rp}. Latih minum/gel tiap 30–40 menit.`
-          : `Z2 @ ${easy}, HR < 140. Boleh run-walk 4'/1' bila HR naik.`,
+          : `Z2 @ ${easy}, HR < ${easyBelow}. Boleh run-walk 4'/1' bila HR naik.`,
         kind: "long",
         intensity: progressive ? "moderate" : "easy",
         km: longKm,
