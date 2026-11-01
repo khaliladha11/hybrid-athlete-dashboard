@@ -1,6 +1,6 @@
 # Rencana 0.16, 0.17, dan 1.0
 
-> Status: **0.16 dirilis 2026-10-29, 0.17 dirilis 2026-11-01; 1.0 berikutnya.** Rencana awal 2026-10-29. Simpan di `docs/RELEASE-1.0.md`.
+> Status: **0.16 dirilis 2026-10-29, 0.17 dirilis 2026-11-01; 1.0 berikutnya (1.0.0-rc.1 dulu).** Rencana awal 2026-10-29; item #12 sampai #15 dan perincian #10 ditambahkan 2026-11-01. Simpan di `docs/RELEASE-1.0.md`.
 > Bergantung pada 0.12 (sinkron & antrean "belum terkirim"), 0.13 (program), 0.15 (Insight). Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Desain mengikuti [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Fakta tentang perangkat dan intervals.icu di §3 berasal dari catatan pemilik dan **diverifikasi ke dokumentasi resmi sebelum implementasi 0.17**.
 
 ## 1. Tujuan
@@ -126,10 +126,31 @@ HUAWEI Watch Fit 4 tidak disebut di daftar model; diuji lewat checklist manual 0
 - GitHub Action terjadwal yang membuka **pull request** berisi pembaruan dari upstream; tidak pernah merge otomatis (R6).
 - Migrasi data selalu aman diulang dan tidak merusak data lama; versi cadangan lama tetap bisa diimpor.
 - Catatan rilis menandai **langkah manual** (mis. variabel lingkungan baru, versi disclaimer yang naik) dengan penanda yang mudah dicari.
+- Tambahan 2026-11-01:
+  - `.github/workflows/upstream-update.yml`: terjadwal mingguan dan bisa dijalankan manual; membandingkan dengan **tag rilis terbaru** upstream; PR berisi perubahan dan catatan rilis; tidak berjalan di repo upstream sendiri. Izin yang dibutuhkan dan cara mengatur alamat upstream didokumentasikan. Konflik merge tetap membuka PR dengan catatan yang jelas, tidak gagal diam-diam.
+  - **Kerangka migrasi berversi** (murni, teruji): satu versi skema untuk data perangkat dan data sinkron, migrasi berurutan, **snapshot cadangan otomatis** sebelum migrasi, idempoten. Test memastikan setiap ekspor lama (v1 sampai versi sekarang) terimpor benar lewat fixture.
 
 **#11 Panduan pengguna dan pembekuan fitur**
 - Panduan pengguna lengkap di README, ditambah **bantuan singkat di dalam aplikasi** (apa itu check-in, kenapa saran menurun, cara mengirim ke jam, cara memulihkan data).
 - **Feature freeze** (R7), semua dokumen diselaraskan (PRD, README, ARCHITECTURE, TRAINING-LOGIC, SYNC, DESIGN-SYSTEM), dan **tag versi** 1.0.0.
+
+**#12 Lisensi & atribusi (2026-11-01)**
+- File `LICENSE` dengan hak cipta "Muhammad Khalil Adha".
+- Audit lisensi semua yang dikirim: gambar free-exercise-db, SVG anatomi, font lewat `next/font`, ikon, potongan kode yang disalin. Tidak ada kode dari openGym (AGPL, konsep saja).
+- `NOTICE.md` mencantumkan sumber, lisensi, dan tautan setiap aset pihak ketiga.
+
+**#13 Kontribusi (2026-11-01)**
+- `CONTRIBUTING.md` (Indonesia, ringkasan Inggris): cara menjalankan, menguji, dan mengusulkan fitur. Perubahan logika latihan wajib membawa sumber kredibel dan test (PRD §3).
+- `CODE_OF_CONDUCT.md` (Contributor Covenant), `SECURITY.md` (laporkan kerentanan secara privat, jangan pernah menempel rahasia).
+- `.github/ISSUE_TEMPLATE`: bug, ide fitur, masukan logika latihan (dengan kolom "sumber"); `PULL_REQUEST_TEMPLATE` dengan checklist PRD §3.
+- README: GitHub Discussions sebagai tempat masukan (pemilik mengaktifkannya di pengaturan repo).
+
+**#14 Tentang & versi di Setting (2026-11-01)**
+- Versi terpasang, tanggal rilis, tautan (repo, changelog, lisensi, kredit, referensi).
+- Opsional "Ada versi baru": panggilan server ke GitHub Releases, di-cache, gagal tanpa suara, tanpa token.
+
+**#15 Bersihkan kode mati (2026-11-01)**
+- Sisa fitur yang sudah diganti (mis. geser 0.13.2, tab Set Huawei yang disembunyikan sejak 0.8, penanda sementara) dihapus dalam commit tersendiri; test tetap hijau.
 
 ## 5. Tampilan
 
@@ -181,7 +202,8 @@ HUAWEI Watch Fit 4 tidak disebut di daftar model; diuji lewat checklist manual 0
 | --- | --- |
 | **0.16** | Mode offline (#1), tes e2e dan komponen di CI (#2), audit aksesibilitas dan performa (#3), pengerasan keamanan (#4), latihan pemulihan data (#5) |
 | **0.17** | Kirim workout lari ke kalender intervals.icu (#6), zona HR dan RPE di Setting (#7), rapikan copy (#8), pemasangan mudah: Deploy to Vercel, INSTALL-WITH-AI.md, AGENTS.md, Vercel CLI (#9) |
-| **1.0** | Jalur pembaruan untuk fork (#10), panduan pengguna lengkap dan bantuan di aplikasi, feature freeze, dokumen diselaraskan, tag versi (#11) |
+| **1.0.0-rc.1** | Jalur pembaruan (#10: Action upstream, kerangka migrasi), lisensi & atribusi (#12), kontribusi (#13), Tentang & versi (#14), kode mati (#15); kebijakan versi di PRD §9 |
+| **1.0** | Panduan pengguna lengkap dan bantuan di aplikasi, feature freeze, dokumen diselaraskan, tag versi (#11) |
 
 ## 9. Di luar cakupan
 
@@ -209,3 +231,4 @@ HUAWEI Watch Fit 4 tidak disebut di daftar model; diuji lewat checklist manual 0
 4. **Catatan ST di kalender intervals.icu.** Usulan: mati secara bawaan, diaktifkan pengguna.
 5. **Frekuensi workflow pembaruan.** Usulan: mingguan.
 6. **Fakta perangkat (§3).** Diverifikasi ke dokumentasi intervals.icu sebelum 0.17; tabel diperbarui bila berbeda.
+7. **Lisensi (2026-11-01).** Dipilih pemilik saat 1.0.0-rc.1. Semua aset pihak ketiga yang dikirim berlisensi permisif (lihat NOTICE.md), jadi tidak membatasi pilihan.
