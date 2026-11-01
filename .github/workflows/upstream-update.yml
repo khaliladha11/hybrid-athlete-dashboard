@@ -1,0 +1,55 @@
+# Pembaruan dari upstream untuk salinan & fork (1.0). Membuka pull request berisi perubahan dan catatan rilis;
+# TIDAK PERNAH merge otomatis. Logika di scripts/upstream-update.mjs; panduan di README "Menerima pembaruan".
+#
+# Yang perlu diatur di repo salinan/fork (sekali):
+# - Actions aktif (fork: tab Actions › "I understand my workflows, go ahead and enable them").
+# - Settings › Actions › General › Workflow permissions › "Allow GitHub Actions to create and approve pull requests".
+# - Opsional: variabel repo UPSTREAM_REPO (Settings › Secrets and variables › Actions › Variables), bawaan
+#   khaliladha11/hybrid-athlete-dashboard.
+# - Opsional: secret UPSTREAM_UPDATE_TOKEN (fine-grained PAT untuk repo ini: Contents, Pull requests, Workflows,
+#   Actions = Read and write). Tanpa ini, perubahan .github/workflows/ ditulis sebagai langkah manual di PR.
+name: Upstream update
+
+on:
+  schedule:
+    # Senin 01:00 UTC (08:00 WIB). Di repo publik GitHub mematikan jadwal setelah 60 hari tanpa aktivitas.
+    - cron: "0 1 * * 1"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag rilis upstream (mis. v1.0.0). Kosong = rilis stabil terbaru."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+  issues: write
+
+concurrency:
+  group: upstream-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    # Tidak berjalan di repo upstream sendiri.
+    if: github.repository != (vars.UPSTREAM_REPO || 'khaliladha11/hybrid-athlete-dashboard')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.UPSTREAM_UPDATE_TOKEN || github.token }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Buka PR pembaruan bila ada rilis baru
+        run: node scripts/upstream-update.mjs
+        env:
+          GH_TOKEN: ${{ secrets.UPSTREAM_UPDATE_TOKEN || github.token }}
+          UPSTREAM_REPO: ${{ vars.UPSTREAM_REPO || 'khaliladha11/hybrid-athlete-dashboard' }}
+          INPUT_TAG: ${{ inputs.tag }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          CAN_PUSH_WORKFLOWS: ${{ secrets.UPSTREAM_UPDATE_TOKEN != '' }}

@@ -1,0 +1,32 @@
+# GitHub Release dari CHANGELOG.md saat tag v* di-push (1.0). Hanya di repo upstream: salinan & fork menerima
+# rilis ini lewat upstream-update.yml. Tag berisi "-" (mis. v1.0.0-rc.1) menjadi prerelease, yang tidak
+# ditawarkan ke salinan sebagai "rilis terbaru".
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.repository == 'khaliladha11/hybrid-athlete-dashboard'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Versi package.json sama dengan tag
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - name: Buat rilis
+        run: |
+          node scripts/release-notes.mjs "$GITHUB_REF_NAME" > release-notes.md
+          flags=""
+          case "$GITHUB_REF_NAME" in *-*) flags="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --notes-file release-notes.md $flags
+        env:
+          GH_TOKEN: ${{ github.token }}

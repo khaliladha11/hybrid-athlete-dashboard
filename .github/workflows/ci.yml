@@ -6,6 +6,8 @@ name: CI
 on:
   push:
   pull_request:
+  # Dipicu upstream-update.yml untuk PR pembaruan (event dari GITHUB_TOKEN tidak memicu push/pull_request).
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -27,6 +29,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Periksa sintaks workflow (actionlint)
+        run: |
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.7/scripts/download-actionlint.bash) 1.7.7
+          ./actionlint -color
       - run: npm run typecheck
       - run: npm test
       - name: Audit dependensi (gagal pada high ke atas)
