@@ -640,6 +640,8 @@ Cooldown
 | HR & RPE bukan target, hanya baris catatan `Acuan HR: …` | Satu satuan per workout; HR absolut (bpm) tidak terdokumentasi |
 | Cue tanpa angka dan tanda baca, maks 40 karakter | Teks sebelum durasi menjadi cue; angka bisa terbaca sebagai durasi atau target |
 
+**Syarat di intervals.icu.** Threshold pace lari harus diisi (Settings › Run › Pace settings). Tanpa itu unggah ke Huawei gagal dengan "Workout has no suitable steps" walau sintaksnya benar (forum intervals.icu, Juni 2026). Setelah kirim, server memeriksa `sportSettings[].threshold_pace` dan memberi tahu bila kosong; event tetap masuk kalender.
+
 **Kartu sesi program.**
 - **Long run:** jalan 5' + `Nkm` pace Easy + jalan 5'. Long run progresif: `N-3 km` Easy lalu `3km` race pace. Bila saran memendekkan long run, km yang dipendekkan yang dikirim.
 - **Race pace n×km:** Easy 10', `n x` [jarak race pace + jog 3' istirahat], jog 10'.

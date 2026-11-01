@@ -284,7 +284,7 @@ Tombol **Kirim ke jam** (Generator Lari dan sesi program) menaruh workout di kal
 
 | Jam | Yang perlu diaktifkan | Yang diterima |
 | --- | --- | --- |
-| **Huawei** | Kotak **HUAWEI Health** › centang **Upload planned workouts**. Di aplikasi Huawei Health, Health Service Kit harus tertaut (Me › 3rd Party Services) | Hanya lari, jalan, dan hiking. **Satu** workout: lari terencana berikutnya dalam seminggu. Di jam: **Workout › Outdoor Run › Courses › Custom Courses**. Workout lain bisa dipaksa lewat tombol **Upload to Huawei** di event kalender |
+| **Huawei** | Kotak **HUAWEI Health** › centang **Upload planned workouts**. Di aplikasi Huawei Health, Health Service Kit harus tertaut (Me › 3rd Party Services). **Isi threshold pace lari** di intervals.icu › Settings › Run › Pace settings: tanpa itu unggah gagal ("Workout has no suitable steps") | Hanya lari, jalan, dan hiking. **Satu** workout: lari terencana berikutnya dalam seminggu, **tidak langsung**. Di jam: **Workout › Outdoor Run › Courses › Custom Courses**. Supaya segera, atau untuk workout lain, ketuk **Upload to Huawei** di event kalender |
 | **Garmin** | Kotak Garmin › centang **Upload planned workouts**, lalu izinkan di Garmin Connect | Workout terencana seminggu ke depan, muncul setelah sinkron Garmin Connect |
 | **Coros** | Kotak **Coros** › aktifkan unggah workout terencana | Seminggu ke depan. Bila belum muncul, tambahkan "Intervals.icu Training Plan" di kalender aplikasi Coros |
 | Lainnya | Lihat halaman integrasi intervals.icu | Tanpa jam yang tersambung, pakai **Copy Set** |

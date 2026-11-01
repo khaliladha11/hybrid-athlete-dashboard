@@ -27,6 +27,7 @@ Bagian 0.17 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #6). Versi dinaikkan setelah 
 - Tautan generator dari program membawa id sesi (`sid`) juga untuk lari.
 
 ### Diperbaiki
+- **Kirim ke jam (Huawei):** setelah kirim, server memeriksa threshold pace lari di intervals.icu. Bila kosong, status memberi tahu bahwa jam akan menolak workout dan cara mengisinya (Settings › Run › Pace settings), lalu Upload to Huawei. Catatan perangkat kini menyebut bahwa Huawei tidak langsung menerima workout. Format workout tidak berubah: urutan pace lambat-cepat dan cue sebelum durasi sesuai sumber resmi.
 - Profil tanggal 1–7: ruang kartu ringkasan bulanan ditahan selama data dimuat, jadi halaman tidak bergeser (CLS 0,235 → 0,003; anggaran Lighthouse gagal pada 2026-11-01).
 
 ## [0.16.0] · 2026-10-29 · Siap offline & teruji
