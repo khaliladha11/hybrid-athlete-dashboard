@@ -11,6 +11,7 @@ import { MovementSettings } from "./MovementSettings";
 import { PendingCard } from "./PendingCard";
 import { PreferencesCard } from "./PreferencesCard";
 import { ProfileSettings } from "./ProfileSettings";
+import { HrZonesSettings, type HrRefs } from "./HrZonesSettings";
 import { RunZonesSettings } from "./RunZonesSettings";
 import type { Availability } from "@/lib/sync/server";
 import { SyncSecurityCard } from "./SyncSecurityCard";
@@ -70,7 +71,7 @@ function needsScroll(el: HTMLElement): boolean {
 const OFF: Availability = { passcode: false, database: false, sync: false };
 
 /** `status`: sandi, database, sinkron (dibaca server dari env, hanya boolean). */
-export function SettingsView({ status = OFF }: { status?: Availability }) {
+export function SettingsView({ status = OFF, hrRefs }: { status?: Availability; hrRefs?: HrRefs }) {
   const [settings, save] = useAthleteSettings();
   const resolved = useMemo(() => resolveProfile(baseProfile, settings), [settings]);
   const [active, setActive] = useState<SectionId>("kondisi");
@@ -183,7 +184,13 @@ export function SettingsView({ status = OFF }: { status?: Availability }) {
       </nav>
       {section("profil", <ProfileSettings settings={settings} onChange={save} />)}
       {section("kondisi", <ConditionsSettings settings={settings} onChange={save} warnings={resolved.warnings} />)}
-      {section("zona", <RunZonesSettings settings={settings} onChange={save} />)}
+      {section(
+        "zona",
+        <div className="space-y-4">
+          <RunZonesSettings settings={settings} onChange={save} />
+          <HrZonesSettings settings={settings} onChange={save} refs={hrRefs} />
+        </div>,
+      )}
       {section("alat", <EquipmentSettings settings={settings} onChange={save} />)}
       {section("gerakan", <MovementSettings settings={settings} onChange={save} resolved={resolved} />)}
       {section("tampilan", <PreferencesCard />)}

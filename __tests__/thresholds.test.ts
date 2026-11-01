@@ -109,6 +109,13 @@ describe("LTHR dari respons athlete intervals.icu", () => {
     expect(runLthr({ sportSettings: "x" })).toBeUndefined();
     expect(runLthr(null)).toBeUndefined();
   });
+
+  it("HR maks lari (0.17, isian awal zona HR)", async () => {
+    const { runMaxHr } = await import("@/lib/intervals/normalize");
+    expect(runMaxHr({ sportSettings: [{ types: ["Ride"], max_hr: 185 }, { types: ["Run"], lthr: 169, max_hr: 190 }] })).toBe(190);
+    expect(runMaxHr({ sportSettings: [{ types: ["Run"], lthr: 169 }] })).toBeUndefined();
+    expect(runMaxHr(null)).toBeUndefined();
+  });
 });
 
 describe("baris status ambang", () => {

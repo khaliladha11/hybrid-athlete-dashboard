@@ -132,11 +132,20 @@ export function normalizeList<T>(raw: unknown, fn: (x: unknown) => T | null): T[
  * Bentuk tidak dikenal atau tanpa LTHR → undefined.
  */
 export function runLthr(raw: unknown): number | undefined {
+  return runSetting(raw, "lthr");
+}
+
+/** HR maks lari dari `sportSettings[].max_hr` (0.17, isian awal Setting › Zona HR). */
+export function runMaxHr(raw: unknown): number | undefined {
+  return runSetting(raw, "max_hr");
+}
+
+function runSetting(raw: unknown, key: "lthr" | "max_hr"): number | undefined {
   const settings = (raw as { sportSettings?: unknown } | null)?.sportSettings;
   if (!Array.isArray(settings)) return undefined;
   for (const s of settings) {
     const r = s as Record<string, unknown>;
-    if (Array.isArray(r?.types) && r.types.includes("Run") && typeof r.lthr === "number" && r.lthr > 0) return r.lthr;
+    if (Array.isArray(r?.types) && r.types.includes("Run") && typeof r[key] === "number" && (r[key] as number) > 0) return r[key] as number;
   }
   return undefined;
 }

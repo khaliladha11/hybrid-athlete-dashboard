@@ -3,7 +3,7 @@ import { addDays, todayWib } from "@/lib/date";
 import { mockActivities, mockActivityDetail, mockInsightActivities, mockInsightWellness, mockWellness } from "@/lib/mock-data";
 import { getIntervalsConfig, intervalsGet } from "./client";
 import { dedupeActivities } from "./dedupe";
-import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness, runLthr } from "./normalize";
+import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWellness, runLthr, runMaxHr } from "./normalize";
 import { hardRunThreshold, type HardRunThreshold } from "@/lib/thresholds";
 import { readinessAdvice, todayDone, weeklyAdvice, type Advice, type TodayDone } from "@/lib/coach";
 import { assessReadiness, type Readiness } from "@/lib/readiness";
@@ -17,8 +17,22 @@ export function isDemoMode(): boolean {
 
 /** LTHR lari demo (fiktif): 90% = 151 bpm. */
 export const DEMO_LTHR = 168;
+/** HR maks lari demo (fiktif). */
+export const DEMO_MAX_HR = 188;
 const LTHR_TTL_MS = 60 * 60 * 1000;
-let lthrCache: { at: number; lthr?: number } | null = null;
+let lthrCache: { at: number; lthr?: number; maxHr?: number } | null = null;
+
+/** LTHR & HR maks lari dari pengaturan intervals.icu (cache 1 jam yang sama). Gagal → kosong, tidak pernah error. */
+export async function getRunHrRefs(): Promise<{ lthr?: number; maxHr?: number }> {
+  if (isDemoMode()) return { lthr: DEMO_LTHR, maxHr: DEMO_MAX_HR };
+  if (!(lthrCache && Date.now() - lthrCache.at < LTHR_TTL_MS)) {
+    const { athleteId } = getIntervalsConfig();
+    const res = await intervalsGet(`/athlete/${encodeURIComponent(athleteId)}`);
+    if (!res.ok) return {};
+    lthrCache = { at: Date.now(), lthr: runLthr(res.data), maxHr: runMaxHr(res.data) };
+  }
+  return { ...(lthrCache.lthr ? { lthr: lthrCache.lthr } : {}), ...(lthrCache.maxHr ? { maxHr: lthrCache.maxHr } : {}) };
+}
 
 /**
  * Ambang HR lari berat (0.15.2): 90% LTHR lari dari intervals.icu, atau 155 bpm. Hanya angka LTHR yang disimpan di
@@ -30,7 +44,7 @@ export async function getRunThreshold(): Promise<HardRunThreshold> {
   const { athleteId } = getIntervalsConfig();
   const res = await intervalsGet(`/athlete/${encodeURIComponent(athleteId)}`);
   if (!res.ok) return hardRunThreshold(undefined);
-  lthrCache = { at: Date.now(), lthr: runLthr(res.data) };
+  lthrCache = { at: Date.now(), lthr: runLthr(res.data), maxHr: runMaxHr(res.data) };
   return hardRunThreshold(lthrCache.lthr);
 }
 
