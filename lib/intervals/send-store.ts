@@ -9,7 +9,7 @@
 import { useSyncExternalStore } from "react";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import type { SendRequest, SendResponse } from "./calendar";
-import { applySent, demoText, dequeue, enqueue, normalizeQueue, normalizeSent, queueOrder, queuedText, removedText, retryable, sendErrorText, sentText, type SendQueue, type SentMap } from "./send-status";
+import { applySent, demoText, thresholdPaceText, dequeue, enqueue, normalizeQueue, normalizeSent, queueOrder, queuedText, removedText, retryable, sendErrorText, sentText, type SendQueue, type SentMap } from "./send-status";
 
 const ENDPOINT = "/api/intervals/workout";
 
@@ -57,7 +57,7 @@ const queueStore = jsonStore<SendQueue>(PREF_KEYS.sendQueue, normalizeQueue, {})
 export const useSent = (): SentMap => useSyncExternalStore(sentStore.subscribe, sentStore.read, () => sentStore.empty);
 export const useSendQueue = (): SendQueue => useSyncExternalStore(queueStore.subscribe, queueStore.read, () => queueStore.empty);
 
-export type SendOutcome = { kind: "sent" | "removed" | "queued" | "demo" | "error"; text: string };
+export type SendOutcome = { kind: "sent" | "removed" | "queued" | "demo" | "error"; text: string; warning?: string };
 
 async function post(req: SendRequest): Promise<SendResponse> {
   try {
@@ -76,7 +76,8 @@ function outcome(req: SendRequest, res: SendResponse, hash?: string): SendOutcom
   if (res.status === "error") return { kind: "error", text: sendErrorText(res.code, res.retryAfterSec) };
   if (res.status === "demo") return { kind: "demo", text: demoText };
   sentStore.write(applySent(sentStore.read(), req, res, hash, now()));
-  return req.action === "delete" ? { kind: "removed", text: removedText } : { kind: "sent", text: sentText(req.date) };
+  if (req.action === "delete") return { kind: "removed", text: removedText };
+  return { kind: "sent", text: sentText(req.date), ...(res.warning === "NO_THRESHOLD_PACE" ? { warning: thresholdPaceText } : {}) };
 }
 
 /** Kirim / hapus satu event. Offline atau jaringan putus = masuk antrean. */

@@ -10,6 +10,7 @@
  * Respons ke browser hanya status atau kode error: tanpa key, id event, atau isi dari intervals.icu.
  */
 import { addDays } from "@/lib/date";
+import { runThresholdPace } from "./normalize";
 import type { FetchResult, IntervalsErrorCode } from "./types";
 import { EXTERNAL_ID_RE, type ExportedEvent } from "./workout-export";
 
@@ -28,7 +29,9 @@ export interface SendRequest {
 
 export type SendStatus = "created" | "updated" | "deleted" | "absent" | "demo";
 export type SendErrorCode = IntervalsErrorCode | "INVALID";
-export type SendResponse = { status: SendStatus } | { status: "error"; code: SendErrorCode; retryAfterSec?: number };
+/** Peringatan setelah kirim berhasil: threshold pace lari belum diisi di intervals.icu (jam menolak workout pace). */
+export type SendWarning = "NO_THRESHOLD_PACE";
+export type SendResponse = { status: SendStatus; warning?: SendWarning } | { status: "error"; code: SendErrorCode; retryAfterSec?: number };
 
 type Api = (method: "GET" | "POST" | "PUT" | "DELETE", path: string, opts?: { query?: Record<string, string>; body?: unknown }) => Promise<FetchResult<unknown>>;
 
@@ -96,13 +99,26 @@ export async function handleSend(req: SendRequest, api: Api, athleteId: string):
 
   const body = eventBody(req as SendRequest & { event: ExportedEvent });
   const [keep, ...dupes] = found;
+  let status: SendStatus;
   if (keep) {
     const r = await api("PUT", `${base}/${keep.id}`, { body });
     if (!r.ok) return failFrom(r);
     // Duplikat dari kiriman lama (mis. dua perangkat bersamaan) dirapikan; gagal menghapusnya tidak menggagalkan kirim.
     for (const d of dupes) await api("DELETE", `${base}/${d.id}`);
-    return { status: "updated" };
+    status = "updated";
+  } else {
+    const r = await api("POST", base, { query: { upsertOnUid: "false" }, body });
+    if (!r.ok) return failFrom(r);
+    status = "created";
   }
-  const r = await api("POST", base, { query: { upsertOnUid: "false" }, body });
-  return r.ok ? { status: "created" } : failFrom(r);
+  return { status, ...(req.event?.category === "WORKOUT" && (await missingThresholdPace(api, athleteId)) ? { warning: "NO_THRESHOLD_PACE" as const } : {}) };
+}
+
+/**
+ * Workout berisi target pace; tanpa threshold pace lari di intervals.icu, unggah ke jam (Huawei) gagal dengan
+ * "Workout has no suitable steps" (forum intervals.icu, Juni 2026). Gagal membaca pengaturan = tidak ada peringatan.
+ */
+async function missingThresholdPace(api: Api, athleteId: string): Promise<boolean> {
+  const r = await api("GET", `/athlete/${encodeURIComponent(athleteId)}`);
+  return r.ok && runThresholdPace(r.data) === undefined;
 }

@@ -26,16 +26,19 @@ export const queuedText = (action: SendRequest["action"]) =>
   action === "delete" ? "Sedang offline. Penghapusan dikirim saat online lagi." : "Sedang offline. Workout dikirim saat online lagi.";
 export const demoText = "Mode demo: tidak ada yang dikirim. Isi INTERVALS_API_KEY di Vercel untuk mengirim ke kalender.";
 export const changedText = "Workout berubah sejak dikirim. Kirim ulang untuk memperbarui event yang sama.";
+/** Kirim berhasil, tetapi intervals.icu belum punya threshold pace lari: jam menolak workout pace. */
+export const thresholdPaceText =
+  "Masuk ke kalender, tetapi threshold pace lari di intervals.icu masih kosong, jadi jam menolak workout ini. Isi di intervals.icu › Settings › Run › Pace settings › Threshold pace, lalu buka event dan ketuk Upload to Huawei.";
 
 /** Satu kalimat catatan perangkat di bawah tombol. */
-export const DEVICE_NOTE = "Huawei menerima satu lari terencana berikutnya dalam seminggu, di Courses › Custom Courses. Garmin dan Coros menerima seminggu ke depan.";
+export const DEVICE_NOTE = "Huawei menerima satu lari terencana berikutnya dalam seminggu, tidak langsung, di Courses › Custom Courses. Garmin dan Coros menerima seminggu ke depan.";
 
 /** Isi lembar "Apa ini?": merek, yang diterima, dan pengaturan di intervals.icu. */
 export const DEVICE_HELP: { brand: string; receives: string; setting: string }[] = [
   {
     brand: "Huawei",
     receives: "Hanya lari, jalan, dan hiking. Satu workout: lari terencana berikutnya dalam seminggu. Di jam: Workout › Outdoor Run › Courses › Custom Courses.",
-    setting: "Settings › Connections › HUAWEI Health › centang Upload planned workouts.",
+    setting: "Settings › Connections › HUAWEI Health › centang Upload planned workouts. Threshold pace lari wajib diisi di Settings › Run.",
   },
   { brand: "Garmin", receives: "Workout terencana seminggu ke depan, muncul setelah sinkron Garmin Connect.", setting: "Settings › Garmin › centang Upload planned workouts." },
   { brand: "Coros", receives: "Workout terencana seminggu ke depan. Tambahkan Intervals.icu Training Plan ke kalender aplikasi Coros bila belum muncul.", setting: "Settings › Coros › aktifkan unggah workout terencana." },
@@ -43,7 +46,8 @@ export const DEVICE_HELP: { brand: string; receives: string; setting: string }[]
 ];
 
 export const HUAWEI_LIMITS = [
-  "Kalau workout lain yang muncul, buka event di kalender intervals.icu lalu pilih Upload to Huawei.",
+  "Workout tidak langsung muncul di jam: intervals.icu mengunggah sendiri lari terencana berikutnya. Supaya segera, buka event di kalender intervals.icu lalu pilih Upload to Huawei.",
+  "Kalau unggah gagal (mis. Workout has no suitable steps), isi threshold pace lari di intervals.icu › Settings › Run, lalu unggah lagi.",
   "Setiap langkah dikirim dengan target pace, termasuk jalan dan jog, karena Huawei membuang langkah tanpa target.",
   "Tampilan ulangan di jam bisa berbeda. Periksa jumlah repetisi sebelum mulai.",
 ];

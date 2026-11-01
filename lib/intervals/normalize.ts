@@ -140,7 +140,15 @@ export function runMaxHr(raw: unknown): number | undefined {
   return runSetting(raw, "max_hr");
 }
 
-function runSetting(raw: unknown, key: "lthr" | "max_hr"): number | undefined {
+/**
+ * Threshold pace lari dari `sportSettings[].threshold_pace` (0.17). Tanpa nilai ini ekspor workout pace ke Huawei
+ * gagal ("Workout has no suitable steps"; saran forum intervals.icu: isi pengaturan pace di /settings).
+ */
+export function runThresholdPace(raw: unknown): number | undefined {
+  return runSetting(raw, "threshold_pace");
+}
+
+function runSetting(raw: unknown, key: "lthr" | "max_hr" | "threshold_pace"): number | undefined {
   const settings = (raw as { sportSettings?: unknown } | null)?.sportSettings;
   if (!Array.isArray(settings)) return undefined;
   for (const s of settings) {

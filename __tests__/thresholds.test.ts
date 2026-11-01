@@ -116,6 +116,12 @@ describe("LTHR dari respons athlete intervals.icu", () => {
     expect(runMaxHr({ sportSettings: [{ types: ["Run"], lthr: 169 }] })).toBeUndefined();
     expect(runMaxHr(null)).toBeUndefined();
   });
+
+  it("threshold pace lari (0.17, syarat unggah workout pace ke jam)", async () => {
+    const { runThresholdPace } = await import("@/lib/intervals/normalize");
+    expect(runThresholdPace({ sportSettings: [{ types: ["Run"], threshold_pace: 3.4 }] })).toBe(3.4);
+    expect(runThresholdPace({ sportSettings: [{ types: ["Ride"], threshold_pace: 3.4 }, { types: ["Run"] }] })).toBeUndefined();
+  });
 });
 
 describe("baris status ambang", () => {

@@ -18,7 +18,7 @@ interface Remote {
 }
 
 /** intervals.icu palsu: menyimpan event di memori dan mencatat permintaan. */
-function fakeIntervals(opts: { status?: number; headers?: Record<string, string>; throws?: Error } = {}) {
+function fakeIntervals(opts: { status?: number; headers?: Record<string, string>; throws?: Error; thresholdPace?: number | null } = {}) {
   const events: Remote[] = [];
   const calls: { method: string; url: string; auth: string | null; body?: unknown }[] = [];
   let nextId = 100;
@@ -30,6 +30,11 @@ function fakeIntervals(opts: { status?: number; headers?: Record<string, string>
     if (opts.throws) throw opts.throws;
     if (opts.status) return new Response("{}", { status: opts.status, headers: opts.headers });
     const m = url.pathname.match(/\/events(?:\/(\d+))?$/);
+    // Pengaturan atlet (fiktif): threshold pace lari bawaan ada.
+    if (method === "GET" && /\/athlete\/[^/]+$/.test(url.pathname)) {
+      const tp = opts.thresholdPace === undefined ? 3.4 : opts.thresholdPace;
+      return Response.json({ sportSettings: [{ types: ["Run"], lthr: 168, ...(tp ? { threshold_pace: tp } : {}) }] });
+    }
     if (method === "GET") {
       const [lo, hi] = [url.searchParams.get("oldest")!, url.searchParams.get("newest")!];
       return Response.json(events.filter((e) => e.start_date_local.slice(0, 10) >= lo && e.start_date_local.slice(0, 10) <= hi));
@@ -137,11 +142,21 @@ describe("rute kirim ke kalender intervals.icu", () => {
     expect((await send({ action: "delete", externalId: workout().externalId, date: "2026-11-03" })).json).toEqual({ status: "absent" });
   });
 
+  it("threshold pace lari kosong di intervals.icu → tetap terkirim dengan peringatan (Huawei menolak workout pace)", async () => {
+    const fake = fakeIntervals({ thresholdPace: null });
+    const r = await send(workout());
+    expect(r.json).toEqual({ status: "created", warning: "NO_THRESHOLD_PACE" });
+    expect(fake.events).toHaveLength(1);
+    clean(r.text);
+  });
+
   it("catatan ST = NOTE tanpa type", async () => {
     const fake = fakeIntervals();
     const r = await send({ action: "upsert", externalId: "ha:st:2026-11-02", date: "2026-11-02", event: { category: "NOTE", name: "ST Lower 45 menit", description: "Sesi strength.", movingTimeSec: 2700 } });
     expect(r.json).toEqual({ status: "created" });
     expect(fake.events[0]).toMatchObject({ category: "NOTE", name: "ST Lower 45 menit" });
+    // Catatan bukan workout pace: pengaturan atlet tidak diperiksa.
+    expect(fake.calls.some((c) => /\/athlete\/[^/]+$/.test(c.url.split("?")[0]))).toBe(false);
     expect(fake.events[0]).not.toHaveProperty("type");
   });
 
