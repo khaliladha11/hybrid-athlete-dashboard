@@ -121,7 +121,7 @@ export function InsightView({
     <div className="space-y-4">
       <div>
         <h1 className="t-display text-brand-ink">Tren</h1>
-        <p className="mt-1 text-body text-muted">Mingguan, Senin sampai Minggu. Grafik hanya menampilkan data, saran harian tetap dari coach.</p>
+        <p className="mt-1 text-body text-muted">Mingguan, Senin sampai Minggu. Grafik hanya menampilkan data, saran harian tetap dari Gita.</p>
       </div>
       <Segmented
         label="Rentang"
