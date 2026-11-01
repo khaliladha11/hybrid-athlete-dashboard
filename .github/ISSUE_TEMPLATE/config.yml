@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ide, pertanyaan, dan masukan umum
+    url: https://github.com/khaliladha11/hybrid-athlete-dashboard/discussions
+    about: Diskusikan dulu di GitHub Discussions sebelum membuka issue.
+  - name: Laporan keamanan (privat)
+    url: https://github.com/khaliladha11/hybrid-athlete-dashboard/security/advisories/new
+    about: Jangan laporkan kerentanan di issue publik.

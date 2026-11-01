@@ -5,7 +5,7 @@ import { DOCS } from "@/lib/docs-links";
 import { REQUIRED_ENV, UPSTREAM_REPO, deployButtonUrl } from "@/lib/env-schema";
 
 /** Dokumen yang tautannya diperiksa (0.17). */
-const DOC_FILES = ["README.md", "INSTALL-WITH-AI.md", "AGENTS.md", "CLAUDE.md", "CHANGELOG.md", ...readdirSync("docs").filter((f) => f.endsWith(".md")).map((f) => `docs/${f}`)];
+const DOC_FILES = ["README.md", "INSTALL-WITH-AI.md", "AGENTS.md", "CLAUDE.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "NOTICE.md", ".github/PULL_REQUEST_TEMPLATE.md", ...readdirSync("docs").filter((f) => f.endsWith(".md")).map((f) => `docs/${f}`)];
 
 const stripCode = (md: string) => md.replace(/^(`{3,})[^\n]*\n[\s\S]*?\n\1\s*$/gm, "").replace(/`[^`\n]*`/g, "");
 
@@ -89,6 +89,17 @@ describe("dokumen pemasangan (0.17)", () => {
     // Font yang dimuat di layout = font yang tercantum di NOTICE.
     const fonts = [...readFileSync("app/layout.tsx", "utf-8").matchAll(/import \{ ([^}]+) \} from "next\/font\/google"/g)].flatMap((m) => m[1].split(",").map((f) => f.trim()));
     expect(fonts.sort()).toEqual(["Archivo", "Geist_Mono"]);
+  });
+
+  it("berkas kontribusi ada; masukan logika latihan wajib sumber; PR memuat checklist PRD §3 (1.0)", () => {
+    for (const f of ["CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "SECURITY.md", ".github/ISSUE_TEMPLATE/bug.yml", ".github/ISSUE_TEMPLATE/ide-fitur.yml", ".github/ISSUE_TEMPLATE/config.yml"]) expect(existsSync(f), f).toBe(true);
+    const logic = readFileSync(".github/ISSUE_TEMPLATE/logika-latihan.yml", "utf-8").replace(/\r\n/g, "\n");
+    expect(logic).toMatch(/id: source\n\s+attributes:\n\s+label: Sumber[\s\S]*?required: true/);
+    expect(readFileSync("CONTRIBUTING.md", "utf-8")).toContain("Logika latihan butuh sumber dan test");
+    expect(readFileSync(".github/PULL_REQUEST_TEMPLATE.md", "utf-8")).toContain("Aturan PRD §3");
+    expect(readFileSync("CODE_OF_CONDUCT.md", "utf-8")).toContain("Contributor Covenant");
+    expect(readFileSync("CODE_OF_CONDUCT.md", "utf-8")).not.toContain("[INSERT CONTACT METHOD]");
+    expect(readme).toContain("GitHub Discussions");
   });
 
   it("INSTALL-WITH-AI.md dan AGENTS.md memuat aturan rahasia", () => {

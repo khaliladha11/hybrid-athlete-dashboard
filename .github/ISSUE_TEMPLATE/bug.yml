@@ -1,0 +1,47 @@
+name: Laporan bug
+description: Sesuatu tidak berjalan seperti seharusnya.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Jangan tempel API key, sandi, token, atau data kesehatan asli** (HR, HRV, tidur, ID aktivitas, tanggal sesi). Pakai Demo Mode atau angka contoh. Screenshot hanya dari Demo Mode.
+  - type: input
+    id: version
+    attributes:
+      label: Versi
+      description: Lihat di Setting › Tentang & versi.
+      placeholder: "1.0.0-rc.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - Demo Mode (tanpa API key)
+        - Terhubung ke intervals.icu
+        - Lokal (npm run dev)
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Perangkat & browser
+      placeholder: "Android 15, Chrome, dipasang sebagai aplikasi"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Langkah untuk mereproduksi
+      placeholder: |
+        1. Buka Lari
+        2. Pilih 45 menit, Moderate
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Yang diharapkan dan yang terjadi
+    validations:
+      required: true

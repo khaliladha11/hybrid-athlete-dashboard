@@ -476,6 +476,12 @@ __tests__/               unit test Vitest
 docs/                    PRD, dokumentasi, screenshot & aset logo (brand/)
 ```
 
+## Masukan & kontribusi
+
+- **Ide, pertanyaan, dan masukan** di [GitHub Discussions](https://github.com/khaliladha11/hybrid-athlete-dashboard/discussions). Bug dan masukan logika latihan (wajib dengan sumber) lewat templat issue.
+- Cara menjalankan, menguji, dan mengusulkan perubahan ada di [CONTRIBUTING.md](CONTRIBUTING.md). Aturan perilaku di [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+- Kerentanan dilaporkan secara privat, lihat [SECURITY.md](SECURITY.md). Jangan pernah menempel API key, sandi, atau token di mana pun.
+
 ## Dokumentasi
 
 Tampilan mengikuti **[docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)** (design system "Tag"), logo di **[docs/brand/LOGO.md](docs/brand/LOGO.md)**.

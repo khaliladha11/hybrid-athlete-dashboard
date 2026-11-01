@@ -1,0 +1,29 @@
+name: Ide fitur
+description: Usulan fitur yang sudah dibahas di Discussions.
+labels: ["ide"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Masalah yang ingin diselesaikan
+      description: Ceritakan situasinya dulu, solusinya nanti.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Usulan
+    validations:
+      required: true
+  - type: input
+    id: discussion
+    attributes:
+      label: Tautan diskusi
+      placeholder: "https://github.com/khaliladha11/hybrid-athlete-dashboard/discussions/..."
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Aturan
+      options:
+        - label: Usulan ini tidak melanggar aturan di PRD §3 (RPE ≤ 7, batas alat & keamanan, saran tidak memblokir, privasi).
+          required: true

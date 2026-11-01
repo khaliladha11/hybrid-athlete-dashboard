@@ -1,0 +1,36 @@
+name: Masukan logika latihan
+description: Aturan generator, saran, progresi, zona, atau kondisi yang menurutmu perlu diubah.
+labels: ["logika-latihan"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Perubahan logika latihan hanya diterima dengan **sumber kredibel** (guideline, consensus statement, atau studi peer-review) dan test (PRD §3). Pengalaman pribadi tetap boleh diceritakan, tetapi tidak cukup sebagai dasar perubahan. Jangan sertakan data kesehatan asli.
+  - type: input
+    id: rule
+    attributes:
+      label: Aturan yang dibahas
+      description: Bagian di docs/TRAINING-LOGIC.md bila ada.
+      placeholder: "TRAINING-LOGIC §5 · saran turun setelah HRV rendah"
+    validations:
+      required: true
+  - type: textarea
+    id: now
+    attributes:
+      label: Perilaku sekarang
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Usulan perubahan
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Sumber
+      description: Penulis, judul, jurnal atau organisasi, tahun, dan tautan (DOI bila ada). Satu sumber per baris.
+      placeholder: "Penulis A, Penulis B. Judul artikel. Nama Jurnal. 2020. doi:10.xxxx/xxxxx"
+    validations:
+      required: true
