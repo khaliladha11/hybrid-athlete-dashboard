@@ -191,7 +191,7 @@ Gratis, sekitar 15 menit, tanpa menulis kode. Hasilnya: aplikasi di layar utama 
 4. Klik **Deploy**, tunggu 1 sampai 2 menit, lalu buka alamat yang diberikan. Masukkan sandi aplikasi, lalu ikuti **onboarding**.
 5. Lanjutkan: [Upstash Redis](#upstash-redis) (opsional), [kunci aksesnya](#setelah-deploy-kunci-aksesnya), [pasang di HP](#pasang-aplikasi-di-hp), dan [hubungkan jam](#kirim-workout-ke-jam).
 
-> **Salinan (clone), bukan fork.** Tombol membuat repo baru yang tidak terhubung ke repo ini, jadi tombol **Sync fork** di GitHub tidak ada. Pembaruan untuk salinan seperti ini disiapkan di 1.0 lewat workflow yang membuka pull request otomatis. Sampai saat itu, lihat [Memperbarui ke versi terbaru](#memperbarui-ke-versi-terbaru).
+> **Salinan (clone), bukan fork.** Tombol membuat repo baru yang tidak terhubung ke repo ini, jadi tombol **Sync fork** di GitHub tidak ada. Pembaruan datang lewat workflow yang membuka pull request, lihat [Menerima pembaruan](#menerima-pembaruan).
 
 ### Variabel lingkungan
 
@@ -266,7 +266,7 @@ npm i -g vercel
 2. Buka **[vercel.com/new](https://vercel.com/new)**, pilih fork-mu, klik **Import**. Nama project menjadi alamat aplikasimu: `nama-project.vercel.app`.
 3. Di **Environment Variables**, isi tiga env wajib dari [Variabel lingkungan](#variabel-lingkungan), lalu **Deploy**.
 
-Dengan fork, pembaruan cukup lewat **Sync fork** (lihat [Memperbarui ke versi terbaru](#memperbarui-ke-versi-terbaru)).
+Dengan fork, pembaruan bisa lewat **Sync fork** atau workflow pembaruan (lihat [Menerima pembaruan](#menerima-pembaruan)).
 
 #### Isi profil lewat file (opsional)
 
@@ -335,12 +335,30 @@ Sejak 0.11.0 profil (nama, target, kondisi, alat, tanggal blok) disimpan di pera
 5. **Impor file migrasi.** **Setting › Data & cadangan › Impor JSON**, pilih `owner-settings.local.json` (kirim ke HP lewat chat atau drive pribadi). File ini hanya mengisi yang masih kosong, jadi alat, zona, dan pilihan gerakan yang sudah kamu ubah di HP tidak tertimpa.
 6. **Cek** Setting › Profil (nama, target, tanggal blok), Zona lari, dan Alat.
 
-### Memperbarui ke versi terbaru
+### Menerima pembaruan
 
-1. **Fork:** buka fork-mu di GitHub, klik **Sync fork**, lalu **Update branch**. Vercel otomatis men-deploy ulang.
-   **Salinan dari tombol Deploy:** belum ada Sync fork. Workflow pembaruan otomatis (pull request) datang di 1.0; sampai itu, salin perubahan dari repo ini secara manual atau deploy ulang salinan baru (data di HP tetap, cadangkan dulu lewat Setting › Data & cadangan).
-2. Bila GitHub melaporkan konflik (biasanya di `config/athlete-profile.json`), salin dulu isi file profilmu, pilih **Discard commits** untuk mengikuti versi terbaru, lalu isi lagi profilmu (lihat Isi profil lewat file).
-3. Di HP, tutup lalu buka lagi aplikasinya agar memuat versi baru.
+Setiap rilis di repo ini punya tag (`v1.0.0`, …) dan catatan rilis. Repo salinan atau fork-mu menerimanya lewat **pull request**, dan tidak pernah di-merge otomatis: kamu yang memutuskan kapan menerima. Workflow-nya ada di [`.github/workflows/upstream-update.yml`](.github/workflows/upstream-update.yml) dan sudah ikut tersalin ke repo-mu.
+
+**Siapkan sekali di repo-mu (GitHub):**
+1. **Fork:** buka tab **Actions**, lalu klik **I understand my workflows, go ahead and enable them**. Salinan dari tombol Deploy sudah aktif.
+2. **Settings › Actions › General › Workflow permissions**: centang **Allow GitHub Actions to create and approve pull requests**, lalu **Save**. Tanpa ini workflow tidak bisa membuka PR.
+3. Opsional, **Settings › Secrets and variables › Actions**:
+   - Variabel **`UPSTREAM_REPO`** bila kamu mengikuti repo lain (bawaannya `khaliladha11/hybrid-athlete-dashboard`).
+   - Secret **`UPSTREAM_UPDATE_TOKEN`**: [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new) khusus repo-mu dengan izin **Contents**, **Pull requests**, **Workflows**, dan **Actions**: *Read and write*. Dengan token ini perubahan file workflow ikut di PR dan CI berjalan seperti biasa. Tanpa token, perubahan workflow ditulis sebagai langkah manual di PR (token bawaan GitHub tidak boleh mengubah `.github/workflows/`). Kamu sendiri yang mengetik token ini di GitHub; jangan menempelnya ke chat.
+
+**Cara kerjanya:**
+- Setiap **Senin 08:00 WIB** (atau kapan saja lewat **Actions › Upstream update › Run workflow**, boleh diisi tag tertentu), workflow membandingkan versi di `package.json` repo-mu dengan rilis stabil terbaru repo ini. Prarilis (`-rc`) hanya diambil bila tag-nya diisi manual.
+- Bila ada versi baru, workflow membuat branch `upstream-update/<tag>` dan PR berisi perubahan, **Langkah manual** (mis. variabel lingkungan baru), dan catatan rilis. CI dijalankan untuk branch itu.
+- Bila kamu mengubah baris yang juga diubah di sini, PR dibuka sebagai **draft** dengan daftar file yang konflik. Selesaikan penanda konflik di file itu, commit, lalu tandai siap. Bila pembaruan sama sekali tidak bisa diterapkan, workflow membuka issue dan gagal (kamu mendapat email dari GitHub).
+- PR yang ditutup tidak dibuat ulang untuk tag yang sama. Hapus branch-nya bila ingin dibuat lagi.
+- GitHub mematikan jadwal di repo publik yang 60 hari tanpa aktivitas. Bila itu terjadi, aktifkan lagi di tab Actions.
+
+**Menerima pembaruan:**
+1. Baca **Langkah manual** di PR dan kerjakan dulu (di Vercel, lalu Redeploy bila diminta).
+2. Tunggu CI hijau, lalu **Merge**. Vercel men-deploy versi baru.
+3. Di HP, tutup lalu buka lagi aplikasinya. Data lama dimigrasi otomatis; salinan sebelum migrasi bisa diunduh di Setting › Data & cadangan.
+
+**Fork** juga tetap bisa memakai **Sync fork › Update branch**. Bila GitHub melaporkan konflik di `config/athlete-profile.json`, salin dulu isi file profilmu, pilih **Discard commits**, lalu isi lagi (lihat Isi profil lewat file).
 
 ### Kalau ada masalah
 
