@@ -9,7 +9,7 @@
 import { useSyncExternalStore } from "react";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import type { SendRequest, SendResponse } from "./calendar";
-import { applySent, demoText, thresholdPaceText, dequeue, enqueue, normalizeQueue, normalizeSent, queueOrder, queuedText, removedText, retryable, sendErrorText, sentText, type SendQueue, type SentMap } from "./send-status";
+import { applySent, checkText, demoText, warningTexts, dequeue, enqueue, normalizeQueue, normalizeSent, queueOrder, queuedText, removedText, retryable, sendErrorText, sentText, type SendQueue, type SentMap } from "./send-status";
 
 const ENDPOINT = "/api/intervals/workout";
 
@@ -57,7 +57,7 @@ const queueStore = jsonStore<SendQueue>(PREF_KEYS.sendQueue, normalizeQueue, {})
 export const useSent = (): SentMap => useSyncExternalStore(sentStore.subscribe, sentStore.read, () => sentStore.empty);
 export const useSendQueue = (): SendQueue => useSyncExternalStore(queueStore.subscribe, queueStore.read, () => queueStore.empty);
 
-export type SendOutcome = { kind: "sent" | "removed" | "queued" | "demo" | "error"; text: string; warning?: string };
+export type SendOutcome = { kind: "sent" | "removed" | "queued" | "demo" | "error" | "checked"; text: string; warnings?: string[] };
 
 async function post(req: SendRequest): Promise<SendResponse> {
   try {
@@ -75,9 +75,11 @@ const now = () => new Date().toISOString();
 function outcome(req: SendRequest, res: SendResponse, hash?: string): SendOutcome {
   if (res.status === "error") return { kind: "error", text: sendErrorText(res.code, res.retryAfterSec) };
   if (res.status === "demo") return { kind: "demo", text: demoText };
+  if (res.status === "checked") return { kind: "checked", text: checkText(res, req.watch) };
   sentStore.write(applySent(sentStore.read(), req, res, hash, now()));
   if (req.action === "delete") return { kind: "removed", text: removedText };
-  return { kind: "sent", text: sentText(req.date), ...(res.warning === "NO_THRESHOLD_PACE" ? { warning: thresholdPaceText } : {}) };
+  const warnings = warningTexts(res.warnings, req.watch);
+  return { kind: "sent", text: sentText(req.date), ...(warnings.length ? { warnings } : {}) };
 }
 
 /** Kirim / hapus satu event. Offline atau jaringan putus = masuk antrean. */
@@ -95,6 +97,12 @@ export async function sendToCalendar(req: SendRequest, hash?: string): Promise<S
   const q = queueStore.read()[req.externalId];
   if (q) queueStore.write(dequeue(queueStore.read(), req.externalId, q.queuedAt));
   return outcome(req, res, hash);
+}
+
+/** "Cek status unggah" (hanya baca): event, sakelar unggah merek jam, dan error unggah dari intervals.icu. */
+export async function checkUpload(req: Omit<SendRequest, "action" | "event">): Promise<SendOutcome> {
+  if (!navigator.onLine) return { kind: "error", text: sendErrorText("NETWORK") };
+  return outcome({ ...req, action: "check" }, await post({ ...req, action: "check" }));
 }
 
 /** Berhenti mencatat event (tanpa menyentuh kalender), mis. "Biarkan" pada tawaran hapus. */

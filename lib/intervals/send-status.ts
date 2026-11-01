@@ -5,7 +5,8 @@
  * Fakta perangkat dari halaman integrasi dan pengumuman forum intervals.icu (Huawei 2026, Garmin 2020, Coros 2023);
  * lihat docs/RELEASE-1.0.md §3.
  */
-import type { SendErrorCode, SendRequest, SendResponse } from "./calendar";
+import type { CheckResult, SendErrorCode, SendRequest, SendResponse, SendWarning } from "./calendar";
+import { WATCH_LABEL, type WatchBrand } from "./watch";
 
 const WEEKDAY = new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "UTC" });
 const DAY_MONTH = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
@@ -31,7 +32,26 @@ export const thresholdPaceText =
   "Masuk ke kalender, tetapi threshold pace lari di intervals.icu masih kosong, jadi jam menolak workout ini. Isi di intervals.icu › Settings › Run › Pace settings › Threshold pace, lalu buka event dan ketuk Upload to Huawei.";
 
 /** Satu kalimat catatan perangkat di bawah tombol. */
-export const DEVICE_NOTE = "Huawei menerima satu lari terencana berikutnya dalam seminggu, tidak langsung, di Courses › Custom Courses. Garmin dan Coros menerima seminggu ke depan.";
+export const DEVICE_NOTE = "Huawei menerima satu lari terencana berikutnya dalam seminggu, biasanya masuk sendiri ke Huawei Health. Garmin dan Coros menerima seminggu ke depan.";
+
+/** Unggah ke merek jam pengguna belum diaktifkan di intervals.icu. */
+export const uploadOffText = (brand: WatchBrand) =>
+  `Unggah ke ${WATCH_LABEL[brand]} belum aktif di intervals.icu, jadi workout berhenti di kalender. Aktifkan di intervals.icu › Settings › Connections › ${WATCH_LABEL[brand]} › Upload planned workouts.`;
+
+/** Teks peringatan setelah kirim, berurutan. */
+export function warningTexts(warnings: SendWarning[] | undefined, brand?: WatchBrand): string[] {
+  return (warnings ?? []).map((w) => (w === "NO_THRESHOLD_PACE" ? thresholdPaceText : uploadOffText(brand ?? "other")));
+}
+
+export const CHECK_LABEL = "Cek status unggah";
+
+/** Hasil "Cek status unggah". Tanpa error tercatat bukan bukti sudah di jam, jadi tidak diklaim. */
+export function checkText(r: CheckResult, brand?: WatchBrand): string {
+  if (!r.found) return "Event tidak ditemukan di kalender intervals.icu. Kirim ulang workout ini.";
+  if (r.errors.length) return `intervals.icu mencatat unggah gagal: ${r.errors.join(" · ")}`;
+  if (r.uploadOn === false && brand) return uploadOffText(brand);
+  return "Tidak ada error unggah yang tercatat di intervals.icu. Kalau belum ada di jam, ikuti langkah di bawah.";
+}
 
 /** Isi lembar "Apa ini?": merek, yang diterima, dan pengaturan di intervals.icu. */
 export const DEVICE_HELP: { brand: string; receives: string; setting: string }[] = [
@@ -46,7 +66,7 @@ export const DEVICE_HELP: { brand: string; receives: string; setting: string }[]
 ];
 
 export const HUAWEI_LIMITS = [
-  "Workout tidak langsung muncul di jam: intervals.icu mengunggah sendiri lari terencana berikutnya. Supaya segera, buka event di kalender intervals.icu lalu pilih Upload to Huawei.",
+  "intervals.icu mengunggah sendiri lari terencana berikutnya dalam seminggu. Kalau workout lain yang ingin dipakai, buka event-nya di kalender intervals.icu lalu pilih Upload to Huawei.",
   "Kalau unggah gagal (mis. Workout has no suitable steps), isi threshold pace lari di intervals.icu › Settings › Run, lalu unggah lagi.",
   "Setiap langkah dikirim dengan target pace, termasuk jalan dan jog, karena Huawei membuang langkah tanpa target.",
   "Tampilan ulangan di jam bisa berbeda. Periksa jumlah repetisi sebelum mulai.",

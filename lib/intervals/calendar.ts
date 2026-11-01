@@ -11,6 +11,7 @@
  */
 import { addDays } from "@/lib/date";
 import { runThresholdPace } from "./normalize";
+import { isWatchBrand, pushErrors, uploadEnabled, type WatchBrand } from "./watch";
 import type { FetchResult, IntervalsErrorCode } from "./types";
 import { EXTERNAL_ID_RE, type ExportedEvent } from "./workout-export";
 
@@ -19,19 +20,31 @@ const NAME_MAX = 80;
 const DESCRIPTION_MAX = 4000;
 const SEARCH_DAYS = 14;
 
-export type SendAction = "upsert" | "delete";
+export type SendAction = "upsert" | "delete" | "check";
 export interface SendRequest {
   action: SendAction;
   externalId: string;
   date: string;
   event?: ExportedEvent;
+  /** Merek jam pengguna: untuk memeriksa sakelar unggah di intervals.icu (hanya baca). */
+  watch?: WatchBrand;
 }
 
 export type SendStatus = "created" | "updated" | "deleted" | "absent" | "demo";
 export type SendErrorCode = IntervalsErrorCode | "INVALID";
-/** Peringatan setelah kirim berhasil: threshold pace lari belum diisi di intervals.icu (jam menolak workout pace). */
-export type SendWarning = "NO_THRESHOLD_PACE";
-export type SendResponse = { status: SendStatus; warning?: SendWarning } | { status: "error"; code: SendErrorCode; retryAfterSec?: number };
+/**
+ * Peringatan setelah kirim berhasil: threshold pace lari kosong (jam menolak workout pace), atau unggah ke merek jam
+ * pengguna belum diaktifkan di intervals.icu.
+ */
+export type SendWarning = "NO_THRESHOLD_PACE" | "UPLOAD_OFF";
+/** Hasil "Cek status unggah": event ada, sakelar unggah merek (bila diketahui), dan error unggah dari intervals.icu. */
+export interface CheckResult {
+  status: "checked";
+  found: boolean;
+  uploadOn?: boolean;
+  errors: string[];
+}
+export type SendResponse = { status: SendStatus; warnings?: SendWarning[] } | CheckResult | { status: "error"; code: SendErrorCode; retryAfterSec?: number };
 
 type Api = (method: "GET" | "POST" | "PUT" | "DELETE", path: string, opts?: { query?: Record<string, string>; body?: unknown }) => Promise<FetchResult<unknown>>;
 
@@ -43,9 +56,11 @@ const str = (v: unknown, max: number) => typeof v === "string" && v.trim().lengt
 export function parseSendBody(raw: unknown): SendRequest | null {
   if (!raw || typeof raw !== "object") return null;
   const b = raw as Record<string, unknown>;
-  if (b.action !== "upsert" && b.action !== "delete") return null;
+  if (b.action !== "upsert" && b.action !== "delete" && b.action !== "check") return null;
   if (typeof b.externalId !== "string" || !EXTERNAL_ID_RE.test(b.externalId) || !validDate(b.date)) return null;
-  if (b.action === "delete") return { action: "delete", externalId: b.externalId, date: b.date };
+  if (b.watch !== undefined && !isWatchBrand(b.watch)) return null;
+  const watch = isWatchBrand(b.watch) ? { watch: b.watch } : {};
+  if (b.action === "delete" || b.action === "check") return { action: b.action, externalId: b.externalId, date: b.date, ...watch };
   const e = b.event as Record<string, unknown> | undefined;
   if (!e || typeof e !== "object") return null;
   const note = b.externalId.startsWith("ha:st:");
@@ -58,6 +73,7 @@ export function parseSendBody(raw: unknown): SendRequest | null {
     externalId: b.externalId,
     date: b.date,
     event: { category: note ? "NOTE" : "WORKOUT", name: e.name as string, description: e.description as string, movingTimeSec: t },
+    ...watch,
   };
 }
 
@@ -89,6 +105,13 @@ export async function handleSend(req: SendRequest, api: Api, athleteId: string):
   if (!list.ok) return failFrom(list);
   const found = (Array.isArray(list.data) ? (list.data as RemoteEvent[]) : []).filter((e) => e.external_id === req.externalId && Number.isInteger(e.id));
 
+  if (req.action === "check") {
+    const [ev] = found;
+    const [detail, athlete] = await Promise.all([ev ? api("GET", `${base}/${ev.id}`) : null, req.watch ? api("GET", `/athlete/${encodeURIComponent(athleteId)}`) : null]);
+    const uploadOn = athlete?.ok && req.watch ? uploadEnabled(athlete.data, req.watch) : undefined;
+    return { status: "checked", found: !!ev, ...(uploadOn !== undefined ? { uploadOn } : {}), errors: detail?.ok ? pushErrors(detail.data) : [] };
+  }
+
   if (req.action === "delete") {
     for (const e of found) {
       const r = await api("DELETE", `${base}/${e.id}`);
@@ -111,14 +134,22 @@ export async function handleSend(req: SendRequest, api: Api, athleteId: string):
     if (!r.ok) return failFrom(r);
     status = "created";
   }
-  return { status, ...(req.event?.category === "WORKOUT" && (await missingThresholdPace(api, athleteId)) ? { warning: "NO_THRESHOLD_PACE" as const } : {}) };
+  const warnings = req.event?.category === "WORKOUT" ? await athleteWarnings(api, athleteId, req.watch) : [];
+  return { status, ...(warnings.length ? { warnings } : {}) };
 }
 
 /**
- * Workout berisi target pace; tanpa threshold pace lari di intervals.icu, unggah ke jam (Huawei) gagal dengan
- * "Workout has no suitable steps" (forum intervals.icu, Juni 2026). Gagal membaca pengaturan = tidak ada peringatan.
+ * Pengaturan athlete (hanya baca) setelah kirim workout:
+ * - tanpa threshold pace lari, unggah ke jam (Huawei) gagal dengan "Workout has no suitable steps" (forum intervals.icu,
+ *   Juni 2026);
+ * - sakelar "Upload planned workouts" merek jam pengguna mati = workout tidak diteruskan.
+ * Gagal membaca pengaturan = tanpa peringatan.
  */
-async function missingThresholdPace(api: Api, athleteId: string): Promise<boolean> {
+async function athleteWarnings(api: Api, athleteId: string, watch?: WatchBrand): Promise<SendWarning[]> {
   const r = await api("GET", `/athlete/${encodeURIComponent(athleteId)}`);
-  return r.ok && runThresholdPace(r.data) === undefined;
+  if (!r.ok) return [];
+  const out: SendWarning[] = [];
+  if (runThresholdPace(r.data) === undefined) out.push("NO_THRESHOLD_PACE");
+  if (watch && uploadEnabled(r.data, watch) === false) out.push("UPLOAD_OFF");
+  return out;
 }

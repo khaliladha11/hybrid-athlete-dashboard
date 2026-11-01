@@ -15,10 +15,11 @@ interface Remote {
   start_date_local: string;
   name: string;
   description: string;
+  push_errors?: { service: string; message: string; date: string }[];
 }
 
 /** intervals.icu palsu: menyimpan event di memori dan mencatat permintaan. */
-function fakeIntervals(opts: { status?: number; headers?: Record<string, string>; throws?: Error; thresholdPace?: number | null } = {}) {
+function fakeIntervals(opts: { status?: number; headers?: Record<string, string>; throws?: Error; thresholdPace?: number | null; huaweiUpload?: boolean } = {}) {
   const events: Remote[] = [];
   const calls: { method: string; url: string; auth: string | null; body?: unknown }[] = [];
   let nextId = 100;
@@ -33,7 +34,11 @@ function fakeIntervals(opts: { status?: number; headers?: Record<string, string>
     // Pengaturan atlet (fiktif): threshold pace lari bawaan ada.
     if (method === "GET" && /\/athlete\/[^/]+$/.test(url.pathname)) {
       const tp = opts.thresholdPace === undefined ? 3.4 : opts.thresholdPace;
-      return Response.json({ sportSettings: [{ types: ["Run"], lthr: 168, ...(tp ? { threshold_pace: tp } : {}) }] });
+      return Response.json({ huawei_upload_workouts: opts.huaweiUpload ?? true, sportSettings: [{ types: ["Run"], lthr: 168, ...(tp ? { threshold_pace: tp } : {}) }] });
+    }
+    if (method === "GET" && m?.[1]) {
+      const e = events.find((x) => x.id === Number(m[1]));
+      return e ? Response.json(e) : new Response("{}", { status: 404 });
     }
     if (method === "GET") {
       const [lo, hi] = [url.searchParams.get("oldest")!, url.searchParams.get("newest")!];
@@ -145,9 +150,29 @@ describe("rute kirim ke kalender intervals.icu", () => {
   it("threshold pace lari kosong di intervals.icu → tetap terkirim dengan peringatan (Huawei menolak workout pace)", async () => {
     const fake = fakeIntervals({ thresholdPace: null });
     const r = await send(workout());
-    expect(r.json).toEqual({ status: "created", warning: "NO_THRESHOLD_PACE" });
+    expect(r.json).toEqual({ status: "created", warnings: ["NO_THRESHOLD_PACE"] });
     expect(fake.events).toHaveLength(1);
     clean(r.text);
+  });
+
+  it("unggah ke merek jam pengguna mati di intervals.icu → peringatan UPLOAD_OFF (hanya baca)", async () => {
+    const fake = fakeIntervals({ huaweiUpload: false });
+    const r = await send(workout({ watch: "huawei" }));
+    expect(r.json).toEqual({ status: "created", warnings: ["UPLOAD_OFF"] });
+    // Tidak ada penulisan ke pengaturan athlete.
+    expect(fake.calls.filter((c) => c.method !== "GET" && /\/athlete\/[^/]+$/.test(c.url.split("?")[0]))).toEqual([]);
+    expect((await send(workout({ watch: "garmin" }))).json).toEqual({ status: "updated" }); // sakelar Garmin tidak ada di data = tidak diketahui
+  });
+
+  it("cek status unggah: event, sakelar unggah, dan error dari intervals.icu", async () => {
+    const fake = fakeIntervals();
+    expect((await send({ action: "check", externalId: workout().externalId, date: "2026-11-03", watch: "huawei" })).json).toEqual({ status: "checked", found: false, uploadOn: true, errors: [] });
+    await send(workout());
+    fake.events[0].push_errors = [{ service: "HUAWEI", message: "Workout has no suitable steps", date: "2026-11-01T01:00:00Z" }];
+    const r = await send({ action: "check", externalId: workout().externalId, date: "2026-11-03", watch: "huawei" });
+    expect(r.json).toEqual({ status: "checked", found: true, uploadOn: true, errors: ["HUAWEI: Workout has no suitable steps"] });
+    clean(r.text);
+    expect(fake.calls.filter((c) => c.method !== "GET").map((c) => c.method)).toEqual(["POST"]); // cek hanya membaca
   });
 
   it("catatan ST = NOTE tanpa type", async () => {
@@ -227,6 +252,8 @@ describe("validasi body", () => {
     expect(parseSendBody(workout({ event: { ...workout().event, name: "" } }))).toBeNull();
     expect(parseSendBody({ action: "delete", externalId: "ha:g:2026-11-03", date: "2026-11-03" })).toEqual({ action: "delete", externalId: "ha:g:2026-11-03", date: "2026-11-03" });
     expect(parseSendBody(null)).toBeNull();
+    expect(parseSendBody(workout({ watch: "nokia" }))).toBeNull();
+    expect(parseSendBody({ action: "check", externalId: "ha:g:2026-11-03", date: "2026-11-03", watch: "huawei" })).toEqual({ action: "check", externalId: "ha:g:2026-11-03", date: "2026-11-03", watch: "huawei" });
   });
 
   it("Retry-After: detik atau tanggal HTTP", () => {

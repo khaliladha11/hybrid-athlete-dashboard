@@ -15,6 +15,7 @@ import {
   type Equipment,
 } from "./equipment";
 import { STABILITY_HIP } from "./generator/meta";
+import { isWatchBrand, type WatchBrand } from "./intervals/watch";
 import { parseHrZoneSettings, parseStrengthRpe, zoneTops, type HrZoneSettings, type StrengthRpe } from "./hr-zones";
 import { loadBounds, newRuleActive, type LoadRule } from "./load-bounds";
 import { formatRange, parseRange, RACE_DISTANCES, ZONE_KEYS, type RaceDistanceKey, type ZoneKey } from "./run-zones";
@@ -64,6 +65,8 @@ export interface AthleteSettings {
   hrZones?: HrZoneSettings;
   /** RPE ST per level (0.17), 4–7. Kosong = 5/6/7. */
   strengthRpe?: StrengthRpe;
+  /** Merek jam (0.17): langkah setelah "Kirim ke jam" dan cek sakelar unggah intervals.icu. */
+  watchBrand?: WatchBrand;
 }
 
 export interface RaceResult {
@@ -212,6 +215,7 @@ export function parseSettings(raw: unknown, base: AthleteProfile): AthleteSettin
     ...parseDismissed(s.buyReminderDismissed),
     ...optional("hrZones", parseHrZoneSettings(s.hrZones)),
     ...optional("strengthRpe", parseStrengthRpe(s.strengthRpe)),
+    ...optional("watchBrand", isWatchBrand(s.watchBrand) ? s.watchBrand : undefined),
   };
 }
 
