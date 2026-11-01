@@ -16,7 +16,7 @@ export const PART_NAMES = ["profile", "settings", "program", "preferences", "onb
 export type PartName = (typeof PART_NAMES)[number];
 export const isPartName = (x: unknown): x is PartName => typeof x === "string" && (PART_NAMES as readonly string[]).includes(x);
 
-export const SETTINGS_KEYS = ["conditions", "customConditions", "runZones", "equipment", "movements", "raceResults", "zoneOfferDismissedVdot", "loadRule", "buyReminderDismissed"] as const;
+export const SETTINGS_KEYS = ["conditions", "customConditions", "runZones", "equipment", "movements", "raceResults", "zoneOfferDismissedVdot", "loadRule", "buyReminderDismissed", "hrZones", "strengthRpe", "watchBrand"] as const;
 export type SettingsPart = Pick<AthleteSettings, (typeof SETTINGS_KEYS)[number]>;
 export const PREFERENCE_KEYS = ["theme", "blockEnabled"] as const;
 /** Kunci tidak ada = default (tema sistem; blok mengikuti profil). */
@@ -59,6 +59,10 @@ const pickSettings = (s: AthleteSettings): SettingsPart => ({
   ...(s.zoneOfferDismissedVdot !== undefined ? { zoneOfferDismissedVdot: s.zoneOfferDismissedVdot } : {}),
   ...(s.loadRule !== undefined ? { loadRule: s.loadRule } : {}),
   ...(s.buyReminderDismissed !== undefined ? { buyReminderDismissed: s.buyReminderDismissed } : {}),
+  // 0.17: sebelum 1.0.0-rc.1 ketiganya tidak ikut sinkron dan terhapus saat setting dari server diterapkan.
+  ...(s.hrZones !== undefined ? { hrZones: s.hrZones } : {}),
+  ...(s.strengthRpe !== undefined ? { strengthRpe: s.strengthRpe } : {}),
+  ...(s.watchBrand !== undefined ? { watchBrand: s.watchBrand } : {}),
 });
 
 export function partsFromLocal(raw: LocalRaw, log: LogEntry[], base: AthleteProfile, prs: PrEntry[] = [], sessions: StSession[] = [], checkins: Checkin[] = []): PartData {

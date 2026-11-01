@@ -60,6 +60,19 @@ describe("bagian data ↔ localStorage", () => {
     expect(partsFromLocal(raw, parts.log, baseProfile, parts.prs, parts.sessions, parts.checkins)).toEqual(parts);
   });
 
+  it("zona HR, RPE ST, dan merek jam (0.17) ikut sinkron dan tidak hilang saat setting server diterapkan", () => {
+    const extra = { hrZones: { mode: "lthr" as const, lthr: 170 }, strengthRpe: { easy: 5, moderate: 6, high: 7 }, watchBrand: "huawei" as const };
+    const local = JSON.stringify({ ...defaultSettings(baseProfile), ...extra });
+    const parts = partsFromLocal({ settings: local, program: null, theme: null, blockEnabled: null, onboarding: null }, [], baseProfile);
+    expect(parts.settings).toMatchObject(extra);
+    const back = JSON.parse(localFromParts(parts, baseProfile).settings!);
+    expect(back).toMatchObject(extra);
+    const server = mergePart("settings", { ...parts.settings!, hrZones: { mode: "maxHr" as const, maxHr: 190 } }, parts.settings, [], false);
+    expect(server?.hrZones).toEqual({ mode: "maxHr", maxHr: 190 });
+    expect(server?.watchBrand).toBe("huawei");
+    expect(changedKeys("settings", parts.settings, { ...parts.settings!, watchBrand: "garmin" })).toEqual(["watchBrand"]);
+  });
+
   it("perangkat kosong → bagian kosong; tema sistem & blok default tidak disimpan", () => {
     const empty = partsFromLocal({ settings: null, program: null, theme: null, blockEnabled: null, onboarding: null }, [], baseProfile);
     expect(empty).toEqual({ profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [], prs: [], sessions: [], checkins: [] });
