@@ -4,6 +4,22 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+Bagian 0.17 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #6). Versi dinaikkan setelah semua bagian 0.17 selesai.
+
+### Ditambahkan
+- **Kirim ke jam**: workout lari dari Generator Lari dan sesi program dikirim ke kalender intervals.icu sebagai workout terstruktur, lalu diteruskan ke jam yang terhubung (Huawei, Garmin, Coros). Ada pilihan tanggal, status "Terkirim ke kalender intervals.icu · Rabu 4 Nov", Kirim ulang bila workout berubah, dan Hapus dari kalender. Copy Set tetap ada.
+- Setiap langkah membawa target pace, termasuk jalan dan jog; tanpa ramp; ulangan satu langkah diurai (batas Huawei). Aturannya di TRAINING-LOGIC §12.
+- **Kirim minggu ini** di Program untuk sisa sesi lari minggu ini. Sesi yang dilewati atau program yang diganti menawarkan hapus juga dari kalender.
+- Kirim ulang selalu memperbarui event yang sama (id per sesi program atau per tanggal), juga bila event sudah digeser di kalender.
+- Offline: kiriman masuk antrean dan terkirim saat online lagi.
+- Catatan perangkat dan lembar "Apa ini?" (merek, yang diterima, pengaturan Upload planned workouts, batas Huawei).
+- **Catatan ST di kalender** (opsional, bawaan mati, Setting › Tampilan & program): catatan teks, bukan workout.
+- Rute `/api/intervals/workout`: dilindungi sandi, key tetap di server, respons hanya status. Error 401/403/404/429/5xx/jaringan menjadi satu kalimat dengan langkah berikutnya.
+
+### Diubah
+- `lib/intervals/client.ts`: `intervalsRequest` untuk POST/PUT/DELETE; 429 membawa waktu tunggu dari `Retry-After`; id event di log diganti `:id`.
+- Tautan generator dari program membawa id sesi (`sid`) juga untuk lari.
+
 ## [0.16.0] · 2026-10-29 · Siap offline & teruji
 
 Rilis pertama menuju 1.0 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) §8 0.16: #1–#5).

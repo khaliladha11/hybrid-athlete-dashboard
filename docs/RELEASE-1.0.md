@@ -44,13 +44,18 @@ Diturunkan dari cakupan pemilik. Yang masih butuh keputusan ada di §11.
 | Pemasangan | Panduan README (fork, Vercel, Upstash); belum ada tombol Deploy, INSTALL-WITH-AI.md, atau AGENTS.md |
 | Pembaruan | Pengguna fork menarik perubahan sendiri |
 
-### Perangkat yang menerima workout dari intervals.icu (catatan pemilik)
-| Perangkat | Yang diteruskan |
-| --- | --- |
-| Garmin | Workout terencana satu minggu ke depan |
-| Coros | Mengikuti intervals.icu |
-| Huawei | Hanya lari, jalan, dan hiking; lari terencana berikutnya dalam satu minggu, tampil sebagai **running course** |
-| Lainnya | Sesuai intervals.icu |
+### Perangkat yang menerima workout dari intervals.icu (diverifikasi 2026-11-01)
+Sumber: halaman integrasi intervals.icu dan pengumuman forum oleh pengembangnya (Huawei Jan–Mar 2026, Garmin 2020, Coros 2023, Zwift 2024).
+
+| Perangkat | Yang diteruskan | Pengaturan di intervals.icu |
+| --- | --- | --- |
+| Huawei | Hanya lari, jalan, dan hiking. **Satu** workout: lari terencana berikutnya dalam seminggu (yang sudah berpasangan aktivitas dilewati); bisa dipaksa lewat "Upload to Huawei" di event. Di jam: Workout › Outdoor Run › Courses › Custom Courses. Langkah tanpa target dibuang, ulangan satu langkah diabaikan, ramp tidak didukung di semua platform | Settings › Connections › HUAWEI Health › Upload planned workouts (Health Service Kit tertaut) |
+| Garmin | Workout terencana seminggu ke depan, muncul setelah sinkron Garmin Connect | Settings › Upload planned workouts, lalu otorisasi |
+| Coros | Seminggu ke depan; mungkin perlu menambah "Intervals.icu Training Plan" di kalender aplikasi Coros | Kotak Coros di Settings |
+| Zwift | Seminggu ke depan; target HR tidak didukung, lari butuh waktu 5K di profil Zwift | Kotak Zwift › Connect |
+| Wahoo, Polar, Suunto | Tidak ditemukan pengumuman kirim workout | · |
+
+HUAWEI Watch Fit 4 tidak disebut di daftar model; diuji lewat checklist manual 0.17.
 
 ### Batasan yang harus ditulis jujur
 - Huawei **tidak membuka HRV harian lewat API-nya**. Jalan keluar: aplikasi Health Sync mengirim HRV ke intervals.icu. Aturan sinyal tidak tersedia 0.14.3 tetap berlaku bila HRV tidak ada.

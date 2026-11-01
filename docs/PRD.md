@@ -9,7 +9,7 @@
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 67 file test, 757 unit test lolos · 43 test e2e Playwright (24 mobile gelap, 17 desktop terang, 2 sandi) · build produksi lolos · CI GitHub Actions di setiap push & PR (unit, audit, bundle, e2e, Lighthouse) |
+| **Kualitas** | 70 file test, 793 unit test lolos · 48 test e2e Playwright (28 mobile gelap, 18 desktop terang, 2 sandi) · build produksi lolos · CI GitHub Actions di setiap push & PR (unit, audit, bundle, e2e, Lighthouse) |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Spesifikasi 0.15: INSIGHT](INSIGHT.md) · [Rencana 0.16 sampai 1.0: RELEASE-1.0](RELEASE-1.0.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -173,9 +173,8 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Target pace dari zona di Setting, target cadence personal | ✅ | Cadence dari rata-rata 14 hari, maks 180 |
 | Cue & catatan mengikuti kondisi aktif (cadence, rel kereta, Achilles tanpa 15/15, dll.) | ✅ | 0.8 |
 | Variasi lain (seed berbeda), tombol **Copy Set** (format Huawei) | ✅ | Tampilan tab Set Huawei disembunyikan sementara (0.8) |
-| Kirim workout lari ke kalender intervals.icu sebagai workout terstruktur (diteruskan ke jam yang terhubung); Copy Set tetap sebagai cadangan | ⬜ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #6): atas ketukan pengguna, kirim ulang memperbarui, bisa ditarik; ST tidak dikirim |
+| Kirim workout lari ke kalender intervals.icu sebagai workout terstruktur (diteruskan ke jam yang terhubung); Copy Set tetap sebagai cadangan | ✅ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #6, belum dirilis): "Kirim ke jam" di Generator Lari dengan pilihan tanggal. Setiap langkah bertarget pace (jalan & jog juga), tanpa ramp, ulangan satu langkah diurai ([TRAINING-LOGIC](TRAINING-LOGIC.md) §12). Kirim ulang memperbarui event yang sama, "Hapus dari kalender" menghapusnya; offline masuk antrean. ST tidak dikirim, catatan teks opsional (bawaan mati) |
 | Mengikuti blok mingguan / mode bebas | ✅ | |
-| Mengirim workout ke kalender intervals.icu / jam | ⬜ | 1.0 |
 
 ### 4.4 Generator strength training
 
@@ -229,7 +228,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Hitung mundur & minggu lomba (sisa hari, catatan taper, checklist hari H) | ✅ | 0.13.2 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #11): `14 HARI LAGI · HALF MARATHON` di Program dan Profil, checklist umum H-1 dengan rencana pace dari perkiraan, dan tawaran mencatat hasil lomba H+1 sampai H+14 |
 | Hari H dipilih atlet, panjang program = minggu di antara mulai dan Hari H | ✅ | 0.13.3 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.10): kalender bulan dengan warna band (rekomendasi umum + minimum dari data long run), alasan, tanggal paling awal, ringkasan fase, long run puncak, info VDOT. Merah butuh konfirmasi, abu-abu menambah pre-Base, di bawah taper + 2 tidak bisa disusun |
 | Kesiapan HM/FM & jarak antar maraton | ✅ | 0.13.3: rata-rata km mingguan & long run terjauh, catatan maraton pertama, jarak dari FM sebelumnya. Peringatan lunak |
-| Kirim sesi lari program ke kalender intervals.icu | ⬜ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #6): memakai pengirim yang sama dengan generator lari |
+| Kirim sesi lari program ke kalender intervals.icu | ✅ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #6, belum dirilis): kartu sesi (long run, race pace, sharpener) dan generator dari program memakai id sesi, jadi kirim ulang memperbarui event yang sama; "Kirim minggu ini" untuk sisa sesi lari; sesi yang dilewati atau program yang diganti menawarkan hapus dari kalender. Lomba tidak dikirim |
 | Tren kepatuhan mingguan (model mingguan 0.14.3), lari & ST terpisah | ✅ | 0.15.1 ([INSIGHT.md](INSIGHT.md) #10): terpenuhi / sebagian / belum, dilewati tidak dihitung, program aktif & arsip; tanpa merah & streak |
 | Arsip program saat Hari H/mulai/jarak diganti | ✅ | 0.13.3: riwayat sesi & override tetap terbaca di Program › Program sebelumnya dan kalender, disinkron per id. Program lama tanpa Hari H dimigrasikan tanpa perubahan |
 
@@ -354,6 +353,7 @@ Selesai di 0.12 (0.12.0 sampai 0.12.2), spesifikasi lengkap di [SYNC.md](SYNC.md
 | Performa | Lighthouse mobile: performa ≥ 0,85, aksesibilitas & best practices ≥ 0,95, LCP ≤ 2,5 detik, TBT ≤ 350 ms, CLS ≤ 0,1 | ✅ 0.16 (kunjungan berulang dengan service worker): Profil 0,93 · Lari 0,99 · Strength 0,96 · Program 0,92 · Insight 0,99 (LCP 0,8–1,2 detik, TBT 136–342 ms, CLS 0; aksesibilitas 1,0, Strength 0,96 karena `target-size`; best practices 1,0) |
 | Keamanan header | CSP dengan nonce, frame-ancestors, nosniff, Referrer-Policy, Permissions-Policy | ✅ 0.16 |
 | CI | Test & build otomatis tiap push/PR | ✅ 0.12.0: GitHub Actions (typecheck, test, build) tanpa env rahasia |
+| Menulis ke intervals.icu | Hanya atas ketukan pengguna, key tetap di server, respons hanya status | ✅ 0.17: `/api/intervals/workout` dilindungi sandi, body divalidasi ketat (≤ 16 KB), event dicari per id luar sebelum PUT/POST, respons tanpa key atau id event, log tanpa ID atlet; 429 membawa waktu tunggu |
 
 ## 6. Keterbatasan & utang teknis
 
@@ -372,6 +372,7 @@ Diurutkan dari yang paling berdampak.
 11. **Pulihkan bersifat otoritatif.** Pulihkan mengganti data di semua perangkat (lewat `epoch`). Perubahan yang belum terkirim dari perangkat lain saat itu ikut tergantikan; snapshot "Sebelum pulihkan" hanya menyimpan keadaan server. Kemajuan onboarding dan persetujuan disclaimer tidak ikut mundur.
 14. **Jam pemilik tidak mengirim HRV.** Integrasi Huawei di intervals.icu tidak menyertakan HRV, jadi baris HRV disembunyikan dan readiness memakai resting HR dan sesi kemarin (0.14.3). Baseline HRV personal hanya masuk akal bila ada sumber HRV lain.
 12. **Tanpa enkripsi sisi klien.** Data di database tersimpan apa adanya (Upstash mengenkripsi saat disimpan, database ada di akun pengguna, dibatasi sandi aplikasi). Enkripsi dengan passphrase ada di backlog P2.
+15. **Kirim ke jam belum diuji di semua perangkat.** 0.17 mengikuti dokumentasi intervals.icu (teks workout native, pace absolut). Belum terdokumentasi: apakah header Warmup/Cooldown menjadi tipe langkah di jam, apakah rentang pace tampil di jam (satu laporan pengguna Garmin tanpa jawaban), dan dukungan HUAWEI Watch Fit 4 (model tidak disebut). Huawei hanya menerima satu lari terencana berikutnya. HR tidak dikirim sebagai target. Catatan "sudah dikirim" hanya di perangkat yang mengirim.
 13. **Sesi ST hanya terukur bila dikerjakan di mode latihan.** Sejak 0.14.1 session-RPE masuk beban 7 hari dan ST mengikuti fase program, tetapi ST yang hanya tercatat di jam (tanpa RPE) dihitung jumlah & menitnya saja, tanpa beban AU.
 
 ## 7. Roadmap & saran pengembangan

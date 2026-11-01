@@ -64,7 +64,11 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 
 | Modul | Tanggung jawab | Berjalan di |
 | --- | --- | --- |
-| `lib/intervals/client.ts` | HTTP ke intervals.icu, Basic Auth, error terstruktur (401/403/404/5xx/timeout) | Server |
+| `lib/intervals/client.ts` | HTTP ke intervals.icu, Basic Auth, error terstruktur (401/403/404/429 dengan `retryAfterSec`/5xx/timeout). 0.17: `intervalsRequest` untuk GET/POST/PUT/DELETE, `intervalsGet` memakainya | Server |
+| `lib/intervals/workout-export.ts` | Workout lari & kartu sesi program → teks workout native intervals.icu (target pace tiap langkah, tanpa ramp, tanpa ulangan satu langkah), catatan ST `NOTE`, id luar `ha:s:`/`ha:g:`/`ha:st:`, hash isi (0.17) | Server & client (murni) |
+| `lib/intervals/calendar.ts`, `app/api/intervals/workout/route.ts` | `POST /api/intervals/workout` (0.17): validasi body (≤ 16 KB), cari event per id luar ±14 hari → PUT (duplikat dihapus) atau POST; hapus = cari lalu DELETE. Respons hanya `{ status }` atau `{ status: "error", code, retryAfterSec? }`; tanpa key = `demo`, tanpa panggilan keluar | Server |
+| `lib/intervals/send-status.ts`, `lib/intervals/send-store.ts` | Teks status, pesan error dengan langkah berikutnya, catatan perangkat; catatan "sudah dikirim" (`hybrid-athlete.sent-workouts.v1`) dan antrean offline (`hybrid-athlete.send-queue.v1`, aksi terakhir per id menang, dikirim saat online oleh `OfflineAgent`). Hanya perangkat ini, tidak disinkron | Murni / client |
+| `components/intervals/SendToWatch.tsx`, `WeekSend.tsx` | "Kirim ke jam" (tanggal, status, Kirim ulang, Hapus dari kalender, catatan perangkat) di Generator Lari, kartu sesi program, dan catatan ST; "Kirim minggu ini" dan tawaran hapus event sesi yang tidak ada lagi di program | Client |
 | `lib/intervals/data-source.ts` | Pilih data live atau Demo Mode, rakit `TrainingContext`; `getInsightData` (0.15.0): aktivitas 182 hari (12 minggu + jendela VDOT 90 hari + minggu pembanding) dan wellness 84 hari, 2 request paralel per buka `/insight`, tanpa cache data bersama | Server |
 | `lib/intervals/normalize.ts` | Respons mentah → tipe aman | Server (dan mock) |
 | `lib/intervals/dedupe.ts` | Buang rekaman ganda sesi yang sama (mis. Huawei + salinan Strava kosong), simpan yang paling lengkap | Server (dan mock) |
@@ -224,7 +228,7 @@ npm run check:bundle     # rahasia tidak ada di bundle klien (jalankan setelah b
 npm run lighthouse -- http://localhost:3400   # anggaran Lighthouse mobile (server produksi berjalan)
 ```
 
-**E2E (0.16, `e2e/*`, `playwright.config.ts`):** server produksi Demo Mode di :3300 dan server dengan sandi aplikasi fiktif khusus test di :3301 (tanpa Redis). Proyek `mobile-dark` (375×812, gelap, semua alur), `desktop-light` (1280×800, terang, alur bertanda `@smoke`), `locked` (sandi). Axe (WCAG 2.1 AA) di halaman utama & mode latihan; header keamanan & CSP diperiksa per halaman. CI: typecheck → unit → `npm audit --audit-level=high` → build dengan nilai sentinel rahasia → `check:bundle` → e2e → Lighthouse.
+**E2E (0.16, `e2e/*`, `playwright.config.ts`):** server produksi Demo Mode di :3300 dan server dengan sandi aplikasi fiktif khusus test di :3301 (tanpa Redis). Proyek `mobile-dark` (375×812, gelap, semua alur), `desktop-light` (1280×800, terang, alur bertanda `@smoke`), `locked` (sandi). Axe (WCAG 2.1 AA) di halaman utama & mode latihan; header keamanan & CSP diperiksa per halaman. CI: typecheck → unit → `npm audit --audit-level=high` → build dengan nilai sentinel rahasia → `check:bundle` → e2e → Lighthouse. 0.17: `send-to-watch.spec.ts` (kirim di Demo Mode, catatan perangkat, antrean offline lalu online, catatan ST bawaan mati, rute menolak body tidak valid).
 
 Test aturan (generator, periodization, media, settings) memakai profil contoh anonim `__tests__/fixtures/example-athlete.json` lewat `vi.mock` pada JSON profil, karena JSON di repo netral.
 
@@ -280,6 +284,9 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `neutral-profile.test.ts` | JSON netral tanpa data pribadi, zona = `zonesFromVdot(30)`, semua kombinasi lari valid dengan profil netral, ST bodyweight-only: semua jenis × durasi × kesulitan × 25 seed × blok/deload/bebas tidak error, lolos aturan wajib, dan Upper Push/Pull berisi gerakan kategorinya. |
 | `tour.test.ts` | Urutan & rute langkah tur, teks tanpa dash/seru, `placePopover` (bawah, atas, elemen setinggi layar, tanpa elemen, layar lebar), `holeRect`, `tourCompletedAt` tersimpan. |
 | `tour-targets.test.ts` | Setiap target `data-tour` benar-benar dipasang di komponen. |
+| `workout-export.test.ts` | Ke-13 pola generator dan kartu program (long run biasa & progresif, race pace, sharpener) → teks intervals.icu: setiap langkah bertarget pace, tanpa ramp, ulangan ≥ 2 langkah dengan baris kosong, cue tanpa angka, durasi teks = `moving_time` = durasi rencana; lomba & kartu tak dikenal tidak dikirim; id luar stabil (0.17). |
+| `calendar-route.test.ts` | Rute `/api/intervals/workout` dengan intervals.icu palsu: buat lalu kirim ulang = satu event, event yang digeser tetap diperbarui dan duplikat dirapikan, hapus/absent, NOTE tanpa type, 401/403/404/429/5xx/jaringan → kode, Demo Mode & terkunci tanpa panggilan keluar, body tidak valid/terlalu besar; respons dan log tidak pernah memuat key, ID atlet, atau id event (0.17). |
+| `send-status.test.ts` | Teks status & error dengan langkah berikutnya (tanpa dash/seru), catatan terkirim, antrean offline (aksi terakhir menang), sesi yang tidak ada lagi di program, "Kirim minggu ini" untuk semua sesi lari program (0.17). |
 | `settings.test.ts` | Setiap kondisi mengubah generator sesuai aturannya, kombinasi semua kondisi tetap valid, beban selalu bisa dirakit dari alat, gerakan tidak dipilih tidak pernah muncul, rumus VDOT & inversnya vs tabel Daniels, VDOT zona, parser pengaturan tahan data rusak, hasil lomba (validasi, unik per jarak + tanggal, maks 20). |
 
 Generator diuji secara menyeluruh (setiap kombinasi × banyak seed), bukan hanya dengan beberapa contoh. Bug yang ditemukan saat pengembangan, seperti deload yang gagal memenuhi durasi atau beban yang terbulatkan salah, selalu disertai test baru.

@@ -157,7 +157,8 @@ Awalnya ini cuma buat saya sendiri. Tapi kondisi, alat, zona lari, dan pilihan g
 | **Program target** | Program mingguan menuju **PB 5K, PB 10K, Half Marathon, atau Full Marathon**: fase Base → Build → Peak → Taper, long run naik ≤ 10%/minggu dengan cutback, race pace dari target waktu, dan jadwal ST yang tidak bentrok. Sejak 0.13.3 kamu memilih Hari H di kalender yang diwarnai saran lama program (rekomendasi umum + data long run-mu). Sejak 0.13 status sesi otomatis dari aktivitas, perkiraan waktu lomba, dan hitung mundur. Sejak 0.14.3 programnya **mingguan dan fleksibel**: sesi boleh dikerjakan di hari apa pun dalam minggunya (hari di rencana hanya saran), "Sesi minggu ini" menyarankan sesi yang paling cocok hari ini, minggu yang tidak lengkap cukup diberi catatan lembut, dan kalender menampilkan aktivitas di tanggal aslinya. |
 | **Saran hari ini** | Menggabungkan readiness (HRV, resting HR, sesi kemarin), distribusi 80/20, kenaikan km mingguan, dan jarak antara ST kaki dan lari berat. Sarannya bisa diterapkan dengan satu tap. |
 | **Progresi beban** | Catat sesi, lalu beban berikutnya disesuaikan otomatis (aturan "2-for-2" NSCA) ke beban berikutnya yang bisa dirakit, tanpa pernah melewati batas library. Riwayatnya ada di halaman Strength. |
-| **Salin cepat** | Workout ST sebagai teks ringkas; workout lari lewat tombol **Copy Set** (format "Set" Huawei Health). |
+| **Kirim ke jam** | Belum dirilis (0.17): workout lari dari generator dan program dikirim ke kalender intervals.icu sebagai workout terstruktur, lalu diteruskan ke jam yang terhubung. Kirim ulang memperbarui event yang sama; bisa dihapus dari kalender. Lihat [Kirim workout ke jam](#kirim-workout-ke-jam). |
+| **Salin cepat** | Workout ST sebagai teks ringkas; workout lari lewat tombol **Copy Set** (format "Set" Huawei Health), juga sebagai cadangan bila jam tidak tersambung ke intervals.icu. |
 | **Onboarding & tur** | Saat pertama dibuka: disclaimer, profil, kondisi, zona lari, alat, cek koneksi intervals.icu, pengingat amankan deploy, pasang ke HP. Lalu tur singkat 5 sorotan; bisa diulang dari Setting › Tampilan. |
 | **Demo Mode** | Tanpa API key, aplikasi tetap berjalan penuh memakai data dummy. |
 | **PWA & design system** | Bisa di-install ke HP dan full-screen. Sejak 0.16 **tetap terbuka tanpa sinyal** (mis. di gym): mode latihan, log ST, dan check-in tersimpan di HP lalu tersinkron saat online; versi baru tidak pernah memuat ulang di tengah latihan. Design system "Tag": dark-first, satu aksen oranye `#FC4C02`, Archivo + Geist Mono, Segment Skyline & Week Ledger, dengan **toggle tema terang/gelap** yang tersimpan di perangkat. |
@@ -276,6 +277,19 @@ Onboarding sudah menanyakan profil, kondisi, zona lari, dan alat. Langkah yang k
 - **Alat** dan **Gerakan:** centang yang kamu punya dan mau dipakai.
 
 Pengaturan dan log latihan tersimpan di perangkat itu saja. Untuk pindah atau menambah perangkat: **Setting › Data & cadangan**, ekspor JSON, lalu impor di perangkat baru.
+
+### Kirim workout ke jam
+
+Tombol **Kirim ke jam** (Generator Lari dan sesi program) menaruh workout di kalender intervals.icu. intervals.icu lalu meneruskannya ke jam bila unggah workout terencana diaktifkan di **intervals.icu › Settings › Connections**:
+
+| Jam | Yang perlu diaktifkan | Yang diterima |
+| --- | --- | --- |
+| **Huawei** | Kotak **HUAWEI Health** › centang **Upload planned workouts**. Di aplikasi Huawei Health, Health Service Kit harus tertaut (Me › 3rd Party Services) | Hanya lari, jalan, dan hiking. **Satu** workout: lari terencana berikutnya dalam seminggu. Di jam: **Workout › Outdoor Run › Courses › Custom Courses**. Workout lain bisa dipaksa lewat tombol **Upload to Huawei** di event kalender |
+| **Garmin** | Kotak Garmin › centang **Upload planned workouts**, lalu izinkan di Garmin Connect | Workout terencana seminggu ke depan, muncul setelah sinkron Garmin Connect |
+| **Coros** | Kotak **Coros** › aktifkan unggah workout terencana | Seminggu ke depan. Bila belum muncul, tambahkan "Intervals.icu Training Plan" di kalender aplikasi Coros |
+| Lainnya | Lihat halaman integrasi intervals.icu | Tanpa jam yang tersambung, pakai **Copy Set** |
+
+Kirim ulang setelah workout diubah memperbarui event yang sama. API key intervals.icu milikmu sudah bisa menulis ke kalender; tanpa key (Demo Mode) tidak ada yang dikirim. Strength tidak dikirim sebagai workout; catatan teks di kalender bisa diaktifkan di **Setting › Tampilan & program**.
 
 ### Sudah memasang sebelum 0.11?
 

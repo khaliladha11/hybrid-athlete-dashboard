@@ -594,3 +594,49 @@ Temuan (2026-10-22): dengan profil netral tanpa alat, generator tidak pernah err
 | Gambar | Push-Up dari free-exercise-db (`Pushups`); empat lainnya tanpa padanan → placeholder "Gambar belum tersedia". |
 
 Jaminan test: semua jenis ST × 3 durasi × 3 kesulitan × 25 seed × (blok 1, deload, blok 2, bebas) dengan profil netral → tidak error, lolos `validateStrength`, durasi ≤ target + 2', dan Upper Push/Pull selalu berisi ≥ 1 gerakan kategorinya.
+
+## 12. Kirim ke jam (0.17)
+
+Workout lari dikirim ke kalender intervals.icu sebagai **workout terstruktur**, lalu intervals.icu meneruskannya ke jam yang terhubung ([RELEASE-1.0](RELEASE-1.0.md) #6). Ini aturan **ekspor**, bukan aturan saran: isi workout sama dengan yang tampil di generator atau kartu sesi. Kode: [`lib/intervals/workout-export.ts`](../lib/intervals/workout-export.ts), diuji `workout-export.test.ts` untuk ke-13 pola dan semua kartu program.
+
+**Format.** Teks workout native intervals.icu di field `description` (dokumentasi API: endpoint event menerima "native Intervals.icu format"). Sintaks dari panduan Workout Builder dan "Specify workouts using absolute pace" (forum intervals.icu, 2025):
+
+```
+Warmup
+- Jalan cepat dynamic drill ringan 5m 13:00-10:00/km Pace
+
+Norwegian 4x
+- Interval 4m 6:02-5:47/km Pace
+- Recovery jog 3m 9:43-8:43/km Pace intensity=rest
+
+Cooldown
+- Jog jalan santai 8m 9:43-8:43/km Pace
+```
+
+| Aturan | Alasan |
+| --- | --- |
+| **Setiap langkah punya target pace absolut** (`lambat-cepat/km Pace`) | Huawei membuang langkah tanpa target (pengembang intervals.icu, forum Huawei, Mar 2026) |
+| Langkah lari: pace zona (`runTargets`, dari Setting › Zona atau VDOT) | Sama dengan yang tampil di generator |
+| **Jog pemulihan: batas lambat Easy sampai 60 dtk/km lebih lambat** | Jog "santai" tidak punya pace di generator; rentang lebar supaya jam tidak terus berbunyi |
+| **Jalan: 10:00–13:00/km** | Jalan cepat sampai jalan santai |
+| Jog/jalan di bagian inti diberi `intensity=rest` | Contoh resmi halaman Huawei (`2m Z1 Pace intensity=rest`) |
+| Tanpa `ramp` | Tidak semua platform mendukung ramp |
+| Ulangan memakai `Judul Nx` dengan ≥ 2 langkah; **ulangan satu langkah diurai** jadi N langkah | Huawei mengabaikan jumlah ulangan bila isinya satu langkah; intervals.icu tidak mendukung ulangan bersarang |
+| 15/15 tiga set = tiga blok `20x` dipisah langkah jog | Tanpa nesting |
+| Header `Warmup` / `Cooldown` | Penanda bagian. Belum terdokumentasi apakah jam membacanya sebagai tipe langkah |
+| HR & RPE bukan target, hanya baris catatan `Acuan HR: …` | Satu satuan per workout; HR absolut (bpm) tidak terdokumentasi |
+| Cue tanpa angka dan tanda baca, maks 40 karakter | Teks sebelum durasi menjadi cue; angka bisa terbaca sebagai durasi atau target |
+
+**Kartu sesi program.**
+- **Long run:** jalan 5' + `Nkm` pace Easy + jalan 5'. Long run progresif: `N-3 km` Easy lalu `3km` race pace. Bila saran memendekkan long run, km yang dipendekkan yang dikirim.
+- **Race pace n×km:** Easy 10', `n x` [jarak race pace + jog 3' istirahat], jog 10'.
+- **Sharpener:** Easy 15', `4x` [1' race pace + jalan 1' istirahat], jalan 2'.
+- **Lomba tidak dikirim** (intervals.icu punya kategori lomba sendiri). Kartu quality yang tidak dikenali tidak dipaksa.
+- **"Kirim minggu ini"** mengirim versi rencana (level, durasi, pola) dengan seed dari id sesi. Penyesuaian saran hari itu berlaku bila sesi dibuka di generator lalu dikirim ulang.
+
+**Tanggal & id.**
+- Tanggal bawaan: hari ini di generator; hari disarankan di program, atau hari ini bila sudah lewat.
+- Id luar event: `ha:s:<id sesi>` untuk sesi program, `ha:g:<tanggal>` untuk generator bebas.
+- Kirim ulang dengan id yang sama memperbarui event itu, juga bila event sudah digeser di kalender (dicari ±14 hari).
+
+**ST** tidak dikirim sebagai workout. Opsional (Setting › Tampilan & program, bawaan mati): catatan teks `NOTE` "ST Lower 45 menit" dengan id `ha:st:<tanggal>`.
