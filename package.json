@@ -11,7 +11,8 @@
     "icons": "node scripts/generate-icons.mjs",
     "e2e": "playwright test",
     "check:bundle": "node scripts/check-client-bundle.mjs",
-    "lighthouse": "node scripts/lighthouse-budget.mjs"
+    "lighthouse": "node scripts/lighthouse-budget.mjs",
+    "secret": "node scripts/session-secret.mjs"
   },
   "dependencies": {
     "next": "^16.4.2",
