@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { BUTTON } from "@/components/ui/Card";
+import { flushSendQueue } from "@/lib/intervals/send-store";
 import { shouldPromptUpdate } from "@/lib/offline";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import { useStoredString } from "@/lib/preferences";
@@ -11,7 +12,8 @@ import { useOnline } from "./useOnline";
 /**
  * Mode offline (0.16, docs/RELEASE-1.0.md #1): mendaftarkan service worker (produksi saja), menampilkan banner
  * "Sedang offline", dan prompt versi baru. Versi baru tidak pernah memuat ulang sendiri; prompt disembunyikan selama
- * sesi latihan berjalan dan baru memuat ulang setelah pengguna mengetuk "Muat ulang".
+ * sesi latihan berjalan dan baru memuat ulang setelah pengguna mengetuk "Muat ulang". 0.17: juga mengirim antrean
+ * "Kirim ke jam".
  */
 export function OfflineAgent() {
   const online = useOnline();
@@ -60,6 +62,11 @@ export function OfflineAgent() {
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
+
+  // Kiriman kalender intervals.icu yang antre saat offline (0.17) dikirim saat online lagi dan saat aplikasi dibuka.
+  useEffect(() => {
+    if (online) void flushSendQueue();
+  }, [online]);
 
   const reload = () => {
     reloading.current = true;

@@ -22,6 +22,7 @@ import {
   generateRunWorkout,
   hasVariations,
   nextDistinctSeed,
+  runTargets,
   runToHuaweiSets,
   runToText,
   type Difficulty,
@@ -34,6 +35,8 @@ import { useStSessions } from "@/lib/st-session-store";
 import type { RunPrefill } from "@/lib/program/to-generator";
 import { parseRange } from "@/lib/run-zones";
 import { useBlockContext, useBlockMode, useResolvedProfile } from "@/lib/settings-store";
+import { SendToWatch } from "@/components/intervals/SendToWatch";
+import { exportRun, externalId } from "@/lib/intervals/workout-export";
 import { CoachStrip } from "./CoachStrip";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
 
@@ -111,6 +114,11 @@ export function RunGenerator({
   // Tampilan Set Huawei disembunyikan sementara; tombol "Copy Set" tetap menyalin format set-nya.
   const setText = useMemo(() => runToHuaweiSets(workout), [workout]);
   const outputRef = useRef<HTMLElement>(null);
+  // Kirim ke jam (0.17): dari program = event sesi itu; generator bebas = satu event per tanggal.
+  const [sendDate, setSendDate] = useState(() => todayWib());
+  const easyPace = runTargets(p).easy.pace;
+  const exported = useMemo(() => exportRun(workout, { easyPace }), [workout, easyPace]);
+  const sendId = prefill?.sessionId ? externalId.session(prefill.sessionId) : externalId.generator(sendDate);
 
   const render = useCallback(
     (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm, free, pattern }, p)),
@@ -264,6 +272,8 @@ export function RunGenerator({
           ))}
         </ul>
       </OutputShell>
+
+      <SendToWatch externalId={sendId} date={sendDate} onDateChange={setSendDate} result={exported} />
 
       <GeneratorActions
         copyText={setText}

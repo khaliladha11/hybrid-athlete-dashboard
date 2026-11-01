@@ -61,6 +61,12 @@ test.describe("latihan", () => {
     if (await ack.first().isVisible().catch(() => false)) await ack.first().check();
     await page.getByRole("button", { name: /^Buat program/ }).click();
     expect(await ls(page, "hybrid-athlete.program")).toContain("raceDate");
+    // Kirim minggu ini (0.17): Demo Mode menjawab tanpa mengirim.
+    const week = page.getByRole("button", { name: /^Kirim minggu ini ke jam/ });
+    if (await week.isVisible().catch(() => false)) {
+      await week.click();
+      await expect(page.getByText(/Mode demo: tidak ada yang dikirim/)).toBeVisible();
+    }
     await page.goto("/");
     await expect(page.locator("main")).toContainText(/Sesi minggu ini|Minggu \d+/i);
   });

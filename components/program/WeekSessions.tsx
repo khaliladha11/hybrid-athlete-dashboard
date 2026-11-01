@@ -9,6 +9,7 @@ import type { ProgramPlan } from "@/lib/program/use-program-plan";
 import { canSkip, dayName, recommendToday, weekEndNote, weekSessions } from "@/lib/program/week-plan";
 import type { PlannedSession } from "@/lib/program/sessions";
 import { useStSessions } from "@/lib/st-session-store";
+import { WeekSend } from "@/components/intervals/WeekSend";
 import { TodaySessionAction } from "./TodaySessionAction";
 
 const label = (s: PlannedSession) => (s.kind === "st-lower" || s.kind === "st-upper" ? s.title : shortTitle(s.title));
@@ -106,6 +107,7 @@ export function WeekSessions({
           )}
         </>
       )}
+      {where === "program" && <WeekSend remaining={week.remaining} sessions={plan.sessions} program={program} today={today} />}
     </section>
   );
 }

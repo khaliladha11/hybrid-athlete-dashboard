@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { SendToWatch } from "@/components/intervals/SendToWatch";
+import { todayWib } from "@/lib/date";
+import { exportProgramCard, externalId } from "@/lib/intervals/workout-export";
 import { BUTTON } from "@/components/ui/Card";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { CADENCE_NOTES, runTargets } from "@/lib/generator";
@@ -29,7 +32,11 @@ export function ProgramSessionCard({ session, program, km, easyOnly }: { session
   }, []);
   const adjusted = km !== undefined && session.km !== undefined && km < session.km;
   const s = easyOnly ? { ...session, intensity: "easy" as const } : session;
-  const text = sessionCardText(s, { easyPace: t.easy.pace ?? "", racePace: formatPaceSec(program.racePaceSec), km });
+  const racePace = formatPaceSec(program.racePaceSec);
+  const text = sessionCardText(s, { easyPace: t.easy.pace ?? "", racePace, km });
+  // Kirim ke jam (0.17): bawaan hari disarankan, atau hari ini bila sudah lewat (sesi boleh di hari mana pun minggu itu).
+  const [sendDate, setSendDate] = useState(() => (session.plannedDate < todayWib() ? todayWib() : session.plannedDate));
+  const exported = useMemo(() => exportProgramCard(s, { easyPace: t.easy.pace, racePace, km }), [s, t.easy.pace, racePace, km]);
   const cues = [
     ...(p.rules.cadenceCue ? [CADENCE_NOTES[0]] : []),
     ...(p.rules.crossoverCue ? [CADENCE_NOTES[1]] : []),
@@ -61,6 +68,9 @@ export function ProgramSessionCard({ session, program, km, easyOnly }: { session
       )}
       <pre className="tabular mt-3 overflow-x-auto rounded-inner bg-subtle p-3 font-mono text-[12px] leading-relaxed whitespace-pre-wrap text-ink">{text}</pre>
       <CopyButton text={text} label="Copy Set" className={`${BUTTON.secondary} mt-2 w-full text-body`} />
+      <div className="mt-2">
+        <SendToWatch externalId={externalId.session(session.id)} date={sendDate} onDateChange={setSendDate} result={exported} />
+      </div>
     </div>
   );
 }
