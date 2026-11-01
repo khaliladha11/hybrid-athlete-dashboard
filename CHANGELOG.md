@@ -16,9 +16,18 @@ Bagian 0.17 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #6). Versi dinaikkan setelah 
 - **Catatan ST di kalender** (opsional, bawaan mati, Setting › Tampilan & program): catatan teks, bukan workout.
 - Rute `/api/intervals/workout`: dilindungi sandi, key tetap di server, respons hanya status. Error 401/403/404/429/5xx/jaringan menjadi satu kalimat dengan langkah berikutnya.
 
+- **Zona HR & RPE** di Setting › Zona: sumber Bawaan, LTHR (zona lari Friel), HR maks (lima zona %HRmax), atau Manual. LTHR dan HR maks terisi dari pengaturan lari intervals.icu. Validasi mencegah zona tumpang tindih, ada Kembalikan bawaan. Generator lari, Program, dan workout yang dikirim ke jam memakai zona efektif.
+- RPE per level: lari ditampilkan; RPE ST per level bisa diubah 4–7, tidak pernah lebih dari 7.
+
 ### Diubah
+- Target HR bawaan tampil dalam bpm: Mini interval `≥ 160` (sebelumnya "Z4–Z5"), Norwegian 4×4 `160–170` (sebelumnya "Z4"), jog 15/15 "turun ke < 140". Struktur workout tidak berubah.
+- Zona HR **tidak** mengubah ambang lari berat (90% LTHR / 155 bpm) atau saran (RELEASE-1.0 §11 #1).
+- Copy: cue gerakan tanpa en dash di antara kata, judul referensi tanpa em dash, "saran harian tetap dari Gita" di Insight. Test baru memindai semua string `lib/`.
 - `lib/intervals/client.ts`: `intervalsRequest` untuk POST/PUT/DELETE; 429 membawa waktu tunggu dari `Retry-After`; id event di log diganti `:id`.
 - Tautan generator dari program membawa id sesi (`sid`) juga untuk lari.
+
+### Diperbaiki
+- Profil tanggal 1–7: ruang kartu ringkasan bulanan ditahan selama data dimuat, jadi halaman tidak bergeser (CLS 0,235 → 0,003; anggaran Lighthouse gagal pada 2026-11-01).
 
 ## [0.16.0] · 2026-10-29 · Siap offline & teruji
 

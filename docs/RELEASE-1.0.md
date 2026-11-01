@@ -203,7 +203,7 @@ HUAWEI Watch Fit 4 tidak disebut di daftar model; diuji lewat checklist manual 0
 
 ## 11. Keputusan terbuka
 
-1. **Zona HR dari Setting dan ambang lari berat.** Apakah zona HR yang diubah di Setting boleh menggantikan 90% LTHR sebagai ambang lari berat? Usulan: **tidak** di 0.17 (hanya untuk target workout dan tampilan). Mengubahnya mengubah saran, jadi butuh sumber dan persetujuan.
+1. **Zona HR dari Setting dan ambang lari berat.** Apakah zona HR yang diubah di Setting boleh menggantikan 90% LTHR sebagai ambang lari berat? Usulan: **tidak** di 0.17 (hanya untuk target workout dan tampilan). Mengubahnya mengubah saran, jadi butuh sumber dan persetujuan. **Diterapkan 0.17: tidak.** Zona hanya untuk target workout dan tampilan; dijaga test.
 2. **Service worker sendiri atau library.** Usulan: ditulis sendiri tanpa library, mengikuti aturan tanpa dependensi baru; dikonfirmasi di prompt 0.16.
 3. **Batas anggaran Lighthouse.** Angka awal ditetapkan dari pengukuran 0.16 lalu dikunci di CI.
 4. **Catatan ST di kalender intervals.icu.** Usulan: mati secara bawaan, diaktifkan pengguna.

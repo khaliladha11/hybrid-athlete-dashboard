@@ -9,7 +9,7 @@
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 70 file test, 793 unit test lolos · 48 test e2e Playwright (28 mobile gelap, 18 desktop terang, 2 sandi) · build produksi lolos · CI GitHub Actions di setiap push & PR (unit, audit, bundle, e2e, Lighthouse) |
+| **Kualitas** | 73 file test, 815 unit test lolos · 51 test e2e Playwright (30 mobile gelap, 19 desktop terang, 2 sandi) · build produksi lolos · CI GitHub Actions di setiap push & PR (unit, audit, bundle, e2e, Lighthouse) |
 | **Dokumen terkait** | [README](../README.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Spesifikasi 0.15: INSIGHT](INSIGHT.md) · [Rencana 0.16 sampai 1.0: RELEASE-1.0](RELEASE-1.0.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
@@ -266,7 +266,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Mode latihan dan log ST berjalan offline, terkirim lewat antrean sinkron 0.12; banner "Sedang offline" | ✅ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #1): juga prompt "Versi baru tersedia · Muat ulang" tanpa reload paksa selama latihan |
 | Tes end-to-end (Playwright) dan tes komponen di CI | ✅ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #2): 43 test (onboarding baru/lama/disclaimer naik, sandi, generate lari + Copy Set, ST + mode latihan + RPE sesi, program + Hari H, Insight + Lihat tabel, offline, ekspor/impor, CSP) di 375px gelap dan desktop terang; tanpa kerangka test komponen terpisah karena logika ada di modul murni |
 | Audit aksesibilitas (kontras non-teks, keyboard, pembaca layar) dan anggaran performa Lighthouse mobile | ✅ | 0.16 ([RELEASE-1.0](RELEASE-1.0.md) #3): axe di e2e (WCAG 2.1 AA, gagal pada serius/kritis), kontras non-teks diuji; Lighthouse: Profil 0,93 · Lari 0,99 · Strength 0,96 · Program 0,92 · Insight 0,99 (LCP 0,8–1,2 detik, TBT 136–342 ms, CLS 0; aksesibilitas 1,0, Strength 0,96 karena `target-size`; best practices 1,0). Pembaca layar: checklist manual |
-| Copy konsisten: tanpa em dash di string `lib/`, istilah seragam termasuk "Gita" | ⬜ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #8) |
+| Copy konsisten: tanpa em dash di string `lib/`, istilah seragam termasuk "Gita" | ✅ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #8, belum dirilis): sisa 4 cue dan 1 judul referensi dirapikan (catatan 56 string sudah usang); `copy-lib-strings.test.ts` memindai semua string `lib/` (em dash dilarang, en dash hanya di rentang angka) dan teks UI memakai "Gita", bukan "coach" |
 | Pemasangan mudah: tombol Deploy to Vercel dengan variabel lingkungan berdeskripsi, INSTALL-WITH-AI.md (rahasia diketik pengguna sendiri), AGENTS.md, jalur Vercel CLI | ⬜ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #9) |
 | Panduan pengguna lengkap (README) dan bantuan singkat di dalam aplikasi | ⬜ | 1.0 ([RELEASE-1.0](RELEASE-1.0.md) #11) |
 | Login / proteksi akses | ✅ | 0.12.0: sandi aplikasi opsional (`APP_PASSCODE` + `SESSION_SECRET`), lihat §4.10. Vercel Authentication tetap dianjurkan sebagai lapisan luar |
@@ -286,7 +286,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Menambah gerakan sendiri (custom) | ⬜ | Gerakan hanya dari kurasi developer |
 | Tema & blok mingguan, Data & cadangan | ✅ | |
 | Nav bagian sticky: smooth scroll, highlight kartu tujuan, scroll spy | ✅ | 0.8.1, menghormati reduced motion |
-| Zona HR & RPE bisa diubah | ⬜ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #7). Sekarang hanya pace. Tidak mengubah ambang saran kecuali disetujui pemilik |
+| Zona HR & RPE bisa diubah | ✅ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #7, belum dirilis): Setting › Zona HR & RPE dengan sumber Bawaan / LTHR (Friel) / HR maks (Edwards) / Manual. LTHR & HR maks terisi dari intervals.icu, validasi mencegah zona tumpang tindih, Kembalikan bawaan. Dipakai generator, Program, dan workout yang dikirim ke jam. RPE lari tampil per level; RPE ST per level bisa diubah 4–7 (tidak pernah > 7). **Tidak mengubah ambang lari berat atau saran** ([TRAINING-LOGIC](TRAINING-LOGIC.md) §1) |
 | Edit nama, target lomba, tanggal mulai blok | ✅ | 0.11.0, bagian Profil (paling atas). Target lomba lewat pemilih waktu |
 | Hasil lomba / time trial tersimpan (jarak, waktu, tanggal) | ✅ | 0.13.2: dari kalkulator VDOT ("Terapkan ke semua zona" atau "Simpan hasil saja"), bisa dihapus, tersinkron per kunci. Sumber utama perkiraan waktu lomba dan saran update zona |
 
@@ -471,7 +471,7 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | P2 | **Gerakan custom** (tambah gerakan sendiri + alat + rentang beban, tetap lewat validator) | M | Library mengikuti alat baru tanpa menunggu developer |
 | ✅ P1 | ~~**Kontras non-teks**~~ (0.16: `line-strong` `#6b6b70` / `#8c8b87`, `track` terang `#8a8985`, `warning` terang `#b98d06`): `line-strong` → `#636366` (gelap) / `#959490` (terang), `warning` terang → `#B98D06` (semua ≥ 3:1) | S | Border input & bar Moderate terlihat jelas |
 | P2 | **Bagikan kartu story** dari `/activity/[id]`: RunTag → PNG transparan 1920×1280 lewat `<canvas>` (DESIGN-SYSTEM §9) | M | Berbagi sesi ke Instagram/WA dengan gaya app |
-| P3 | Bersihkan em dash di string `lib/` (56 string di 12 file: coach, generator, program, progression, media) | S | Copy konsisten dengan aturan desain. → **0.17** |
+| ~~P3~~ | ~~Bersihkan em dash di string `lib/`~~ | S | Selesai 0.17: dijaga `copy-lib-strings.test.ts` |
 | P3 | Pengingat/notifikasi (web push) | L | Konsisten latihan |
 | P3 | Tampilkan kembali tab **Set Huawei** (pratinjau format set) | S | Disembunyikan sementara di 0.8 |
 | P3 | Saran ringkas satu baris di **Generator Strength** | S | Konsisten dengan Generator Lari |

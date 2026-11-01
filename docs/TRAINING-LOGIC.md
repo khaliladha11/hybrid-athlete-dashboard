@@ -21,7 +21,7 @@ Default berasal dari [`config/athlete-profile.json`](../config/athlete-profile.j
 
 **Aturan umum — selalu berlaku, apa pun kondisinya:**
 - Hanya gerakan dari **movement library** yang dipilih di Setting.
-- **RPE ≤ 7** di semua set.
+- **RPE ≤ 7** di semua set. Sejak 0.17 RPE ST per level bisa diubah di Setting › Zona dalam rentang 4–7 (bawaan Easy 5, Moderate 6, High 7); minggu deload turun satu, minimal 5, tidak pernah naik dari nilai pengguna. Batas 7 tetap dijaga `sanitizeStrength`.
 - Beban tidak pernah melebihi batas library, dan (bila berat handle/batang sudah diisi) selalu bisa dirakit dari plat yang ada.
 - Long run program naik ≤ 10% dan ≤ 2 km per minggu; peringatan bila km mingguan naik > 30%; distribusi 80/20.
 
@@ -34,7 +34,19 @@ Default berasal dari [`config/athlete-profile.json`](../config/athlete-profile.j
 | Overpronation / crossover gait | Minimal satu gerakan **stabilitas panggul** (Lateral Band Walk / Clamshell) di Lower & Full Body. Pengingat cadence 175–180 SPM dan cue "rel kereta" di setiap workout lari. |
 | Jeda sebelum MCU | Catatan jeda 24–48 jam dari latihan beban berat sebelum tes darah. |
 
-**Zona HR:** zona di profil (Easy maks 160, Tempo 160–180) ditampilkan apa adanya. Generator memakai acuan yang lebih konservatif: **Easy < 140**, **Tempo 160–170**.
+**Zona HR (0.17, [`lib/hr-zones.ts`](../lib/hr-zones.ts)).** Model 5 zona dengan batas atas Z1–Z4 dalam bpm. Sumbernya dipilih di Setting › Zona:
+
+| Sumber | Z1 | Z2 | Z3 | Z4 | Z5 | Dasar |
+| --- | --- | --- | --- | --- | --- | --- |
+| **Bawaan** | < 130 | 130–139 | 140–159 | 160–170 | ≥ 171 | Angka konservatif generator sejak 0.8 (Easy < 140, Tempo 160–170) |
+| **Dari LTHR** | < 85% | 85–89% | 90–94% | 95–99% | ≥ 100% | Zona lari Friel (Triathlete's Training Bible, 2016) |
+| **Dari HR maks** | < 60% | 60–69% | 70–79% | 80–89% | ≥ 90% | Lima zona %HRmax (Edwards, The Heart Rate Monitor Book, 1993) |
+| **Manual** | isi sendiri | | | | | Batas naik ketat, tiap zona ≥ 3 bpm, 80–230 bpm |
+
+- LTHR dan HR maks terisi awal dari pengaturan lari intervals.icu (`sportSettings[].lthr`, `max_hr`), bisa diubah. Pengaturan yang tidak valid atau belum lengkap memakai bawaan.
+- Target di generator: pemulihan/jalan/jog `< Z2 bawah`, **Easy `< Z3 bawah`**, **Tempo dan Norwegian 4×4 = Z4**, Mini interval dan 15/15 `≥ Z4 bawah`, jog 15/15 "turun ke" batas Easy. Catatan "Jaga HR < X" dan detail sesi Easy/long run program memakai batas Easy yang sama. Workout yang dikirim ke jam membawa HR sebagai catatan (§12).
+- **Zona tidak mengubah saran.** Ambang lari berat tetap 90% LTHR atau 155 bpm (§5 Ambang pribadi); readiness, 80/20, dan check-in tidak membaca zona. Keputusan RELEASE-1.0 §11 #1, dijaga `zones-effective.test.ts`.
+- Profil JSON boleh berisi `maxHr`/`hr` per zona pace (contoh lama); nilai itu tidak dipakai.
 
 ## 2. Generator lari
 
@@ -140,7 +152,8 @@ Kode: [`lib/thresholds.ts`](../lib/thresholds.ts). Aturan disetujui pemilik 2026
 | Penurunan HRV | HRV hari ini < 85% rata-rata 7 hari | Rata-rata 7 hari ln rMSSD < rata-rata 30 hari − **0,5 SD** (smallest worthwhile change) | ≥ 30 hari bernilai HRV dalam 60 hari **dan** HRV dikirim jam | Plews dkk. 2012, 2013 |
 | Kenaikan resting HR | ≥ rata-rata 7 hari + 5 bpm | Hari ini ≥ rata-rata 30 hari + maks(**1 SD**, 3 bpm) | ≥ 30 hari bernilai resting HR | Rentang normal pribadi, analog dengan HRV (usulan aplikasi, dasar lebih lemah) |
 
-- Server menandai setiap aktivitas dengan ambang HR pribadi (`hardHrBpm`), jadi coach, kepatuhan, kalender, dan Insight memakai angka yang sama. Hanya angka LTHR yang di-cache di memori proses (1 jam).
+- Server menandai setiap aktivitas dengan ambang HR pribadi (`hardHrBpm`), jadi coach, kepatuhan, kalender, dan Insight memakai angka yang sama. Hanya angka LTHR (dan sejak 0.17 HR maks, untuk isian Setting) yang di-cache di memori proses (1 jam).
+- Zona HR dari Setting › Zona (0.17, §1) **tidak** menggantikan ambang ini; zona hanya untuk target workout dan tampilan.
 - Wellness readiness diambil 60 hari. Status tampil di kartu Wellness dan Insight bagian Tubuh: "ambang pribadi aktif sejak …" atau "masih memakai ambang umum (12 dari 30 hari data)". Sinyal yang tidak dikirim jam (0.14.3) disebut dan aturannya tidak dipakai.
 
 ### Session-RPE ST (0.14.1)
