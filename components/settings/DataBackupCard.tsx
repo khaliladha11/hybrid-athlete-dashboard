@@ -64,8 +64,11 @@ export function DataBackupCard({ synced = false }: { synced?: boolean }) {
         </p>
       )}
       {pre && (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-card bg-subtle px-3 py-2">
-          <span className="text-[13px] text-muted">Cadangan sebelum pembaruan data · {formatDateId(todayWib(new Date(pre.at)))}</span>
+        <div className="mt-3 flex items-center justify-between gap-3 rounded-card bg-subtle px-3 py-2">
+          <div className="min-w-0">
+            <p className="text-[13px] font-semibold">Cadangan sebelum pembaruan data</p>
+            <p className="text-[12px] text-faint">{formatDateId(todayWib(new Date(pre.at)))} · dibuat otomatis</p>
+          </div>
           <button
             type="button"
             onClick={() => downloadJson(preMigrationBackup(pre), `hybrid-athlete-sebelum-pembaruan-${pre.at.slice(0, 10)}.json`)}
