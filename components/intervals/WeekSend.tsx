@@ -28,6 +28,7 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
   const sendWeek = async () => {
     setBusy(true);
     const tally = { sent: 0, failed: 0, queued: 0, skipped: 0 };
+    let warning: string | undefined;
     const racePace = formatPaceSec(program.racePaceSec);
     try {
       for (const s of runs) {
@@ -38,14 +39,17 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
         }
         const date = sendDateFor(s.plannedDate, today);
         const out = await sendToCalendar({ action: "upsert", externalId: externalId.session(s.id), date, event: r.event }, eventHash(r.event, date));
-        if (out.kind === "sent") tally.sent++;
+        if (out.kind === "sent") {
+          tally.sent++;
+          warning ??= out.warning;
+        }
         else if (out.kind === "queued") tally.queued++;
         else if (out.kind === "demo") {
           setSummary(out.text);
           return;
         } else tally.failed++;
       }
-      setSummary(batchSummary(tally));
+      setSummary(warning ? `${batchSummary(tally)}. ${warning}` : batchSummary(tally));
     } finally {
       setBusy(false);
     }

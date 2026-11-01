@@ -102,6 +102,7 @@ export function SendToWatch({
       <p role="status" aria-live="polite" className={`text-[13px] ${tone}`}>
         {status}
         {changed && !queued && last?.kind !== "error" ? <span className="block text-muted">{changedText}</span> : null}
+        {last?.warning ? <span className="mt-1 block font-semibold text-warning-ink">{last.warning}</span> : null}
       </p>
 
       {deviceNote && (
