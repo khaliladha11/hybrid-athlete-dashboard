@@ -24,6 +24,12 @@ export const PREF_KEYS = {
   activeWorkout: "hybrid-athlete.st-active.v1",
   /** Getar saat timer mode latihan habis (per perangkat, tidak disinkron). */
   workoutVibrate: "hybrid-athlete.workout-vibrate",
+  /** Workout yang sudah dikirim ke kalender intervals.icu dari perangkat ini (0.17, tidak disinkron). */
+  sentWorkouts: "hybrid-athlete.sent-workouts.v1",
+  /** Kiriman kalender yang menunggu online (0.17, tidak disinkron). */
+  sendQueue: "hybrid-athlete.send-queue.v1",
+  /** Catatan ST di kalender intervals.icu (0.17, bawaan mati; per perangkat). */
+  stCalendarNote: "hybrid-athlete.st-calendar-note",
 } as const;
 
 /**

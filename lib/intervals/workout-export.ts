@@ -15,8 +15,12 @@
  * - Jog/jalan di bagian inti = langkah istirahat (`intensity=rest`, contoh resmi halaman Huawei).
  * - HR dan RPE tidak dijadikan target (satu satuan per workout; HR absolut tidak terdokumentasi), hanya catatan.
  */
+import type { ResolvedProfile } from "@/lib/profile";
+import type { BlockContext } from "@/lib/generator/block";
+import { generateRunWorkout, runTargets } from "@/lib/generator/run";
 import type { RunBlock, RunStep, RunWorkout } from "@/lib/generator/types";
-import type { PlannedSession } from "@/lib/program/sessions";
+import { isRunKind, type PlannedSession } from "@/lib/program/sessions";
+import { toGenerator } from "@/lib/program/to-generator";
 import { formatPace, parseRange, type PaceRange } from "@/lib/run-zones";
 
 export interface ExportedEvent {
@@ -209,6 +213,27 @@ export function exportProgramCard(s: PlannedSession, ctx: { easyPace?: string; r
   }
 
   return { ok: false, reason: "Sesi ini belum punya bentuk workout terstruktur. Pakai Copy Set." };
+}
+
+/** Seed tetap dari id sesi: kirim ulang sesi yang sama menghasilkan workout yang sama. */
+export function seedFromId(id: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619) >>> 0;
+  return h % 1_000_000;
+}
+
+/**
+ * Sesi lari program → event, untuk "Kirim minggu ini". Sesi yang masuk generator memakai isian rencana (level, durasi,
+ * pola) dengan seed dari id sesi; penyesuaian saran hari itu berlaku saat sesi dibuka di generator lalu dikirim ulang.
+ */
+export function exportPlannedSession(s: PlannedSession, ctx: { profile: ResolvedProfile; racePace: string; block?: BlockContext }): ExportResult {
+  if (!isRunKind(s.kind)) return { ok: false, reason: "Sesi ST tidak dikirim sebagai workout." };
+  const easyPace = runTargets(ctx.profile).easy.pace;
+  const t = toGenerator(s);
+  if (t.to === "card") return exportProgramCard(s, { easyPace, racePace: ctx.racePace });
+  if (t.to !== "run") return { ok: false, reason: "Sesi ST tidak dikirim sebagai workout." };
+  const w = generateRunWorkout({ duration: t.duration, difficulty: t.difficulty, pattern: t.pattern, seed: seedFromId(s.id), block: ctx.block }, ctx.profile);
+  return exportRun(w, { easyPace });
 }
 
 /** Catatan ST di kalender (opsional, bawaan mati): teks saja, bukan workout terstruktur. */
