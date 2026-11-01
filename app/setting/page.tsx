@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SettingsView } from "@/components/settings/SettingsView";
+import { APP_VERSION } from "@/lib/app-release";
 import { passcodeConfig } from "@/lib/auth/config";
 import { getRunHrRefs } from "@/lib/intervals/data-source";
 import { redisEnv } from "@/lib/redis";
@@ -17,7 +18,7 @@ export default async function SettingPage() {
         <h1 className="text-[22px] leading-tight font-semibold">Setting</h1>
         <p className="mt-0.5 text-[13px] text-muted">Profil, kondisi, zona lari, alat, dan gerakan. {status.sync ? "Tersimpan di perangkat ini dan disinkronkan." : "Tersimpan di perangkat ini."}</p>
       </header>
-      <SettingsView status={status} hrRefs={hrRefs} />
+      <SettingsView status={status} hrRefs={hrRefs} version={APP_VERSION} />
     </div>
   );
 }

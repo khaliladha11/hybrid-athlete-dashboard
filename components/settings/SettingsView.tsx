@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { resolveProfile } from "@/lib/athlete-settings";
 import { baseProfile } from "@/lib/profile";
 import { useAthleteSettings } from "@/lib/settings-store";
+import { AboutCard } from "./AboutCard";
 import { ConditionsSettings } from "./ConditionsSettings";
 import { DataBackupCard } from "./DataBackupCard";
 import { EquipmentSettings } from "./EquipmentSettings";
@@ -24,6 +25,7 @@ const SECTIONS = [
   ["gerakan", "Gerakan"],
   ["tampilan", "Tampilan"],
   ["data", "Data"],
+  ["tentang", "Tentang"],
 ] as const;
 type SectionId = (typeof SECTIONS)[number][0];
 
@@ -71,7 +73,7 @@ function needsScroll(el: HTMLElement): boolean {
 const OFF: Availability = { passcode: false, database: false, sync: false };
 
 /** `status`: sandi, database, sinkron (dibaca server dari env, hanya boolean). */
-export function SettingsView({ status = OFF, hrRefs }: { status?: Availability; hrRefs?: HrRefs }) {
+export function SettingsView({ status = OFF, hrRefs, version = "" }: { status?: Availability; hrRefs?: HrRefs; version?: string }) {
   const [settings, save] = useAthleteSettings();
   const resolved = useMemo(() => resolveProfile(baseProfile, settings), [settings]);
   const [active, setActive] = useState<SectionId>("kondisi");
@@ -201,6 +203,7 @@ export function SettingsView({ status = OFF, hrRefs }: { status?: Availability; 
           <DataBackupCard synced={status.sync} />
         </div>,
       )}
+      {section("tentang", <AboutCard version={version} />)}
     </div>
   );
 }

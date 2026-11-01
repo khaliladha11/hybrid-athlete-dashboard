@@ -65,7 +65,7 @@ test.describe("cadangan", () => {
     await page.getByRole("button", { name: "Ekspor JSON" }).click();
     const file = await (await download).path();
     const data = JSON.parse(readFileSync(file, "utf-8"));
-    expect(data.version).toBe(6);
+    expect(data.version).toBe(7);
     expect(data.checkins).toEqual([checkin]);
 
     const fresh = await browser.newContext();
