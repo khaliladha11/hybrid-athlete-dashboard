@@ -63,13 +63,15 @@ export interface Wellness {
 }
 
 /** `LOCKED`: sandi aplikasi aktif dan request tanpa sesi valid; intervals.icu tidak dipanggil. */
-export type IntervalsErrorCode = "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "SERVER_ERROR" | "NETWORK" | "UNKNOWN" | "LOCKED";
+export type IntervalsErrorCode = "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND" | "RATE_LIMITED" | "SERVER_ERROR" | "NETWORK" | "UNKNOWN" | "LOCKED";
 
 export interface IntervalsError {
   code: IntervalsErrorCode;
   status?: number;
   title: string;
   message: string;
+  /** 429 (0.17): detik sampai boleh mencoba lagi, dari header `Retry-After`. */
+  retryAfterSec?: number;
 }
 
 export type DataSource = "live" | "demo";
