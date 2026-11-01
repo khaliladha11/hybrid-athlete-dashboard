@@ -4,9 +4,19 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
-Bagian 0.17 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #6). Versi dinaikkan setelah semua bagian 0.17 selesai.
+## [0.17.0] · 2026-11-01 · Terhubung & mudah dipasang
 
-### Ditambahkan
+Rilis kedua menuju 1.0 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) §8 0.17: #6–#9).
+
+### Ditambahkan · pemasangan
+- **Tombol Deploy to Vercel** di README. Tombol meminta `INTERVALS_API_KEY`, `APP_PASSCODE`, dan `SESSION_SECRET` (deploy baru langsung terkunci karena perlindungan bawaan Vercel hanya mengunci preview). URL dirakit dari `lib/env-schema.ts`, tanpa nilai dan tanpa nilai bawaan. Upstash Redis tetap dipasang manual setelah deploy: parameter `stores` ada, tetapi slug Upstash tidak didokumentasikan Vercel.
+- README › **Variabel lingkungan**: tabel setiap env (wajib/opsional, kegunaan, asal nilai), cara membuat `SESSION_SECRET` (`npm run secret`, `openssl rand -base64 32`), catatan bahwa tombol membuat salinan (clone), bukan fork.
+- **Jalur Vercel CLI** (`vercel link`, `vercel env add` diketik pengguna, `vercel deploy --prod`) dan fork manual.
+- **INSTALL-WITH-AI.md**: prompt siap tempel untuk asisten AI, dengan aturan keras tidak pernah meminta atau mengetik rahasia, langkah sampai jam tersambung, dan pemecahan masalah per pesan error.
+- **AGENTS.md** (Inggris) untuk alat pemrograman AI: perintah, arsitektur, aturan yang tidak bisa ditawar.
+- Onboarding (koneksi & lindungi) menautkan bagian README yang relevan.
+
+### Ditambahkan · kirim ke jam
 - **Kirim ke jam**: workout lari dari Generator Lari dan sesi program dikirim ke kalender intervals.icu sebagai workout terstruktur, lalu diteruskan ke jam yang terhubung (Huawei, Garmin, Coros). Ada pilihan tanggal, status "Terkirim ke kalender intervals.icu · Rabu 4 Nov", Kirim ulang bila workout berubah, dan Hapus dari kalender. Copy Set tetap ada.
 - Setiap langkah membawa target pace, termasuk jalan dan jog; tanpa ramp; ulangan satu langkah diurai (batas Huawei). Aturannya di TRAINING-LOGIC §12.
 - **Kirim minggu ini** di Program untuk sisa sesi lari minggu ini. Sesi yang dilewati atau program yang diganti menawarkan hapus juga dari kalender.
@@ -16,6 +26,12 @@ Bagian 0.17 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #6). Versi dinaikkan setelah 
 - **Catatan ST di kalender** (opsional, bawaan mati, Setting › Tampilan & program): catatan teks, bukan workout.
 - Rute `/api/intervals/workout`: dilindungi sandi, key tetap di server, respons hanya status. Error 401/403/404/429/5xx/jaringan menjadi satu kalimat dengan langkah berikutnya.
 
+### Ditambahkan · kirim ke jam (perbaikan setelah uji di jam)
+- **Merek jam** dipilih sekali di kartu Kirim ke jam. Setelah kirim, aplikasi menampilkan langkah sampai di jam untuk merek itu.
+- Setelah kirim, server membaca (tanpa mengubah) sakelar **Upload planned workouts** merek jam di intervals.icu dan memberi tahu bila mati.
+- **Cek status unggah**: membaca error unggah dari intervals.icu (`push_errors`). Tanpa error tercatat, aplikasi tidak mengklaim workout sudah di jam, karena intervals.icu tidak punya API untuk mendorong atau melaporkan unggah ke jam.
+
+### Ditambahkan · zona HR & RPE
 - **Zona HR & RPE** di Setting › Zona: sumber Bawaan, LTHR (zona lari Friel), HR maks (lima zona %HRmax), atau Manual. LTHR dan HR maks terisi dari pengaturan lari intervals.icu. Validasi mencegah zona tumpang tindih, ada Kembalikan bawaan. Generator lari, Program, dan workout yang dikirim ke jam memakai zona efektif.
 - RPE per level: lari ditampilkan; RPE ST per level bisa diubah 4–7, tidak pernah lebih dari 7.
 
@@ -23,6 +39,7 @@ Bagian 0.17 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #6). Versi dinaikkan setelah 
 - Target HR bawaan tampil dalam bpm: Mini interval `≥ 160` (sebelumnya "Z4–Z5"), Norwegian 4×4 `160–170` (sebelumnya "Z4"), jog 15/15 "turun ke < 140". Struktur workout tidak berubah.
 - Zona HR **tidak** mengubah ambang lari berat (90% LTHR / 155 bpm) atau saran (RELEASE-1.0 §11 #1).
 - Copy: cue gerakan tanpa en dash di antara kata, judul referensi tanpa em dash, "saran harian tetap dari Gita" di Insight. Test baru memindai semua string `lib/`.
+- Dua anchor usang di TRAINING-LOGIC diperbaiki; test baru memeriksa tautan & anchor semua dokumen.
 - `lib/intervals/client.ts`: `intervalsRequest` untuk POST/PUT/DELETE; 429 membawa waktu tunggu dari `Retry-After`; id event di log diganti `:id`.
 - Tautan generator dari program membawa id sesi (`sid`) juga untuk lari.
 

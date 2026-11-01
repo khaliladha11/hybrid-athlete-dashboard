@@ -1,6 +1,6 @@
 # Rencana 0.16, 0.17, dan 1.0
 
-> Status: **rencana, 2026-10-29**. Simpan di `docs/RELEASE-1.0.md`.
+> Status: **0.16 dirilis 2026-10-29, 0.17 dirilis 2026-11-01; 1.0 berikutnya.** Rencana awal 2026-10-29. Simpan di `docs/RELEASE-1.0.md`.
 > Bergantung pada 0.12 (sinkron & antrean "belum terkirim"), 0.13 (program), 0.15 (Insight). Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Desain mengikuti [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Fakta tentang perangkat dan intervals.icu di §3 berasal dari catatan pemilik dan **diverifikasi ke dokumentasi resmi sebelum implementasi 0.17**.
 
 ## 1. Tujuan
