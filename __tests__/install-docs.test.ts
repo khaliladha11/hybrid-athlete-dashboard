@@ -78,6 +78,19 @@ describe("dokumen pemasangan (0.17)", () => {
     for (const f of ["INSTALL-WITH-AI.md", "NOTICE.md"]) expect(existsSync(f), f).toBe(true);
   });
 
+  it("LICENSE MIT atas nama pemilik; NOTICE menyebut setiap sumber pihak ketiga (1.0)", () => {
+    const license = readFileSync("LICENSE", "utf-8");
+    expect(license).toMatch(/^MIT License/);
+    expect(license).toContain("Copyright (c) 2026 Muhammad Khalil Adha");
+    expect(JSON.parse(readFileSync("package.json", "utf-8")).license).toBe("MIT");
+    const notice = readFileSync("NOTICE.md", "utf-8");
+    for (const src of ["free-exercise-db", "Unlicense", "MuscleMapJS", "melihcolpan/MuscleMap", "react-native-body-highlighter", "Archivo Project Authors", "Vercel, in collaboration with basement.studio", "SIL OPEN FONT LICENSE Version 1.1", "Cole Bemis", "Lucide Icons and Contributors", "openGym"])
+      expect(notice, src).toContain(src);
+    // Font yang dimuat di layout = font yang tercantum di NOTICE.
+    const fonts = [...readFileSync("app/layout.tsx", "utf-8").matchAll(/import \{ ([^}]+) \} from "next\/font\/google"/g)].flatMap((m) => m[1].split(",").map((f) => f.trim()));
+    expect(fonts.sort()).toEqual(["Archivo", "Geist_Mono"]);
+  });
+
   it("INSTALL-WITH-AI.md dan AGENTS.md memuat aturan rahasia", () => {
     const ai = readFileSync("INSTALL-WITH-AI.md", "utf-8");
     expect(ai).toContain("Jangan pernah meminta saya menempelkan rahasia ke chat ini");

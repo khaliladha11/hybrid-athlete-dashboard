@@ -484,7 +484,11 @@ Tampilan mengikuti **[docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)** (design sy
 - **[docs/TRAINING-LOGIC.md](docs/TRAINING-LOGIC.md)**: semua aturan generator, periodisasi, saran, progresi beban, dan referensi ilmiahnya.
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**: arsitektur, alur data, batas keamanan, dan strategi testing.
 - **[CHANGELOG.md](CHANGELOG.md)**: riwayat perubahan per versi.
-- **[NOTICE.md](NOTICE.md)**: atribusi gambar gerakan (free-exercise-db, Unlicense).
+- **[NOTICE.md](NOTICE.md)**: atribusi semua aset pihak ketiga (gambar gerakan, peta otot, font, ikon, dependensi) beserta lisensinya.
+
+## Lisensi
+
+Kode dirilis di bawah [MIT License](LICENSE), Copyright (c) 2026 Muhammad Khalil Adha. Aset pihak ketiga (gambar gerakan, path SVG peta otot, font Archivo & Geist Mono, beberapa ikon) memakai lisensinya sendiri, semuanya tercantum di [NOTICE.md](NOTICE.md).
 
 ## Disclaimer
 
