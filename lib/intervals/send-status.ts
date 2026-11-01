@@ -117,6 +117,23 @@ export function normalizeSent(raw: unknown): SentMap {
   return out;
 }
 
+/**
+ * Sesi program yang pernah dikirim dari perangkat ini tetapi tidak ada lagi di program (dilewati, program diganti atau
+ * dihapus) dan tanggalnya belum lewat: ditawarkan untuk dihapus juga dari kalender intervals.icu.
+ */
+export function orphanedSends(map: SentMap, liveSessionIds: ReadonlySet<string>, today: string): { externalId: string; date: string }[] {
+  return Object.entries(map)
+    .filter(([id, r]) => id.startsWith("ha:s:") && !liveSessionIds.has(id.slice(5)) && r.date >= today)
+    .map(([externalId, r]) => ({ externalId, date: r.date }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export const orphanText = (n: number) =>
+  n === 1 ? "1 workout di kalender intervals.icu tidak ada lagi di program." : `${n} workout di kalender intervals.icu tidak ada lagi di program.`;
+
+/** Tanggal kirim sesi program: hari disarankan, atau hari ini bila sudah lewat. */
+export const sendDateFor = (plannedDate: string, today: string) => (plannedDate < today ? today : plannedDate);
+
 // ---------- Antrean offline ----------
 
 export interface QueuedSend {

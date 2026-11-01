@@ -129,3 +129,21 @@ describe("kirim minggu ini: sesi program", () => {
     expect(seedFromId("a")).not.toBe(seedFromId("b"));
   });
 });
+
+describe("sesi yang tidak ada lagi di program", () => {
+  it("hanya sesi program, tidak hidup, tanggal belum lewat", async () => {
+    const { orphanedSends, orphanText, sendDateFor } = await import("@/lib/intervals/send-status");
+    const rec = (date: string) => ({ date, hash: "h", sentAt: "t" });
+    const map = {
+      "ha:s:p:1:selasa:easy": rec("2026-11-03"),
+      "ha:s:p:1:kamis:quality": rec("2026-11-05"),
+      "ha:s:p:1:senin:easy": rec("2026-10-30"),
+      "ha:g:2026-11-06": rec("2026-11-06"),
+    };
+    expect(orphanedSends(map, new Set(["p:1:selasa:easy"]), "2026-11-01")).toEqual([{ externalId: "ha:s:p:1:kamis:quality", date: "2026-11-05" }]);
+    expect(orphanText(1)).toBe("1 workout di kalender intervals.icu tidak ada lagi di program.");
+    expect(orphanText(3)).toMatch(/^3 workout/);
+    expect(sendDateFor("2026-10-30", "2026-11-01")).toBe("2026-11-01");
+    expect(sendDateFor("2026-11-03", "2026-11-01")).toBe("2026-11-03");
+  });
+});

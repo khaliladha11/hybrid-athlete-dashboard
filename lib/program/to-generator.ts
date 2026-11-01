@@ -107,6 +107,8 @@ export interface RunPrefill {
   /** Level & durasi menurut rencana (berbeda dari isian bila `adjusted`). */
   planDifficulty: Difficulty;
   planDuration: Duration;
+  /** Id sesi program (0.17): kirim ke jam memperbarui event sesi yang sama. */
+  sessionId?: string;
 }
 
 export interface StrengthPrefill {
@@ -143,6 +145,7 @@ export function generatorHref(s: PlannedSession, t: GeneratorTarget, override: {
       q.set("plvl", t.difficulty);
       q.set("pd", String(t.duration));
     }
+    q.set("sid", s.id);
     return `/run?${q.toString()}`;
   }
   q.set("type", t.type);
@@ -174,7 +177,8 @@ export function parseRunPrefill(params: Params): RunPrefill | null {
   const planDifficulty = one(params.plvl) as Difficulty;
   const planDuration = Number(one(params.pd)) as Duration;
   const plan = adjusted && DIFFICULTIES.includes(planDifficulty) && DURATIONS.includes(planDuration) ? { planDifficulty, planDuration } : { planDifficulty: b.difficulty, planDuration: b.duration };
-  return { ...b, kind, ...(isRunPattern(p) ? { pattern: p } : {}), ...(adjusted ? { adjusted: true } : {}), ...plan };
+  const sid = one(params.sid);
+  return { ...b, kind, ...(isRunPattern(p) ? { pattern: p } : {}), ...(adjusted ? { adjusted: true } : {}), ...plan, ...(sid && SESSION_ID_RE.test(sid) ? { sessionId: sid } : {}) };
 }
 
 export function parseStrengthPrefill(params: Params): StrengthPrefill | null {

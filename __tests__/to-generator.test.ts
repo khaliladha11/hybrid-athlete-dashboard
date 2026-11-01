@@ -100,9 +100,9 @@ describe("prefill generator lewat query", () => {
     const tempo = hm.find((s) => s.title.startsWith("Tempo"))!;
     const href = generatorHref(tempo, toGenerator(tempo))!;
     expect(href.startsWith("/run?")).toBe(true);
-    expect(parseRunPrefill(params(href))).toEqual({ week: tempo.week, kind: "quality", duration: 45, difficulty: "moderate", pattern: "tempo", label: "Tempo", planDifficulty: "moderate", planDuration: 45 });
+    expect(parseRunPrefill(params(href))).toEqual({ week: tempo.week, kind: "quality", duration: 45, difficulty: "moderate", pattern: "tempo", label: "Tempo", planDifficulty: "moderate", planDuration: 45, sessionId: tempo.id });
     const lowered = parseRunPrefill(params(generatorHref(tempo, toGenerator(tempo), { difficulty: "easy" })!));
-    expect(lowered).toEqual({ week: tempo.week, kind: "quality", duration: 45, difficulty: "easy", label: "Tempo", adjusted: true, planDifficulty: "moderate", planDuration: 45 });
+    expect(lowered).toEqual({ week: tempo.week, kind: "quality", duration: 45, difficulty: "easy", label: "Tempo", adjusted: true, planDifficulty: "moderate", planDuration: 45, sessionId: tempo.id });
   });
 
   it("strength: bolak-balik; kartu tidak punya tautan", () => {

@@ -96,6 +96,12 @@ export async function sendToCalendar(req: SendRequest, hash?: string): Promise<S
   return outcome(req, res, hash);
 }
 
+/** Berhenti mencatat event (tanpa menyentuh kalender), mis. "Biarkan" pada tawaran hapus. */
+export function forgetSent(externalId: string) {
+  const { [externalId]: _gone, ...rest } = sentStore.read();
+  sentStore.write(rest);
+}
+
 let flushing = false;
 /** Kirim antrean (dipanggil saat online lagi dan saat aplikasi dibuka). Berhenti di error yang layak diulang. */
 export async function flushSendQueue(): Promise<void> {
