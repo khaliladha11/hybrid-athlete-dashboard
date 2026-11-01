@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BUTTON, Chip } from "@/components/ui/Card";
+import { DOCS } from "@/lib/docs-links";
 import type { Availability } from "@/lib/sync/server";
 
 const STEPS: React.ReactNode[] = [
@@ -31,6 +32,9 @@ export function ProtectStep({ onConfirm, onLater }: { onConfirm: () => void; onL
         ))}
       </ol>
       <p className="text-[13px] text-faint">Aplikasi tidak bisa memeriksa pengaturan ini dari dalam, jadi konfirmasinya dari kamu.</p>
+      <a href={DOCS.protect} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-[13px] font-semibold text-brand-ink underline underline-offset-2">
+        Panduan lengkap di README
+      </a>
       <DeployStatus />
       <button type="button" onClick={onConfirm} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.primary} w-full`}>
         Sudah saya aktifkan
@@ -77,7 +81,10 @@ function DeployStatus() {
         <p className="mt-2 text-[13px] leading-relaxed text-muted">
           Untuk mengunci aplikasi dan menyamakan data di HP & laptop: Vercel › <span className="font-semibold text-ink">Storage › Upstash Redis</span>, hubungkan ke
           project; isi <code className="font-mono text-[12px]">APP_PASSCODE</code> dan <code className="font-mono text-[12px]">SESSION_SECRET</code> di Environment
-          Variables; lalu Redeploy.
+          Variables; lalu Redeploy.{" "}
+          <a href={DOCS.upstash} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-brand-ink underline underline-offset-2">
+            Panduan Upstash Redis
+          </a>
         </p>
       )}
     </div>

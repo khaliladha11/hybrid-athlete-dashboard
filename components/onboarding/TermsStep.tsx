@@ -2,8 +2,9 @@
 
 import { useId, useState } from "react";
 import { BUTTON } from "@/components/ui/Card";
+import { DOCS } from "@/lib/docs-links";
 
-const NOTICE_URL = "https://github.com/khaliladha11/hybrid-athlete-dashboard/blob/main/NOTICE.md";
+const NOTICE_URL = DOCS.notice;
 
 const POINTS: { title: string; body: React.ReactNode }[] = [
   {

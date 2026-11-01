@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BUTTON } from "@/components/ui/Card";
+import { DOCS } from "@/lib/docs-links";
 import { isConnectionStatus, type ConnectionResult } from "@/lib/intervals/connection";
 
 /** Panggil `/api/connection`. Gagal memanggil server sendiri dianggap "network". */
@@ -32,6 +33,11 @@ const MESSAGES: Record<Exclude<ConnectionResult["status"], "ok">, { title: strin
         </li>
         <li>
           <span className="font-semibold">Deployments › ⋯ › Redeploy</span>, lalu buka lagi halaman ini.
+        </li>
+        <li className="list-none">
+          <a href={DOCS.env} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-brand-ink underline underline-offset-2">
+            Penjelasan setiap variabel di README
+          </a>
         </li>
       </ol>
     ),
