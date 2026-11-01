@@ -45,7 +45,10 @@ export function MonthlyProfileCard({ today }: { today: string }) {
     () => (acts ? monthlySummary({ today, activities: acts, stSessions: sessions, log, prs, raceResults: athlete.raceResults, available: availableMovements(profile) }) : null),
     [acts, today, sessions, log, prs, athlete.raceResults, profile],
   );
-  if (!show || !summary) return null;
+  if (!show) return null;
+  // Ruang kartu ditahan selama data dimuat, supaya isi Profil di bawahnya tidak bergeser (CLS).
+  if (!acts) return <div aria-hidden className="min-h-60 rounded-card bg-subtle" />;
+  if (!summary) return null;
   return (
     <div className="space-y-1">
       <MonthlyCard
