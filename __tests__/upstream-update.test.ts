@@ -111,7 +111,8 @@ describe("workflow", () => {
 });
 
 /** Uji nyata dengan repo git sementara: upstream bertag, fork (riwayat sama), salinan Deploy (riwayat berbeda). */
-describe("upstream-update.mjs dengan repo git sementara (DRY_RUN)", () => {
+// Operasi git nyata: lebih lambat saat test berjalan paralel.
+describe("upstream-update.mjs dengan repo git sementara (DRY_RUN)", { timeout: 30_000 }, () => {
   const root = mkdtempSync(join(tmpdir(), "ha-upstream-"));
   afterAll(() => rmSync(root, { recursive: true, force: true }));
   const git = (cwd: string, ...args: string[]) => execFileSync("git", ["-c", "user.name=Uji", "-c", "user.email=uji@example.test", "-c", "commit.gpgsign=false", "-c", "tag.gpgsign=false", ...args], { cwd, encoding: "utf-8" }).trim();
