@@ -1,3 +1,4 @@
+import type { StrengthRpe, ZoneTops } from "./hr-zones";
 import rawProfile from "@/config/athlete-profile.json";
 import { defaultSettings, resolveProfile, type ResolvedProfile } from "./athlete-settings";
 import { parseWeight, type WeightSpec } from "./weights";
@@ -45,6 +46,10 @@ export interface AthleteProfile {
   /** Blok periodisasi: `blockWeeks` minggu, minggu terakhir = deload. */
   training?: { blockStart?: string; blockWeeks?: number };
   runZones?: Record<string, Record<string, string | number>>;
+  /** Batas atas Z1–Z4 HR efektif dari Setting › Zona (0.17, `lib/hr-zones.ts`); kosong = bawaan. */
+  hrTops?: ZoneTops;
+  /** RPE ST per level dari Setting › Zona (0.17, maks 7); kosong = bawaan 5/6/7. */
+  strengthRpe?: StrengthRpe;
   movementLibrary: MovementLibrary;
 }
 

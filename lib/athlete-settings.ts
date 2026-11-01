@@ -15,6 +15,7 @@ import {
   type Equipment,
 } from "./equipment";
 import { STABILITY_HIP } from "./generator/meta";
+import { parseHrZoneSettings, parseStrengthRpe, zoneTops, type HrZoneSettings, type StrengthRpe } from "./hr-zones";
 import { loadBounds, newRuleActive, type LoadRule } from "./load-bounds";
 import { formatRange, parseRange, RACE_DISTANCES, ZONE_KEYS, type RaceDistanceKey, type ZoneKey } from "./run-zones";
 import type { AthleteProfile, Movement, MovementCategory, MovementLibrary } from "./profile";
@@ -59,6 +60,10 @@ export interface AthleteSettings {
   loadRule?: LoadRule;
   /** Pengingat beli yang ditutup: area → tanda tangan syarat saat ditutup (0.14.0). */
   buyReminderDismissed?: Partial<Record<"lower" | "upperPush" | "upperPull", string>>;
+  /** Zona HR lari (0.17): sumber bawaan / LTHR / HR maks / manual. Kosong = bawaan. */
+  hrZones?: HrZoneSettings;
+  /** RPE ST per level (0.17), 4–7. Kosong = 5/6/7. */
+  strengthRpe?: StrengthRpe;
 }
 
 export interface RaceResult {
@@ -205,8 +210,12 @@ export function parseSettings(raw: unknown, base: AthleteProfile): AthleteSettin
       : {}),
     ...parseLoadRule(s.loadRule),
     ...parseDismissed(s.buyReminderDismissed),
+    ...optional("hrZones", parseHrZoneSettings(s.hrZones)),
+    ...optional("strengthRpe", parseStrengthRpe(s.strengthRpe)),
   };
 }
+
+const optional = <K extends string, V>(k: K, v: V | undefined): Partial<Record<K, V>> => (v === undefined ? {} : ({ [k]: v } as Record<K, V>));
 
 function parseDismissed(v: unknown): { buyReminderDismissed?: AthleteSettings["buyReminderDismissed"] } {
   if (!v || typeof v !== "object") return {};
@@ -310,6 +319,8 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
     training: { ...base.training, blockStart: pr.blockStart ?? base.training?.blockStart },
     conditions: s.conditions,
     runZones,
+    hrTops: zoneTops(s.hrZones),
+    ...(s.strengthRpe ? { strengthRpe: s.strengthRpe } : {}),
     movementLibrary: lib,
     activeConditions: s.conditions,
     customConditions: s.customConditions,
