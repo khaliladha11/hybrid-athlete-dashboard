@@ -17,7 +17,7 @@
   const STATIC_FILES = ["/manifest.json", "/icon-192.png", "/icon-512.png", "/icon.svg", "/apple-touch-icon.png", "/favicon.svg", "/favicon-16.png", "/favicon-32.png", "/favicon.ico"];
   const SW_FILES = ["/sw.js", "/sw-rules.js"];
   /** Halaman yang disimpan sekali untuk offline bila belum pernah dibuka (mode latihan termasuk). */
-  const WARM_ROUTES = ["/", "/run", "/program", "/strength", "/strength/sesi", "/setting", "/insight"];
+  const WARM_ROUTES = ["/", "/run", "/program", "/strength", "/strength/sesi", "/setting", "/insight", "/bantuan"];
   const OFFLINE_PAGE = "/offline";
 
   /**

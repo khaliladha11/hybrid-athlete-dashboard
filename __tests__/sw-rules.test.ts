@@ -87,7 +87,7 @@ describe("kunci, ekstraksi, dan nama cache", () => {
   });
 
   it("rute yang dihangatkan mencakup semua tab dan mode latihan", () => {
-    expect(rules.WARM_ROUTES).toEqual(["/", "/run", "/program", "/strength", "/strength/sesi", "/setting", "/insight"]);
+    expect(rules.WARM_ROUTES).toEqual(["/", "/run", "/program", "/strength", "/strength/sesi", "/setting", "/insight", "/bantuan"]);
     expect(rules.OFFLINE_PAGE).toBe("/offline");
   });
 });

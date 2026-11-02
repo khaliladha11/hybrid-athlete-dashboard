@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { ABOUT_LINKS, formatReleaseDate, isNewer, newVersionText, RELEASE_DATE, releaseUrl, UPDATE_HINT } from "@/lib/app-info";
@@ -39,6 +40,11 @@ export function AboutCard({ version }: { version: string }) {
         </div>
       )}
       <ul className="mt-3 border-t border-line pt-2">
+        <li>
+          <Link href="/bantuan" className={LINK}>
+            Bantuan & panduan
+          </Link>
+        </li>
         {ABOUT_LINKS.map((l) => (
           <li key={l.href}>
             <a href={l.href} target="_blank" rel="noreferrer" className={LINK}>

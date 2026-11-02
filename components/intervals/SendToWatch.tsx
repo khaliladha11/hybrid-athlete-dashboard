@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { BUTTON } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
@@ -177,6 +178,9 @@ export function SendToWatch({
               <li key={l}>{l}</li>
             ))}
           </ul>
+          <Link href="/bantuan#jam" className="mt-1 inline-flex min-h-11 items-center font-semibold text-brand-ink underline underline-offset-2">
+            Bantuan lengkap
+          </Link>
         </details>
       )}
     </section>
