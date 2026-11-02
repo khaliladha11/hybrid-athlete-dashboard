@@ -10,4 +10,8 @@ export const DOCS = {
   protect: `${UPSTREAM_REPO}#setelah-deploy-kunci-aksesnya`,
   installWithAi: `${UPSTREAM_REPO}/blob/main/INSTALL-WITH-AI.md`,
   notice: `${UPSTREAM_REPO}/blob/main/NOTICE.md`,
+  /** 1.0.0-rc.2: panduan, keterbatasan, dan dasar ilmiah (dari halaman Bantuan & Setting). */
+  guide: `${UPSTREAM_REPO}/blob/main/docs/GUIDE.md`,
+  limitations: `${UPSTREAM_REPO}/blob/main/docs/LIMITATIONS.md`,
+  references: `${UPSTREAM_REPO}/blob/main/docs/REFERENCES.md`,
 } as const;
