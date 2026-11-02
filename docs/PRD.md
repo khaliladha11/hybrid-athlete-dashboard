@@ -362,7 +362,7 @@ Selesai di 0.12 (0.12.0 sampai 0.12.2), spesifikasi lengkap di [SYNC.md](SYNC.md
 
 ## 6. Keterbatasan & utang teknis
 
-Diurutkan dari yang paling berdampak.
+Diurutkan dari yang paling berdampak. Versi untuk pemakai (dampak dan jalan keluar, tanpa istilah teknis) ada di [LIMITATIONS.md](LIMITATIONS.md).
 
 1. **Movement library hanya dari kurasi developer.** 56 gerakan sejak 0.14.2, tetapi pengguna belum bisa menambah gerakan sendiri; alat lain (mis. kettlebell) baru dicatat. 9 gerakan belum punya gambar karena tidak ada padanan berlisensi bebas (free-exercise-db, wger, dan Wikimedia Commons sudah dicek di 0.14.2), termasuk 2 prehab wajib (Clamshell, Tibialis Wall Raise). Celah anti-rotasi (Pallof, bird dog, suitcase carry) belum ada di sumber gambar. Kondisi di luar katalog hanya catatan.
 2. ~~**Ambang tetap.**~~ Selesai 0.15.2: HR lari berat dari LTHR, HRV & resting HR dari baseline 30 hari. Konstanta (155 bpm, 15%, +5 bpm) tetap dipakai sampai datanya cukup atau bila LTHR belum diisi di intervals.icu. Aturan check-in memakai ambang tetap (default aplikasi), belum z-score pribadi.
@@ -446,54 +446,53 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 >
 > 2026-10-12: 0.9 "Library & alat" selesai sebagai **Visual gerakan + perluasan library**. Rekomendasi berikutnya tetap 0.10 — log, Setting, dan pilihan gerakan kini makin berharga untuk disinkron & dilindungi.
 
-### Backlog lengkap
+### Setelah 1.0
 
-| Prioritas | Fitur | Ukuran | Nilai untuk atlet |
-| --- | --- | --- | --- |
-| P0 | **Proteksi akses** (passcode di middleware atau Vercel Authentication) | S | Data kesehatan tidak terbuka untuk umum. → Masuk **0.12.0** (sandi aplikasi, [SYNC.md](SYNC.md) §3) |
-| P0 | **Sinkron data** (Upstash Redis / Supabase) untuk log, program, preferensi | M | Data aman dan sama di semua perangkat. → Masuk **0.12.1–0.12.2** (Upstash Redis milik pengguna, [SYNC.md](SYNC.md) §4) |
-| P0 | **CI GitHub Actions** (typecheck, test, build tiap push) | S | Mencegah rilis rusak. → Masuk **0.12.0** ([SYNC.md](SYNC.md) §6) |
-| P1 | **Gambar untuk 9 gerakan sisa** & gerakan anti-rotasi (foto sendiri, karena free-exercise-db, wger, dan Wikimedia Commons tidak punya padanan, dicek 0.14.2) | M | Detail teknik lengkap untuk prehab wajib. Dead Hang & Negative Pull-Up sudah bergambar di **0.14.2** |
-| P1 | **Program → generator**: tombol "Kerjakan sesi hari ini" yang mengisi generator lari | S | Satu tap dari rencana ke workout. → Selesai di **0.13.1** |
-| P1 | **Kepatuhan program**: tandai sesi rencana ✓/✕ dari aktivitas intervals.icu, tampil di kalender | M | Tahu apakah masih di jalur. → Selesai di **0.13.0** |
-| P1 | **Prediksi waktu lomba** dari lari terbaik terbaru (usulan VDOT Daniels, Riegel sebagai pembanding) untuk mengecek target | S | Target realistis. → Selesai di **0.13.2** (tanpa best effort intervals.icu, lihat P2) |
-| P1 | **Check-in harian**: nyeri shin (0–10), pegal, kualitas tidur, mood → ikut ke saran | S | Sinyal dini shin splints yang tidak terlihat di HRV. → ✅ **0.15.2** |
-| P1 | **Grafik tren** CTL/ATL/Form & km mingguan | M | Melihat kebugaran dan kelelahan jangka panjang. → ✅ **0.15.0** |
-| P1 | **ST mengikuti fase program** (Base, Build, Peak, Taper) | M | ST kaki tidak berat menjelang lomba. → Selesai di **0.14.1** |
-| P1 | **Session-RPE untuk ST** masuk beban 7 hari, kepatuhan, Week Ledger | S | Saran lari ikut memperhitungkan sesi ST yang tidak tercatat di jam. → Selesai di **0.14.1** |
-| P2 | **Kirim workout ke kalender intervals.icu** (lalu ke jam yang terhubung) | M | Workout langsung muncul di jam. → **0.17** (hanya lari; ST tetap di aplikasi) |
-| P2 | **Edit sisa profil di aplikasi** (target lomba, tanggal mulai blok, zona HR/RPE) | S | Tanpa edit JSON sama sekali. → Terserap ke **0.11** ([ONBOARDING.md](ONBOARDING.md) §4.5), kecuali zona HR/RPE yang tetap di backlog |
-| P2 | **Enkripsi sisi klien (opsional)**: passphrase + WebCrypto sebelum data dikirim ke database | M | Database pun tidak bisa membaca data kesehatan. Tidak di 0.12 ([SYNC.md](SYNC.md) §4, §11) |
-| P2 | **Best effort intervals.icu sebagai sumber kedua prediksi** (`GET /api/v1/athlete/{id}/pace-curves`, `type=Run`, `curves=90d`) | S | Perkiraan lebih yakin tanpa harus lomba. Butuh kepastian satuan `values` (tidak dijelaskan di skema API) dan penyaring untuk data per detik jam yang rusak, karena best effort juga bisa memicu saran update zona |
-| P2 | **Isian awal VDOT dari lari terbaik 90 hari** di onboarding & Setting (butuh data intervals.icu di client) | S | Zona lari tepat tanpa harus ingat hasil lomba |
-| P2 | **Ambang personal** (HR berat dari zona/LTHR, baseline HRV 30 hari) | S | Saran lebih akurat. Baseline HRV hanya bila data HRV ada (jam pemilik tidak mengirimnya, 0.14.3) |
-| P2 | **Mode offline** (service worker, cache workout terakhir) | M | Tetap bisa dibuka di gym tanpa sinyal. Relevan untuk rasa native setelah onboarding mengajak pasang ke layar utama (0.11). → **0.16** |
-| P2 | **Mode latihan ST**: layar penuh per gerakan, timer istirahat & hitung mundur tahan, centang per set langsung tercatat (menggantikan "Timer sesi ST") | M | Tidak perlu aplikasi timer lain dan tidak mencatat belakangan. → Selesai di **0.14.1** |
-| P2 | **Tes kekuatan berkala** di minggu deload + **milestone pull-up** & gerakan baru otomatis aktif saat siap (mis. negative pull-up) | S–M | Progres ST terlihat seperti pace/VDOT di lari. → Sebagian besar tergantikan PR kemampuan (**0.14.0**); milestone pull-up tetap |
-| P2 | **Aturan lari + ST di hari yang sama** (jeda ≥ 3 jam) | S | Mengurangi interferensi pada kekuatan eksplosif. → Selesai di **0.14.1** (aturan concurrent lama tetap, D5) |
-| P2 | **Skema "Kekuatan" 5–6 rep @ RPE 7** untuk ★ di fase Build (butuh persetujuan pemilik) | S | Manfaat beban relatif tinggi untuk running economy. → Turun prioritas, ditinjau lagi bila alat bertambah |
-| P2 | **Tangga progresi saat beban mentok** (bilateral → split → RFESS → satu kaki, atau tempo/jeda) | M | Progres tetap jalan walau alat terbatas. → **0.14.0** (double progression saat mentok) |
-| P2 | **Grafik cadence & pace easy run** | S | Memantau perbaikan crossover gait. → ✅ **0.15.0** |
-| P2 | **Tren volume ST** (set × rep × kg per pola gerakan) | S | Progres ST jangka panjang. → ✅ **0.15.1** |
-| P2 | **Heatmap otot dari log ST** (frekuensi atau volume per otot, mingguan/bulanan, memakai `MuscleMap` 0.14.2) | M | Melihat otot yang jarang dilatih. → ✅ **0.15.1** |
-| P3 | **Kalibrasi split vs Strava** (penghalusan GPS & skala jarak) dengan data mentah beberapa lari, target ±2 detik/km | S | Split sama persis dengan yang dilihat di Strava |
-| P2 | **Gerakan custom** (tambah gerakan sendiri + alat + rentang beban, tetap lewat validator) | M | Library mengikuti alat baru tanpa menunggu developer |
-| ✅ P1 | ~~**Kontras non-teks**~~ (0.16: `line-strong` `#6b6b70` / `#8c8b87`, `track` terang `#8a8985`, `warning` terang `#b98d06`): `line-strong` → `#636366` (gelap) / `#959490` (terang), `warning` terang → `#B98D06` (semua ≥ 3:1) | S | Border input & bar Moderate terlihat jelas |
-| P2 | **Bagikan kartu story** dari `/activity/[id]`: RunTag → PNG transparan 1920×1280 lewat `<canvas>` (DESIGN-SYSTEM §9) | M | Berbagi sesi ke Instagram/WA dengan gaya app |
-| ~~P3~~ | ~~Bersihkan em dash di string `lib/`~~ | S | Selesai 0.17: dijaga `copy-lib-strings.test.ts` |
-| P3 | Pengingat/notifikasi (web push) | L | Konsisten latihan |
-| P3 | Tampilkan kembali tab **Set Huawei** (pratinjau format set) | S | Disembunyikan sementara di 0.8 |
-| P3 | Saran ringkas satu baris di **Generator Strength** | S | Konsisten dengan Generator Lari |
-| P3 | Video singkat per gerakan | M | Eksekusi lebih aman (gambar awal/akhir sudah ada sejak 0.9) |
-| P3 | Multi-atlet / berbagi ke pelatih | L | Hanya bila dibutuhkan |
-| P3 | Lari trail/treadmill & cuaca (panas → turunkan target pace) | M | Target realistis di cuaca tropis |
-| P3 | **Plyometric ringan (opsional)**, progresi bertahap | M | Running economy membaik. Ditunda (D6, 2026-10-26): butuh shin splints nonaktif + sumber |
+Setelah 1.0 berlaku feature freeze (RELEASE-1.0 R7): rilis hanya perbaikan sampai rencana minor berikutnya disetujui pemilik. Butir di bawah adalah kandidat rilis minor itu (lihat kebijakan versi di §9). Perubahan logika latihan tetap butuh sumber dan test (§3).
 
-### Ide yang sengaja **tidak** dikerjakan (untuk sekarang)
+| Prioritas | Fitur | Ukuran | Nilai untuk atlet | Catatan |
+| --- | --- | --- | --- | --- |
+| P2 | **Bagikan kartu story** dari `/activity/[id]`: RunTag → PNG transparan 1920×1280 lewat `<canvas>` (DESIGN-SYSTEM §9) | M | Berbagi sesi ke Instagram/WA dengan gaya app | Tanpa data kesehatan di gambar kecuali yang dipilih atlet |
+| P2 | **Gerakan custom**: tambah gerakan sendiri + alat + rentang beban, tetap lewat validator | M | Library mengikuti alat baru tanpa menunggu developer | Butuh migrasi data (bagian `settings`) dan aturan kondisi tetap berlaku |
+| P3 | **Pengingat/notifikasi** (web push) | L | Konsisten latihan | Butuh service worker push dan izin; tanpa server pihak ketiga |
+| P3 | **Plyometric bersyarat**, progresi bertahap | M | Running economy membaik (Llanos-Lagos 2024, [REFERENCES](REFERENCES.md#kekuatan)) | Ditunda (D6, 2026-10-26): hanya bila shin splints nonaktif, dengan sumber dosis dan test |
+| P3 | **Video singkat per gerakan** | M | Eksekusi lebih aman | Gambar awal/akhir sudah ada sejak 0.9; hanya dari sumber berlisensi bebas (§3) |
+| P3 | **Lari trail/treadmill & cuaca** (panas → turunkan target pace) | M | Target realistis di cuaca tropis | Butuh sumber penyesuaian pace terhadap suhu/kelembapan |
+| P3 | **Kalibrasi split vs Strava** (penghalusan GPS & skala jarak) dengan data mentah beberapa lari, target ±2 detik/km | S | Split sama dengan yang dilihat di Strava | Lihat [LIMITATIONS](LIMITATIONS.md#jam--data-latihan) |
+| P1 | **Gambar untuk 9 gerakan sisa** & gerakan anti-rotasi | M | Detail teknik lengkap untuk prehab wajib (Clamshell, Tibialis Wall Raise) | free-exercise-db, wger, dan Wikimedia Commons tidak punya padanan (dicek 0.14.2); perlu foto sendiri |
+| P2 | **Enkripsi sisi klien (opsional)**: passphrase + WebCrypto sebelum data dikirim ke database | M | Database pun tidak bisa membaca data kesehatan | [SYNC.md](SYNC.md) §4, §11 |
+| P2 | **Best effort intervals.icu sebagai sumber kedua prediksi** (`GET /api/v1/athlete/{id}/pace-curves`, `type=Run`, `curves=90d`) | S | Perkiraan lebih yakin tanpa harus lomba | Satuan `values` belum jelas di skema API; perlu penyaring data jam yang rusak |
+| P2 | **Isian awal VDOT dari lari terbaik 90 hari** di onboarding & Setting | S | Zona lari tepat tanpa harus ingat hasil lomba | Butuh data intervals.icu di client |
+| P2 | **Milestone pull-up** dan gerakan baru otomatis aktif saat siap (mis. negative pull-up) | S | Progres ST terlihat seperti pace/VDOT di lari | Sebagian besar sudah tergantikan PR kemampuan (0.14.0) |
+| P2 | **Skema "Kekuatan" 5–6 rep @ RPE 7** untuk ★ di fase Build | S | Beban relatif tinggi untuk running economy | Butuh persetujuan pemilik; ditinjau bila alat bertambah |
+| P3 | **Saran ringkas satu baris di Generator Strength** | S | Konsisten dengan Generator Lari | |
+
+### Sudah dikerjakan (dari backlog lama)
+
+Disimpan sebagai riwayat; rinciannya di §4 dan CHANGELOG.
+
+| Fitur | Versi |
+| --- | --- |
+| Proteksi akses (sandi aplikasi), CI GitHub Actions | 0.12.0 |
+| Sinkron data ke Upstash Redis milik pengguna, cadangan otomatis | 0.12.1–0.12.2 |
+| Edit profil di aplikasi (target lomba, tanggal mulai blok) | 0.11 |
+| Kepatuhan program dari aktivitas intervals.icu | 0.13.0 |
+| Program → generator ("Kerjakan sesi hari ini") | 0.13.1 |
+| Prediksi waktu lomba (VDOT Daniels, Riegel pembanding) | 0.13.2 |
+| Tangga progresi saat beban mentok (double progression) | 0.14.0 |
+| ST mengikuti fase program, session-RPE ST, mode latihan ST, aturan lari + ST di hari yang sama | 0.14.1 |
+| Grafik tren CTL/ATL/Form, km mingguan, cadence & pace easy run | 0.15.0 |
+| Tren volume ST, heatmap otot | 0.15.1 |
+| Check-in harian, ambang personal (LTHR, HRV, resting HR) | 0.15.2 |
+| Mode offline, kontras non-teks | 0.16 |
+| Kirim workout lari ke kalender intervals.icu, zona HR & RPE, copy `lib/` tanpa em dash | 0.17 |
+
+### Ide yang sengaja **tidak** dikerjakan
 
 - **AI chat bebas sebagai generator.** Aturan cedera harus deterministik dan teruji; AI boleh dipakai untuk penjelasan, bukan untuk meresepkan beban.
-- **Akun & multi-user.** Belum perlu untuk satu atlet, dan menambah risiko privasi.
-- **Program adaptif penuh (volume berubah otomatis dari kepatuhan).** Saran tidak boleh memaksa; versi aman adalah tawaran geser atau lewati sesi yang terlewat (0.13, [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #9), dengan keputusan tetap di tangan atlet.
+- **Akun, multi-atlet, dan berbagi ke pelatih.** Satu deploy untuk satu orang; akun dan data bersama menambah risiko privasi untuk data kesehatan.
+- **Program adaptif penuh (volume berubah otomatis dari kepatuhan).** Saran tidak boleh memaksa; versi aman adalah lewati sesi dan "Sesi minggu ini" (0.14.3), dengan keputusan tetap di tangan atlet.
+- **Tab "Set Huawei" (pratinjau format set).** Diganti Kirim ke jam (0.17); format set tetap tersedia lewat tombol Copy Set.
 
 ## 8. Riwayat rilis singkat
 
@@ -563,7 +562,7 @@ Setiap kali ada rilis:
    - ubah status fitur di §4 (⬜ → 🟡 → ✅),
    - hapus keterbatasan yang sudah teratasi di §6,
    - pindahkan item roadmap yang selesai di §7 ke §8.
-3. Perbarui tabel progres di `README.md` dan screenshot bila tampilan berubah.
+3. Perbarui baris versi/roadmap di `README.md`, galeri di `docs/GUIDE.md` bila tampilan berubah, dan [LIMITATIONS.md](LIMITATIONS.md) bila keterbatasan berubah.
 4. Bila movement library berubah: putuskan media di `scripts/audit-movement-media.mjs`, isi `lib/movements/media.ts`, lalu jalankan `node scripts/audit-movement-media.mjs` dan `node scripts/fetch-movement-media.mjs`.
 
 Saat mengusulkan fitur baru, tambahkan barisnya di backlog §7 dengan prioritas, ukuran, dan nilai untuk atlet, lalu pastikan tidak melanggar aturan di §3.
