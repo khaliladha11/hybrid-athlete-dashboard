@@ -23,7 +23,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { compareSemver, manualSteps, sectionsBetween, TAG_RE } from "./release-notes.mjs";
+import { absolutizeLinks, compareSemver, manualSteps, sectionsBetween, TAG_RE } from "./release-notes.mjs";
 
 export const DEFAULT_UPSTREAM = "khaliladha11/hybrid-athlete-dashboard";
 export const BRANCH_PREFIX = "upstream-update/";
@@ -72,7 +72,7 @@ export function prBody({ upstream, baseTag, target, sections, conflicts, skipped
     );
   lines.push("## Langkah manual", "", ...(manual.length ? manual.map((m) => `- [ ] ${m}`) : ["Tidak ada."]), "");
   lines.push("## Catatan rilis", "");
-  if (sections.length) for (const s of sections) lines.push(`### ${s.heading}`, "", s.body, "");
+  if (sections.length) for (const s of sections) lines.push(`### ${s.heading}`, "", absolutizeLinks(s.body, target), "");
   else lines.push("Lihat CHANGELOG.md di upstream.", "");
   lines.push("---", "Dibuat oleh `.github/workflows/upstream-update.yml`.");
   return lines.join("\n");

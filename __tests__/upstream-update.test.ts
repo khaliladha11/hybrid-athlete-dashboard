@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 // @ts-expect-error skrip Node tanpa deklarasi tipe
-import { changelogSection, changelogSections, compareSemver, manualSteps, sectionsBetween } from "../scripts/release-notes.mjs";
+import { absolutizeLinks, changelogSection, changelogSections, compareSemver, manualSteps, sectionsBetween } from "../scripts/release-notes.mjs";
 // @ts-expect-error skrip Node tanpa deklarasi tipe
 import { decide, DEFAULT_UPSTREAM, prBody } from "../scripts/upstream-update.mjs";
 
@@ -45,6 +45,13 @@ describe("semver & catatan rilis", () => {
     expect(manualSteps("- tanpa")).toEqual([]);
     expect(sectionsBetween(md, "v0.17.0", "v1.1.0").map((s: { version: string }) => s.version)).toEqual(["1.1.0", "1.0.0"]);
     expect(sectionsBetween(md, null, "v1.0.0").map((s: { version: string }) => s.version)).toEqual(["1.0.0", "0.17.0"]);
+  });
+
+  it("tautan relatif di catatan rilis menjadi tautan ke berkas di tag (halaman Release bukan root repo)", () => {
+    const md = "Lihat [PRD](docs/PRD.md#x), [lokal](./LICENSE), [luar](https://example.test), [anchor](#y).";
+    expect(absolutizeLinks(md, "v1.0.0")).toBe(
+      "Lihat [PRD](https://github.com/khaliladha11/hybrid-athlete-dashboard/blob/v1.0.0/docs/PRD.md#x), [lokal](https://github.com/khaliladha11/hybrid-athlete-dashboard/blob/v1.0.0/LICENSE), [luar](https://example.test), [anchor](#y).",
+    );
   });
 
   it("CHANGELOG repo ini terbaca dan versi package.json punya bagiannya", () => {

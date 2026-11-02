@@ -11,8 +11,17 @@
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
+export const REPO_URL = "https://github.com/khaliladha11/hybrid-athlete-dashboard";
 export const TAG_RE = /^v(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;
 export const MANUAL_HEADING = "### Langkah manual";
+
+/**
+ * Tautan relatif CHANGELOG (`docs/PRD.md#…`) → tautan absolut ke berkas di tag itu, karena halaman GitHub Release
+ * (dan badan PR pembaruan) tidak berada di root repo. Tautan http(s), mailto, dan anchor saja dibiarkan.
+ */
+export function absolutizeLinks(md, tag, repo = REPO_URL) {
+  return md.replace(/\]\(([^)\s]+)\)/g, (m, href) => (/^(https?:|mailto:|#)/.test(href) ? m : `](${repo}/blob/${tag}/${href.replace(/^\.\//, "")})`));
+}
 
 /** semver `a` vs `b` (dengan atau tanpa "v"): -1, 0, 1. Prarilis lebih rendah dari rilis (1.0.0-rc.1 < 1.0.0). Tidak valid → null. */
 export function compareSemver(a, b) {
@@ -88,5 +97,5 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     console.error(`Versi ${tag} tidak ada di CHANGELOG.md.`);
     process.exit(1);
   }
-  console.log(`## ${section.heading}\n\n${section.body}\n`);
+  console.log(absolutizeLinks(`## ${section.heading}\n\n${section.body}\n`, tag));
 }

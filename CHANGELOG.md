@@ -27,13 +27,15 @@ Rilis stabil pertama. Sejak 1.0.0 berlaku **feature freeze**: hanya perbaikan bu
 
 ### Ditambahkan
 - **Media marketing** ([marketing/README.md](marketing/README.md)), selalu dari Demo Mode: `npm run media:video` merekam app di viewport HP dengan Playwright lalu menyusun video vertikal 1080×1920 bercaption, hero README animasi, dan poster dengan ffmpeg; `npm run media:posts` merender carousel Instagram, single image, dan story dari template HTML ber-token "Tag". Caption Threads/IG dan alt text di `marketing/captions.md`. Tanpa dependensi baru.
-
-- **Hero README** kini pratinjau animasi (`docs/media/preview-readme.webp`) menggantikan tiga screenshot.
 - Video pratinjau vertikal (1080×1920, ±28 detik, Demo Mode) dilampirkan di GitHub Release.
 
 ### Diubah
+- **Hero README** kini pratinjau animasi (`docs/media/preview-readme.webp`) menggantikan tiga screenshot.
 - Dokumen diselaraskan dengan kode: tabel token DESIGN-SYSTEM (nilai kontras 0.16), format cadangan v7 di ARCHITECTURE, modul Bantuan dan pemeriksa tautan, nama modul dan test di RELEASE-1.0, status spesifikasi Program/Strength/Insight, angka gambar gerakan (47/56). Butir PRD §4 yang belum selesai ditandai "Setelah 1.0".
 - Audit akhir dicatat di RELEASE-1.0 §12.
+
+### Diperbaiki
+- Tautan relatif dari CHANGELOG di halaman GitHub Release dan di badan PR pembaruan kini menunjuk ke berkas di tag rilis, tidak lagi rusak.
 
 ## [1.0.0-rc.2] · 2026-11-02 · Dokumentasi & bantuan
 
