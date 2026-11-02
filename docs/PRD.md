@@ -5,14 +5,14 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 1.0.0-rc.2 (2026-11-02) |
+| **Versi saat ini** | 1.0.0 (2026-11-02) · feature freeze |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
 | **Kualitas** | 81 file test, 909 unit test lolos · 57 test e2e Playwright (34 mobile gelap, 21 desktop terang, 2 sandi) · build produksi lolos · CI GitHub Actions di setiap push & PR (actionlint, unit, audit, bundle, e2e, Lighthouse) |
 | **Dokumen terkait** | [README](../README.md) · [Panduan](GUIDE.md) · [Keterbatasan](LIMITATIONS.md) · [Dasar ilmiah](REFERENCES.md) · [Kredit](CREDITS.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Spesifikasi 0.15: INSIGHT](INSIGHT.md) · [Rencana 0.16 sampai 1.0: RELEASE-1.0](RELEASE-1.0.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
-**Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide
+**Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide. Sejak 1.0.0 semua butir ⬜ adalah kandidat **Setelah 1.0** (§7) dan tidak masuk sebelum feature freeze dibuka.
 
 ---
 
@@ -188,23 +188,23 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Hanya gerakan yang dipilih & alatnya tersedia; beban dari kombinasi plat | ✅ | 0.8 |
 | Gerakan baru di movement library | ✅ | 0.9: 13 gerakan dari free-exercise-db (stabilitas panggul, core, unilateral, soleus, bahu) |
 | Thumbnail di setiap kartu gerakan + bottom sheet detail (crossfade awal/akhir, jeda, cue, otot, catatan kondisi) | ✅ | 0.9. Reduced motion: gambar berdampingan tanpa animasi |
-| Gambar teknik untuk semua gerakan | 🟡 | 36/45 bergambar; 9 tanpa padanan (Dead Hang, Negative Pull-Up, Seated DB Scapular Retraction, Clamshell, Tibialis Wall Raise, Knee Push-Up, Wall Push-Up, Prone Y-T-W Raise, Prone Reverse Snow Angel). 12 gambar 🟡 yang disetujui sedikit berbeda dan diberi catatan. Belum ada video |
+| Gambar teknik untuk semua gerakan | 🟡 | 47/56 bergambar (1.0.0; Dead Hang & Negative Pull-Up sejak 0.14.2). 9 tanpa padanan berlisensi bebas (free-exercise-db, wger, Wikimedia Commons dicek 0.14.2): Knee Push-Up, Wall Push-Up, Prone Y-T-W Raise, Prone Reverse Snow Angel, Seated DB Scapular Retraction, Single-Leg Hip Thrust, Clamshell, Tibialis Wall Raise, Seated Band Tibialis Raise. Setelah 1.0 ([§7](#setelah-10)) |
 | Syarat stabilitas panggul diperluas (Side Plank, Standing Band Hip Abduction) | ✅ | 0.9 |
 | Prehab berputar sesuai bagian tubuh (tungkai untuk Lower/Full, bahu untuk Upper) | ✅ | 0.9, sesi 45'/60' |
 | ★ baru (Split Squat, Step-Up, Plié Squat) mulai blok berikutnya | ✅ | 0.9, mode bebas langsung |
 | Strength tanpa alat: gerakan cadangan Upper Push/Pull | ✅ | 0.11.2: Push-Up, Knee Push-Up, Wall Push-Up, Prone Y-T-W Raise, Prone Reverse Snow Angel; aktif otomatis hanya bila kategorinya tidak punya gerakan lain. Diuji untuk semua kombinasi × 25 seed ([TRAINING-LOGIC §11](TRAINING-LOGIC.md#11-strength-tanpa-alat-0112)) |
 | Pesan alat bila jenis sesi tidak bisa disusun + catatan sesi lebih pendek | ✅ | 0.11.2: alat minimal yang dibutuhkan dan gerakan yang bisa diaktifkan; logika generator tidak berubah |
-| Saran ringkas satu baris (seperti Generator Lari) | ⬜ | Generator Strength masih memakai kartu saran lengkap |
+| Saran ringkas satu baris (seperti Generator Lari) | ⬜ Setelah 1.0 | Generator Strength masih memakai kartu saran lengkap · [§7](#setelah-10) |
 | Batas beban: rentang library menjadi titik awal, batas = min(alat, keamanan); persetujuan sekali, toggle "Batasi ke rentang awal library", penanda di kartu | ✅ | 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §2). Batas keamanan diusulkan dengan sumber dan disetujui pemilik (D4). Aturan §3 diubah saat diterapkan |
 | Double progression saat mentok: rentang rep tetap (Easy 10–15, Moderate 8–12, High 6–10), lalu tempo/jeda, lalu varian satu sisi | ✅ | 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3c, D3). Menggantikan baris "Tangga progresi saat beban mentok" |
 | Mode latihan: layar penuh per gerakan, timer istirahat & hitung mundur tahan, centang per set langsung tercatat | ✅ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3). Menggantikan baris "Timer istirahat antar set" |
 | ST mengikuti fase program (Base volume, Build lebih berat, Peak maintenance, Taper ST kaki dikurangi) | ✅ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3) |
 | Aturan lari + ST di hari yang sama: sarankan jeda ≥ 3 jam | ✅ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3). Aturan concurrent lama tetap (D5) |
-| Skema "Kekuatan" 5–6 rep @ RPE 7 untuk ★ di fase Build | ⬜ | Turun prioritas ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §4): dengan alat mentok, rep rendah tidak bisa dibuat lebih berat. Ditinjau lagi bila alat bertambah |
+| Skema "Kekuatan" 5–6 rep @ RPE 7 untuk ★ di fase Build | ⬜ Setelah 1.0 | Turun prioritas ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §4): dengan alat mentok, rep rendah tidak bisa dibuat lebih berat. Ditinjau lagi bila alat bertambah · [§7](#setelah-10) |
 | Seated DB Curl + gerakan pengisi celah (biceps, triceps, lats, betis, tibialis) dan varian satu sisi untuk gerakan mentok | ✅ | 0.14.2 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3). Alur 0.9: audit → usulan → implementasi, lolos syarat §3 |
 | Peta otot ringkasan sesi | ✅ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3): gabungan otot utama/sekunder semua gerakan sesi, di mode latihan dan setelah sesi |
 | Peta otot per gerakan (depan/belakang, utama/sekunder) | ✅ | 0.14.2 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3): `MuscleMap` SVG sendiri di bottom sheet detail gerakan, data otot dari kurasi `lib/movements/media.ts` |
-| Plyometric ringan (opsional, hanya bila kondisi shin splints nonaktif) | ⬜ | Backlog P3 (D6, [STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §4): butuh shin splints nonaktif + sumber, lewat aturan §3 |
+| Plyometric ringan (opsional, hanya bila kondisi shin splints nonaktif) | ⬜ Setelah 1.0 | Backlog P3 (D6, [STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §4): butuh shin splints nonaktif + sumber, lewat aturan §3 · [§7](#setelah-10) |
 
 ### 4.5 Periodisasi & program target
 
@@ -246,7 +246,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Saran Gita yang menjelaskan alasannya (syarat naik RPE ≤ target sesi − 1; naik rep, beban, tempo, atau varian) | ✅ | 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3d, D1). Tidak pernah memblokir |
 | Pengingat beli beban per area (lower, upper push, upper pull): plat yang membuka progresi paling banyak | ✅ | 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3e). Ambang 80% gerakan aktif di area itu mentok (D2), tanpa tautan toko |
 | Session-RPE untuk ST (RPE sesi × durasi) masuk beban 7 hari, kepatuhan program, Week Ledger | ✅ | 0.14.1 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3) |
-| Tes kekuatan berkala di minggu deload (maks push-up, tahan side plank, single-leg calf raise) + milestone pull-up (band → negative → penuh) | ⬜ | Sebagian besar tergantikan PR kemampuan 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §4); milestone pull-up tetap direncanakan. Menggabungkan baris "Milestone pull-up" |
+| Tes kekuatan berkala di minggu deload (maks push-up, tahan side plank, single-leg calf raise) + milestone pull-up (band → negative → penuh) | ⬜ Setelah 1.0 | Sebagian besar tergantikan PR kemampuan 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §4); milestone pull-up tetap direncanakan. Menggabungkan baris "Milestone pull-up" · [§7](#setelah-10) |
 | Tren volume ST per pola gerakan (set × rep × kg; tahan dalam detik; band dihitung) + beban session-RPE mingguan | ✅ | 0.15.1 ([INSIGHT.md](INSIGHT.md) #4): sesi mode latihan kini menyimpan rincian set (sinkron & cadangan tanpa versi baru); minggu lama ditandai perkiraan (hanya gerakan ★) |
 | Heatmap otot 7/30 hari (frekuensi atau volume), otot tanpa kerja utama 14 hari ditandai | ✅ | 0.15.1 ([INSIGHT.md](INSIGHT.md) #5): bobot utama 1 / sekunder 0,5; hanya otot yang bisa dilatih dengan alat & kondisi sekarang; ketuk otot → gerakan tersedia |
 | Tren PR per gerakan, termasuk tahap tempo/jeda dan varian saat beban mentok | ✅ | 0.15.1 ([INSIGHT.md](INSIGHT.md) #8): penanda R/T/V dan garis batas alat |
@@ -275,7 +275,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Kontribusi: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, templat issue & PR, GitHub Discussions | ✅ | 1.0.0-rc.1 ([RELEASE-1.0](RELEASE-1.0.md) #13): masukan logika latihan wajib kolom sumber; templat PR berisi checklist §3; laporan keamanan & perilaku lewat laporan privat GitHub |
 | Kode mati dari fitur yang diganti dihapus | ✅ | 1.0.0-rc.1 ([RELEASE-1.0](RELEASE-1.0.md) #15): 7 export tanpa pemakai dan komentar usang geser & Set Huawei |
 | Login / proteksi akses | ✅ | 0.12.0: sandi aplikasi opsional (`APP_PASSCODE` + `SESSION_SECRET`), lihat §4.10. Vercel Authentication tetap dianjurkan sebagai lapisan luar |
-| Notifikasi / pengingat latihan | ⬜ | |
+| Notifikasi / pengingat latihan | ⬜ Setelah 1.0 | [§7](#setelah-10) |
 
 ### 4.8 Setting
 
@@ -288,7 +288,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Pengaturan alat diperluas: daftar alat bisa ditambah/diubah/dihapus, item berbobot tetap (DB fixed, kettlebell), migrasi data lama, jalan pintas dari Strength | ✅ | 0.14.0 ([STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3a). Tetap satu data dan satu komponen dengan Setting › Alat |
 | Toggle titik tambat band | ✅ | 0.9 — untuk Band Reverse Fly, Band External Rotation, Standing Band Hip Abduction, Seated Band Hamstring Curl |
 | Pilihan movement library + alasan bila tidak tersedia | ✅ | Gerakan wajib kondisi dikunci; 56 gerakan sejak 0.14.2 (6 cadangan tanpa alat diberi label "Cadangan", termasuk Close-Grip Push-Up) |
-| Menambah gerakan sendiri (custom) | ⬜ | Gerakan hanya dari kurasi developer |
+| Menambah gerakan sendiri (custom) | ⬜ Setelah 1.0 | Gerakan hanya dari kurasi developer · [§7](#setelah-10) |
 | Tema & blok mingguan, Data & cadangan | ✅ | |
 | Nav bagian sticky: smooth scroll, highlight kartu tujuan, scroll spy | ✅ | 0.8.1, menghormati reduced motion |
 | Zona HR & RPE bisa diubah | ✅ | 0.17 ([RELEASE-1.0](RELEASE-1.0.md) #7): Setting › Zona HR & RPE dengan sumber Bawaan / LTHR (Friel) / HR maks (Edwards) / Manual. LTHR & HR maks terisi dari intervals.icu, validasi mencegah zona tumpang tindih, Kembalikan bawaan. Dipakai generator, Program, dan workout yang dikirim ke jam. RPE lari tampil per level; RPE ST per level bisa diubah 4–7 (tidak pernah > 7). **Tidak mengubah ambang lari berat atau saran** ([TRAINING-LOGIC](TRAINING-LOGIC.md) §1) |
@@ -393,8 +393,10 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | ~~**0.15 Insight**~~ ✅ ([INSIGHT.md](INSIGHT.md)) | 0.15.0 tren lari (CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT); 0.15.1 tren kekuatan (volume ST, heatmap otot, tren PR, kepatuhan mingguan, kalender heatmap); 0.15.2 tubuh & saran (**check-in harian sebagai sinyal kesiapan subjektif utama**, ambang personal, ringkasan bulanan); baseline HRV personal hanya bila data HRV ada | Menjawab "makin bugar, makin kuat, tetap bebas cedera?" dengan tampilan mingguan & bulanan |
 | ~~**0.16 Siap offline & teruji**~~ ✅ ([RELEASE-1.0](RELEASE-1.0.md)) | Mode offline (aplikasi terbuka tanpa sinyal, mode latihan dan log ST offline lewat antrean sinkron 0.12); tes e2e Playwright dan tes komponen di CI; audit aksesibilitas dan performa; pengerasan keamanan (header/CSP, audit dependensi, tinjauan sandi dan sinkron); latihan pemulihan data | Dipakai di gym tanpa sinyal dengan keyakinan: alur inti teruji otomatis dan data bisa dipulihkan |
 | ~~**0.17 Terhubung & mudah dipasang**~~ ✅ ([RELEASE-1.0](RELEASE-1.0.md)) | Kirim workout lari (generator dan program) ke kalender intervals.icu sebagai workout terstruktur, diteruskan ke jam (ST tetap di aplikasi, Copy Set tetap); zona HR dan RPE di Setting; rapikan copy (em dash di `lib/`, istilah "Gita"); pemasangan mudah (Deploy to Vercel, INSTALL-WITH-AI.md, AGENTS.md, Vercel CLI) | Workout sampai ke jam tanpa menyalin, dan orang lain bisa memasang sendiri |
-| **1.0 Rilis** ([RELEASE-1.0](RELEASE-1.0.md)) · rc.1 ✅ | Jalur pembaruan untuk fork (GitHub Action membuka PR dari upstream, migrasi aman, langkah manual ditandai); panduan pengguna lengkap dan bantuan di aplikasi; feature freeze, semua dokumen diselaraskan, tag versi | Stabil dan mudah diperbarui tanpa edit kode |
+| ~~**1.0 Rilis**~~ ✅ ([RELEASE-1.0](RELEASE-1.0.md)) | Jalur pembaruan untuk fork (GitHub Action membuka PR dari upstream, migrasi aman, langkah manual ditandai); panduan pengguna lengkap dan bantuan di aplikasi; feature freeze, semua dokumen diselaraskan, tag versi | Stabil dan mudah diperbarui tanpa edit kode |
 
+> 2026-11-02 (2): **1.0.0 dirilis.** Feature freeze berlaku (RELEASE-1.0 R7): sesudahnya hanya perbaikan bug, keamanan, dan dokumentasi sampai rencana minor berikutnya disetujui. Audit akhir di [RELEASE-1.0 §12](RELEASE-1.0.md#12-audit-akhir-100-2026-11-02).
+>
 > 2026-11-02: **1.0.0-rc.2 dirilis**: README dipersingkat, [REFERENCES.md](REFERENCES.md) dengan label tingkat bukti, [CREDITS.md](CREDITS.md), [GUIDE.md](GUIDE.md) dan halaman Bantuan di aplikasi, [LIMITATIONS.md](LIMITATIONS.md), backlog ditata ulang menjadi "Setelah 1.0", pemeriksa tautan dokumen di CI. Sisa 1.0: feature freeze, dokumen diselaraskan, tag 1.0.0.
 >
 > 2026-11-01 (2): **1.0.0-rc.1 dirilis** (kandidat rilis 1.0): workflow pembaruan untuk salinan & fork lewat PR, kerangka migrasi data berversi dengan snapshot dan fixture v1–v7, lisensi MIT + NOTICE lengkap, berkas kontribusi, Setting › Tentang & versi, kode mati dihapus, dan perbaikan sinkron zona HR/RPE/merek jam. Sisa 1.0: panduan pengguna & bantuan di aplikasi, feature freeze, tag 1.0.0.
@@ -529,6 +531,7 @@ Disimpan sebagai riwayat; rinciannya di §4 dan CHANGELOG.
 | 0.17.0 | 2026-11-01 | Terhubung & mudah dipasang: kirim workout lari ke kalender intervals.icu (lalu ke jam), zona HR & RPE di Setting, rapikan copy, tombol Deploy to Vercel, INSTALL-WITH-AI.md, AGENTS.md, Vercel CLI |
 | 1.0.0-rc.1 | 2026-11-01 | Kandidat rilis 1.0: pembaruan lewat PR untuk salinan & fork, migrasi data berversi, lisensi MIT & NOTICE lengkap, berkas kontribusi, Tentang & versi |
 | 1.0.0-rc.2 | 2026-11-02 | README baru, dasar ilmiah dengan label bukti, kredit, panduan pengguna & halaman Bantuan, keterbatasan, backlog setelah 1.0 |
+| **1.0.0** | 2026-11-02 | **Rilis stabil pertama.** Feature freeze. Dokumen diselaraskan dengan kode, audit akhir ([RELEASE-1.0 §12](RELEASE-1.0.md#12-audit-akhir-100-2026-11-02)), video pratinjau |
 | 0.15.2 | 2026-10-28 | Insight selesai, tubuh & saran: check-in harian (hanya menurunkan, tanpa berantai), ambang pribadi LTHR/HRV/resting HR, ringkasan bulanan, bagian Tubuh, sinkron `checkins` & cadangan v6 |
 | 0.15.1 | 2026-10-28 | Insight tahap 2, tren kekuatan: rincian set di mode latihan, volume ST per pola & session-RPE, heatmap otot (jarang dilatih, ketuk otot), tren PR dengan tahap, kepatuhan mingguan, kalender heatmap |
 | 0.15.0 | 2026-10-28 | Insight tahap 1, tren lari: rute `/insight` (tanpa tab baru), CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT per minggu; grafik SVG sendiri dengan "Lihat tabel" |

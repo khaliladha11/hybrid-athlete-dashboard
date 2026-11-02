@@ -4,11 +4,36 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [1.0.0] · 2026-11-02 · Rilis stabil
+
+Rilis stabil pertama. Sejak 1.0.0 berlaku **feature freeze**: hanya perbaikan bug, keamanan, dan dokumentasi sampai rencana minor berikutnya disetujui ([PRD §9](docs/PRD.md#kebijakan-versi-sejak-100-rc1)). Hasil audit akhir: [RELEASE-1.0 §12](docs/RELEASE-1.0.md#12-audit-akhir-100-2026-11-02).
+
+### Sorotan sejak 0.10
+- **Tampilan "Tag"** (0.10): design system dark-first dengan satu aksen oranye, Archivo + Geist Mono, Segment Skyline dan Week Ledger; logo "Forward H"; split per km yang divalidasi terhadap ringkasan jam.
+- **Bisa dipasang siapa saja** (0.11, 0.17): onboarding 10 langkah, profil di perangkat, tombol Deploy to Vercel, INSTALL-WITH-AI.md yang tidak pernah meminta rahasia.
+- **Aman dan tersinkron** (0.12): sandi aplikasi, sinkron ke Upstash Redis milikmu sendiri, cadangan otomatis harian yang bisa dipulihkan dan dibatalkan.
+- **Program hidup** (0.13–0.14.3): program 5K sampai maraton dari Hari H pilihanmu, kepatuhan otomatis dari aktivitas, perkiraan waktu lomba, model mingguan yang fleksibel.
+- **Strength hidup** (0.14): beban selalu bisa dirakit dari alatmu, batas keamanan per kondisi, PR kemampuan, mode latihan dengan timer, session-RPE, peta otot, 56 gerakan.
+- **Insight** (0.15): tren CTL/ATL, km mingguan 80/20, VDOT, volume ST, heatmap otot, tren PR; check-in harian dan ambang pribadi yang hanya menurunkan saran.
+- **Siap offline dan teruji** (0.16): service worker, e2e Playwright di CI, axe, anggaran Lighthouse, CSP dengan nonce, pemeriksaan rahasia di bundle.
+- **Terhubung ke jam** (0.17): workout lari terstruktur ke kalender intervals.icu lalu ke Huawei, Garmin, atau Coros; zona HR dan RPE yang bisa diubah.
+- **Siap dirawat** (1.0.0-rc.1–rc.2): pembaruan lewat pull request untuk salinan dan fork, migrasi data berversi dengan snapshot, lisensi MIT, berkas kontribusi, halaman Bantuan, dasar ilmiah dengan label tingkat bukti, panduan dan daftar keterbatasan.
+
+### Langkah manual
+- **Cadangkan dulu:** Setting › Data & cadangan › Ekspor JSON di setiap perangkat yang dipakai, sebelum menerima pembaruan.
+- **Salinan atau fork dengan workflow pembaruan (1.0.0-rc.1 ke atas):** merge pull request "Pembaruan dari upstream: v1.0.0" setelah CI hijau. Vercel men-deploy ulang sendiri; data dimigrasi otomatis saat aplikasi dibuka.
+- **Salinan atau fork sebelum 1.0.0-rc.1** (belum punya `.github/workflows/upstream-update.yml`): fork cukup **Sync fork › Update branch**. Salinan dari tombol Deploy: salin folder `.github/workflows/` dan `scripts/` dari rilis ini ke repo-mu (atau deploy ulang salinan baru lalu impor cadangan), lalu aktifkan setelan PR di README › Menerima pembaruan.
+- Tidak ada variabel lingkungan baru sejak 0.17.
+
 ### Ditambahkan
 - **Media marketing** ([marketing/README.md](marketing/README.md)), selalu dari Demo Mode: `npm run media:video` merekam app di viewport HP dengan Playwright lalu menyusun video vertikal 1080×1920 bercaption, hero README animasi, dan poster dengan ffmpeg; `npm run media:posts` merender carousel Instagram, single image, dan story dari template HTML ber-token "Tag". Caption Threads/IG dan alt text di `marketing/captions.md`. Tanpa dependensi baru.
 
-### Diubah
 - **Hero README** kini pratinjau animasi (`docs/media/preview-readme.webp`) menggantikan tiga screenshot.
+- Video pratinjau vertikal (1080×1920, ±28 detik, Demo Mode) dilampirkan di GitHub Release.
+
+### Diubah
+- Dokumen diselaraskan dengan kode: tabel token DESIGN-SYSTEM (nilai kontras 0.16), format cadangan v7 di ARCHITECTURE, modul Bantuan dan pemeriksa tautan, nama modul dan test di RELEASE-1.0, status spesifikasi Program/Strength/Insight, angka gambar gerakan (47/56). Butir PRD §4 yang belum selesai ditandai "Setelah 1.0".
+- Audit akhir dicatat di RELEASE-1.0 §12.
 
 ## [1.0.0-rc.2] · 2026-11-02 · Dokumentasi & bantuan
 

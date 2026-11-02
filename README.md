@@ -120,7 +120,7 @@ Aplikasi ini alat bantu perencanaan latihan pribadi, **bukan pengganti saran dok
 | [CHANGELOG](CHANGELOG.md) | Riwayat perubahan per versi |
 | [INSTALL-WITH-AI](INSTALL-WITH-AI.md) · [AGENTS](AGENTS.md) | Panduan untuk asisten AI dan alat pemrograman AI |
 
-**Roadmap:** versi sekarang 1.0.0-rc.2, menuju 1.0. Rencana setelah 1.0 ada di [PRD §7](docs/PRD.md#7-roadmap--saran-pengembangan).
+**Roadmap:** versi sekarang 1.0.0 (stabil, feature freeze). Rencana setelah 1.0 ada di [PRD §7](docs/PRD.md#setelah-10).
 
 ## Untuk developer
 

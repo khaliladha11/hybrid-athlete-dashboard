@@ -1,6 +1,6 @@
 # Rencana 0.16, 0.17, dan 1.0
 
-> Status: **0.16 dirilis 2026-10-29, 0.17 dirilis 2026-11-01, 1.0.0-rc.1 dirilis 2026-11-01 (#10, #12–#15), 1.0.0-rc.2 dirilis 2026-11-02 (#11 panduan pengguna & bantuan di aplikasi); sisa 1.0: feature freeze, dokumen diselaraskan, tag 1.0.0.** Rencana awal 2026-10-29; item #12 sampai #15 dan perincian #10 ditambahkan 2026-11-01. Simpan di `docs/RELEASE-1.0.md`.
+> Status: **1.0.0 dirilis 2026-11-02.** 0.16 (2026-10-29), 0.17 (2026-11-01), 1.0.0-rc.1 (2026-11-01), 1.0.0-rc.2 (2026-11-02), 1.0.0 (2026-11-02). Feature freeze (R7) berlaku sejak 1.0.0. Rencana awal 2026-10-29; item #12 sampai #15 dan perincian #10 ditambahkan 2026-11-01. Hasil audit akhir di [§12](#12-audit-akhir-100-2026-11-02).
 > Bergantung pada 0.12 (sinkron & antrean "belum terkirim"), 0.13 (program), 0.15 (Insight). Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Desain mengikuti [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Fakta tentang perangkat dan intervals.icu di §3 berasal dari catatan pemilik dan **diverifikasi ke dokumentasi resmi sebelum implementasi 0.17**.
 
 ## 1. Tujuan
@@ -232,3 +232,23 @@ HUAWEI Watch Fit 4 tidak disebut di daftar model; diuji lewat checklist manual 0
 5. **Frekuensi workflow pembaruan.** Usulan: mingguan. **Diterapkan 1.0.0-rc.1:** Senin 01:00 UTC (08:00 WIB), plus manual.
 6. **Fakta perangkat (§3).** Diverifikasi ke dokumentasi intervals.icu sebelum 0.17; tabel diperbarui bila berbeda.
 7. **Lisensi (2026-11-01).** **MIT**, dipilih pemilik saat 1.0.0-rc.1. Semua aset pihak ketiga yang dikirim berlisensi permisif (lihat NOTICE.md), jadi tidak membatasi pilihan.
+
+## 12. Audit akhir 1.0.0 (2026-11-02)
+
+Dijalankan pada build produksi (`next build` dengan nilai sentinel untuk setiap rahasia, seperti CI; `next start` di Demo Mode untuk e2e, Lighthouse, dan header). Branch `release/1.0.0`, setelah dokumen diselaraskan dengan kode.
+
+| Pemeriksaan | Hasil | Catatan |
+| --- | --- | --- |
+| Typecheck | ✅ 0 error | `npm run typecheck` |
+| Unit test | ✅ 81 file, 909 test lolos | `npm test` (Vitest) |
+| E2E | ✅ 57/57 lolos (34 mobile gelap, 21 desktop terang, 2 sandi) | `npm run e2e`, Demo Mode, termasuk impor cadangan v1–v7, offline, migrasi, Bantuan |
+| Aksesibilitas (axe) | ✅ 0 pelanggaran serius/kritis | axe WCAG 2.1 A/AA di e2e untuk Profil, Lari, Program, Strength, Setting, Insight, onboarding, kirim ke jam, Tentang, Bantuan. Cek tambahan WCAG 2.2 `target-size` di 7 halaman: satu temuan di `/strength` (Segmented durasi 146×44 px tertutup sebagian oleh navigasi bawah pada posisi gulir awal), **positif palsu** karena target berukuran ≥ 44 px dan terlihat penuh saat digulir |
+| Lighthouse mobile | ✅ di CI · lokal: Lari 0,97 · Strength 0,97 · Program 0,97 · Insight 0,99 · Profil 0,83–0,94 | Aksesibilitas 0,96–1, best practices 1, LCP 825–1277 ms, CLS ≤ 0,003 di semua halaman. TBT Profil di laptop pengembang berubah-ubah 294–701 ms antar-run (anggaran 350 ms) karena beban mesin; anggaran dijaga di CI (runner bersih), yang lolos di rc.2 dan menjadi syarat merge 1.0.0 |
+| Header keamanan | ✅ | Semua rute (`/`, `/run`, `/setting`, `/bantuan`, `/api/status`): CSP dengan nonce per request (`strict-dynamic`, `object-src 'none'`, `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'`, `connect-src 'self'`), `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`, `Permissions-Policy` (kamera, mikrofon, lokasi, pembayaran, sensor mati), tanpa `X-Powered-By`. HSTS ditambahkan Vercel di domain produksi |
+| `npm audit` | ✅ 0 kerentanan | `--audit-level=high` di CI |
+| Rahasia di bundle klien | ✅ bersih | `npm run check:bundle`: 36 berkas, 5 nilai sentinel rahasia tidak ditemukan |
+| Tautan dokumen | ✅ 28 dokumen, 0 tautan lokal rusak | `npm run check:links`; tautan luar dicek manual di rc.2 (REFERENCES.md §Pemeriksaan tautan) |
+| Workflow | ✅ | `actionlint` di CI |
+| Dokumen vs kode | ✅ diselaraskan | Tabel token DESIGN-SYSTEM (nilai kontras 0.16), format cadangan v7 di ARCHITECTURE, modul Bantuan & pemeriksa tautan, nama modul dan test di §6–§7, status spesifikasi PROGRAM-HIDUP/STRENGTH-HIDUP/INSIGHT, angka gambar gerakan di PRD §4.4. Tidak ditemukan bug kode |
+
+Masa pakai rc.2 sebelum rilis dipersingkat atas keputusan pemilik (2026-11-02); tidak ada bug yang dilaporkan.
