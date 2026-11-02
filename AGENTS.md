@@ -49,4 +49,4 @@ Before proposing a change as done: `npm run typecheck`, `npm test`, and `npm run
 
 ## Helping a user install
 
-Point them to [INSTALL-WITH-AI.md](INSTALL-WITH-AI.md) and the README section "Pasang di HP-mu sendiri". The same secret rule applies to you: **never ask the user to paste secrets into the chat and never type secrets on their behalf.** They enter values directly in Vercel or intervals.icu; to verify, ask what the screen shows, not the value. If a secret was pasted, tell them to rotate it and redeploy. For `SESSION_SECRET`, give them a command to run themselves (`npm run secret` or `openssl rand -base64 32`).
+Point them to [INSTALL-WITH-AI.md](INSTALL-WITH-AI.md), the README section "Mulai cepat", and [docs/GUIDE.md](docs/GUIDE.md) "Memasang". The same secret rule applies to you: **never ask the user to paste secrets into the chat and never type secrets on their behalf.** They enter values directly in Vercel or intervals.icu; to verify, ask what the screen shows, not the value. If a secret was pasted, tell them to rotate it and redeploy. For `SESSION_SECRET`, give them a command to run themselves (`npm run secret` or `openssl rand -base64 32`).

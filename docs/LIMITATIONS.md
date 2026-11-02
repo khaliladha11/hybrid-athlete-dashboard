@@ -1,6 +1,6 @@
 # Keterbatasan yang diketahui
 
-Hal-hal yang belum bisa atau sengaja tidak dilakukan aplikasi, ditulis dari sisi pemakai. Setiap butir menyebut dampaknya dan jalan keluarnya bila ada. Utang teknis untuk pengembang ada di [PRD §6](PRD.md#6-keterbatasan--utang-teknis). Panduan pemakaian ada di [README](../README.md).
+Hal-hal yang belum bisa atau sengaja tidak dilakukan aplikasi, ditulis dari sisi pemakai. Setiap butir menyebut dampaknya dan jalan keluarnya bila ada. Utang teknis untuk pengembang ada di [PRD §6](PRD.md#6-keterbatasan--utang-teknis). Panduan pemakaian ada di [GUIDE.md](GUIDE.md).
 
 > **Bukan alat medis.** Saran latihan dihitung dari aturan umum berbasis riset ([REFERENCES.md](REFERENCES.md)). Aplikasi tidak mendiagnosis apa pun dan tidak menggantikan dokter, fisioterapis, atau pelatih. Hentikan latihan bila muncul nyeri.
 

@@ -4,7 +4,7 @@ Panduan ini untuk memasang Hybrid Athlete Dashboard dengan dipandu asisten AI ap
 
 **Aturan paling penting:** asisten tidak pernah perlu melihat rahasiamu. API key intervals.icu, sandi aplikasi, `SESSION_SECRET`, dan token database **hanya kamu ketik sendiri** di Vercel atau intervals.icu. Jangan menempelnya ke chat, termasuk "hanya untuk dicek".
 
-Panduan lengkap tanpa AI: [README › Pasang di HP-mu sendiri](README.md#pasang-di-hp-mu-sendiri).
+Panduan lengkap tanpa AI: [README › Mulai cepat](README.md#mulai-cepat) dan [Panduan › Memasang](docs/GUIDE.md#memasang).
 
 ## Prompt
 
@@ -26,7 +26,7 @@ LANGKAH YANG HARUS DIPANDU, BERURUTAN:
    c. SESSION_SECRET: minta saya menjalankan sendiri salah satu perintah ini di terminal dan menyalin hasilnya:
       - openssl rand -base64 32
       - node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
-3. Deploy: arahkan saya ke tombol "Deploy with Vercel" di README repo (bagian "Cara A"). Vercel membuat salinan repo di GitHub saya dan meminta INTERVALS_API_KEY, APP_PASSCODE, SESSION_SECRET. Saya mengetik nilainya sendiri, lalu klik Deploy dan menunggu 1-2 menit.
+3. Deploy: arahkan saya ke tombol "Deploy with Vercel" di README repo (bagian "Mulai cepat"). Vercel membuat salinan repo di GitHub saya dan meminta INTERVALS_API_KEY, APP_PASSCODE, SESSION_SECRET. Saya mengetik nilainya sendiri, lalu klik Deploy dan menunggu 1-2 menit.
    - INTERVALS_ATHLETE_ID tidak wajib (kosong atau 0 = pemilik API key).
    - Tombol membuat salinan (clone), bukan fork: "Sync fork" tidak tersedia; pembaruan otomatis menyusul di versi 1.0.
 4. Buka alamat aplikasi (nama-project.vercel.app). Masukkan sandi aplikasi. Tanyakan apa yang tampil.
@@ -56,7 +56,7 @@ PEMECAHAN MASALAH (cocokkan dengan pesan yang saya sebut):
 - Kirim ke jam: "Unggah ke <merek> belum aktif di intervals.icu": centang Upload planned workouts di kotak merek itu (intervals.icu > Settings > Connections).
 - "Key ditolak intervals.icu." saat kirim: sama dengan API key ditolak.
 - Aktivitas tampil "Aktivitas Strava" tanpa data: aktivitas hanya masuk lewat Strava; sambungkan jam langsung ke intervals.icu.
-Kalau pesannya tidak ada di daftar, minta saya menyebut teks persisnya (tanpa rahasia) dan arahkan ke README bagian "Kalau ada masalah".
+Kalau pesannya tidak ada di daftar, minta saya menyebut teks persisnya (tanpa rahasia) dan arahkan ke docs/GUIDE.md bagian "Kalau ada masalah".
 ````
 
 ## Setelah selesai
