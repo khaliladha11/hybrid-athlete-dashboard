@@ -14,7 +14,9 @@
     "check:bundle": "node scripts/check-client-bundle.mjs",
     "lighthouse": "node scripts/lighthouse-budget.mjs",
     "secret": "node scripts/session-secret.mjs",
-    "check:links": "node scripts/check-links.mjs"
+    "check:links": "node scripts/check-links.mjs",
+    "media:video": "node marketing/scripts/record-preview.mjs",
+    "media:posts": "node marketing/scripts/render-posts.mjs"
   },
   "dependencies": {
     "next": "^16.4.2",

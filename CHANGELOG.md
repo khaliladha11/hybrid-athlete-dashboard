@@ -4,6 +4,12 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Ditambahkan
+- **Media marketing** ([marketing/README.md](marketing/README.md)), selalu dari Demo Mode: `npm run media:video` merekam app di viewport HP dengan Playwright lalu menyusun video vertikal 1080×1920 bercaption, hero README animasi, dan poster dengan ffmpeg; `npm run media:posts` merender carousel Instagram, single image, dan story dari template HTML ber-token "Tag". Caption Threads/IG dan alt text di `marketing/captions.md`. Tanpa dependensi baru.
+
+### Diubah
+- **Hero README** kini pratinjau animasi (`docs/media/preview-readme.webp`) menggantikan tiga screenshot.
+
 ## [1.0.0-rc.2] · 2026-11-02 · Dokumentasi & bantuan
 
 Kandidat rilis kedua 1.0 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #11 sebagian). Tidak ada perubahan logika latihan.

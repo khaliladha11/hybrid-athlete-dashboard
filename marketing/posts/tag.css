@@ -1,0 +1,68 @@
+/*
+ * Design system "Tag" untuk post media sosial (docs/DESIGN-SYSTEM.md): latar charcoal, satu aksen oranye,
+ * display Archivo italic condensed, label Geist Mono. Nilai token = tema gelap di app/globals.css.
+ * Font (@font-face) ditulis render-posts.mjs ke ../out/fonts.css dari build app.
+ */
+:root {
+  --bg: #0b0b0c;
+  --surface: #161616;
+  --raised: #1f1f20;
+  --line: #2a2a2c;
+  --ink: #f5f4f1;
+  --muted: #a8a7a3;
+  --faint: #8c8b88;
+  --brand: #fc4c02;
+  --brand-ink: #ff6a2b;
+  --on-brand: #0b0b0c;
+  --sans: var(--font-archivo, "Archivo"), system-ui, "Segoe UI", Arial, sans-serif;
+  --mono: var(--font-geist-mono, "Geist Mono"), ui-monospace, Consolas, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); }
+body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+.post { position: relative; overflow: hidden; background: var(--bg); padding: 88px; display: flex; flex-direction: column; }
+
+.label { font-family: var(--mono); font-size: 26px; line-height: 1.2; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+.label .dot { display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--brand); margin-right: 16px; vertical-align: 2px; }
+.label b { color: var(--ink); font-weight: 400; }
+
+/* Display: hanya satu per post. */
+.display { font-style: italic; font-weight: 800; font-variation-settings: "wdth" 75; font-stretch: 75%; text-transform: uppercase; letter-spacing: -.01em; line-height: .93; padding-bottom: .06em; }
+.display em { font-style: italic; color: var(--brand-ink); }
+
+.lede { font-size: 38px; line-height: 1.32; color: var(--muted); }
+.lede strong { color: var(--ink); font-weight: 600; }
+
+/* Ledger: Archivo expanded untuk baris angka/fakta. */
+.ledger { list-style: none; border-top: 2px solid var(--line); }
+.ledger li { display: flex; align-items: baseline; gap: 28px; padding: 26px 0; border-bottom: 2px solid var(--line); }
+.ledger .k { font-variation-settings: "wdth" 125; font-stretch: 125%; font-weight: 800; font-size: 46px; line-height: 1; text-transform: uppercase; letter-spacing: .01em; white-space: nowrap; }
+.ledger .v { font-size: 30px; line-height: 1.3; color: var(--muted); }
+.ledger .n { font-family: var(--mono); font-size: 24px; color: var(--faint); min-width: 44px; }
+
+/* Bingkai HP berisi screenshot Demo Mode (viewport 390×720). */
+.phone { position: absolute; border-radius: 44px; background: var(--raised); padding: 12px; box-shadow: 0 0 0 2px var(--line), 0 40px 80px rgba(0,0,0,.55); }
+.phone .screen { width: 100%; height: 100%; border-radius: 33px; overflow: hidden; background: var(--surface); }
+.phone img { display: block; width: 100%; }
+
+/* Kartu fitur 2×2. */
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.tile { position: relative; height: 410px; overflow: hidden; border-radius: 28px; background: var(--surface); border: 2px solid var(--line); padding: 30px 30px 0; }
+.tile h3 { font-size: 38px; line-height: 1.05; font-weight: 700; }
+.tile p { font-family: var(--mono); font-size: 20px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin-top: 10px; line-height: 1.35; }
+.tile .crop { position: absolute; left: 30px; right: 30px; top: 168px; height: 300px; border-radius: 20px 20px 0 0; overflow: hidden; border: 2px solid var(--line); border-bottom: 0; }
+.tile .crop img { width: 100%; display: block; }
+
+.steps { list-style: none; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 76px 1fr; gap: 24px; padding: 24px 0; border-bottom: 2px solid var(--line); font-size: 34px; line-height: 1.3; }
+.steps li::before { content: counter(s, decimal-leading-zero); font-family: var(--mono); font-size: 26px; color: var(--brand-ink); padding-top: 6px; }
+.steps li span { color: var(--muted); }
+
+/* Tombol Deploy digambar sendiri (tanpa logo pihak ketiga). Teks di atas oranye = on-brand. */
+.btn { display: inline-flex; align-items: center; gap: 18px; height: 96px; padding: 0 44px; border-radius: 20px; background: var(--brand); color: var(--on-brand); font-size: 38px; font-weight: 700; }
+.link { font-family: var(--mono); font-size: 26px; letter-spacing: .02em; color: var(--ink); word-break: break-all; }
+
+.foot { position: absolute; left: 88px; right: 88px; bottom: 72px; display: flex; justify-content: space-between; align-items: center; }
+.mark { width: 64px; height: 64px; }

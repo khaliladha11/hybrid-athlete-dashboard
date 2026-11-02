@@ -13,14 +13,12 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/khaliladha11/hybrid-athlete-dashboard?label=lisensi" alt="Lisensi MIT"></a>
 </p>
 
-<!-- PREVIEW: pratinjau animasi diisi di Prompt 3. Sementara memakai tiga screenshot Demo Mode. -->
+<!-- Pratinjau dibuat ulang dengan `npm run media:video` (marketing/README.md). -->
 <p align="center">
-  <img src="docs/screenshots/01-profile.jpg" width="31%" alt="Profil dengan saran hari ini dari Gita">
-  <img src="docs/screenshots/04-run-workout.jpg" width="31%" alt="Workout lari Norwegian 4x4 dengan Segment Skyline">
-  <img src="docs/screenshots/17-workout-mode.jpg" width="31%" alt="Mode latihan strength dengan timer istirahat">
+  <img src="docs/media/preview-readme.webp" width="300" alt="Pratinjau animasi: saran harian Gita di Profil, generator lari lalu Kirim ke jam, mode latihan strength dengan peta otot, program menuju Hari H, dan heatmap otot di Insight">
 </p>
 
-<p align="center"><sub>Semua screenshot dari Demo Mode. Galeri lengkap di <a href="docs/GUIDE.md#galeri-screenshot">Panduan</a>.</sub></p>
+<p align="center"><sub>Direkam dari Demo Mode (data fiktif). Galeri lengkap di <a href="docs/GUIDE.md#galeri-screenshot">Panduan</a>.</sub></p>
 
 ## Kenapa app ini
 

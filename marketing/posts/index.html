@@ -1,0 +1,32 @@
+<!doctype html>
+<!--
+  Template post media sosial (design system "Tag"). Buka index.html#carousel-1 (dst.) untuk pratinjau;
+  tanpa #id tampil semua post. PNG dibuat oleh `npm run media:posts`.
+-->
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Hybrid Athlete · post</title>
+  <link rel="stylesheet" href="../out/fonts.css">
+  <link rel="stylesheet" href="tag.css">
+  <script src="posts.js"></script>
+</head>
+<body>
+  <script>
+    const id = decodeURIComponent(location.hash.slice(1));
+    const ids = id ? [id] : Object.keys(window.POSTS);
+    if (!id) document.body.style.cssText = "display:flex;flex-wrap:wrap;gap:40px;padding:40px;background:#333";
+    for (const key of ids) {
+      const p = window.POSTS[key];
+      if (!p) continue;
+      const el = document.createElement("section");
+      el.className = "post";
+      el.id = key;
+      el.style.width = p.size[0] + "px";
+      el.style.height = p.size[1] + "px";
+      el.innerHTML = p.html;
+      document.body.appendChild(el);
+    }
+  </script>
+</body>
+</html>
