@@ -152,6 +152,6 @@ Rentang beban di bawah konservatif dan bisa dirakit dari plat yang ada (4×1,25 
 
 - Distefano LJ dkk. (2009). Gluteal muscle activation during common therapeutic exercises. *JOSPT* 39(7) ([doi](https://doi.org/10.2519/jospt.2009.2796)).
 - Ekstrom RA dkk. (2007). Electromyographic analysis of core trunk, hip, and thigh muscles during 9 rehabilitation exercises. *JOSPT* 37(12) ([doi](https://doi.org/10.2519/jospt.2007.2471)).
-- Dorn TW dkk. (2012). Muscular strategy shift in human running. *J Exp Biol* 215(11) ([doi](https://doi.org/10.1242/jeb.075051)).
+- Dorn TW dkk. (2012). Muscular strategy shift in human running. *J Exp Biol* 215(13) ([doi](https://doi.org/10.1242/jeb.075051)).
 - Reinold MM dkk. (2004). EMG analysis of the rotator cuff and deltoid during common shoulder external rotation exercises. *JOSPT* 34(7) ([doi](https://doi.org/10.2519/jospt.2004.34.7.385)).
 - Fredericson M dkk. (2000); Willy RW dkk. (2019); McGill S. (2016) — lihat `docs/TRAINING-LOGIC.md` §9.

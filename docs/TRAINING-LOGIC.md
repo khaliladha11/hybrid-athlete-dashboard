@@ -359,7 +359,7 @@ Kode: [`lib/program/timeline.ts`](../lib/program/timeline.ts), panjang variabel 
 
 Catatan: dengan aturan kenaikan yang ada, program panjang standar hanya mencapai puncak nominal untuk HM (5K 8,5 dari 10, 10K 10 dari 14, FM 25 dari 30 km). Karena itu minimum data memakai puncak program standar, dan program yang lebih panjang tetap boleh naik sampai puncak nominal.
 
-Referensi rekomendasi umum:
+Referensi rekomendasi umum (label "rekomendasi praktisi" di [REFERENCES.md](REFERENCES.md#panjang-program-dan-kesiapan-lomba-0133)):
 - Hal Higdon, jarak mingguan sebelum program maraton (TrainingPeaks): https://www.trainingpeaks.com/blog/weekly-mileage-before-starting-a-marathon-training-program/
 - REI, How to Train for a Marathon: https://www.rei.com/learn/expert-advice/training-for-your-first-marathon.html
 - Active.com, Are You Ready to Run a Marathon: https://origin-a3.active.com/running/articles/are-you-ready-to-run-a-marathon-8598743
@@ -433,33 +433,12 @@ Grafik Insight **hanya menampilkan data**; tidak ada saran yang berubah karenany
 
 ## 8. Referensi
 
-Buku:
-- Bompa, T. O. & Buzzichelli, C. A. — *Periodization: Theory and Methodology of Training* (ed. 6). Human Kinetics. Dasar struktur blok dan deload.
-- NSCA — *Essentials of Strength Training and Conditioning* (ed. 5). Human Kinetics. Gerakan multi-joint sebagai fondasi, urutan latihan, dan progresi beban "2-for-2".
-- Zatsiorsky, V. M., Kraemer, W. J. & Fry, A. C. — *Science and Practice of Strength Training* (ed. 3). Human Kinetics. Prinsip bahwa tidak ada satu program untuk semua orang.
-- Daniels, J. — *Daniels' Running Formula* (ed. 4). Human Kinetics. Kategori pace (Easy, Threshold, Interval) sebagai kerangka perpustakaan pola lari, dan tabel VDOT untuk perkiraan waktu lomba.
-- Daniels, J. & Gilbert, J. (1979). *Oxygen Power: Performance Tables for Distance Runners*. Rumus VDOT (VO2 dari kecepatan, %VO2max dari durasi) untuk zona dan perkiraan waktu lomba.
+Semua sumber aturan di dokumen ini, dengan sitasi lengkap, DOI, aturan yang didukung, dan label tingkat bukti (Guideline, Meta-analysis, Systematic review, RCT, Book, rekomendasi praktisi, dan lainnya), ada di **[REFERENCES.md](REFERENCES.md)**. Sitasi singkat di tabel bagian lain tetap dibiarkan di tempatnya supaya aturan dan sumbernya terbaca berdampingan.
 
-Studi:
-- Riegel, P. S. (1981). Athletic records and human endurance. *American Scientist*, 69(3), 285–290. Rumus T2 = T1 × (D2/D1)^1,06, dipakai hanya sebagai pembanding perkiraan.
-- Helgerud dkk. (2007). Aerobic high-intensity intervals improve VO₂max more than moderate training. *Med Sci Sports Exerc*, 39(4), 665–671. Dasar Norwegian 4×4 & 15/15.
-- Seiler, S. Distribusi intensitas polarisasi pada atlet endurance ([Frontiers in Physiology](https://www.frontiersin.org/articles/10.3389/fphys.2015.00295/full)). Dasar aturan 80/20.
-- Nielsen dkk. (2014). Excessive progression in weekly running distance and risk of running-related injuries. *JOSPT* ([tautan](https://www.jospt.org/doi/10.2519/jospt.2014.5164)). Kenaikan > 30% dikaitkan dengan shin splints dan cedera gluteus medius.
-- Heiderscheit dkk. (2011). Effects of step rate manipulation on joint mechanics during running. *Med Sci Sports Exerc* ([PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC3387288)). Cadence +5–10% mengurangi beban lutut/pinggul.
-- Wilson dkk. (2012). Concurrent training: a meta-analysis examining interference of aerobic and resistance exercises. *JSCR*. Lari mengganggu adaptasi kekuatan, sehingga sesi berat perlu diberi jarak.
-- Kassiano dkk. (2022). Does varying resistance exercises promote superior muscle hypertrophy and strength gains? *JSCR*. Variasi sistematis lebih baik daripada acak.
-- Moesgaard dkk. (2022). Effects of periodization on strength and muscle hypertrophy in volume-equated resistance training programs. *Sports Medicine* ([PubMed](https://pubmed.ncbi.nlm.nih.gov/35044672/)). Dasar rotasi skema rep (undulating).
-- Zourdos dkk. (2016). Novel resistance training–specific RPE scale measuring repetitions in reserve. *JSCR* ([PubMed](https://pubmed.ncbi.nlm.nih.gov/26049792/)). RPE 7 = sisakan 3 repetisi.
-- Foster dkk. (2001). A new approach to monitoring exercise training. *J Strength Cond Res*, 15(1), 109–115. Session-RPE = RPE sesi × menit.
-- Schumann dkk. (2022). Compatibility of concurrent aerobic and strength training for skeletal muscle size and function: an updated systematic review and meta-analysis. *Sports Medicine*, 52, 601–612 ([Springer](https://link.springer.com/article/10.1007/s40279-021-01587-7)). Kekuatan eksplosif terganggu bila lari dan ST di sesi yang sama, tidak bila dipisah ≥ 3 jam.
-- Rønnestad, B. R. & Mujika, I. (2014). Optimizing strength training for running and cycling endurance performance: a review. *Scand J Med Sci Sports*, 24(4), 603–612. Heavy/explosive ST memperbaiki running economy.
-- Rønnestad, Hansen & Raastad (2010). In-season strength maintenance training increases well-trained cyclists' performance. *Eur J Appl Physiol*, 110, 1269–1282. Satu sesi/minggu mempertahankan kekuatan.
-- Bosquet dkk. (2007). Effects of tapering on performance: a meta-analysis. *Med Sci Sports Exerc* ([PubMed](https://pubmed.ncbi.nlm.nih.gov/17762369/)). Taper 2 minggu, volume −41–60%, intensitas & frekuensi tetap.
-- Mujika, I. & Padilla, S. (2003). Scientific bases for precompetition tapering strategies. *Med Sci Sports Exerc*, 35(7), 1182–1187 ([PubMed](https://pubmed.ncbi.nlm.nih.gov/12840640/)). Intensitas dijaga, volume turun, frekuensi turun ≤ 20%.
-- Travis dkk. (2020). Tapering and peaking maximal strength for powerlifting performance: a review. *Sports*, 8(9), 125 ([PMC](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7552788/)). Volume-load ±50%, intensitas tetap.
-- de Carvalho e Silva dkk. (2022). Acute neuromuscular, physiological and performance responses after strength training in runners: a systematic review and meta-analysis. *Sports Med Open* ([PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC9385928)). Torsi turun, DOMS/CK naik setelah ST.
-- Burt, Doma & Connor (2023). The effects of exercise-induced muscle damage on varying intensities of endurance running performance: a systematic review and meta-analysis. Running economy masih terganggu 48 jam.
-- Lauersen dkk. (2014). The effectiveness of exercise interventions to prevent sports injuries. *Br J Sports Med* ([PubMed](https://pubmed.ncbi.nlm.nih.gov/24100287/)). Latihan kekuatan menurunkan risiko cedera, sehingga prehab dijadikan wajib.
+Koreksi 1.0.0-rc.2:
+- Artikel Frontiers in Physiology 2015 tentang distribusi intensitas ditulis Stöggl & Sperlich (sebelumnya dicantumkan atas nama Seiler).
+- *Daniels' Running Formula* yang dipakai adalah edisi ke-3 (2014).
+- *NSCA Essentials* adalah edisi ke-4 (2016).
 
 ## 9. Setting: kondisi, zona, alat & gerakan
 
@@ -585,7 +564,7 @@ Gambar hanya dari free-exercise-db (Unlicense); tidak memakai gambar AI atau sum
 Referensi tambahan:
 - Ekstrom RA dkk. (2007). EMG of core trunk, hip, and thigh muscles during 9 rehabilitation exercises. *JOSPT* 37(12) ([doi](https://doi.org/10.2519/jospt.2007.2471)).
 - Distefano LJ dkk. (2009). Gluteal muscle activation during common therapeutic exercises. *JOSPT* 39(7) ([doi](https://doi.org/10.2519/jospt.2009.2796)).
-- Dorn TW dkk. (2012). Muscular strategy shift in human running. *J Exp Biol* 215(11) ([doi](https://doi.org/10.1242/jeb.075051)).
+- Dorn TW dkk. (2012). Muscular strategy shift in human running. *J Exp Biol* 215(13) ([doi](https://doi.org/10.1242/jeb.075051)).
 - Schoenfeld BJ dkk. (2017). Dose-response relationship between weekly resistance training volume and increases in muscle mass. *J Sports Sci* 35(11). Volume langsung untuk bisep & trisep.
 - Moen MH dkk. (2009). Medial tibial stress syndrome: a critical review. *Sports Med* 39(7). Kekuatan betis & kontrol kaki untuk MTSS.
 - Reinold MM dkk. (2004). EMG of the rotator cuff and deltoid during shoulder external rotation exercises. *JOSPT* 34(7) ([doi](https://doi.org/10.2519/jospt.2004.34.7.385)).
