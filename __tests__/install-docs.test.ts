@@ -1,37 +1,11 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { dirname, join, normalize } from "node:path";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DOCS } from "@/lib/docs-links";
 import { REQUIRED_ENV, UPSTREAM_REPO, deployButtonUrl } from "@/lib/env-schema";
-
-/** Dokumen yang tautannya diperiksa (0.17). */
-const DOC_FILES = ["README.md", "INSTALL-WITH-AI.md", "AGENTS.md", "CLAUDE.md", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "NOTICE.md", ".github/PULL_REQUEST_TEMPLATE.md", ...readdirSync("docs").filter((f) => f.endsWith(".md")).map((f) => `docs/${f}`)];
-
-const stripCode = (md: string) => md.replace(/^(`{3,})[^\n]*\n[\s\S]*?\n\1\s*$/gm, "").replace(/`[^`\n]*`/g, "");
-
-/** Slug heading ala GitHub: huruf kecil, tanda baca dibuang, spasi jadi "-", duplikat diberi akhiran -1, -2. */
-function anchors(md: string): Set<string> {
-  const out = new Set<string>();
-  const seen = new Map<string, number>();
-  for (const line of md.replace(/^(`{3,})[^\n]*\n[\s\S]*?\n\1\s*$/gm, "").split(/\r?\n/)) {
-    const m = line.match(/^#{1,6}\s+(.+?)\s*#*\s*$/);
-    if (!m) continue;
-    const base = m[1]
-      .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-      .replace(/`/g, "")
-      .toLowerCase()
-      .replace(/[^\p{L}\p{N} _-]/gu, "")
-      .replace(/ /g, "-");
-    const n = seen.get(base) ?? 0;
-    seen.set(base, n + 1);
-    out.add(n ? `${base}-${n}` : base);
-  }
-  return out;
-}
-
-function links(md: string): string[] {
-  return [...stripCode(md).matchAll(/\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)].map((m) => m[1]);
-}
+// @ts-expect-error skrip Node tanpa deklarasi tipe
+import { anchors, brokenLinks, docFiles, REPO_URL } from "../scripts/check-links.mjs";
 
 describe("dokumen pemasangan (0.17)", () => {
   const readme = readFileSync("README.md", "utf-8");
@@ -51,26 +25,39 @@ describe("dokumen pemasangan (0.17)", () => {
     for (const name of REQUIRED_ENV) expect(section).toMatch(new RegExp(`\\| \`${name}\` \\| Ya \\|`));
   });
 
-  it("tautan relatif dan anchor di dokumen menunjuk ke tempat yang ada", () => {
-    const broken: string[] = [];
-    for (const file of DOC_FILES) {
-      const md = readFileSync(file, "utf-8");
-      for (const href of links(md)) {
-        if (/^(https?:|mailto:)/.test(href)) continue;
-        const [path, hash] = href.split("#");
-        const target = path ? normalize(join(dirname(file), decodeURIComponent(path))) : file;
-        if (!existsSync(target)) {
-          broken.push(`${file}: ${href} (file tidak ada)`);
-          continue;
-        }
-        if (hash && target.endsWith(".md") && !anchors(readFileSync(target, "utf-8")).has(hash.toLowerCase())) broken.push(`${file}: ${href} (anchor tidak ada)`);
-      }
+  it("semua tautan lokal dan tautan ke repo ini di semua dokumen menunjuk ke tempat yang ada (scripts/check-links.mjs)", () => {
+    const files: string[] = docFiles();
+    for (const f of ["README.md", "docs/GUIDE.md", "docs/REFERENCES.md", "docs/LIMITATIONS.md", "docs/CREDITS.md", ".github/PULL_REQUEST_TEMPLATE.md"]) expect(files).toContain(f);
+    expect(brokenLinks(files)).toEqual([]);
+  });
+
+  it("pemeriksa tautan menangkap file, anchor, dan tautan repo yang rusak", () => {
+    const root = mkdtempSync(join(tmpdir(), "ha-links-"));
+    try {
+      mkdirSync(join(root, "docs"));
+      writeFileSync(join(root, "README.md"), "# Judul\n\n## Mulai cepat\n");
+      writeFileSync(
+        join(root, "docs", "A.md"),
+        `# A\n\n[ok](../README.md#mulai-cepat) [anchor](../README.md#tidak-ada) [file](HILANG.md) [repo](${REPO_URL}/blob/main/docs/B.md) [kode](\`x\`)\n\n\`\`\`\n[di-blok-kode](HILANG2.md)\n\`\`\`\n`,
+      );
+      expect(brokenLinks(["README.md", "docs/A.md"], root)).toEqual([
+        "docs/A.md: ../README.md#tidak-ada (anchor tidak ada)",
+        "docs/A.md: HILANG.md (file tidak ada)",
+        `docs/A.md: ${REPO_URL}/blob/main/docs/B.md (file tidak ada)`,
+      ]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
     }
-    expect(broken).toEqual([]);
+  });
+
+  it("tautan DOCS ke file di repo ada secara lokal", () => {
+    for (const url of Object.values(DOCS)) {
+      if (url.includes("/blob/main/")) expect(existsSync(url.split("/blob/main/")[1].split("#")[0]), url).toBe(true);
+    }
   });
 
   it("tautan onboarding ke README memakai anchor yang ada", () => {
-    const a = anchors(readme);
+    const a: Set<string> = anchors(readme);
     for (const url of Object.values(DOCS)) {
       if (!url.startsWith(`${UPSTREAM_REPO}#`)) continue;
       expect(a.has(url.split("#")[1]), url).toBe(true);
