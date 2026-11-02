@@ -9,7 +9,7 @@ import { DOCS } from "./docs-links";
 import { UPSTREAM_REPO } from "./env-schema";
 
 /** Tanggal rilis versi terpasang (YYYY-MM-DD). Naik bersama `version` di package.json; dijaga test terhadap CHANGELOG. */
-export const RELEASE_DATE = "2026-11-01";
+export const RELEASE_DATE = "2026-11-02";
 
 const SEMVER_RE = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;
 

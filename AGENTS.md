@@ -27,6 +27,9 @@ Before proposing a change as done: `npm run typecheck`, `npm test`, and `npm run
 ## Where things are
 
 - Product rules, roadmap, status: [docs/PRD.md](docs/PRD.md) (§3 rules always win).
+- User guide: [docs/GUIDE.md](docs/GUIDE.md); known limitations: [docs/LIMITATIONS.md](docs/LIMITATIONS.md); in-app help text: `lib/help.ts` (`/bantuan`).
+- Scientific sources with evidence labels: [docs/REFERENCES.md](docs/REFERENCES.md). A new training rule adds its source there. Credits: [docs/CREDITS.md](docs/CREDITS.md).
+- Docs links are checked in CI (`scripts/check-links.mjs`, `npm run check:links`).
 - Architecture, modules, testing: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - Training logic and sources: [docs/TRAINING-LOGIC.md](docs/TRAINING-LOGIC.md).
 - Design system "Tag": [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md).

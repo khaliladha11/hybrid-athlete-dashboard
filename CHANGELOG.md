@@ -4,6 +4,26 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [1.0.0-rc.2] · 2026-11-02 · Dokumentasi & bantuan
+
+Kandidat rilis kedua 1.0 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #11 sebagian). Tidak ada perubahan logika latihan.
+
+### Ditambahkan
+- **Halaman Bantuan** (`/bantuan`): cara membaca saran Gita, program mingguan, mode latihan, kirim ke jam dengan langkah per merek (teks yang sama dengan kartu Kirim ke jam), cadangan & sinkron, lalu tautan ke panduan, keterbatasan, dan dasar ilmiah. Dibuka dari Setting › Tentang & versi dan lembar "Apa ini?" di kartu Kirim ke jam; tersimpan untuk offline.
+- **[docs/REFERENCES.md](docs/REFERENCES.md) "Dasar ilmiah"**: semua sumber per area (lari, kekuatan, cedera & kondisi, program & periodisasi, beban & kesiapan, teknik gerakan) dengan sitasi lengkap, DOI yang dicek ke Crossref, aturan yang didukung, dan label tingkat bukti. Tabel panjang program 0.13.3 ditandai rekomendasi umum (praktisi).
+- **[docs/CREDITS.md](docs/CREDITS.md)**: data & aset, API & platform, referensi desain, inspirasi konsep (openGym, konsep saja), alat. Tanpa logo pihak ketiga.
+- **[docs/GUIDE.md](docs/GUIDE.md)**: panduan pemakaian lengkap ditambah tutorial pemasangan, pembaruan, pemecahan masalah, galeri, dan catatan developer yang dipindah dari README.
+- **[docs/LIMITATIONS.md](docs/LIMITATIONS.md)**: keterbatasan dari sisi pemakai (HRV Huawei dan Health Sync, jam Huawei hanya menerima lari, split vs Strava, data satu perangkat tanpa sinkron, dan lainnya).
+- **Pemeriksa tautan** semua Markdown (`scripts/check-links.mjs`, `npm run check:links`), dijalankan di CI lewat test; `--external` untuk laporan manual tautan luar.
+
+### Diubah
+- **README** dipersingkat dari 501 menjadi 142 baris: hero dengan badge CI, versi, dan lisensi; kenapa app ini; fitur per area; berbasis riset; mulai cepat (tombol Deploy, INSTALL-WITH-AI, CLI); privasi; disclaimer; peta dokumen. Anchor yang dipakai tombol Deploy dan onboarding tetap.
+- **PRD §7**: backlog ditata ulang menjadi "Setelah 1.0", "Sudah dikerjakan", dan "Sengaja tidak dikerjakan" (multi-atlet; tab Set Huawei diganti Kirim ke jam).
+- TRAINING-LOGIC §8 kini menunjuk ke REFERENCES.md.
+
+### Diperbaiki
+- Atribusi sumber: artikel Frontiers in Physiology 2015 ditulis Stöggl & Sperlich (bukan Seiler); *Daniels' Running Formula* edisi ke-3 (2014) dan *NSCA Essentials* edisi ke-4 (2016), sesuai kode; nomor terbitan Dorn 2012.
+
 ## [1.0.0-rc.1] · 2026-11-01 · Kandidat rilis 1.0
 
 Kandidat rilis pertama 1.0 ([RELEASE-1.0.md](docs/RELEASE-1.0.md) #10, #12–#15). Sisa untuk 1.0.0: panduan pengguna & bantuan di aplikasi, feature freeze (#11).

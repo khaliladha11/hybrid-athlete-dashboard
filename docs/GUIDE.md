@@ -400,6 +400,7 @@ API key hanya dibaca di server (`import "server-only"`) dan tidak pernah dikirim
 | `npm run typecheck` | Pemeriksaan TypeScript |
 | `npm run build` | Build produksi |
 | `npm run secret` | Mencetak `SESSION_SECRET` acak ke terminal (tidak disimpan) |
+| `npm run check:links` | Memeriksa tautan dan anchor di semua dokumen Markdown (`--external` juga membuka tautan luar) |
 | `npm run icons` | Render ulang ikon PWA & favicon dari `public/icon.svg` dan `public/favicon.svg` |
 
 ### Struktur project

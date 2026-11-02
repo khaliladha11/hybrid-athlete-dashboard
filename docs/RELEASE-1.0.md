@@ -1,6 +1,6 @@
 # Rencana 0.16, 0.17, dan 1.0
 
-> Status: **0.16 dirilis 2026-10-29, 0.17 dirilis 2026-11-01, 1.0.0-rc.1 dirilis 2026-11-01 (#10, #12–#15); sisa 1.0: #11.** Rencana awal 2026-10-29; item #12 sampai #15 dan perincian #10 ditambahkan 2026-11-01. Simpan di `docs/RELEASE-1.0.md`.
+> Status: **0.16 dirilis 2026-10-29, 0.17 dirilis 2026-11-01, 1.0.0-rc.1 dirilis 2026-11-01 (#10, #12–#15), 1.0.0-rc.2 dirilis 2026-11-02 (#11 panduan pengguna & bantuan di aplikasi); sisa 1.0: feature freeze, dokumen diselaraskan, tag 1.0.0.** Rencana awal 2026-10-29; item #12 sampai #15 dan perincian #10 ditambahkan 2026-11-01. Simpan di `docs/RELEASE-1.0.md`.
 > Bergantung pada 0.12 (sinkron & antrean "belum terkirim"), 0.13 (program), 0.15 (Insight). Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Desain mengikuti [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Fakta tentang perangkat dan intervals.icu di §3 berasal dari catatan pemilik dan **diverifikasi ke dokumentasi resmi sebelum implementasi 0.17**.
 
 ## 1. Tujuan
