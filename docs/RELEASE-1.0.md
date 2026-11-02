@@ -240,7 +240,7 @@ Dijalankan pada build produksi (`next build` dengan nilai sentinel untuk setiap 
 | Pemeriksaan | Hasil | Catatan |
 | --- | --- | --- |
 | Typecheck | ✅ 0 error | `npm run typecheck` |
-| Unit test | ✅ 81 file, 909 test lolos | `npm test` (Vitest) |
+| Unit test | ✅ 81 file, 910 test lolos | `npm test` (Vitest) |
 | E2E | ✅ 57/57 lolos (34 mobile gelap, 21 desktop terang, 2 sandi) | `npm run e2e`, Demo Mode, termasuk impor cadangan v1–v7, offline, migrasi, Bantuan |
 | Aksesibilitas (axe) | ✅ 0 pelanggaran serius/kritis | axe WCAG 2.1 A/AA di e2e untuk Profil, Lari, Program, Strength, Setting, Insight, onboarding, kirim ke jam, Tentang, Bantuan. Cek tambahan WCAG 2.2 `target-size` di 7 halaman: satu temuan di `/strength` (Segmented durasi 146×44 px tertutup sebagian oleh navigasi bawah pada posisi gulir awal), **positif palsu** karena target berukuran ≥ 44 px dan terlihat penuh saat digulir |
 | Lighthouse mobile | ✅ di CI · lokal: Lari 0,97 · Strength 0,97 · Program 0,97 · Insight 0,99 · Profil 0,83–0,94 | Aksesibilitas 0,96–1, best practices 1, LCP 825–1277 ms, CLS ≤ 0,003 di semua halaman. TBT Profil di laptop pengembang berubah-ubah 294–701 ms antar-run (anggaran 350 ms) karena beban mesin; anggaran dijaga di CI (runner bersih), yang lolos di rc.2 dan menjadi syarat merge 1.0.0 |

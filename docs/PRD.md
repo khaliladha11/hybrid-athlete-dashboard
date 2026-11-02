@@ -9,7 +9,7 @@
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 81 file test, 909 unit test lolos · 57 test e2e Playwright (34 mobile gelap, 21 desktop terang, 2 sandi) · build produksi lolos · CI GitHub Actions di setiap push & PR (actionlint, unit, audit, bundle, e2e, Lighthouse) |
+| **Kualitas** | 81 file test, 910 unit test lolos · 57 test e2e Playwright (34 mobile gelap, 21 desktop terang, 2 sandi) · build produksi lolos · CI GitHub Actions di setiap push & PR (actionlint, unit, audit, bundle, e2e, Lighthouse) |
 | **Dokumen terkait** | [README](../README.md) · [Panduan](GUIDE.md) · [Keterbatasan](LIMITATIONS.md) · [Dasar ilmiah](REFERENCES.md) · [Kredit](CREDITS.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Spesifikasi 0.15: INSIGHT](INSIGHT.md) · [Rencana 0.16 sampai 1.0: RELEASE-1.0](RELEASE-1.0.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide. Sejak 1.0.0 semua butir ⬜ adalah kandidat **Setelah 1.0** (§7) dan tidak masuk sebelum feature freeze dibuka.
