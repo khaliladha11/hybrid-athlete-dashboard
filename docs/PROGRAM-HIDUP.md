@@ -1,6 +1,6 @@
 # Spesifikasi 0.13 Program hidup
 
-> Status: **spesifikasi, 2026-10-26** (menggantikan dokumen cakupan 2026-10-23). Simpan di `docs/PROGRAM-HIDUP.md`.
+> Status: **selesai di 0.13.0 sampai 0.13.3, 2026-10-26**; model mingguan fleksibel sejak 0.14.3 (D2, geser dihapus). Spesifikasi 2026-10-26 (menggantikan dokumen cakupan 2026-10-23). Simpan di `docs/PROGRAM-HIDUP.md`.
 > Bergantung pada 0.11 (profil di perangkat) dan 0.12 (sinkron). Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Desain mengikuti [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md).
 
 ## 1. Tujuan
@@ -115,7 +115,7 @@ Catatan tambahan per sesi: `lebih-berat` bila rencana easy tapi aktivitas tergol
 ### 4.8 Sesi terlewat: geser atau lewati (#9) · geser dihapus 0.14.3
 
 > **0.14.3:** geser dihapus. Di model mingguan sesi boleh dikerjakan di hari apa pun dalam minggunya, jadi tidak ada sesi "terlewat" yang perlu digeser. "Lewati" tetap ada di "Sesi minggu ini" untuk sesi minggu berjalan. Teks di bawah adalah riwayat 0.13.2.
-- Modul murni `lib/program/reschedule.ts` menghasilkan opsi untuk sesi `terlewat`:
+- (Riwayat, modulnya dihapus di 0.14.3.) Modul murni `lib/program/reschedule.ts` menghasilkan opsi untuk sesi `terlewat`:
   - `quality`: hari pengganti di minggu yang sama yang **tidak** sehari sebelum quality/long run, **tidak** di hari yang sudah ada lari, dan ≥ 48 jam dari quality sebelumnya. Tanpa kandidat → hanya "lewati".
   - `long`: geser 1–2 hari bila tidak menabrak quality minggu berikutnya; selain itu "lewati".
   - `easy`/`recovery`: tidak ditawarkan geser; cukup ditandai.

@@ -1,6 +1,6 @@
 # Cakupan 0.14 Strength hidup
 
-> Status: **cakupan diperbarui 2026-10-26** (usulan pemilik digabung dengan cakupan 2026-10-23; peta otot ditambahkan). Spesifikasi detail dan prompt menyusul setelah 0.13. Simpan di `docs/STRENGTH-HIDUP.md`.
+> Status: **selesai di 0.14.0 sampai 0.14.2, 2026-10-27**; sejak 0.14.2 ada 56 gerakan, 9 di antaranya belum bergambar. Cakupan diperbarui 2026-10-26 (usulan pemilik digabung dengan cakupan 2026-10-23; peta otot ditambahkan). Simpan di `docs/STRENGTH-HIDUP.md`.
 > Rilis: **0.14.0**, **0.14.1**, dan **0.14.2** selesai 2026-10-27 (lihat [CHANGELOG](../CHANGELOG.md)). 0.14 Strength hidup selesai; usulan gerakan 0.14.2 di [movement-library-proposal-0.14.md](movement-library-proposal-0.14.md).
 > Kalau ada yang bertentangan dengan PRD §3, PRD yang menang. Perubahan logika latihan wajib memperbarui TRAINING-LOGIC dan test.
 

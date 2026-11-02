@@ -26,7 +26,7 @@ Nama token **tetap sama dengan 0.9** supaya semua kelas Tailwind yang ada (`bg-s
 | `--subtle` | `#1F1F20` | `#F1F1EF` | baris, isian input |
 | `--subtle-strong` | `#27272A` | `#E8E8E5` | chip netral |
 | `--line` | `#2A2A2C` | `#ECEBE8` | garis rambut (hairline) |
-| `--line-strong` | `#3E3E42` | `#CFCDC8` | border kontrol |
+| `--line-strong` | `#6B6B70` | `#8C8B87` | border kontrol (≥ 3:1 sejak 0.16) |
 | `--ink` | `#F5F4F1` | `#141414` | teks utama |
 | `--muted` | `#A8A7A3` | `#4A4946` | teks sekunder |
 | `--faint` | `#8C8B88` | `#6B6A66` | label mono, satuan |
@@ -35,9 +35,9 @@ Nama token **tetap sama dengan 0.9** supaya semua kelas Tailwind yang ada (`bg-s
 | `--brand-soft` | `#2A1408` | `#FFF0E8` | latar opsi aktif |
 | `--brand-ink` | `#FF6A2B` | `#C23F00` | **teks** oranye |
 | `--on-brand` | `#0B0B0C` | `#0B0B0C` | teks di atas oranye |
-| `--track` | `#6E6E74` | `#8F8E8A` | bar segmen non-kerja (pemanasan, recovery) |
+| `--track` | `#6E6E74` | `#8A8985` | bar segmen non-kerja (pemanasan, recovery) |
 | `--success` / `-ink` / `-soft` | `#4ADE80` / `#6EE7A0` / `#10291A` | `#16A34A` / `#15803D` / `#E8F7EE` | intensitas Easy, status OK |
-| `--warning` / `-ink` / `-soft` | `#FACC15` / `#FCD34D` / `#2E2608` | `#EAB308` / `#A16207` / `#FDF6D8` | Moderate |
+| `--warning` / `-ink` / `-soft` | `#FACC15` / `#FCD34D` / `#2E2608` | `#B98D06` / `#A16207` / `#FDF6D8` | Moderate |
 | `--danger` / `-ink` / `-soft` | `#F87171` / `#FCA5A5` / `#331414` | `#DC2626` / `#B91C1C` / `#FDECEC` | High, status gagal |
 | `--info` / `-soft` | `#5AA2FF` / `#0F2440` | `#0060D0` / `#EAF2FD` | catatan/cue |
 

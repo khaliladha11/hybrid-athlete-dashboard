@@ -164,14 +164,14 @@ HUAWEI Watch Fit 4 tidak disebut di daftar model; diuji lewat checklist manual 0
 
 | Modul | Tanggung jawab | Berjalan di |
 | --- | --- | --- |
-| `public/sw.js` (atau `app/sw.ts`) dan `lib/offline.ts` | Service worker (cache cangkang & halaman, versi), status online/offline, pemberitahuan versi baru (0.16) | Browser / client |
-| `components/ui/OfflineBanner.tsx` | Banner "Sedang offline" (0.16) | Client |
+| `public/sw.js`, `public/sw-rules.js`, dan `lib/offline.ts` | Service worker (cache cangkang & halaman, versi), status online/offline, pemberitahuan versi baru (0.16) | Browser / client |
+| `components/offline/OfflineAgent.tsx` | Banner "Sedang offline" dan prompt versi baru (0.16) | Client |
 | `e2e/*`, `playwright.config.ts`, `.github/workflows/ci.yml` | Tes end-to-end dan pemeriksaan Lighthouse di CI (0.16) | Dev / CI |
 | `next.config.ts` (header), `proxy.ts` | Header keamanan dan CSP (0.16) | Server |
-| `lib/intervals/workout.ts` (murni) | Workout lari → format workout terstruktur intervals.icu, id luar untuk perbarui/hapus (0.17) | Server & client (murni) |
+| `lib/intervals/workout-export.ts` dan `lib/intervals/calendar.ts` (murni) | Workout lari → format workout terstruktur intervals.icu, id luar untuk perbarui/hapus (0.17) | Server & client (murni) |
 | `app/api/intervals/workout/route.ts`, `lib/intervals/client.ts` | Kirim, perbarui, dan tarik workout di kalender; key tetap di server (0.17) | Server |
 | `lib/hr-zones.ts` dan Setting › Zona | Zona HR dan skala RPE yang bisa diubah (0.17) | Server & client (murni) |
-| `AGENTS.md`, `docs/INSTALL-WITH-AI.md`, README (tombol Deploy) | Pemasangan dan pedoman alat AI (0.17) | Dokumen |
+| `AGENTS.md`, `INSTALL-WITH-AI.md`, README (tombol Deploy) | Pemasangan dan pedoman alat AI (0.17) | Dokumen |
 | `.github/workflows/upstream-update.yml` | PR pembaruan terjadwal untuk fork (1.0) | CI |
 
 - Semua modul baru yang berisi logika murni: tanpa I/O, tanggal dari parameter, WIB lewat `lib/date.ts`.
@@ -187,10 +187,10 @@ HUAWEI Watch Fit 4 tidak disebut di daftar model; diuji lewat checklist manual 0
 - **Pemulihan data:** satu test per skenario di #5.
 
 **0.17**
-- **`workout.test.ts`:** setiap pola lari menjadi workout terstruktur yang valid (durasi total sama dengan rencana, target dari zona), id luar stabil, kirim ulang = perbarui, tanpa em dash.
+- **`workout.test.ts`** (diterapkan sebagai `workout-export.test.ts`): setiap pola lari menjadi workout terstruktur yang valid (durasi total sama dengan rencana, target dari zona), id luar stabil, kirim ulang = perbarui, tanpa em dash.
 - **Rute kirim:** key tidak bocor di respons, key hanya-baca → pesan yang jelas, intervals.icu error → pesan singkat.
 - **Zona HR/RPE:** nilai bawaan dari LTHR, validasi, tidak mengubah ambang saran.
-- **`copy-dashes.test.ts`:** diperluas ke string `lib/`.
+- **`copy-dashes.test.ts`:** diperluas ke string `lib/` (diterapkan sebagai `copy-lib-strings.test.ts`).
 
 **1.0**
 - **Migrasi:** setiap versi cadangan dan setiap bentuk data lama dimigrasi tanpa kehilangan isi, dan aman dijalankan dua kali.
@@ -216,7 +216,7 @@ HUAWEI Watch Fit 4 tidak disebut di daftar model; diuji lewat checklist manual 0
 ## 10. Perubahan dokumen
 
 - **PRD:** [RELEASE-1.0](RELEASE-1.0.md) di "Dokumen terkait"; baris ⬜ bertanda 0.16 / 0.17 / 1.0 di §4 (baris offline, zona HR/RPE, dan kirim workout dipindah ke versi barunya); catatan di §7 bertanggal 2026-10-29 dan baris roadmap 0.16 / 0.17 / 1.0 menggantikan satu baris 1.0; header, jumlah test, dan §8 berubah per rilis.
-- **ARCHITECTURE:** service worker, header keamanan, `lib/intervals/workout.ts` dan rute kirim, workflow pembaruan.
+- **ARCHITECTURE:** service worker, header keamanan, `lib/intervals/workout-export.ts` dan rute kirim, workflow pembaruan.
 - **SYNC.md:** perilaku offline dan antrean, serta langkah pemulihan data (#5).
 - **README:** tombol Deploy, panduan pengguna, jalur pembaruan; **INSTALL-WITH-AI.md** dan **AGENTS.md** baru.
 - **DESIGN-SYSTEM §6:** banner offline, tombol kirim, lembar bantuan.
