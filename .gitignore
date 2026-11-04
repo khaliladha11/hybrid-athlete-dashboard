@@ -18,7 +18,8 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 
-# Media marketing (marketing/README.md): video & bahan kerja tidak di-commit; post PNG di-commit
+# Media marketing (marketing/README.md): video & bahan kerja tidak di-commit; post dan social preview di-commit
 !/marketing/out/
 /marketing/out/*
 !/marketing/out/posts/
+!/marketing/out/og/

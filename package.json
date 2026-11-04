@@ -16,7 +16,8 @@
     "secret": "node scripts/session-secret.mjs",
     "check:links": "node scripts/check-links.mjs",
     "media:video": "node marketing/scripts/record-preview.mjs",
-    "media:posts": "node marketing/scripts/render-posts.mjs"
+    "media:posts": "node marketing/scripts/render-posts.mjs",
+    "media:og": "node marketing/scripts/render-posts.mjs --og"
   },
   "dependencies": {
     "next": "^16.4.2",

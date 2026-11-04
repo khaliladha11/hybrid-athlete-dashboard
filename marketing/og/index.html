@@ -1,0 +1,33 @@
+<!doctype html>
+<!--
+  Social preview GitHub (design system "Tag"). Buka index.html#a atau #b untuk pratinjau; tanpa #id tampil
+  keduanya. PNG/JPG dibuat oleh `npm run media:og`.
+-->
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Hybrid Athlete · social preview</title>
+  <link rel="stylesheet" href="../out/fonts.css">
+  <link rel="stylesheet" href="../posts/tag.css">
+  <link rel="stylesheet" href="og.css">
+  <script src="og.js"></script>
+</head>
+<body>
+  <script>
+    const id = decodeURIComponent(location.hash.slice(1));
+    const ids = id ? [id] : Object.keys(window.OG);
+    if (!id) document.body.style.cssText = "display:flex;flex-direction:column;gap:40px;padding:40px;background:#333";
+    for (const key of ids) {
+      const p = window.OG[key];
+      if (!p) continue;
+      const el = document.createElement("section");
+      el.className = "post og";
+      el.id = key;
+      el.style.width = p.size[0] + "px";
+      el.style.height = p.size[1] + "px";
+      el.innerHTML = p.html;
+      document.body.appendChild(el);
+    }
+  </script>
+</body>
+</html>

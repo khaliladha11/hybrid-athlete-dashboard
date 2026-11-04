@@ -4,6 +4,9 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Ditambahkan
+- **Social preview GitHub** (`npm run media:og`, [marketing/README.md](marketing/README.md)): kartu tautan 1280×640 dari template HTML ber-token "Tag", dua varian (HP dengan peta otot Demo Mode, motif Segment Skyline), ekspor PNG/JPG dan render cek 640×320. Kontras teks dan safe area 64 px diperiksa saat render.
+
 ## [1.0.0] · 2026-11-02 · Rilis stabil
 
 Rilis stabil pertama. Sejak 1.0.0 berlaku **feature freeze**: hanya perbaikan bug, keamanan, dan dokumentasi sampai rencana minor berikutnya disetujui ([PRD §9](docs/PRD.md#kebijakan-versi-sejak-100-rc1)). Hasil audit akhir: [RELEASE-1.0 §12](docs/RELEASE-1.0.md#12-audit-akhir-100-2026-11-02).
