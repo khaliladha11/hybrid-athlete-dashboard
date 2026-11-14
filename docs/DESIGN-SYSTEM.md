@@ -215,6 +215,33 @@ Grafik bar SVG tanpa library. **Lebar bar ∝ durasi, tinggi bar ∝ kecepatan.*
 - Tanpa tanda seru di pesan sukses. Tombol menyebut hasilnya: "Generate lari", "Salin set", "Terapkan Easy".
 - **Nama coach: Gita** (0.14.0, D1). Dipakai konsisten di teks UI: label `Saran Gita` di kartu gerakan dan detail gerakan, kartu saran harian `Saran Gita · hari ini`, dan pengingat alat `Saran Gita · alat`. Nama di kode (`coach`, `CoachCard`) tidak diganti. Gita menjelaskan alasan dengan angka dan tidak pernah memblokir.
 
+### Bahasa Inggris (1.2.0)
+
+Teks Inggris mengikuti aturan yang sama, dijaga `i18n-keys.test.ts`, `i18n-parity.test.ts`, dan `i18n-safety.test.ts`:
+
+- Tanpa em dash dan en dash, kecuali en dash di dalam rentang angka. Tanpa "!".
+- Sentence case: "Start session", bukan "Start Session". UPPERCASE hanya untuk label mono dan Display.
+- Tombol menyebut hasilnya: "Start session", "Apply Easy", "Agree and continue". Nama fitur tetap: "Copy Set".
+- Nama gerakan tidak diterjemahkan (nama library). "Gita" tetap "Gita".
+- Konten keselamatan (kondisi, cue gerakan, disclaimer) diterjemahkan harfiah: arti, angka, dan batas sama persis. Kalimat yang terjemahannya belum pasti diberi penanda `// REVIEW:` di kode.
+- Pace tetap `5'50"`; satuan km, bpm, SPM, ms, kg sama; "mnt" → "min", "dtk" → "sec", "j" → "h".
+
+Daftar istilah:
+
+| Indonesia | English |
+| --- | --- |
+| Saran Gita | Gita's advice |
+| Check-in | Check-in |
+| Week Ledger | Week Ledger |
+| Hari H | Race day |
+| Lewati | Skip |
+| Minggu ini | This week |
+| Mode latihan | Workout mode |
+| Kirim ke jam | Send to watch |
+| Pemanasan · Inti · Pendinginan | Warm-up · Main · Cool-down |
+| Profil · Lari · Program · Strength · Setting | Profile · Run · Program · Strength · Settings |
+| Tren | Trends |
+
 ## 8. Yang tidak boleh berubah
 
 - Semua logika di `lib/` dan 136 unit test. Redesign ini **tidak** menyentuh generator, aturan cedera, atau RPE.

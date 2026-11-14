@@ -61,12 +61,22 @@ Selain perintah di atas, CI juga menjalankan:
   - Migrasi harus idempoten dan tidak pernah menghapus data yang tidak dikenali.
 - **Tampilan** mengikuti [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md):
   - token semantik;
-  - copy bahasa Indonesia tanpa em dash/en dash dan tanpa tanda seru;
+  - copy bahasa Indonesia dan Inggris tanpa em dash/en dash dan tanpa tanda seru;
   - area sentuh ≥ 44px;
   - kontras AA di kedua tema;
   - tanpa dependensi UI, animasi, atau chart baru.
 - **String di `lib/`** yang tampil ke pengguna dijaga test pemindai copy. Perubahan string beserta test-nya di-commit terpisah dari perubahan logika.
 - **Aset pihak ketiga** hanya boleh berlisensi bebas, dan dicatat di [NOTICE.md](NOTICE.md) dengan sumber, lisensi, dan tautan.
+
+## Menambah atau menerjemahkan teks
+
+Semua teks yang tampil ke pengguna ada dalam bahasa Indonesia dan Inggris ([ARCHITECTURE › Bahasa](docs/ARCHITECTURE.md#bahasa-120)).
+
+1. Tambahkan kunci di namespace yang sesuai di `lib/i18n/messages/`, di objek Indonesia dan Inggris sekaligus. `npm run typecheck` gagal bila salah satu tertinggal.
+2. Di komponen client pakai `const t = useT(NAMA)`; di server component `const t = await getT(NAMA)`. Di `lib/`, terima `locale: Locale = "id"` sebagai parameter terakhir dan baca `NAMA[locale]`.
+3. Teks berparameter ditulis sebagai fungsi, mis. `runs: (n: number) => (n === 1 ? "1 run" : n + " runs")`.
+4. Konten keselamatan (kondisi, cue gerakan, catatan kondisi, disclaimer): tulis teks Indonesia di sumbernya, lalu terjemahan harfiah di `messages/safety-en.ts` atau `messages/media-en.ts`. Angka dan batas harus sama persis (`i18n-safety.test.ts` memeriksanya). Bila ragu, tandai `// REVIEW:` dan sebutkan di pull request.
+5. Ikuti aturan copy dan daftar istilah di [DESIGN-SYSTEM §7](docs/DESIGN-SYSTEM.md#7-copy).
 
 ## Rilis
 

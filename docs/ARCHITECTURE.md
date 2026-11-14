@@ -220,6 +220,18 @@ Key `localStorage` (pola `hybrid-athlete.<nama>[.vN]`, di `lib/preference-keys.t
 
 Tanpa database, log dan Setting hanya ada di satu perangkat. Dengan Upstash Redis + sandi aplikasi, data disinkron antar perangkat (0.12.1) dan dicadangkan otomatis tiap hari dengan Riwayat cadangan & Pulihkan (0.12.2). Spesifikasi: [SYNC.md](SYNC.md).
 
+## Bahasa (1.2.0)
+
+Dua bahasa, `id` (sumber) dan `en`, tanpa library dan tanpa rute per bahasa.
+
+- **Kamus bertipe** (`lib/i18n/dict.ts`): `dict(id, en)` per namespace di `lib/i18n/messages/<ns>.ts`. Bentuk `en` diketik dari `id`, jadi kunci yang hilang atau parameter yang berbeda gagal di `tsc`. Teks berparameter dan jamak Inggris ditulis sebagai fungsi (`(n: number) => string`).
+- **Memilih bahasa** (`lib/i18n/locale.ts`): pilihan tersimpan → bahasa browser (`Accept-Language`) bila id/en → `id`. Pilihan disimpan di `localStorage` `hybrid-athlete.lang` dan dicerminkan ke cookie `ha-lang` (1 tahun, `SameSite=Lax`, bukan rahasia dan bukan data pribadi) supaya server merender bahasa yang benar tanpa kedipan. Ikut sinkron (bagian `preferences`) dan cadangan.
+- **Server**: `await getLocale()` / `await getT(M)` (`lib/i18n/server.ts`); `app/layout.tsx` memasang `<html lang>` dan `LocaleProvider`. **Client**: `useLocale()`, `useT(M)`, `useSetLocale()` (`lib/i18n/client.tsx`).
+- **`lib/` tetap murni**: fungsi yang mengembalikan teks menerima `locale: Locale = "id"` sebagai parameter terakhir (atau `locale?` di objek opsi). Pemanggil dan test lama tetap berbahasa Indonesia. Alasan yang dirangkai di UI disimpan terstruktur (`MovementStatus.why`, `warningItems`, `IntervalsError.detail`) dan diterjemahkan saat render.
+- **Konten keselamatan**: teks Indonesia tetap di sumbernya (`conditions.ts`, `movements/media.ts`, `generator/meta.ts`, `muscle-regions.ts`). Teks Inggris ada di overlay `messages/media-en.ts` dan `messages/safety-en.ts` (kunci = nama gerakan / id kondisi); `lib/i18n/safety-text.ts` memilih bahasa dan kembali ke Indonesia bila entri Inggris tidak ada.
+- **Format** (`lib/i18n/format.ts`): tanggal lewat `Intl` `id-ID`/`en-GB` di zona UTC untuk tanggal kalender WIB; angka EN lewat `formatNumber` (en-GB), tampilan angka ID tidak berubah. Pace tetap `formatPaceTag`.
+- **Test**: `i18n-keys` (setiap kunci terisi di kedua bahasa, aturan copy Inggris), `i18n-parity` (generator, program, saran, dan rute dijalankan id vs en: struktur dan angka identik), `i18n-safety` (setiap kondisi, cue, catatan, dan disclaimer punya teks Inggris dengan angka dan penanda ≤ ≥ ± ° × % yang sama), `e2e/i18n.spec.ts` (setiap tab dan axe di kedua bahasa).
+
 ## Design system
 
 Sumber kebenaran desain: **[DESIGN-SYSTEM.md](DESIGN-SYSTEM.md)** (design system "Tag", 0.10.0-ui). Ringkasnya:

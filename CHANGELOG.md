@@ -4,6 +4,32 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [1.2.0] · 2026-11-14 · Bahasa Indonesia / English
+
+Atas permintaan pemilik: seluruh app tersedia dalam bahasa Inggris, tanpa mengubah logika latihan.
+
+### Ditambahkan
+- **Tombol ganti bahasa ID/EN** di AppBar, di samping toggle tema, dan pilihan bahasa di Setting › Tampilan. Bawaan mengikuti bahasa browser, lalu Indonesia. Pilihan bertahan setelah reload dan ikut sinkron & cadangan.
+- **Semua teks dalam dua bahasa:**
+  - UI semua tab, onboarding, Bantuan, pesan error, dan mode offline;
+  - saran Gita, check-in, dan kesiapan;
+  - generator lari & strength (cue, catatan, satuan), program, progresi beban, insight, dan kirim ke jam;
+  - konten keselamatan: katalog kondisi, cue dan catatan teknik 56 gerakan, nama otot, dan disclaimer. Diterjemahkan harfiah dengan angka dan batas yang sama persis.
+- Nama dan deskripsi workout yang dikirim ke intervals.icu mengikuti bahasa app saat dikirim.
+- Test baru: kunci kamus, paritas logika id vs en (generator semua kombinasi, program, saran), kecocokan angka konten keselamatan, e2e setiap tab dan axe di kedua bahasa.
+
+### Diubah
+- **Kartu bagikan** sekarang mengikuti bahasa app. Opsi EN/ID di lembar bagikan tetap ada dan hanya disimpan bila dipilih.
+- Label aksesibel tombol bahasa memuat teks yang terlihat ("ID/EN"), sesuai WCAG 2.5.3.
+
+### Diperbaiki
+- Validasi workout lari juga mengenali cue keselamatan lintasan dalam bahasa Inggris, sehingga workout Inggris tidak ditolak.
+
+### Langkah manual
+- Salinan atau fork dengan workflow pembaruan: merge pull request "Pembaruan dari upstream: v1.2.0" setelah CI hijau.
+- Tidak ada variabel lingkungan baru dan tidak ada migrasi data. Cookie `ha-lang` hanya berisi `id` atau `en` agar server merender bahasa yang benar; bukan data pribadi.
+- Teks yang sudah tersimpan (judul sesi, workout yang sudah dikirim) tetap dalam bahasa saat dibuat. Setelah ganti bahasa, workout yang sudah dikirim bisa tampil "berubah sejak dikirim" karena deskripsinya berbeda.
+
 ## [1.1.0] · 2026-11-14 · Profil ringkas
 
 Rilis minor pertama setelah 1.0, atas permintaan pemilik: Profil jadi ringkas dan detailnya pindah ke Tren. Backlog "Bagikan kartu story" dikerjakan sebagai ekspor kartu mingguan.

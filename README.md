@@ -13,6 +13,8 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/khaliladha11/hybrid-athlete-dashboard?label=lisensi" alt="Lisensi MIT"></a>
 </p>
 
+> **In English.** Hybrid Athlete is a self-hosted PWA that reads your [intervals.icu](https://intervals.icu) data and suggests today's run and strength session, with research-based injury rules and loads built from your own equipment. Since 1.2.0 the whole app is available in English: tap **ID/EN** in the top bar. The documentation is in Indonesian: start with [Mulai cepat](#mulai-cepat) to deploy on Vercel, the [user guide](docs/GUIDE.md), and the [scientific basis](docs/REFERENCES.md). It is not medical advice.
+
 <!-- Pratinjau dibuat ulang dengan `npm run media:video` (marketing/README.md). -->
 <p align="center">
   <img src="docs/media/preview-readme.webp" width="300" alt="Pratinjau animasi: saran harian Gita dan kartu minggu ini di Profil, generator lari lalu Kirim ke jam, mode latihan strength dengan peta otot, program menuju Hari H, dan heatmap otot di Insight">
