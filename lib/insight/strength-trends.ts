@@ -19,6 +19,9 @@ import type { MovementCategory, MovementLibrary } from "@/lib/profile";
 import type { LogEntry } from "@/lib/progression";
 import { isLiveSession, sessionLoad, type StSession } from "@/lib/st-session";
 import { int } from "./format";
+import type { Locale } from "@/lib/i18n/locale";
+import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
+
 import type { Summary } from "./run-trends";
 import { bucketIndex, weekBuckets, type WeekBucket } from "./weeks";
 
@@ -140,33 +143,34 @@ export function strengthWeeks(work: WorkSet[], sessions: StSession[], patterns: 
   return rows;
 }
 
-const NEED_TWO = "Belum ada data cukup untuk tren ini (butuh 2 minggu).";
-
 /** Kalimat di atas grafik volume satu pola. Minggu berjalan tidak masuk rata-rata. */
-export function patternSummary(rows: StrengthWeek[], cat: MovementCategory): Summary {
+export function patternSummary(rows: StrengthWeek[], cat: MovementCategory, locale: Locale = "id"): Summary {
+  const T = INSIGHT_LIB[locale];
+  const L = T.pattern;
   const withSets = rows.filter((r) => r.patterns[cat].sets > 0);
   if (!rows.some((r) => MOVEMENT_CATEGORIES.some((c) => r.patterns[c].sets > 0))) {
-    return { drawable: false, text: "Belum ada sesi ST tercatat di perangkat ini dalam rentang ini." };
+    return { drawable: false, text: L.none };
   }
-  if (!withSets.length) return { drawable: false, text: `Belum ada set ${PATTERN_LABEL[cat]} dalam rentang ini.` };
-  if (withSets.length < 2) return { drawable: false, text: NEED_TWO };
+  if (!withSets.length) return { drawable: false, text: L.noSets(PATTERN_LABEL[cat]) };
+  if (withSets.length < 2) return { drawable: false, text: T.needTwo };
   const done = rows.filter((r) => !r.current);
   const n = Math.max(1, done.length);
   const avg = (k: keyof PatternVolume) => done.reduce((t, r) => t + r.patterns[cat][k], 0) / n;
-  const parts = [`${PATTERN_LABEL[cat]}: rata-rata ${int(avg("sets"))} set per minggu`];
-  if (avg("kg") > 0) parts.push(`${int(avg("kg"))} kg × rep`);
-  if (avg("sec") > 0) parts.push(`${int(avg("sec"))} detik tahan`);
-  if (avg("reps") > 0) parts.push(`${int(avg("reps"))} rep tanpa beban`);
-  const est = rows.some((r) => r.estimated) ? " Minggu bertanda * adalah perkiraan (hanya gerakan ★)." : "";
+  const parts = [L.avg(PATTERN_LABEL[cat], int(avg("sets"), locale))];
+  if (avg("kg") > 0) parts.push(L.kg(int(avg("kg"), locale)));
+  if (avg("sec") > 0) parts.push(L.sec(int(avg("sec"), locale)));
+  if (avg("reps") > 0) parts.push(L.reps(int(avg("reps"), locale)));
+  const est = rows.some((r) => r.estimated) ? L.est : "";
   return { drawable: true, text: `${parts.join(", ")}.${est}` };
 }
 
 /** Kalimat di atas grafik beban session-RPE mingguan. */
-export function auSummary(rows: StrengthWeek[]): Summary {
+export function auSummary(rows: StrengthWeek[], locale: Locale = "id"): Summary {
+  const T = INSIGHT_LIB[locale];
   const pts = rows.filter((r) => r.au !== undefined);
-  if (!pts.length) return { drawable: false, text: "Belum ada sesi mode latihan dengan RPE sesi dalam rentang ini." };
-  if (pts.length < 2) return { drawable: false, text: NEED_TWO };
+  if (!pts.length) return { drawable: false, text: T.au.none };
+  if (pts.length < 2) return { drawable: false, text: T.needTwo };
   const done = rows.filter((r) => !r.current);
   const avg = done.reduce((t, r) => t + (r.au ?? 0), 0) / Math.max(1, done.length);
-  return { drawable: true, text: `Beban ST rata-rata ${int(avg)} AU per minggu (RPE sesi × menit), terpisah dari load lari.` };
+  return { drawable: true, text: T.au.avg(int(avg, locale)) };
 }

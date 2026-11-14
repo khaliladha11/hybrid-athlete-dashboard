@@ -13,7 +13,10 @@ import { activitySource, raceSource, type Confidence } from "@/lib/program/predi
 import type { LogEntry } from "@/lib/progression";
 import { isLivePr, type PrEntry } from "@/lib/prs";
 import type { StSession } from "@/lib/st-session";
-import { num1 } from "./format";
+import { kgText, num1 } from "./format";
+import type { Locale } from "@/lib/i18n/locale";
+import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
+
 import { rarelyTrained } from "./muscle-load";
 import { stWork } from "./strength-trends";
 
@@ -86,19 +89,16 @@ export function monthlySummary(o: {
   };
 }
 
-const kg = (v: number) => `${num1(v).replace(",0", "")} kg`;
-
 /** Baris teks ringkasan (kartu Profil & Insight). */
-export function monthlyLines(s: MonthlySummary): string[] {
-  const lines = [s.runs ? `Lari ${num1(s.runKm)} km dalam ${s.runs} lari.` : "Belum ada lari tercatat bulan itu.", s.stDays ? `ST di ${s.stDays} hari.` : "Belum ada sesi ST tercatat."];
-  lines.push(
-    s.newPrs.length ? `PR baru: ${s.newPrs.map((p) => `${p.movement} ${kg(p.loadKg)}${p.reps ? ` × ${p.reps}` : ""}`).join(", ")}.` : "Belum ada PR baru bulan itu.",
-  );
+export function monthlyLines(s: MonthlySummary, locale: Locale = "id"): string[] {
+  const L = INSIGHT_LIB[locale].monthly;
+  const lines = [s.runs ? L.runs(num1(s.runKm, locale), s.runs) : L.noRuns, s.stDays ? L.st(s.stDays) : L.noSt];
+  lines.push(s.newPrs.length ? L.prs(s.newPrs.map((p) => `${p.movement} ${kgText(p.loadKg, locale)}${p.reps ? ` × ${p.reps}` : ""}`).join(", ")) : L.noPrs);
   if (s.vdot) {
     const d = s.vdot.from !== undefined ? s.vdot.to - s.vdot.from : undefined;
-    const change = d === undefined ? "" : Math.abs(d) < 0.3 ? ", stabil" : `, ${d > 0 ? "naik" : "turun"} ${num1(Math.abs(d))} dari bulan sebelumnya`;
-    lines.push(`VDOT akhir bulan ${num1(s.vdot.to)}${change} (keyakinan ${s.vdot.confidence}).`);
-  } else lines.push("VDOT belum bisa dihitung (butuh hasil lomba atau lari ≥ 3 km dalam 90 hari).");
-  if (s.rarely?.length) lines.push(`Otot tanpa kerja utama di 14 hari terakhir bulan itu: ${s.rarely.join(", ")}.`);
+    const change = d === undefined ? "" : Math.abs(d) < 0.3 ? L.stable : L.change(d > 0, num1(Math.abs(d), locale));
+    lines.push(L.vdot(num1(s.vdot.to, locale), change, s.vdot.confidence));
+  } else lines.push(L.noVdot);
+  if (s.rarely?.length) lines.push(L.rarely(s.rarely.join(", ")));
   return lines;
 }

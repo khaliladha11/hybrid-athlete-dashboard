@@ -13,6 +13,9 @@ import { addDays } from "@/lib/date";
 import { MOVEMENT_MEDIA } from "@/lib/movements/media";
 import { MUSCLE_REGIONS, regionsOf, type MuscleRegion } from "@/lib/movements/muscle-regions";
 import { num1 } from "./format";
+import type { Locale } from "@/lib/i18n/locale";
+import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
+
 import type { WorkSet } from "./strength-trends";
 
 export const PRIMARY_WEIGHT = 1;
@@ -100,11 +103,10 @@ export const musclesOfRegion = (region: MuscleRegion) => Object.keys(MUSCLE_REGI
 /** Region peta untuk sekumpulan otot (mis. otot jarang dilatih → garis putus-putus). */
 export const regionsOfMuscles = (muscles: readonly string[]) => [...new Set(muscles.flatMap(regionsOf))];
 
-const MODE_TEXT: Record<MuscleMode, string> = { frequency: "sesi", volume: "set" };
-
 /** Kalimat di atas peta otot. */
-export function heatSummary(h: MuscleHeat, days: number, mode: MuscleMode): { drawable: boolean; text: string } {
-  if (!h.muscles.length) return { drawable: false, text: `Belum ada sesi ST tercatat di perangkat ini dalam ${days} hari terakhir.` };
-  const top = h.muscles.slice(0, 3).map((m) => `${m.muscle} ${num1(m.score).replace(",0", "")}`);
-  return { drawable: true, text: `Paling banyak dilatih ${days} hari terakhir (${MODE_TEXT[mode]} berbobot): ${top.join(", ")}.` };
+export function heatSummary(h: MuscleHeat, days: number, mode: MuscleMode, locale: Locale = "id"): { drawable: boolean; text: string } {
+  const L = INSIGHT_LIB[locale].heat;
+  if (!h.muscles.length) return { drawable: false, text: L.none(days) };
+  const top = h.muscles.slice(0, 3).map((m) => `${m.muscle} ${num1(m.score, locale).replace(locale === "id" ? ",0" : ".0", "")}`);
+  return { drawable: true, text: L.top(days, L.mode[mode], top.join(", ")) };
 }

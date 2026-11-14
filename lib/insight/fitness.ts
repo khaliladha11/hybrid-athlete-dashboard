@@ -9,6 +9,9 @@
 import type { Wellness } from "@/lib/intervals/types";
 import { availableSignals } from "@/lib/wellness-signals";
 import { num1 } from "./format";
+import type { Locale } from "@/lib/i18n/locale";
+import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
+
 import { daysBetween, weekBuckets } from "./weeks";
 
 export const FORM_BAND: [number, number] = [-10, 5];
@@ -34,7 +37,8 @@ export interface FitnessSeries {
 
 const r1 = (v: number) => Math.round(v * 10) / 10;
 
-export function fitnessSeries(wellness: Wellness[], today: string, weeks: number): FitnessSeries {
+export function fitnessSeries(wellness: Wellness[], today: string, weeks: number, locale: Locale = "id"): FitnessSeries {
+  const L = INSIGHT_LIB[locale].fitness;
   const from = weekBuckets(today, weeks)[0].start;
   const byDate = new Map(wellness.map((w) => [w.date, w]));
   const days = daysBetween(from, today).map((date): FitnessDay => {
@@ -50,11 +54,11 @@ export function fitnessSeries(wellness: Wellness[], today: string, weeks: number
   });
 
   if (!availableSignals(wellness, today).has("load")) {
-    return { days, drawable: false, summary: "CTL/ATL tidak dikirim intervals.icu dalam 14 hari terakhir, jadi tren kebugaran belum bisa digambar." };
+    return { days, drawable: false, summary: L.noLoad };
   }
   const filled = days.filter((d) => d.ctl !== undefined);
   if (filled.length < MIN_FITNESS_DAYS) {
-    return { days, drawable: false, summary: "Belum ada data cukup untuk tren ini (butuh 2 minggu CTL)." };
+    return { days, drawable: false, summary: L.notEnough };
   }
 
   const first = filled[0].ctl!;
@@ -62,8 +66,8 @@ export function fitnessSeries(wellness: Wellness[], today: string, weeks: number
   const delta = last - first;
   const trend =
     Math.abs(delta) < STABLE
-      ? `CTL stabil di ${num1(last)} dalam ${weeks} minggu.`
-      : `CTL ${delta > 0 ? "naik" : "turun"} ${num1(Math.abs(delta))} dalam ${weeks} minggu.`;
+      ? L.stable(num1(last, locale), weeks)
+      : L.change(delta > 0, num1(Math.abs(delta), locale), weeks);
   const lastForm = [...days].reverse().find((d) => d.form !== undefined)?.form;
-  return { days, drawable: true, summary: lastForm === undefined ? trend : `${trend} Form terakhir ${num1(lastForm)}.` };
+  return { days, drawable: true, summary: lastForm === undefined ? trend : `${trend}${L.form(num1(lastForm, locale))}` };
 }

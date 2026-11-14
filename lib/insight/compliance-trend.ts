@@ -9,6 +9,9 @@
 import type { SessionResult } from "@/lib/program/compliance";
 import { isRunKind, type PlannedSession } from "@/lib/program/sessions";
 import { bucketIndex, weekBuckets, type WeekBucket } from "./weeks";
+import type { Locale } from "@/lib/i18n/locale";
+import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
+
 
 export interface ComplianceCount {
   terpenuhi: number;
@@ -39,17 +42,18 @@ export function complianceWeeks(sessions: PlannedSession[], results: Map<string,
   return rows;
 }
 
-export function complianceSummary(rows: ComplianceWeek[]): { drawable: boolean; text: string } {
+export function complianceSummary(rows: ComplianceWeek[], locale: Locale = "id"): { drawable: boolean; text: string } {
+  const L = INSIGHT_LIB[locale].compliance;
   const planned = rows.filter((r) => r.run.total + r.st.total > 0);
-  if (!planned.length) return { drawable: false, text: "Belum ada program di rentang ini. Tren kepatuhan muncul setelah program dibuat di tab Program." };
+  if (!planned.length) return { drawable: false, text: L.noProgram };
   const done = planned.filter((r) => !r.current);
-  if (!done.length) return { drawable: false, text: "Minggu program pertama belum selesai. Tren muncul setelah satu minggu penuh." };
+  if (!done.length) return { drawable: false, text: L.firstWeek };
   const sum = (k: "run" | "st", f: keyof ComplianceCount) => done.reduce((t, r) => t + r[k][f], 0);
-  const part = (k: "run" | "st", label: string) => (sum(k, "total") ? `${label} ${sum(k, "terpenuhi")} dari ${sum(k, "total")} sesi terpenuhi` : null);
-  const parts = [part("run", "Lari"), part("st", "ST")].filter(Boolean);
+  const part = (k: "run" | "st", label: string) => (sum(k, "total") ? L.part(label, sum(k, "terpenuhi"), sum(k, "total")) : null);
+  const parts = [part("run", L.run), part("st", L.st)].filter(Boolean);
   const partial = sum("run", "sebagian") + sum("st", "sebagian");
   return {
     drawable: true,
-    text: `${parts.join(", ")} dalam ${done.length} minggu selesai.${partial ? ` ${partial} sesi sebagian.` : ""}`,
+    text: `${L.inWeeks(parts.join(", "), done.length)}${partial ? L.partial(partial) : ""}`,
   };
 }

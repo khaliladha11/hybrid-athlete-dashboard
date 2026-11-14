@@ -16,6 +16,9 @@ import { averageRunCadence } from "@/lib/intervals/summary";
 import type { Activity } from "@/lib/intervals/types";
 import type { Program } from "@/lib/program";
 import { int, median, num1, paceTag } from "./format";
+import type { Locale } from "@/lib/i18n/locale";
+import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
+
 import { bucketIndex, weekBuckets, type WeekBucket } from "./weeks";
 
 export interface EasyStats {
@@ -127,20 +130,20 @@ export interface Summary {
   text: string;
 }
 
-const NEED_TWO = "Belum ada data cukup untuk tren ini (butuh 2 minggu).";
-
 /** Kalimat di atas grafik km mingguan. */
-export function volumeSummary(rows: RunWeek[]): Summary {
+export function volumeSummary(rows: RunWeek[], locale: Locale = "id"): Summary {
+  const T = INSIGHT_LIB[locale];
+  const L = T.volume;
   const withRuns = rows.filter((r) => r.runs > 0);
-  if (!withRuns.length) return { drawable: false, text: `Belum ada lari tercatat dalam ${rows.length} minggu terakhir.` };
-  if (withRuns.length < 2) return { drawable: false, text: NEED_TWO };
+  if (!withRuns.length) return { drawable: false, text: L.none(rows.length) };
+  if (withRuns.length < 2) return { drawable: false, text: T.needTwo };
   const done = rows.filter((r) => !r.current);
   const total = done.reduce((t, r) => t + r.km, 0);
   const hard = done.reduce((t, r) => t + r.hardKm, 0);
   const avg = done.length ? total / done.length : 0;
-  const parts = [`Rata-rata ${num1(avg)} km per minggu, ${int(total ? (hard / total) * 100 : 0)}% berat.`];
+  const parts = [L.avg(num1(avg, locale), int(total ? (hard / total) * 100 : 0, locale))];
   const jumps = rows.filter((r) => r.jump).length;
-  if (jumps) parts.push(`${jumps} minggu naik lebih dari 30%.`);
+  if (jumps) parts.push(L.jumps(jumps));
   return { drawable: true, text: parts.join(" ") };
 }
 
@@ -151,22 +154,24 @@ export const easyValue = (r: RunWeek, k: EasyKey) => (k === "pace" ? r.easy.pace
 export const cadenceGoal = (activities: Activity[], today: string) => cadenceTarget(averageRunCadence(activities, today, 14)).target;
 
 /** Kalimat di atas grafik easy run per seri. Minggu tanpa nilai tidak dihitung. */
-export function easySummary(rows: RunWeek[], key: EasyKey, target?: number): Summary {
+export function easySummary(rows: RunWeek[], key: EasyKey, target?: number, locale: Locale = "id"): Summary {
+  const T = INSIGHT_LIB[locale];
+  const L = T.easy;
   const pts = rows.filter((r) => easyValue(r, key) !== undefined);
-  if (!rows.some((r) => r.easy.runs > 0)) return { drawable: false, text: "Belum ada easy run dalam rentang ini." };
+  if (!rows.some((r) => r.easy.runs > 0)) return { drawable: false, text: L.none };
   if (!pts.length) {
-    return { drawable: false, text: `Jam tidak mengirim ${key === "hr" ? "HR" : "cadence"} untuk easy run di rentang ini.` };
+    return { drawable: false, text: L.noData(key === "hr") };
   }
-  if (pts.length < 2) return { drawable: false, text: NEED_TWO };
+  if (pts.length < 2) return { drawable: false, text: T.needTwo };
   const a = easyValue(pts[0], key)!;
   const b = easyValue(pts.at(-1)!, key)!;
   if (key === "pace") {
     const d = Math.round(a - b);
-    const how = Math.abs(d) < 3 ? "relatif sama" : `${Math.abs(d)} detik/km lebih ${d > 0 ? "cepat" : "lambat"}`;
-    return { drawable: true, text: `Median pace easy ${paceTag(b)}/km, ${how} dibanding ${paceTag(a)}/km di awal rentang.` };
+    const how = Math.abs(d) < 3 ? L.same : L.diff(Math.abs(d), d > 0);
+    return { drawable: true, text: L.pace(paceTag(b), how, paceTag(a)) };
   }
   if (key === "hr") {
-    return { drawable: true, text: a === b ? `Median HR easy tetap ${b} bpm.` : `Median HR easy dari ${a} menjadi ${b} bpm.` };
+    return { drawable: true, text: a === b ? L.hrSame(b) : L.hrChange(a, b) };
   }
-  return { drawable: true, text: `Median cadence easy terakhir ${b} SPM${target ? `, target ${target} SPM` : ""}.` };
+  return { drawable: true, text: L.cadence(b, target) };
 }

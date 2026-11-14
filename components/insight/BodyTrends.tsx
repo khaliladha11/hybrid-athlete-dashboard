@@ -13,8 +13,8 @@ import { DAY_MONTH, formatDay } from "@/lib/i18n/format";
 /** Tren check-in: nyeri shin (0–10) dan kualitas tidur (1–5) per hari. */
 export function CheckinTrend({ checkins, today, weeks }: { checkins: Checkin[]; today: string; weeks: number }) {
   const days = checkinDays(checkins, today, weeks);
-  const s = checkinSummary(days, weeks);
   const locale = useLocale();
+  const s = checkinSummary(days, weeks, locale);
   const t = useT(INSIGHT).checkin;
   const dayLabel = (d: string) => formatDay(locale, d, DAY_MONTH).replace(".", "");
   return (
@@ -67,10 +67,11 @@ export function ThresholdCard({ lines }: { lines: string[] }) {
 /** Ringkasan bulan yang baru selesai. */
 export function MonthlyCard({ summary, action }: { summary: MonthlySummary; action?: React.ReactNode }) {
   const t = useT(INSIGHT);
+  const locale = useLocale();
   return (
     <Card title={t.monthly(summary.label)} action={action}>
       <ul className="space-y-1.5 text-[14px]">
-        {monthlyLines(summary).map((l) => (
+        {monthlyLines(summary, locale).map((l) => (
           <li key={l}>{l}</li>
         ))}
       </ul>

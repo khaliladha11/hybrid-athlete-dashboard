@@ -10,6 +10,9 @@ import { calendarItems } from "@/lib/calendar";
 import type { Activity } from "@/lib/intervals/types";
 import type { StSession } from "@/lib/st-session";
 import { num1 } from "./format";
+import type { Locale } from "@/lib/i18n/locale";
+import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
+
 import { daysBetween, weekBuckets, type WeekBucket } from "./weeks";
 
 export type DayClass = "run" | "st" | "both" | "rest" | "future";
@@ -30,15 +33,16 @@ export function heatmapWeeks(activities: Activity[], stSessions: StSession[], st
   return weekBuckets(today, weeks).map((b) => ({ ...b, days: daysBetween(b.start, b.end).map((date) => ({ date, cls: classOf(date) })) }));
 }
 
-export function heatmapSummary(rows: HeatWeek[]): { drawable: boolean; text: string } {
+export function heatmapSummary(rows: HeatWeek[], locale: Locale = "id"): { drawable: boolean; text: string } {
+  const L = INSIGHT_LIB[locale].heatmap;
   const days = rows.flatMap((r) => r.days).filter((d) => d.cls !== "future");
   const count = (c: DayClass) => days.filter((d) => d.cls === c).length;
   const active = days.length - count("rest");
-  if (!active) return { drawable: false, text: `Belum ada lari atau ST tercatat dalam ${rows.length} minggu terakhir.` };
+  if (!active) return { drawable: false, text: L.none(rows.length) };
   const done = rows.filter((r) => !r.current);
   const perWeek = done.length ? done.flatMap((r) => r.days).filter((d) => d.cls !== "rest").length / done.length : active;
   return {
     drawable: true,
-    text: `Rata-rata ${num1(perWeek)} hari aktif per minggu: ${count("run") + count("both")} hari lari, ${count("st") + count("both")} hari ST, ${count("both")} di antaranya lari + ST.`,
+    text: L.avg(num1(perWeek, locale), count("run") + count("both"), count("st") + count("both"), count("both")),
   };
 }

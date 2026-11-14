@@ -10,7 +10,11 @@
  */
 import type { LogEntry } from "@/lib/progression";
 import { isLivePr, type PrEntry } from "@/lib/prs";
-import { num1 } from "./format";
+import { kgText } from "./format";
+import { DAY_MONTH, formatDay } from "@/lib/i18n/format";
+import type { Locale } from "@/lib/i18n/locale";
+import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
+
 
 export type StageMarker = "rep" | "tempo" | "variant";
 
@@ -83,18 +87,18 @@ export function prSeries(movement: string, prs: PrEntry[], log: LogEntry[], capK
   return { movement, points: kept,...(capKg !== undefined ? { capKg } : {}), ...(cappedSince ? { cappedSince } : {}) };
 }
 
-const DAY = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
-const day = (d: string) => DAY.format(new Date(`${d}T00:00:00Z`)).replace(".", "");
-const kg = (v: number) => `${num1(v).replace(",0", "")} kg`;
+const day = (d: string, locale: Locale) => formatDay(locale, d, DAY_MONTH).replace(".", "");
 
-export const MARKER_LABEL: Record<StageMarker, string> = { rep: "rep naik", tempo: "tempo/jeda", variant: "pindah varian" };
+export const MARKER_LABEL: Record<StageMarker, string> = INSIGHT_LIB.id.pr.marker as Record<StageMarker, string>;
+export const markerLabel = (m: StageMarker, locale: Locale = "id") => INSIGHT_LIB[locale].pr.marker[m];
 
-export function prSummary(s: PrSeries): { drawable: boolean; text: string } {
+export function prSummary(s: PrSeries, locale: Locale = "id"): { drawable: boolean; text: string } {
+  const L = INSIGHT_LIB[locale].pr;
   const real = s.points.filter((p) => !p.carried);
-  if (!real.length) return { drawable: false, text: `Belum ada catatan beban untuk ${s.movement}.` };
+  if (!real.length) return { drawable: false, text: L.none(s.movement) };
   const top = [...real].sort((a, b) => b.load - a.load || (b.reps ?? 0) - (a.reps ?? 0) || a.date.localeCompare(b.date))[0];
-  const bestText = `Beban terbaik ${kg(top.load)}${top.reps ? ` × ${top.reps} rep` : ""} (${day(top.date)}).`;
-  if (real.length < 2) return { drawable: false, text: `${bestText} Butuh 2 catatan beban untuk tren ini.` };
-  const capped = s.cappedSince && s.capKg !== undefined ? ` Beban mentok di batas alat ${kg(s.capKg)} sejak ${day(s.cappedSince)}; progresi lanjut lewat rep, tempo/jeda, dan varian.` : "";
+  const bestText = L.best(kgText(top.load, locale), top.reps, day(top.date, locale));
+  if (real.length < 2) return { drawable: false, text: L.needTwo(bestText) };
+  const capped = s.cappedSince && s.capKg !== undefined ? L.capped(kgText(s.capKg, locale), day(s.cappedSince, locale)) : "";
   return { drawable: true, text: `${bestText}${capped}` };
 }

@@ -4,6 +4,9 @@
  */
 import { SHIN_EASY, hasValues, isLiveCheckin, type Checkin } from "@/lib/checkin";
 import { num1 } from "./format";
+import type { Locale } from "@/lib/i18n/locale";
+import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
+
 import { daysBetween, weekBuckets } from "./weeks";
 
 export interface CheckinDay {
@@ -22,14 +25,15 @@ export function checkinDays(list: Checkin[], today: string, weeks: number): Chec
   });
 }
 
-export function checkinSummary(days: CheckinDay[], weeks: number): { drawable: boolean; text: string } {
+export function checkinSummary(days: CheckinDay[], weeks: number, locale: Locale = "id"): { drawable: boolean; text: string } {
+  const L = INSIGHT_LIB[locale].checkin;
   const filled = days.filter((d) => d.shin !== undefined || d.sleep !== undefined || d.soreness !== undefined || d.mood !== undefined);
-  if (!filled.length) return { drawable: false, text: `Belum ada check-in dalam ${weeks} minggu terakhir. Isi check-in di Profil, di bawah 10 detik.` };
+  if (!filled.length) return { drawable: false, text: L.none(weeks) };
   const shin = filled.map((d) => d.shin).filter((v): v is number => v !== undefined);
   const sleep = filled.map((d) => d.sleep).filter((v): v is number => v !== undefined);
   const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
-  const parts = [`${filled.length} check-in dalam ${weeks} minggu`];
-  if (shin.length) parts.push(`nyeri shin rata-rata ${num1(avg(shin))}/10, ${shin.filter((v) => v >= SHIN_EASY).length} hari ≥ ${SHIN_EASY}`);
-  if (sleep.length) parts.push(`tidur rata-rata ${num1(avg(sleep))}/5`);
+  const parts = [L.count(filled.length, weeks)];
+  if (shin.length) parts.push(L.shin(num1(avg(shin), locale), shin.filter((v) => v >= SHIN_EASY).length, SHIN_EASY));
+  if (sleep.length) parts.push(L.sleep(num1(avg(sleep), locale)));
   return { drawable: filled.length >= 2, text: `${parts.join("; ")}.` };
 }

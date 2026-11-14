@@ -179,10 +179,10 @@ function SourceError({ title, result }: { title: string; result: Extract<FetchRe
 }
 
 function Fitness({ wellness, today, weeks }: { wellness: Wellness[]; today: string; weeks: number }) {
-  const s = fitnessSeries(wellness, today, weeks);
   const locale = useLocale();
+  const s = fitnessSeries(wellness, today, weeks, locale);
   const t = useT(INSIGHT);
-  const fmt = (v: number | undefined) => (v === undefined ? undefined : num1(v));
+  const fmt = (v: number | undefined) => (v === undefined ? undefined : num1(v, locale));
   return (
     <ChartCard
       title={t.fitness.title}
@@ -221,8 +221,8 @@ function markText(r: RunWeek): string | undefined {
 }
 
 function Volume({ rows }: { rows: RunWeek[] }) {
-  const s = volumeSummary(rows);
   const locale = useLocale();
+  const s = volumeSummary(rows, locale);
   const t = useT(INSIGHT);
   const current = rows.findIndex((r) => r.current);
   return (
@@ -243,9 +243,9 @@ function Volume({ rows }: { rows: RunWeek[] }) {
         columns: [t.cols.week, t.cols.km, t.cols.easy, t.cols.hard, t.cols.change],
         rows: [...rows].reverse().map((r) => [
           `${weekRow(r, locale)}${r.runs ? "" : t.volume.noRun}${r.cutback ? t.volume.cutbackRow : ""}${r.deload ? t.volume.deloadRow : ""}`,
-          num1(r.km),
-          num1(r.easyKm),
-          num1(r.hardKm),
+          num1(r.km, locale),
+          num1(r.easyKm, locale),
+          num1(r.hardKm, locale),
           r.change === undefined ? undefined : `${r.change > 0 ? "+" : ""}${Math.round(r.change * 100)}%${r.jump ? " ▲" : ""}`.replace("-", "−"),
         ]),
       }}
@@ -271,9 +271,9 @@ const EASY: Record<EasyKey, { title: "pace" | "hr" | "cadence"; column: "medianP
 };
 
 function Easy({ rows, kind, target }: { rows: RunWeek[]; kind: EasyKey; target?: number }) {
-  const s = easySummary(rows, kind, target);
-  const cfg = EASY[kind];
   const locale = useLocale();
+  const s = easySummary(rows, kind, target, locale);
+  const cfg = EASY[kind];
   const t = useT(INSIGHT);
   const column = t.easy[cfg.column];
   const missing = kind === "pace" ? "·" : t.easy.noData;
@@ -323,8 +323,8 @@ function Vdot({
   goal: ReturnType<typeof goalVdot>;
 }) {
   const rows = vdotWeeks(activities, raceResults, today, weeks);
-  const s = vdotSummary(rows, goal);
   const locale = useLocale();
+  const s = vdotSummary(rows, goal, locale);
   const t = useT(INSIGHT).vdot;
   const cols = useT(INSIGHT).cols;
   return (
@@ -336,14 +336,14 @@ function Vdot({
         <>
           {rows.some((r) => r.confidence === "tinggi") && <Swatch className="bg-brand" label={t.high} />}
           {rows.some((r) => r.confidence === "rendah") && <Swatch className="border border-brand bg-surface" label={t.low} />}
-          {goal && <Swatch className="bg-ink" label={t.target(goal.label, num1(goal.vdot))} line />}
+          {goal && <Swatch className="bg-ink" label={t.target(goal.label, num1(goal.vdot, locale))} line />}
         </>
       }
       table={{
         columns: [cols.week, "VDOT", t.confidence, t.source],
         rows: [...rows].reverse().map((r) => [
           weekRow(r, locale),
-          r.vdot === undefined ? undefined : num1(r.vdot),
+          r.vdot === undefined ? undefined : num1(r.vdot, locale),
           r.confidence ? t.level[r.confidence] : undefined,
           r.source === "race" ? t.race : r.source === "activity" ? t.bestRun : undefined,
         ]),

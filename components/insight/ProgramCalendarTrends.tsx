@@ -19,8 +19,8 @@ const countText = (c: ComplianceCount, l: Locale) => (c.total ? `${c.terpenuhi}/
 
 /** #10 Kepatuhan mingguan: lari dan ST terpisah, tanpa merah dan tanpa streak. */
 export function ComplianceTrend({ rows }: { rows: ComplianceWeek[] }) {
-  const s = complianceSummary(rows);
   const locale = useLocale();
+  const s = complianceSummary(rows, locale);
   const t = useT(INSIGHT);
   const current = rows.findIndex((r) => r.current);
   const chart = (k: "run" | "st", title: string) => (
@@ -69,7 +69,7 @@ export function ActivityHeatmap({ activities, stSessions, logDates, today }: { a
   const t = useT(INSIGHT);
   const h = t.heatmap;
   const rows = useMemo(() => heatmapWeeks(activities, stSessions, logDates, today, weeks), [activities, stSessions, logDates, today, weeks]);
-  const s = heatmapSummary(rows);
+  const s = heatmapSummary(rows, locale);
   const count = (r: (typeof rows)[number], c: string) => r.days.filter((d) => d.cls === c).length;
   return (
     <ChartCard

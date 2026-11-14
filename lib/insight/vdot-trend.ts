@@ -13,6 +13,9 @@ import { activitySource, raceSource, targetGap, type Confidence } from "@/lib/pr
 import { timeForVdot, vdot } from "@/lib/run-zones";
 import { clock, num1 } from "./format";
 import type { Summary } from "./run-trends";
+import type { Locale } from "@/lib/i18n/locale";
+import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
+
 import { weekBuckets, type WeekBucket } from "./weeks";
 
 export interface VdotWeek extends WeekBucket {
@@ -53,21 +56,21 @@ export function goalGapSec(currentVdot: number, goal: VdotGoal): number | null {
   return gap.onTrack ? null : gap.secPerKm;
 }
 
-const CONF: Record<Confidence, string> = { tinggi: "keyakinan tinggi", sedang: "keyakinan sedang", rendah: "keyakinan rendah" };
-
-export function vdotSummary(rows: VdotWeek[], goal?: VdotGoal): Summary {
+export function vdotSummary(rows: VdotWeek[], goal?: VdotGoal, locale: Locale = "id"): Summary {
+  const L = INSIGHT_LIB[locale].vdot;
+  const conf = (c: Confidence) => L.conf[c];
   const pts = rows.filter((r) => r.vdot !== undefined);
-  if (!pts.length) return { drawable: false, text: "Belum ada hasil lomba atau lari ≥ 3 km dalam 90 hari untuk menghitung VDOT." };
+  if (!pts.length) return { drawable: false, text: L.none };
   const last = pts.at(-1)!;
   const tail = goal
     ? (() => {
         const gap = goalGapSec(last.vdot!, goal);
-        return gap === null ? ` Perkiraan sudah di jalur target ${goal.label}.` : ` Selisih ${clock(gap)}/km ke target ${goal.label}.`;
+        return gap === null ? L.onTrack(goal.label) : L.gap(clock(gap), goal.label);
       })()
     : "";
-  if (pts.length < 2) return { drawable: false, text: `VDOT saat ini ${num1(last.vdot!)} (${CONF[last.confidence!]}). Belum ada data cukup untuk tren ini (butuh 2 minggu).${tail}` };
+  if (pts.length < 2) return { drawable: false, text: L.current(num1(last.vdot!, locale), conf(last.confidence!), tail) };
   const first = pts[0].vdot!;
   const d = last.vdot! - first;
-  const trend = Math.abs(d) < 0.3 ? `VDOT stabil di ${num1(last.vdot!)}` : `VDOT ${d > 0 ? "naik" : "turun"} dari ${num1(first)} menjadi ${num1(last.vdot!)}`;
-  return { drawable: true, text: `${trend} (${CONF[last.confidence!]}).${tail}` };
+  const trend = Math.abs(d) < 0.3 ? L.stable(num1(last.vdot!, locale)) : L.change(d > 0, num1(first, locale), num1(last.vdot!, locale));
+  return { drawable: true, text: L.line(trend, conf(last.confidence!), tail) };
 }

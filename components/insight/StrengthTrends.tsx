@@ -9,7 +9,7 @@ import { Segmented } from "@/components/ui/Segmented";
 import { MOVEMENT_CATEGORIES } from "@/lib/athlete-settings";
 import { int, num1 } from "@/lib/insight/format";
 import { heatSummary, movementsFor, muscleHeat, musclesOfRegion, rarelyTrained, regionsOfMuscles, type MuscleMode } from "@/lib/insight/muscle-load";
-import { MARKER_LABEL, movementsWithLoad, prSeries, prSummary, type StageMarker } from "@/lib/insight/pr-trend";
+import { markerLabel, movementsWithLoad, prSeries, prSummary, type StageMarker } from "@/lib/insight/pr-trend";
 import { PATTERN_LABEL, auSummary, patternSummary, type StrengthWeek, type WorkSet } from "@/lib/insight/strength-trends";
 import { weekLabel } from "@/lib/insight/weeks";
 import type { MuscleRegion } from "@/lib/movements/muscle-regions";
@@ -23,14 +23,14 @@ import type { Locale } from "@/lib/i18n/locale";
 
 const weekRow = (r: { start: string; current: boolean }, l: Locale) => `${weekLabel(r.start, l)}${r.current ? INSIGHT[l].currentWeek : ""}`;
 const dayLabel = (d: string, l: Locale) => formatDay(l, d, DAY_MONTH).replace(".", "");
-const fmt = (v: number) => num1(v).replace(",0", "");
+const fmt = (v: number, l: Locale = "id") => num1(v, l).replace(l === "id" ? ",0" : ".0", "");
 
 /** #4 Volume ST per pola + beban session-RPE mingguan. */
 export function StrengthVolume({ rows }: { rows: StrengthWeek[] }) {
   const [cat, setCat] = useState<MovementCategory>("lower");
-  const s = patternSummary(rows, cat);
-  const au = auSummary(rows);
   const locale = useLocale();
+  const s = patternSummary(rows, cat, locale);
+  const au = auSummary(rows, locale);
   const t = useT(INSIGHT);
   const current = rows.findIndex((r) => r.current);
   return (
@@ -95,12 +95,13 @@ export function StrengthVolume({ rows }: { rows: StrengthWeek[] }) {
 export function MuscleHeatmap({ work, today, available }: { work: WorkSet[]; today: string; available: string[] }) {
   const [days, setDays] = useState<7 | 30>(7);
   const t = useT(INSIGHT);
+  const locale = useLocale();
   const mt = t.muscle;
   const [mode, setMode] = useState<MuscleMode>("frequency");
   const [picked, setPicked] = useState<string | null>(null);
   const heat = useMemo(() => muscleHeat(work, today, days, mode), [work, today, days, mode]);
   const rare = useMemo(() => rarelyTrained(work, available, today), [work, available, today]);
-  const s = heatSummary(heat, days, mode);
+  const s = heatSummary(heat, days, mode, locale);
   const dashed = (rare ? regionsOfMuscles(rare) : []).filter((r) => !heat.levels[r]);
   const pick = (m: string) => setPicked((cur) => (cur === m ? null : m));
   const onRegion = (r: MuscleRegion) => {
@@ -120,20 +121,20 @@ export function MuscleHeatmap({ work, today, available }: { work: WorkSet[]; tod
           <Segmented label={mt.measure} value={mode} options={[{ value: "frequency", label: mt.frequency }, { value: "volume", label: mt.volume }]} onChange={setMode} />
         </div>
       }
-      table={{ columns: [mt.muscle, mode === "frequency" ? mt.weightedSessions : mt.weightedSets], rows: heat.muscles.map((m) => [m.muscle, fmt(m.score)]) }}
+      table={{ columns: [mt.muscle, mode === "frequency" ? mt.weightedSessions : mt.weightedSets], rows: heat.muscles.map((m) => [m.muscle, fmt(m.score, locale)]) }}
     >
       <MuscleMap levels={heat.levels} dashed={dashed} onSelect={onRegion} label={mt.aria(days, s.text)} />
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-muted">
         {heat.legend.map((v, i) => (
           <span key={i} className="inline-flex items-center gap-1.5">
-            <span aria-hidden className="h-2.5 w-2.5 rounded-[3px] bg-brand" style={{ opacity: LEVEL_OPACITY[i + 1] }} />≤ {fmt(v)}
+            <span aria-hidden className="h-2.5 w-2.5 rounded-[3px] bg-brand" style={{ opacity: LEVEL_OPACITY[i + 1] }} />≤ {fmt(v, locale)}
           </span>
         ))}
         {dashed.length > 0 && <Swatch className="border border-dashed border-ink" label={mt.rare} />}
         <span>{mt.weights(unit)}</span>
       </div>
       <div className="mt-4 space-y-3">
-        <MuscleButtons title={mt.trained(days)} muscles={heat.muscles.map((m) => ({ name: m.muscle, note: fmt(m.score) }))} picked={picked} onPick={pick} />
+        <MuscleButtons title={mt.trained(days)} muscles={heat.muscles.map((m) => ({ name: m.muscle, note: fmt(m.score, locale) }))} picked={picked} onPick={pick} />
         {rare === null ? (
           <p className="text-[13px] text-muted">{mt.noSt}</p>
         ) : rare.length ? (
@@ -230,7 +231,7 @@ export function PrTrend({ prs, log, capOf }: { prs: PrEntry[]; log: LogEntry[]; 
     );
   }
   const series = prSeries(movement, prs, log, capOf(movement));
-  const s = prSummary(series);
+  const s = prSummary(series, locale);
   return (
     <ChartCard
       title={t.title}
@@ -255,7 +256,7 @@ export function PrTrend({ prs, log, capOf }: { prs: PrEntry[]; log: LogEntry[]; 
       legend={
         <>
           <Swatch className="bg-brand" label={t.best} line />
-          {series.capKg !== undefined && <Swatch className="bg-ink" label={t.cap(fmt(series.capKg))} line />}
+          {series.capKg !== undefined && <Swatch className="bg-ink" label={t.cap(fmt(series.capKg, locale))} line />}
           <span>{t.marks}</span>
         </>
       }
@@ -263,9 +264,9 @@ export function PrTrend({ prs, log, capOf }: { prs: PrEntry[]; log: LogEntry[]; 
         columns: [...t.cols],
         rows: [...series.points].reverse().map((p) => [
           dayLabel(p.date, locale),
-          p.carried ? undefined : `${fmt(p.load)} kg`,
+          p.carried ? undefined : `${fmt(p.load, locale)} kg`,
           p.reps ? String(p.reps) : undefined,
-          p.markers.length ? p.markers.map((m) => MARKER_LABEL[m]).join(", ") : undefined,
+          p.markers.length ? p.markers.map((m) => markerLabel(m, locale)).join(", ") : undefined,
         ]),
       }}
     >
@@ -281,7 +282,7 @@ export function PrTrend({ prs, log, capOf }: { prs: PrEntry[]; log: LogEntry[]; 
           },
         ]}
         target={series.capKg}
-        yFormat={(v) => fmt(v)}
+        yFormat={(v) => fmt(v, locale)}
       />
     </ChartCard>
   );
