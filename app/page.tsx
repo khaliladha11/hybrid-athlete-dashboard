@@ -58,21 +58,6 @@ export default async function ProfilePage() {
         today={today}
       />
 
-      <div className="grid grid-cols-2 gap-2">
-        <Link
-          href="/run"
-          className={`${BUTTON.base} ${BUTTON.primary} min-h-12`}
-        >
-          Generate lari →
-        </Link>
-        <Link
-          href="/strength"
-          className={`${BUTTON.base} ${BUTTON.secondary} min-h-12`}
-        >
-          Generate ST →
-        </Link>
-      </div>
-
       <WellnessCard
         result={wellness}
         today={today}
