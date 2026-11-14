@@ -29,6 +29,7 @@ export function blockContext(today: string, blockStart?: string, weeks = 4): Blo
   return { index, week, weeks: w, deload: week === w, start: startDate };
 }
 
-export function blockLabel(b: BlockContext): string {
+export function blockLabel(b: BlockContext, locale: "id" | "en" = "id"): string {
+  if (locale === "en") return `Block ${b.index + 1} · Week ${b.week}/${b.weeks}${b.deload ? " · Deload" : ""}`;
   return `Blok ${b.index + 1} · Minggu ${b.week}/${b.weeks}${b.deload ? " · Deload" : ""}`;
 }

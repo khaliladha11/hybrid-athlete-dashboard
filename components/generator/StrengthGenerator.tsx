@@ -55,6 +55,8 @@ import { exportStNote, externalId } from "@/lib/intervals/workout-export";
 import { CoachCard } from "./CoachCard";
 import { LogForm } from "./LogForm";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { GENERATOR } from "@/lib/i18n/messages/generator";
 
 function movementMap(p: ResolvedProfile) {
   return new Map<string, Movement>(
@@ -71,8 +73,8 @@ function tryGenerate(fn: () => StrengthWorkout): StrengthWorkout | null {
   }
 }
 
-function restLabel(sec: number) {
-  return sec >= 60 ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}` : `${sec} dtk`;
+function restLabel(sec: number, seconds: (n: number) => string) {
+  return sec >= 60 ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}` : seconds(sec);
 }
 
 export function StrengthGenerator({
@@ -89,6 +91,8 @@ export function StrengthGenerator({
   todayDone?: TodayDone;
 }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useT(GENERATOR);
   const sessions = useStSessions();
   const checkins = useCheckins();
   const advice = useMemo(
@@ -166,21 +170,21 @@ export function StrengthGenerator({
       <div className="space-y-4 rounded-card border border-line bg-surface p-5 shadow-card">
         {prefill && fromPlan && (
           <Chip tone="accent">
-            Dari program · Minggu {prefill.week}
+            {t.form.fromProgram(prefill.week)}
             {phaseRule ? ` · ${phaseRule.label}` : ""}
           </Chip>
         )}
         <Segmented
-          label="Tipe"
+          label={t.form.type}
           wrap
           value={type}
           onChange={setType}
           options={STRENGTH_TYPES.map((t) => ({ value: t, label: STRENGTH_TYPE_LABEL[t] }))}
         />
         <div className="space-y-4">
-          <Segmented label="Durasi" value={duration} onChange={setDuration} options={DURATIONS.map((d) => ({ value: d, label: `${d}'` }))} />
+          <Segmented label={t.form.duration} value={duration} onChange={setDuration} options={DURATIONS.map((d) => ({ value: d, label: `${d}'` }))} />
           <Segmented
-            label="Kesulitan"
+            label={t.form.difficulty}
             value={difficulty}
             onChange={setDifficulty}
             options={DIFFICULTIES.map((d) => ({ value: d, label: DIFFICULTY_LABEL[d] }))}
@@ -191,12 +195,8 @@ export function StrengthGenerator({
           <Switch
             checked={blockEnabled}
             onChange={setBlockEnabled}
-            label="Program blok mingguan"
-            description={
-              blockEnabled
-                ? `${blockLabel(block)}. Gerakan ★ dikunci per blok, ada minggu deload.`
-                : "Mode bebas: gerakan ★ dipilih per sesi, tanpa deload. Log tetap tercatat."
-            }
+            label={t.form.blockSwitch}
+            description={blockEnabled ? t.form.stBlockOn(blockLabel(block, locale)) : t.form.stBlockOff}
           />
         </div>
       </div>
@@ -215,24 +215,24 @@ export function StrengthGenerator({
 
       {!workout ? (
         <div role="alert" className="rounded-card border border-danger bg-danger-soft p-5 text-body text-ink">
-          <p className="font-semibold text-danger-ink">✕ Gerakan aktif belum cukup untuk {STRENGTH_TYPE_LABEL[type]} {duration}&apos;.</p>
+          <p className="font-semibold text-danger-ink">{t.st.notEnough(STRENGTH_TYPE_LABEL[type], duration)}</p>
           <p className="mt-1 text-[14px]">
-            Aktifkan lebih banyak gerakan atau alat di{" "}
+            {t.st.enableMore}{" "}
             <Link href="/setting#gerakan" className="font-semibold underline">
-              Setting › Movement library
+              {t.st.libraryLink}
             </Link>
-            , atau pilih durasi lebih pendek.
+            {t.st.orShorter}
           </p>
         </div>
       ) : (
       <>
-      <OutputShell ref={outputRef} swapKey={`${type}-${duration}-${difficulty}-${seed}-${free}`} tag={{ label: DIFFICULTY_LABEL[difficulty], tone: INTENSITY_TONE[difficulty] }} title={workout.title} subtitle={`Estimasi ±${est} menit · Skema ${workout.scheme} · RPE ${workout.items.find((i) => i.phase === "main")?.rpe ?? "-"} · seed #${seed}`}>
+      <OutputShell ref={outputRef} swapKey={`${type}-${duration}-${difficulty}-${seed}-${free}`} tag={{ label: DIFFICULTY_LABEL[difficulty], tone: INTENSITY_TONE[difficulty] }} title={workout.title} subtitle={t.st.subtitle(est, workout.scheme, String(workout.items.find((i) => i.phase === "main")?.rpe ?? "-"), seed)}>
         {(["warmup", "main", "cooldown"] as const).map((phase) => {
           const items = workout.items.filter((i) => i.phase === phase);
           if (!items.length) return null;
           return (
             <div key={phase} className="mt-4 first:mt-0">
-              <p className="t-label mb-2">{PHASE_LABEL[phase]}</p>
+              <p className="t-label mb-2">{t.phase[phase]}</p>
               {phase === "main" ? (
                 <ol className="space-y-2">
                   {items.map((it, i) => (
@@ -255,7 +255,7 @@ export function StrengthGenerator({
                           <div className="flex items-baseline justify-between gap-2">
                             <p className="text-body font-semibold">
                               {it.anchor && (
-                                <span className="mr-1 text-brand-ink" title="Gerakan utama blok ini" aria-label="Gerakan utama blok ini">
+                                <span className="mr-1 text-brand-ink" title={t.st.anchor} aria-label={t.st.anchor}>
                                   ★
                                 </span>
                               )}
@@ -265,23 +265,23 @@ export function StrengthGenerator({
                           </div>
                           <p className="tabular text-[13px] text-muted">
                             {formatLoad(it.load)} · RPE {it.rpe}
-                            {it.sets > 1 && ` · rest ${restLabel(it.restSec)}`}
+                            {it.sets > 1 && t.st.rest(restLabel(it.restSec, t.st.seconds))}
                           </p>
                           {isAboveLibrary(movements.get(it.movement), it) && (
                             <p className="mt-1">
-                              <Chip tone="accent">Di atas rentang awal</Chip>
+                              <Chip tone="accent">{t.st.aboveRange}</Chip>
                             </p>
                           )}
-                          {it.variantOf && <p className="mt-1 text-[13px] text-ink">Varian lebih sulit dari {it.variantOf}</p>}
-                          {it.tempo && <p className="mt-1 text-[13px] font-semibold text-ink">Tempo: turun 3 detik, jeda 2 detik di bawah</p>}
+                          {it.variantOf && <p className="mt-1 text-[13px] text-ink">{t.st.variantOf(it.variantOf)}</p>}
+                          {it.tempo && <p className="mt-1 text-[13px] font-semibold text-ink">{t.st.tempo}</p>}
                           {it.progression && (
                             <p className="mt-1 text-[13px] font-semibold text-brand-ink">
-                              <span className="t-label mr-1 text-brand-ink">Saran Gita</span>
+                              <span className="t-label mr-1 text-brand-ink">{t.st.gita}</span>
                               {it.progression}
                             </p>
                           )}
                           {it.cue && <p className="mt-1 text-[13px] text-faint">{it.cue}</p>}
-                          <p className="t-label mt-1.5">Lihat teknik ›</p>
+                          <p className="t-label mt-1.5">{t.st.technique}</p>
                         </div>
                       </button>
                     </li>
@@ -311,15 +311,15 @@ export function StrengthGenerator({
           {active ? (
             <>
               <Link href="/strength/sesi" className={`${BUTTON.base} ${BUTTON.primary} ${BUTTON.lg} w-full`}>
-                Lanjutkan sesi yang berjalan
+                {t.st.resume}
               </Link>
               <div className="flex justify-center">
-                <ConfirmButton size="md" label="Mulai sesi ini sebagai gantinya" confirmLabel="Ya, ganti sesi berjalan" onConfirm={startSession} />
+                <ConfirmButton size="md" label={t.st.replace} confirmLabel={t.st.replaceConfirm} onConfirm={startSession} />
               </div>
             </>
           ) : (
             <button type="button" data-tour="strength-start" onClick={startSession} className={`${BUTTON.base} ${BUTTON.primary} ${BUTTON.lg} w-full`}>
-              Mulai sesi
+              {t.st.start}
             </button>
           )}
         </div>
@@ -346,7 +346,7 @@ export function StrengthGenerator({
               }}
               className={`${BUTTON.base} ${BUTTON.secondary} mt-4 w-full`}
             >
-              {saved ? "✓ Tersimpan. Catat lagi?" : "Catat sesi (gerakan ★)"}
+              {saved ? t.st.savedAgain : t.st.log}
             </button>
           )
         )}
@@ -365,7 +365,7 @@ export function StrengthGenerator({
 
       <GeneratorActions
         copyText={text}
-        copyLabel="Copy teks"
+        copyLabel={t.actions.copyText}
         tour="strength-generator"
         onRegenerate={regenerate}
         canRegenerate={canRegenerate}
@@ -377,7 +377,7 @@ export function StrengthGenerator({
           name={detail.movement}
           item={detail}
           activeConditions={p.activeConditions}
-          loadNote={loadNote(movements.get(detail.movement), detail, log, prs) ?? undefined}
+          loadNote={loadNote(movements.get(detail.movement), detail, log, prs, locale) ?? undefined}
           suggestion={detail.progression}
           onClose={() => setDetail(null)}
         />
@@ -392,20 +392,21 @@ export function StrengthGenerator({
  */
 function CoverageNote({ type, p, limited, duration }: { type: Parameters<typeof sessionCoverage>[0]; p: ResolvedProfile; limited: boolean; duration: number }) {
   const c = sessionCoverage(type, p, baseProfile);
+  const t = useT(GENERATOR).st;
   if (c.ok && !limited) return null;
   return (
     <div role="status" className="rounded-card border border-line bg-surface p-4 text-[14px] leading-relaxed">
       {!c.ok && (
         <>
-          <p className="font-semibold text-ink">{STRENGTH_TYPE_LABEL[type]} belum bisa disusun dengan gerakan aktif.</p>
-          {c.needs.length > 0 && <p className="mt-1 text-muted">Butuh salah satu: {c.needs.join(", ")}.</p>}
-          {c.selectable.length > 0 && <p className="mt-1 text-muted">Atau aktifkan: {c.selectable.join(", ")}.</p>}
+          <p className="font-semibold text-ink">{t.cannot(STRENGTH_TYPE_LABEL[type])}</p>
+          {c.needs.length > 0 && <p className="mt-1 text-muted">{t.needs(c.needs.join(", "))}</p>}
+          {c.selectable.length > 0 && <p className="mt-1 text-muted">{t.orEnable(c.selectable.join(", "))}</p>}
           <Link href="/setting#alat" className="mt-2 inline-flex min-h-11 items-center font-semibold text-brand-ink hover:underline">
-            Atur alat & gerakan di Setting
+            {t.setup}
           </Link>
         </>
       )}
-      {c.ok && limited && <p className="text-muted">Sesi lebih pendek dari {duration}&apos; karena gerakan aktif terbatas.</p>}
+      {c.ok && limited && <p className="text-muted">{t.shorter(duration)}</p>}
     </div>
   );
 }
@@ -413,6 +414,7 @@ function CoverageNote({ type, p, limited, duration }: { type: Parameters<typeof 
 /** Catatan ST di kalender intervals.icu (0.17, opsional): teks saja, ST tidak dikirim sebagai workout terstruktur. */
 function StCalendarNote({ title, minutes }: { title: string; minutes: number }) {
   const [date, setDate] = useState(() => todayWib());
+  const t = useT(GENERATOR).st;
   const result = useMemo(() => exportStNote(title, minutes), [title, minutes]);
-  return <SendToWatch title="Catatan di kalender" sendLabel="Catat di kalender" deviceNote={false} externalId={externalId.stNote(date)} date={date} onDateChange={setDate} result={result} />;
+  return <SendToWatch title={t.calendarTitle} sendLabel={t.calendarSend} deviceNote={false} externalId={externalId.stNote(date)} date={date} onDateChange={setDate} result={result} />;
 }

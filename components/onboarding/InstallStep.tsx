@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { BUTTON } from "@/components/ui/Card";
 import { useInstallState } from "@/lib/install-prompt";
+import { useT } from "@/lib/i18n/client";
+import { ONBOARDING } from "@/lib/i18n/messages/onboarding";
 
 /** Ikon Bagikan iOS (kotak dengan panah ke atas). */
 const ShareIcon = () => (
@@ -24,13 +26,14 @@ const AddIcon = () => (
 export function InstallStep({ onDone, onLater }: { onDone: () => void; onLater?: () => void }) {
   const { standalone, canPrompt, installed, platform, prompt } = useInstallState();
   const [dismissed, setDismissed] = useState(false);
+  const t = useT(ONBOARDING).install;
 
   if (standalone || installed) {
     return (
       <div className="space-y-3">
-        <p className="rounded-inner bg-subtle p-3 text-[14px] font-semibold text-success-ink">✓ Aplikasi sudah terpasang di perangkat ini.</p>
+        <p className="rounded-inner bg-subtle p-3 text-[14px] font-semibold text-success-ink">{t.installed}</p>
         <button type="button" onClick={onDone} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.primary} w-full`}>
-          Lanjut
+          {t.next}
         </button>
       </div>
     );
@@ -38,7 +41,7 @@ export function InstallStep({ onDone, onLater }: { onDone: () => void; onLater?:
 
   return (
     <div className="space-y-3">
-      <p className="text-body text-muted">Pasang ke layar utama supaya terbuka layar penuh seperti aplikasi biasa.</p>
+      <p className="text-body text-muted">{t.intro}</p>
 
       {canPrompt ? (
         <button
@@ -50,41 +53,41 @@ export function InstallStep({ onDone, onLater }: { onDone: () => void; onLater?:
           }}
           className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.primary} w-full`}
         >
-          Pasang aplikasi
+          {t.install}
         </button>
       ) : platform === "ios" ? (
         <ol className="space-y-2 text-[14px] leading-relaxed">
           <li className="flex gap-3 rounded-inner bg-subtle p-3">
             <span className="t-label mt-0.5 shrink-0">1</span>
             <span>
-              Buka halaman ini di <span className="font-semibold">Safari</span>, lalu ketuk <span className="font-semibold">Bagikan</span> <ShareIcon />.
+              {t.ios1A}<span className="font-semibold">Safari</span>{t.ios1B}<span className="font-semibold">{t.share}</span> <ShareIcon />.
             </span>
           </li>
           <li className="flex gap-3 rounded-inner bg-subtle p-3">
             <span className="t-label mt-0.5 shrink-0">2</span>
             <span>
-              Pilih <span className="font-semibold">Tambah ke Layar Utama</span> <AddIcon />, lalu ketuk Tambah.
+              {t.ios2A}<span className="font-semibold">{t.addHome}</span> <AddIcon />{t.ios2B}
             </span>
           </li>
         </ol>
       ) : (
         <p className="rounded-inner bg-subtle p-3 text-[14px] leading-relaxed">
-          Buka menu browser <span className="font-semibold">⋮</span>, lalu pilih <span className="font-semibold">Instal aplikasi</span> atau{" "}
-          <span className="font-semibold">Tambahkan ke layar utama</span>.
+          {t.menuA}<span className="font-semibold">⋮</span>{t.menuB}<span className="font-semibold">{t.menuInstall}</span>{t.menuOr}
+          <span className="font-semibold">{t.menuAdd}</span>.
         </p>
       )}
 
-      {dismissed && <p className="text-[13px] text-muted">Dialog pasang ditutup. Bisa dicoba lagi lewat menu browser.</p>}
-      <p className="text-[13px] text-faint">Catatan: aplikasi masih butuh internet untuk dibuka.</p>
+      {dismissed && <p className="text-[13px] text-muted">{t.dismissed}</p>}
+      <p className="text-[13px] text-faint">{t.internet}</p>
 
       {!canPrompt && (
         <button type="button" onClick={onDone} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.secondary} w-full`}>
-          Sudah saya pasang
+          {t.done}
         </button>
       )}
       {onLater && (
         <button type="button" onClick={onLater} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.ghost} w-full`}>
-          Nanti saja
+          {t.later}
         </button>
       )}
     </div>

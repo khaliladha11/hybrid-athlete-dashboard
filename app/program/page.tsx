@@ -4,11 +4,17 @@ import { ProgramView } from "@/components/program/ProgramView";
 import { addDays, todayWib } from "@/lib/date";
 import { getActivities } from "@/lib/intervals/data-source";
 
+import { PROGRAM } from "@/lib/i18n/messages/program";
+import { getLocale } from "@/lib/i18n/server";
+
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Program Target · Hybrid Athlete" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: PROGRAM[await getLocale()].page.meta };
+}
 
 export default async function ProgramPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const today = todayWib();
+  const t = PROGRAM[await getLocale()].page;
   const params = await searchParams;
   // Long run yang dipendekkan lewat Terapkan di kartu saran Profil.
   const longKm = Number(Array.isArray(params.long) ? params.long[0] : params.long);
@@ -19,8 +25,8 @@ export default async function ProgramPage({ searchParams }: { searchParams: Prom
     <div className="space-y-4">
       <SnapshotTime at={new Date().toISOString()} />
       <header>
-        <h1 className="text-[22px] leading-tight font-semibold">Program Target</h1>
-        <p className="mt-0.5 text-[13px] text-muted">Program mingguan menuju PB 5K, 10K, Half atau Full Marathon.</p>
+        <h1 className="text-[22px] leading-tight font-semibold">{t.title}</h1>
+        <p className="mt-0.5 text-[13px] text-muted">{t.intro}</p>
       </header>
       <ProgramView today={today} activities={acts.ok ? acts.data : []} oldest={addDays(today, -89)} longAdjust={longAdjust} />
     </div>

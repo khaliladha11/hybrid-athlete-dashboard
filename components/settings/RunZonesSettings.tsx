@@ -25,6 +25,8 @@ import {
   type ZoneKey,
 } from "@/lib/run-zones";
 import { ZoneOffer } from "./ZoneOffer";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { SETTINGS } from "@/lib/i18n/messages/settings";
 
 /** Batas pace yang diterima lib (2:30–15:00/km), dipakai ulang lewat parsePace. */
 const inBounds = (sec: number) => parsePace(formatPace(sec)) !== undefined;
@@ -52,6 +54,7 @@ export function RunZonesSettings({
     onChange({ ...settings, runZones });
   };
   const customized = Object.keys(settings.runZones).length > 0;
+  const t = useT(SETTINGS).runZones;
   // Hasil lomba disimpan (0.13.2) untuk perkiraan waktu & saran update zona; zona ikut diganti bila diminta.
   const saveResult = (r: RaceResult, zones?: Partial<Record<ZoneKey, string>>) =>
     onChange({ ...settings, ...(zones ? { runZones: zones } : {}), raceResults: mergeRaceResults(settings.raceResults, [r]) });
@@ -60,21 +63,21 @@ export function RunZonesSettings({
 
   return (
     <Card
-      title="Zona lari"
+      title={t.title}
       action={
         customized ? (
           <button type="button" onClick={() => onChange({ ...settings, runZones: {} })} className="pressable min-h-9 rounded-control px-2 text-[13px] font-semibold text-muted hover:bg-subtle hover:text-ink">
-            Reset semua
+            {t.resetAll}
           </button>
         ) : (
-          <span className="text-[12px] text-faint">default profil</span>
+          <span className="text-[12px] text-faint">{t.defaultProfile}</span>
         )
       }
     >
       <div className="mb-3 empty:hidden">
         <ZoneOffer inset />
       </div>
-      <p className="text-[13px] text-muted">Pace per km (menit:detik). Ketuk angka untuk mengubah. Dipakai generator lari dan Program target.</p>
+      <p className="text-[13px] text-muted">{t.intro}</p>
       <ul className="mt-3 space-y-4">
         {ZONE_KEYS.map((k) => (
           <ZoneRow key={k} zone={k} value={settings.runZones[k]} onSave={(p) => setZone(k, p)} />
@@ -93,6 +96,7 @@ function ZoneRow({ zone, value, onSave }: { zone: ZoneKey; value?: string; onSav
   const [draft, setDraft] = useState<{ base: string; fast: number; slow: number } | null>(null);
   const shown = draft && draft.base === saved ? draft : current;
   const valid = inBounds(shown.fast) && inBounds(shown.slow) && shown.fast <= shown.slow;
+  const t = useT(SETTINGS).runZones;
 
   const change = (next: { fast: number; slow: number }) => {
     if (!(inBounds(next.fast) && inBounds(next.slow) && next.fast <= next.slow)) {
@@ -110,15 +114,15 @@ function ZoneRow({ zone, value, onSave }: { zone: ZoneKey; value?: string; onSav
         <p className="text-body font-semibold">{ZONE_LABEL[zone]}</p>
         {value ? (
           <button type="button" onClick={() => onSave(null)} className="pressable text-[12px] font-semibold text-brand-ink hover:underline">
-            Kembalikan default
+            {t.restore}
           </button>
         ) : (
-          <span className="text-[12px] text-faint">default</span>
+          <span className="text-[12px] text-faint">{t.default}</span>
         )}
       </div>
       <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <TimePicker
-          aria-label={`${ZONE_LABEL[zone]} batas cepat`}
+          aria-label={t.fast(ZONE_LABEL[zone])}
           format="ms"
           minuteRange={[2, 15]}
           value={shown.fast}
@@ -126,10 +130,10 @@ function ZoneRow({ zone, value, onSave }: { zone: ZoneKey; value?: string; onSav
           invalid={!valid}
         />
         <span className="text-[13px] text-muted" aria-hidden>
-          sampai
+          {t.to}
         </span>
         <TimePicker
-          aria-label={`${ZONE_LABEL[zone]} batas lambat`}
+          aria-label={t.slow(ZONE_LABEL[zone])}
           format="ms"
           minuteRange={[2, 15]}
           value={shown.slow}
@@ -138,7 +142,7 @@ function ZoneRow({ zone, value, onSave }: { zone: ZoneKey; value?: string; onSav
         />
       </div>
       <p className={`mt-1 text-[12px] ${valid ? "text-faint" : "font-semibold text-danger-ink"}`}>
-        {valid ? `Default ${defaultPace(zone)} · ${ZONE_SOURCE[zone]}` : "✕ Pace harus 2:30–15:00/km dan batas cepat ≤ batas lambat. Belum disimpan."}
+        {valid ? t.defaultLine(defaultPace(zone), ZONE_SOURCE[zone]) : t.invalid}
       </p>
     </li>
   );
@@ -152,6 +156,7 @@ function VdotCalculator({ onSave, open }: { onSave: (r: RaceResult, zones?: Part
   const [prefilled, setPrefilled] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const timeId = useId();
+  const t = useT(SETTINGS).runZones;
   // Tawaran "Catat hasil lomba" dari Program/Profil: /setting?catat=hm&tgl=YYYY-MM-DD#zona.
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
@@ -172,24 +177,23 @@ function VdotCalculator({ onSave, open }: { onSave: (r: RaceResult, zones?: Part
   const save = (applyZones: boolean) => {
     if (!zones || !dateOk) return;
     onSave({ distance: dist, seconds: Math.round(sec), date }, applyZones ? Object.fromEntries(ZONE_KEYS.map((k) => [k, formatRange(zones[k])])) : undefined);
-    setSaved(applyZones ? "Hasil tersimpan dan zona diperbarui." : "Hasil tersimpan. Zona tidak diubah.");
+    setSaved(applyZones ? t.savedApplied : t.savedOnly);
   };
 
   return (
     <details open={open || prefilled || undefined} className="group mt-4 rounded-inner border border-line">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3 text-body font-semibold">
-        Hitung dari hasil lomba (VDOT)
+        {t.calc}
         <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
           ›
         </span>
       </summary>
       <div className="details-body space-y-3 px-3 pb-3">
         <p className="text-[13px] text-muted">
-          Masukkan hasil lomba atau time trial terbaru (usaha maksimal). Rumus VDOT dari Daniels &amp; Gilbert (Daniels&apos; Running Formula, 2014). Hasil yang disimpan
-          dipakai untuk perkiraan waktu lomba di Program.
+          {t.calcIntro}
         </p>
         <Segmented
-          label="Jarak"
+          label={t.distance}
           value={dist}
           onChange={(d) => {
             setDist(d);
@@ -199,7 +203,7 @@ function VdotCalculator({ onSave, open }: { onSave: (r: RaceResult, zones?: Part
         />
         <div>
           <p id={timeId} className="t-label">
-            Waktu
+            {t.time}
           </p>
           <TimePicker
             aria-labelledby={timeId}
@@ -217,7 +221,7 @@ function VdotCalculator({ onSave, open }: { onSave: (r: RaceResult, zones?: Part
           />
         </div>
         <label className="block text-[12px] text-muted">
-          Tanggal
+          {t.date}
           <input
             type="date"
             value={date}
@@ -230,9 +234,9 @@ function VdotCalculator({ onSave, open }: { onSave: (r: RaceResult, zones?: Part
             className={`mt-1 block min-h-11 w-full rounded-control border bg-surface px-3 text-base text-ink ${dateOk ? "border-line-strong focus:border-brand" : "border-danger"}`}
           />
         </label>
-        {!dateOk && <p className="text-[13px] font-semibold text-danger-ink">✕ Tanggal tidak boleh kosong atau setelah hari ini.</p>}
+        {!dateOk && <p className="text-[13px] font-semibold text-danger-ink">{t.badDate}</p>}
         {sec > 0 && !plausible && (
-          <p className="text-[13px] font-semibold text-danger-ink">✕ Pace {formatPace(pace)}/km di luar rentang wajar 2:30–15:00/km. Cek jarak dan waktunya.</p>
+          <p className="text-[13px] font-semibold text-danger-ink">{t.badPace(formatPace(pace))}</p>
         )}
         {zones && v && (
           <>
@@ -250,10 +254,10 @@ function VdotCalculator({ onSave, open }: { onSave: (r: RaceResult, zones?: Part
               </dl>
             </div>
             <button type="button" disabled={!dateOk} onClick={() => save(true)} className={`${BUTTON.base} ${BUTTON.primary} w-full`}>
-              Terapkan ke semua zona
+              {t.apply}
             </button>
             <button type="button" disabled={!dateOk} onClick={() => save(false)} className={`${BUTTON.base} ${BUTTON.secondary} w-full`}>
-              Simpan hasil saja
+              {t.saveOnly}
             </button>
             {saved && (
               <p role="status" className="text-[13px] font-semibold text-success-ink">
@@ -273,23 +277,25 @@ const DIST_LABEL: Record<RaceDistanceKey, string> = { "5k": "5K", "10k": "10K", 
 function RaceResults({ results, onRemove }: { results: RaceResult[]; onRemove: (r: RaceResult) => void }) {
   if (!results.length) return null;
   const since = addDays(todayWib(), -(PREDICTION_WINDOW_DAYS - 1));
+  const locale = useLocale();
+  const t = useT(SETTINGS).runZones;
   return (
     <div className="mt-4">
-      <p className="t-label">Hasil tersimpan</p>
+      <p className="t-label">{t.results}</p>
       <ul className="mt-1 divide-y divide-line">
         {results.map((r) => (
           <li key={`${r.date}:${r.distance}`} className="flex min-h-11 flex-wrap items-center gap-x-2 py-1">
             <span className="t-label w-9 shrink-0">{DIST_LABEL[r.distance]}</span>
             <span className="tabular text-body font-semibold">{formatClock(r.seconds)}</span>
-            <span className="text-[13px] text-muted">{formatDateId(r.date)}</span>
-            {r.date >= since && <Chip tone="accent">Perkiraan</Chip>}
+            <span className="text-[13px] text-muted">{formatDateId(r.date, locale)}</span>
+            {r.date >= since && <Chip tone="accent">{t.estimate}</Chip>}
             <span className="ml-auto">
-              <ConfirmButton label="Hapus" confirmLabel="Tap lagi" onConfirm={() => onRemove(r)} />
+              <ConfirmButton label={t.remove} confirmLabel={t.tapAgain} onConfirm={() => onRemove(r)} />
             </span>
           </li>
         ))}
       </ul>
-      <p className="mt-1 text-[12px] text-faint">Hasil 90 hari terakhir dipakai untuk perkiraan waktu lomba dan saran update zona.</p>
+      <p className="mt-1 text-[12px] text-faint">{t.resultsNote}</p>
     </div>
   );
 }

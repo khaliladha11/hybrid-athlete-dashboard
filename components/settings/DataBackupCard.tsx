@@ -10,6 +10,8 @@ import { PREF_KEYS } from "@/lib/preference-keys";
 import { useStoredString } from "@/lib/preferences";
 import { trainingLog, useTrainingLog } from "@/lib/training-log";
 import { BackupHistory } from "./BackupHistory";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { SETTINGS } from "@/lib/i18n/messages/settings";
 
 /**
  * Cadangan semua data perangkat: log sesi, pengaturan & profil, program target, preferensi, dan
@@ -24,6 +26,8 @@ export function DataBackupCard({ synced = false }: { synced?: boolean }) {
   const pre = parsePreMigration(preRaw || null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const locale = useLocale();
+  const t = useT(SETTINGS).backup;
 
   const exportFile = () => downloadDeviceBackup(`hybrid-athlete-backup-${todayWib()}.json`);
 
@@ -34,18 +38,16 @@ export function DataBackupCard({ synced = false }: { synced?: boolean }) {
   };
 
   return (
-    <Card title="Data & cadangan" tour="data-backup" action={<span className="text-[12px] text-faint">{synced ? "perangkat & database" : "tersimpan di perangkat ini"}</span>}>
+    <Card title={t.title} tour="data-backup" action={<span className="text-[12px] text-faint">{t.where(synced)}</span>}>
       <p className="text-[13px] text-muted">
-        {synced
-          ? "Log sesi, profil, pengaturan, dan program disinkronkan ke database milikmu. Ekspor JSON tetap berguna sebagai cadangan terpisah."
-          : "Log sesi, profil, pengaturan, dan program hanya ada di HP/browser ini. Ekspor berkala supaya tidak hilang saat data aplikasi dihapus atau ganti HP."}
+        {synced ? t.bodySynced : t.bodyLocal}
       </p>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button type="button" onClick={exportFile} className={`${BUTTON.base} ${BUTTON.inverse}`}>
-          Ekspor JSON
+          {t.export}
         </button>
         <button type="button" onClick={() => fileRef.current?.click()} className={`${BUTTON.base} ${BUTTON.secondary}`}>
-          Impor JSON
+          {t.import}
         </button>
         <input
           ref={fileRef}
@@ -66,24 +68,24 @@ export function DataBackupCard({ synced = false }: { synced?: boolean }) {
       {pre && (
         <div className="mt-3 flex items-center justify-between gap-3 rounded-card bg-subtle px-3 py-2">
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold">Cadangan sebelum pembaruan data</p>
-            <p className="text-[12px] text-faint">{formatDateId(todayWib(new Date(pre.at)))} · dibuat otomatis</p>
+            <p className="text-[13px] font-semibold">{t.preTitle}</p>
+            <p className="text-[12px] text-faint">{formatDateId(todayWib(new Date(pre.at)), locale)} · {t.preAuto}</p>
           </div>
           <button
             type="button"
             onClick={() => downloadJson(preMigrationBackup(pre), `hybrid-athlete-sebelum-pembaruan-${pre.at.slice(0, 10)}.json`)}
             className="inline-flex min-h-11 items-center text-[13px] font-semibold text-brand-ink underline underline-offset-2"
           >
-            Unduh
+            {t.download}
           </button>
         </div>
       )}
       {synced && <BackupHistory />}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
-        <span className="text-[13px] text-muted">{entries.length} entri log tersimpan</span>
+        <span className="text-[13px] text-muted">{t.logCount(entries.length)}</span>
         <div className="flex flex-wrap gap-1">
-          <ConfirmButton label="Reset pengaturan" confirmLabel="Tap lagi untuk reset" onConfirm={() => setSettingsRaw(null)} />
-          {entries.length > 0 && <ConfirmButton label="Hapus semua log" confirmLabel="Tap lagi untuk hapus" onConfirm={() => trainingLog.clear()} />}
+          <ConfirmButton label={t.reset} confirmLabel={t.resetConfirm} onConfirm={() => setSettingsRaw(null)} />
+          {entries.length > 0 && <ConfirmButton label={t.clearLog} confirmLabel={t.clearConfirm} onConfirm={() => trainingLog.clear()} />}
         </div>
       </div>
     </Card>

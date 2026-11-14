@@ -11,12 +11,12 @@ export function formatPaceTag(sec: number | undefined): string {
 }
 
 /** Durasi ringkas untuk StatRow: ≥ 1 jam → `1:55` + "jam", selain itu `45:00` + "menit". */
-export function compactDuration(sec: number | undefined): { value: string; unit: string } | undefined {
+export function compactDuration(sec: number | undefined, locale: "id" | "en" = "id"): { value: string; unit: string } | undefined {
   if (!sec || !Number.isFinite(sec) || sec <= 0) return undefined;
   const s = Math.round(sec);
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
-  return h ? { value: `${h}:${String(m).padStart(2, "0")}`, unit: "jam" } : { value: `${m}:${String(s % 60).padStart(2, "0")}`, unit: "menit" };
+  return h ? { value: `${h}:${String(m).padStart(2, "0")}`, unit: locale === "en" ? "h" : "jam" } : { value: `${m}:${String(s % 60).padStart(2, "0")}`, unit: locale === "en" ? "min" : "menit" };
 }
 
 /** Durasi detik → `m:ss` (atau `h:mm:ss` di atas 1 jam). */

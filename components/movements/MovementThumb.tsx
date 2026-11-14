@@ -1,4 +1,8 @@
+"use client";
+
 import { mediaFor } from "@/lib/movements/media";
+import { useT } from "@/lib/i18n/client";
+import { MISC } from "@/lib/i18n/messages/misc";
 
 /** Placeholder netral untuk gerakan tanpa gambar (dumbbell sederhana). */
 export function MovementPlaceholderIcon({ className = "h-6 w-6" }: { className?: string }) {
@@ -12,9 +16,10 @@ export function MovementPlaceholderIcon({ className = "h-6 w-6" }: { className?:
 /** Thumbnail gambar posisi awal; placeholder bila gambar belum tersedia. */
 export function MovementThumb({ name, size = "h-14 w-14" }: { name: string; size?: string }) {
   const media = mediaFor(name);
+  const t = useT(MISC).sheet;
   if (!media?.images) {
     return (
-      <span className={`grid ${size} shrink-0 place-items-center rounded-inner bg-subtle-strong text-faint`} title="Gambar belum tersedia">
+      <span className={`grid ${size} shrink-0 place-items-center rounded-inner bg-subtle-strong text-faint`} title={t.noImage}>
         <MovementPlaceholderIcon />
       </span>
     );

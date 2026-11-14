@@ -3,24 +3,29 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { HELP_DISCLAIMER, HELP_INTRO, HELP_LINKS, HELP_TOPICS } from "@/lib/help";
 import { WATCH_BRANDS, WATCH_LABEL, WATCH_STEPS } from "@/lib/intervals/watch";
+import { MISC } from "@/lib/i18n/messages/misc";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = { title: "Bantuan · Hybrid Athlete" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: MISC[await getLocale()].help.meta };
+}
 
 const LINK = "inline-flex min-h-11 items-center text-sm font-semibold text-brand-ink underline underline-offset-2";
 
 // Bantuan (1.0.0-rc.2): ringkasan statis, dibuka dari Setting › Tentang & versi dan lembar "Apa ini?". Versi panjang
 // di docs/GUIDE.md. Langkah per merek jam memakai teks yang sama dengan kartu Kirim ke jam.
-export default function BantuanPage() {
+export default async function BantuanPage() {
+  const m = MISC[await getLocale()].help;
   return (
     <div className="space-y-4">
       <Link href="/setting#tentang" className="inline-flex min-h-11 items-center text-body text-muted hover:text-ink">
-        ← Setting
+        {m.back}
       </Link>
       <header>
-        <h1 className="text-[22px] leading-tight font-semibold">Bantuan</h1>
+        <h1 className="text-[22px] leading-tight font-semibold">{m.title}</h1>
         <p className="mt-0.5 text-[13px] text-muted">{HELP_INTRO}</p>
       </header>
-      <nav aria-label="Topik bantuan" className="flex flex-wrap gap-x-4">
+      <nav aria-label={m.topics} className="flex flex-wrap gap-x-4">
         {HELP_TOPICS.map((t) => (
           <a key={t.id} href={`#${t.id}`} className="inline-flex min-h-11 items-center text-sm font-semibold text-ink underline-offset-2 hover:underline">
             {t.title}
@@ -52,7 +57,7 @@ export default function BantuanPage() {
           </Card>
         </section>
       ))}
-      <Card title="Selengkapnya">
+      <Card title={m.more}>
         <ul>
           {HELP_LINKS.map((l) => (
             <li key={l.href}>

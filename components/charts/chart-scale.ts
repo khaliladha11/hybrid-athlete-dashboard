@@ -1,3 +1,5 @@
+import { formatNumber } from "@/lib/i18n/format";
+import type { Locale } from "@/lib/i18n/locale";
 /**
  * Skala & tata letak grafik Insight (docs/INSIGHT.md I1). Murni, tanpa React/DOM, supaya bisa diuji seperti
  * `skyline-scale.ts`. Nilai kosong (`undefined`) tidak pernah dianggap nol: garis diputus, batang tidak digambar.
@@ -58,7 +60,7 @@ export function niceTicks(
 }
 
 /** Label angka sumbu gaya Indonesia: 0,5 · 1.200 · −10. */
-export const axisNumber = (v: number) => v.toLocaleString("id-ID", { maximumFractionDigits: 2 }).replace("-", "−");
+export const axisNumber = (v: number, locale: Locale = "id") => formatNumber(locale, v, { maximumFractionDigits: 2 }).replace("-", "−");
 
 /** Skala linear domain → piksel. Domain nol lebar dipetakan ke tengah. */
 export function linearScale([d0, d1]: Range, [r0, r1]: Range): (v: number) => number {

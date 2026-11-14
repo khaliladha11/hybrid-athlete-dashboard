@@ -8,6 +8,9 @@ import { pillClasses } from "@/components/ui/tones";
 import { suggestFor, type Advice, type AdviceTarget, type Suggestion } from "@/lib/coach";
 import { DIFFICULTY_LABEL, STRENGTH_TYPE_LABEL, type Difficulty, type Duration, type StrengthType } from "@/lib/generator/types";
 import { adviceSeverity, suggestionSeverity } from "./coach-severity";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { GENERATOR } from "@/lib/i18n/messages/generator";
+import type { Locale } from "@/lib/i18n/locale";
 
 /**
  * Saran hari ini (non-blokir): readiness + konteks mingguan.
@@ -42,8 +45,10 @@ export function CoachCard({
   // Level hasil menerapkan saran; selama user tetap di level ini, "turun satu level"
   // tidak ditawarkan lagi (supaya tidak turun berantai High → Moderate → Easy).
   const [appliedLevel, setAppliedLevel] = useState<Difficulty | null>(null);
+  const locale = useLocale();
+  const t = useT(GENERATOR).coach;
   const relevant = target ? advice.filter((a) => a.targets.includes(target)) : advice;
-  const severity0 = adviceSeverity(relevant);
+  const severity0 = adviceSeverity(relevant, locale);
   const collapsible = !!collapseDay && relevant.length > 0 && isCollapsible(relevant);
   const rank = severity0.rank ?? 0;
   // Server dan render pertama: tertutup. Setelah itu status hari ini dibaca dari perangkat.
@@ -82,7 +87,7 @@ export function CoachCard({
     ...(s.type ? [{ label: STRENGTH_TYPE_LABEL[s.type], apply: { type: s.type } }] : []),
   ];
 
-  const severity = target && current ? suggestionSeverity(s) : severity0;
+  const severity = target && current ? suggestionSeverity(s, locale) : severity0;
 
   return (
     <aside id={id} data-tour={tour} role="note" className="scroll-mt-4 rounded-card border border-line bg-surface p-5 shadow-card">
@@ -92,14 +97,14 @@ export function CoachCard({
         </svg>
         {collapsible ? (
           <h2 className="t-label flex flex-1 shrink-0 items-center gap-2 whitespace-nowrap">
-            Saran Gita · hari ini
+            {t.heading}
             <span className={severity.tone ? pillClasses(severity.tone) : "inline-flex h-[22px] items-center rounded-full bg-subtle-strong px-[9px] font-mono text-[11px] font-medium tracking-[0.08em] text-ink uppercase"}>
               {severity.word}
             </span>
           </h2>
         ) : (
           <h2 className="t-label flex-1 shrink-0 whitespace-nowrap">
-            Saran Gita · hari ini · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
+            {t.heading} · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
           </h2>
         )}
         {onApply &&
@@ -113,7 +118,7 @@ export function CoachCard({
               }}
               className="pressable relative min-h-8 shrink-0 rounded-control bg-brand px-3 text-[13px] font-semibold text-on-brand after:absolute after:-inset-1.5 after:content-[''] hover:bg-brand-hover"
             >
-              Terapkan {a.label}
+              {t.apply(a.label)}
             </button>
           ))}
       </div>
@@ -125,7 +130,7 @@ export function CoachCard({
               href={planLine.href}
               className="pressable relative min-h-8 shrink-0 rounded-control bg-brand px-3 py-1.5 text-[13px] font-semibold text-on-brand after:absolute after:-inset-1.5 after:content-[''] hover:bg-brand-hover"
             >
-              Terapkan
+              {t.applyPlan}
             </Link>
           )}
         </div>
@@ -140,7 +145,7 @@ export function CoachCard({
             onClick={toggle}
             className="pressable -my-2 inline-flex min-h-11 shrink-0 items-center gap-1 rounded-control px-2 text-[13px] font-semibold text-muted hover:bg-subtle hover:text-ink"
           >
-            {open ? "Tutup detail" : `Lihat detail${relevant.length > 1 ? ` · ${relevant.length}` : ""}`}
+            {open ? t.closeDetail : t.openDetail(relevant.length)}
             <span aria-hidden className={`inline-block transition-transform duration-150 ease-out motion-reduce:transition-none ${open ? "rotate-90" : ""}`}>
               ›
             </span>
@@ -151,7 +156,7 @@ export function CoachCard({
       <div id={collapsible ? bodyId : undefined} className={collapsible ? "gita-detail" : undefined}>
       <ul className="mt-2 -mx-1 divide-y divide-line">
         {relevant.map((a) => {
-          const recs = recommendations(a);
+          const recs = recommendations(a, locale);
           return (
             <li key={a.id + a.message}>
               <details className="group">
@@ -181,7 +186,7 @@ export function CoachCard({
           );
         })}
       </ul>
-      <p className="mt-1 text-[12px] text-faint">Ketuk untuk detail · hanya saran, kamu tetap bebas memilih.</p>
+      <p className="mt-1 text-[12px] text-faint">{t.tapHint}</p>
       </div>
       )}
     </aside>
@@ -189,15 +194,15 @@ export function CoachCard({
 }
 
 /** Rekomendasi konkret dari batasan pada saran (untuk isi dropdown). */
-function recommendations(a: Advice): { short: string; text: string }[] {
+function recommendations(a: Advice, locale: Locale): { short: string; text: string }[] {
+  const t = GENERATOR[locale].coach;
   const out: { short: string; text: string }[] = [];
-  if (a.lowerBy) out.push({ short: "Turun 1 level", text: "Turunkan intensitas satu level dari rencana (High → Moderate, Moderate → Easy)." });
-  if (a.maxDifficulty)
-    out.push({ short: `Maks. ${DIFFICULTY_LABEL[a.maxDifficulty]}`, text: `Lari maksimal ${DIFFICULTY_LABEL[a.maxDifficulty]} untuk sesi berikutnya.` });
-  if (a.maxDuration) out.push({ short: `Maks. ${a.maxDuration}'`, text: `Batasi durasi lari ${a.maxDuration} menit.` });
+  if (a.lowerBy) out.push({ short: t.lowerShort, text: t.lowerText });
+  if (a.maxDifficulty) out.push({ short: t.maxShort(DIFFICULTY_LABEL[a.maxDifficulty]), text: t.maxText(DIFFICULTY_LABEL[a.maxDifficulty]) });
+  if (a.maxDuration) out.push({ short: t.durationShort(a.maxDuration), text: t.durationText(a.maxDuration) });
   if (a.preferTypes?.length) {
-    const types = a.preferTypes.map((t) => STRENGTH_TYPE_LABEL[t]).join(" / ");
-    out.push({ short: types, text: `Untuk strength, pilih ${types}.` });
+    const types = a.preferTypes.map((x) => STRENGTH_TYPE_LABEL[x]).join(" / ");
+    out.push({ short: types, text: t.typeText(types) });
   }
   return out;
 }

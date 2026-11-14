@@ -8,6 +8,7 @@ import { useProgramPlan } from "@/lib/program/use-program-plan";
 import { useAthleteSettings } from "@/lib/settings-store";
 import { PostRaceOffer, countdownText } from "./RaceDay";
 import { WeekSessions } from "./WeekSessions";
+import { useLocale } from "@/lib/i18n/client";
 
 /**
  * Ringkasan minggu program di Profil (docs/PROGRAM-HIDUP.md §4.3):
@@ -18,6 +19,7 @@ import { WeekSessions } from "./WeekSessions";
 export function ProgramWeekSummary({ activities, oldest, today }: { activities: Activity[]; oldest: string; today: string }) {
   const plan = useProgramPlan({ activities, oldest, today });
   const [athlete] = useAthleteSettings();
+  const locale = useLocale();
   const program = plan.program;
   if (!plan.saved || !program || plan.loading) return null;
   // Setelah lomba (H+1 masih terhitung aktif) ringkasan diganti tawaran mencatat hasil.
@@ -32,7 +34,7 @@ export function ProgramWeekSummary({ activities, oldest, today }: { activities: 
     ? `${week.raceWeek ? "Lomba" : "Long run"} ${long.km ?? "·"} km${long.status === "terpenuhi" ? " ✓" : long.status === "sebagian" ? " · sebagian" : long.status === "dilewati" ? " · dilewati" : ""}`
     : null;
   const parts = [`Minggu ${index}/${program.weeks.length}`, PHASE_LABEL[week.phase], `${sum.done}/${sum.total} sesi`, longText].filter(Boolean);
-  const countdown = countdownText(program, today);
+  const countdown = countdownText(program, today, locale);
   return (
     <div className="space-y-2 rounded-card border border-line bg-surface p-2 shadow-card">
       <Link

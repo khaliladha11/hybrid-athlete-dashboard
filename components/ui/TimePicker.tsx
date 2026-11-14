@@ -1,6 +1,8 @@
 "use client";
 
 import { Fragment } from "react";
+import { useT } from "@/lib/i18n/client";
+import { CHROME } from "@/lib/i18n/messages/chrome";
 
 type PartKey = "h" | "m" | "s";
 
@@ -49,6 +51,7 @@ export function TimePicker({
   "aria-label"?: string;
   "aria-labelledby"?: string;
 }) {
+  const t = useT(CHROME).ui;
   const h = format === "hms" ? Math.floor(value / 3600) : 0;
   const m = Math.floor((value - h * 3600) / 60);
   const s = Math.round(value - h * 3600 - m * 60);
@@ -56,13 +59,13 @@ export function TimePicker({
   const parts: Part[] =
     format === "hms"
       ? [
-          { key: "h", unit: "jam", current: h, options: range(0, Math.max(maxHours, h)), pad: false },
-          { key: "m", unit: "menit", current: m, options: range(0, 59), pad: true },
-          { key: "s", unit: "detik", current: s, options: range(0, 59), pad: true },
+          { key: "h", unit: t.hours, current: h, options: range(0, Math.max(maxHours, h)), pad: false },
+          { key: "m", unit: t.minutes, current: m, options: range(0, 59), pad: true },
+          { key: "s", unit: t.seconds, current: s, options: range(0, 59), pad: true },
         ]
       : [
-          { key: "m", unit: "menit", current: m, options: range(Math.min(minuteRange[0], m), Math.max(minuteRange[1], m)), pad: false },
-          { key: "s", unit: "detik", current: s, options: range(0, 59), pad: true },
+          { key: "m", unit: t.minutes, current: m, options: range(Math.min(minuteRange[0], m), Math.max(minuteRange[1], m)), pad: false },
+          { key: "s", unit: t.seconds, current: s, options: range(0, 59), pad: true },
         ];
   const label = (p: Part, n: number) => (p.pad ? String(n).padStart(2, "0") : String(n));
   const set = (key: PartKey, n: number) => {

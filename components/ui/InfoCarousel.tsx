@@ -2,6 +2,8 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { activeIndex, carouselMode, clampIndex, slideLabels } from "@/lib/carousel";
+import { useT } from "@/lib/i18n/client";
+import { CHROME } from "@/lib/i18n/messages/chrome";
 
 /**
  * Carousel info kecil (1.1.0): CSS scroll-snap tanpa library. Kartu berikutnya mengintip supaya terlihat bisa digeser,
@@ -11,11 +13,12 @@ import { activeIndex, carouselMode, clampIndex, slideLabels } from "@/lib/carous
 export function InfoCarousel({ label, items }: { label: string; items: { key: string; content: ReactNode }[] }) {
   const track = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
+  const t = useT(CHROME).ui;
   const mode = carouselMode(items.length);
   if (mode === "none") return null;
   if (mode === "single") return <div className={`${SLIDE} mt-4`}>{items[0].content}</div>;
 
-  const labels = slideLabels(items.length);
+  const labels = slideLabels(items.length, t.slideOf);
   const offsets = () => [...(track.current?.children ?? [])].map((c) => (c as HTMLElement).offsetLeft - (track.current?.offsetLeft ?? 0));
   const go = (i: number) => {
     const el = track.current;
@@ -48,10 +51,10 @@ export function InfoCarousel({ label, items }: { label: string; items: { key: st
           ))}
         </div>
         <div className="flex items-center">
-          <ArrowButton label="Info sebelumnya" disabled={index === 0} onClick={() => go(index - 1)}>
+          <ArrowButton label={t.prevInfo} disabled={index === 0} onClick={() => go(index - 1)}>
             ‹
           </ArrowButton>
-          <ArrowButton label="Info berikutnya" disabled={index === items.length - 1} onClick={() => go(index + 1)}>
+          <ArrowButton label={t.nextInfo} disabled={index === items.length - 1} onClick={() => go(index + 1)}>
             ›
           </ArrowButton>
         </div>

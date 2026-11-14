@@ -36,12 +36,15 @@ import { mockInsightCheckins } from "@/lib/mock-data";
 import { hrvBaseline, rhrBaseline, thresholdLines, type HardRunThreshold } from "@/lib/thresholds";
 import { availableSignals } from "@/lib/wellness-signals";
 import { MuscleHeatmap, PrTrend, StrengthVolume, availableMovements } from "./StrengthTrends";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { INSIGHT } from "@/lib/i18n/messages/insight";
+import { DAY_MONTH, formatDay } from "@/lib/i18n/format";
+import type { Locale } from "@/lib/i18n/locale";
 
 const PATTERNS = patternMap(baseProfile.movementLibrary);
 
-const DAY = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
-const dayLabel = (d: string) => DAY.format(new Date(`${d}T00:00:00Z`)).replace(".", "");
-const weekRow = (r: { start: string; current: boolean }) => `${weekLabel(r.start)}${r.current ? " (minggu ini)" : ""}`;
+const dayLabel = (d: string, l: Locale) => formatDay(l, d, DAY_MONTH).replace(".", "");
+const weekRow = (r: { start: string; current: boolean }, l: Locale) => `${weekLabel(r.start, l)}${r.current ? INSIGHT[l].currentWeek : ""}`;
 const DOT: Record<Confidence, DotStyle> = { tinggi: "filled", sedang: "ring", rendah: "thin" };
 
 /**
@@ -66,6 +69,7 @@ export function InsightView({
   runThreshold: HardRunThreshold;
 }) {
   const [weeks, setWeeks] = useState<RangeWeeks>(6);
+  const t = useT(INSIGHT);
   const acts = useMemo(() => (activities.ok ? activities.data : []), [activities]);
   const plan = useProgramPlan({ activities: acts, oldest: addDays(today, -181), today });
   const [athlete] = useAthleteSettings();
@@ -123,19 +127,19 @@ export function InsightView({
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="t-display text-brand-ink">Tren</h1>
-        <p className="mt-1 text-body text-muted">Mingguan, Senin sampai Minggu. Grafik hanya menampilkan data, saran harian tetap dari Gita.</p>
+        <h1 className="t-display text-brand-ink">{t.title}</h1>
+        <p className="mt-1 text-body text-muted">{t.intro}</p>
       </div>
       {week}
       <Segmented
-        label="Rentang"
+        label={t.range}
         value={weeks}
-        options={RANGE_OPTIONS.map((w) => ({ value: w, label: `${w} minggu` }))}
+        options={RANGE_OPTIONS.map((w) => ({ value: w, label: t.weeksOption(w) }))}
         onChange={(v) => setWeeks(v)}
       />
 
-      <h2 className="t-label pt-2 text-ink">Lari</h2>
-      {wellness.ok ? <Fitness wellness={wellness.data} today={today} weeks={weeks} /> : <SourceError title="Kebugaran CTL/ATL" result={wellness} />}
+      <h2 className="t-label pt-2 text-ink">{t.sections.run}</h2>
+      {wellness.ok ? <Fitness wellness={wellness.data} today={today} weeks={weeks} /> : <SourceError title={t.fitness.title} result={wellness} />}
       {activities.ok ? (
         <>
           <Volume rows={rows} />
@@ -145,20 +149,20 @@ export function InsightView({
           <Vdot activities={acts} today={today} weeks={weeks} raceResults={athlete.raceResults} goal={goal} />
         </>
       ) : (
-        <SourceError title="Tren lari" result={activities} />
+        <SourceError title={t.runTrends} result={activities} />
       )}
 
-      <h2 className="t-label pt-2 text-ink">Kekuatan</h2>
+      <h2 className="t-label pt-2 text-ink">{t.sections.strength}</h2>
       <StrengthVolume rows={stRows} />
       <MuscleHeatmap work={work} today={today} available={available} />
       <PrTrend prs={prs} log={log} capOf={capOf} />
 
-      <h2 className="t-label pt-2 text-ink">Tubuh</h2>
+      <h2 className="t-label pt-2 text-ink">{t.sections.body}</h2>
       <CheckinTrend checkins={checkins} today={today} weeks={weeks} />
       <ThresholdCard lines={thresholds} />
       <MonthlyCard summary={monthly} />
 
-      <h2 className="t-label pt-2 text-ink">Program & kalender</h2>
+      <h2 className="t-label pt-2 text-ink">{t.sections.program}</h2>
       {!plan.loading && <ComplianceTrend rows={compliance} />}
       <ActivityHeatmap activities={acts} stSessions={stSessions} logDates={logDates} today={today} />
     </div>
@@ -175,10 +179,12 @@ function SourceError({ title, result }: { title: string; result: Extract<FetchRe
 
 function Fitness({ wellness, today, weeks }: { wellness: Wellness[]; today: string; weeks: number }) {
   const s = fitnessSeries(wellness, today, weeks);
+  const locale = useLocale();
+  const t = useT(INSIGHT);
   const fmt = (v: number | undefined) => (v === undefined ? undefined : num1(v));
   return (
     <ChartCard
-      title="Kebugaran CTL/ATL"
+      title={t.fitness.title}
       summary={s.summary}
       drawable={s.drawable}
       legend={
@@ -186,17 +192,17 @@ function Fitness({ wellness, today, weeks }: { wellness: Wellness[]; today: stri
           <Swatch className="bg-brand" label="CTL" line />
           <Swatch className="bg-muted" label="ATL" line />
           <Swatch className="bg-track" label="Form" />
-          <Swatch className="bg-subtle border border-line" label={`Pita Form ${String(FORM_BAND[0]).replace("-", "−")} sampai +${FORM_BAND[1]}`} />
+          <Swatch className="bg-subtle border border-line" label={t.fitness.band(String(FORM_BAND[0]).replace("-", "−"), FORM_BAND[1])} />
         </>
       }
       table={{
-        columns: ["Tanggal", "CTL", "ATL", "Form"],
-        rows: [...s.days].reverse().map((d) => [dayLabel(d.date), fmt(d.ctl), fmt(d.atl), fmt(d.form)]),
+        columns: [t.cols.date, "CTL", "ATL", "Form"],
+        rows: [...s.days].reverse().map((d) => [dayLabel(d.date, locale), fmt(d.ctl), fmt(d.atl), fmt(d.form)]),
       }}
     >
       <LineChart
-        ariaLabel={`Grafik CTL, ATL, dan Form harian ${weeks} minggu. ${s.summary}`}
-        labels={s.days.map((d) => dayLabel(d.date))}
+        ariaLabel={t.fitness.aria(weeks, s.summary)}
+        labels={s.days.map((d) => dayLabel(d.date, locale))}
         series={[
           { values: s.days.map((d) => d.ctl), tone: "brand" },
           { values: s.days.map((d) => d.atl), tone: "muted" },
@@ -215,25 +221,27 @@ function markText(r: RunWeek): string | undefined {
 
 function Volume({ rows }: { rows: RunWeek[] }) {
   const s = volumeSummary(rows);
+  const locale = useLocale();
+  const t = useT(INSIGHT);
   const current = rows.findIndex((r) => r.current);
   return (
     <ChartCard
-      title="Km mingguan 80/20"
+      title={t.volume.title}
       summary={s.text}
       drawable={s.drawable}
       legend={
         <>
           <Swatch className="bg-success" label="Easy" />
-          <Swatch className="bg-danger" label="Berat" />
-          {rows.some((r) => r.jump) && <span>+% naik lebih dari 30%</span>}
-          {rows.some((r) => r.cutback) && <span>CB cutback</span>}
-          {rows.some((r) => r.deload) && <span>DL deload</span>}
+          <Swatch className="bg-danger" label={t.cols.hard} />
+          {rows.some((r) => r.jump) && <span>{t.volume.jump}</span>}
+          {rows.some((r) => r.cutback) && <span>{t.volume.cutback}</span>}
+          {rows.some((r) => r.deload) && <span>{t.volume.deload}</span>}
         </>
       }
       table={{
-        columns: ["Minggu", "Km", "Easy", "Berat", "Perubahan"],
+        columns: [t.cols.week, t.cols.km, t.cols.easy, t.cols.hard, t.cols.change],
         rows: [...rows].reverse().map((r) => [
-          `${weekRow(r)}${r.runs ? "" : " · tanpa lari"}${r.cutback ? " · cutback" : ""}${r.deload ? " · deload" : ""}`,
+          `${weekRow(r, locale)}${r.runs ? "" : t.volume.noRun}${r.cutback ? t.volume.cutbackRow : ""}${r.deload ? t.volume.deloadRow : ""}`,
           num1(r.km),
           num1(r.easyKm),
           num1(r.hardKm),
@@ -242,8 +250,8 @@ function Volume({ rows }: { rows: RunWeek[] }) {
       }}
     >
       <BarChart
-        ariaLabel={`Grafik batang km lari per minggu, easy dan berat, ${rows.length} minggu. ${s.text}`}
-        labels={rows.map((r) => weekLabel(r.start))}
+        ariaLabel={t.volume.aria(rows.length, s.text)}
+        labels={rows.map((r) => weekLabel(r.start, locale))}
         stacks={[
           { values: rows.map((r) => r.easyKm), tone: "success" },
           { values: rows.map((r) => r.hardKm), tone: "danger" },
@@ -255,39 +263,42 @@ function Volume({ rows }: { rows: RunWeek[] }) {
   );
 }
 
-const EASY: Record<EasyKey, { title: string; column: string; fmt: (v: number) => string; count: (r: RunWeek) => number }> = {
-  pace: { title: "Easy run: pace", column: "Median pace", fmt: (v) => `${formatPaceTag(v)}/km`, count: (r) => r.easy.runs },
-  hr: { title: "Easy run: HR", column: "Median HR", fmt: (v) => `${v} bpm`, count: (r) => r.easy.hrRuns },
-  cadence: { title: "Easy run: cadence", column: "Median cadence", fmt: (v) => `${v} SPM`, count: (r) => r.easy.cadenceRuns },
+const EASY: Record<EasyKey, { title: "pace" | "hr" | "cadence"; column: "medianPace" | "medianHr" | "medianCadence"; fmt: (v: number) => string; count: (r: RunWeek) => number }> = {
+  pace: { title: "pace", column: "medianPace", fmt: (v) => `${formatPaceTag(v)}/km`, count: (r) => r.easy.runs },
+  hr: { title: "hr", column: "medianHr", fmt: (v) => `${v} bpm`, count: (r) => r.easy.hrRuns },
+  cadence: { title: "cadence", column: "medianCadence", fmt: (v) => `${v} SPM`, count: (r) => r.easy.cadenceRuns },
 };
 
 function Easy({ rows, kind, target }: { rows: RunWeek[]; kind: EasyKey; target?: number }) {
   const s = easySummary(rows, kind, target);
   const cfg = EASY[kind];
-  const missing = kind === "pace" ? "·" : "tidak ada data";
+  const locale = useLocale();
+  const t = useT(INSIGHT);
+  const column = t.easy[cfg.column];
+  const missing = kind === "pace" ? "·" : t.easy.noData;
   return (
     <ChartCard
-      title={cfg.title}
+      title={t.easy[cfg.title]}
       summary={s.text}
       drawable={s.drawable}
       legend={
         <>
-          <Swatch className="bg-brand" label={cfg.column} line />
-          {target !== undefined && <Swatch className="bg-ink" label={`Target ${target} SPM`} line />}
-          {kind === "pace" && <span>Lebih tinggi = lebih cepat</span>}
+          <Swatch className="bg-brand" label={column} line />
+          {target !== undefined && <Swatch className="bg-ink" label={t.easy.target(target)} line />}
+          {kind === "pace" && <span>{t.easy.faster}</span>}
         </>
       }
       table={{
-        columns: ["Minggu", cfg.column, "Lari"],
+        columns: [t.cols.week, column, t.cols.runs],
         rows: [...rows].reverse().map((r) => {
           const v = easyValue(r, kind);
-          return [weekRow(r), v === undefined ? (r.easy.runs ? missing : undefined) : cfg.fmt(v), String(cfg.count(r))];
+          return [weekRow(r, locale), v === undefined ? (r.easy.runs ? missing : undefined) : cfg.fmt(v), String(cfg.count(r))];
         }),
       }}
     >
       <LineChart
-        ariaLabel={`Grafik ${cfg.column.toLowerCase()} easy run per minggu. ${s.text}`}
-        labels={rows.map((r) => weekLabel(r.start))}
+        ariaLabel={t.easy.aria(column, s.text)}
+        labels={rows.map((r) => weekLabel(r.start, locale))}
         series={[{ values: rows.map((r) => easyValue(r, kind)), tone: "brand", dots: true }]}
         target={target}
         invert={kind === "pace"}
@@ -312,6 +323,9 @@ function Vdot({
 }) {
   const rows = vdotWeeks(activities, raceResults, today, weeks);
   const s = vdotSummary(rows, goal);
+  const locale = useLocale();
+  const t = useT(INSIGHT).vdot;
+  const cols = useT(INSIGHT).cols;
   return (
     <ChartCard
       title="VDOT"
@@ -319,24 +333,24 @@ function Vdot({
       drawable={s.drawable}
       legend={
         <>
-          {rows.some((r) => r.confidence === "tinggi") && <Swatch className="bg-brand" label="Keyakinan tinggi (lomba)" />}
-          {rows.some((r) => r.confidence === "rendah") && <Swatch className="border border-brand bg-surface" label="Keyakinan rendah (lari latihan)" />}
-          {goal && <Swatch className="bg-ink" label={`Target ${goal.label} ${num1(goal.vdot)}`} line />}
+          {rows.some((r) => r.confidence === "tinggi") && <Swatch className="bg-brand" label={t.high} />}
+          {rows.some((r) => r.confidence === "rendah") && <Swatch className="border border-brand bg-surface" label={t.low} />}
+          {goal && <Swatch className="bg-ink" label={t.target(goal.label, num1(goal.vdot))} line />}
         </>
       }
       table={{
-        columns: ["Minggu", "VDOT", "Keyakinan", "Sumber"],
+        columns: [cols.week, "VDOT", t.confidence, t.source],
         rows: [...rows].reverse().map((r) => [
-          weekRow(r),
+          weekRow(r, locale),
           r.vdot === undefined ? undefined : num1(r.vdot),
-          r.confidence,
-          r.source === "race" ? "lomba" : r.source === "activity" ? "lari terbaik" : undefined,
+          r.confidence ? t.level[r.confidence] : undefined,
+          r.source === "race" ? t.race : r.source === "activity" ? t.bestRun : undefined,
         ]),
       }}
     >
       <LineChart
-        ariaLabel={`Grafik VDOT per minggu. ${s.text}`}
-        labels={rows.map((r) => weekLabel(r.start))}
+        ariaLabel={t.aria(s.text)}
+        labels={rows.map((r) => weekLabel(r.start, locale))}
         series={[{ values: rows.map((r) => r.vdot), tone: "brand", dots: rows.map((r) => DOT[r.confidence ?? "rendah"]) }]}
         target={goal?.vdot}
       />

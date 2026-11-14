@@ -5,6 +5,8 @@ import { BUTTON, Card } from "@/components/ui/Card";
 import { Switch } from "@/components/ui/Switch";
 import { CONDITION_IDS, CONDITIONS, type ConditionId } from "@/lib/conditions";
 import type { AthleteSettings } from "@/lib/athlete-settings";
+import { useT } from "@/lib/i18n/client";
+import { SETTINGS } from "@/lib/i18n/messages/settings";
 
 /** Kondisi dari katalog berbasis riset (memengaruhi generator) + catatan bebas (tampil saja). */
 export function ConditionsSettings({
@@ -17,6 +19,7 @@ export function ConditionsSettings({
   warnings: string[];
 }) {
   const [draft, setDraft] = useState("");
+  const t = useT(SETTINGS).conditions;
   const active = new Set(settings.conditions);
   const toggle = (id: ConditionId, on: boolean) =>
     onChange({ ...settings, conditions: CONDITION_IDS.filter((c) => (c === id ? on : active.has(c))) });
@@ -28,9 +31,9 @@ export function ConditionsSettings({
   };
 
   return (
-    <Card title="Kondisi & batasan" action={<span className="text-[12px] text-faint">{active.size} aktif</span>}>
+    <Card title={t.title} action={<span className="text-[12px] text-faint">{t.active(active.size)}</span>}>
       <p className="text-[13px] text-muted">
-        Kondisi aktif mengubah hasil generator lari & ST. Aturan umum (RPE ≤ 7, beban ≤ alat, long run ≤ 10%/minggu) selalu berlaku.
+        {t.intro}
       </p>
 
       {warnings.length > 0 && (
@@ -54,7 +57,7 @@ export function ConditionsSettings({
               <Switch checked={active.has(id)} onChange={(on) => toggle(id, on)} label={c.label} description={c.effect} />
               <details className="group mt-1">
                 <summary className="inline-flex min-h-8 cursor-pointer list-none items-center gap-1 text-[12px] font-semibold text-muted hover:text-ink">
-                  Sumber ({c.sources.length})
+                  {t.sources(c.sources.length)}
                   <span className="transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
                     ›
                   </span>
@@ -79,9 +82,9 @@ export function ConditionsSettings({
       </ul>
 
       <div className="mt-2 border-t border-line pt-4">
-        <p className="text-body font-semibold">Catatan kondisi lain</p>
+        <p className="text-body font-semibold">{t.otherTitle}</p>
         <p className="mt-0.5 text-[13px] text-muted">
-          Tampil di catatan setiap workout, tapi tidak mengubah generator. Untuk kondisi di luar katalog, konsultasikan dengan tenaga medis.
+          {t.otherBody}
         </p>
         <form
           className="mt-2 flex gap-2"
@@ -94,12 +97,12 @@ export function ConditionsSettings({
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             maxLength={120}
-            placeholder="mis. Pergelangan tangan kiri mudah pegal"
-            aria-label="Catatan kondisi baru"
+            placeholder={t.placeholder}
+            aria-label={t.newNote}
             className="min-h-11 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
           />
           <button type="submit" disabled={!draft.trim()} className={`${BUTTON.base} ${BUTTON.secondary} shrink-0 px-3 disabled:opacity-40`}>
-            Tambah
+            {t.add}
           </button>
         </form>
         {settings.customConditions.length > 0 && (
@@ -110,7 +113,7 @@ export function ConditionsSettings({
                 <button
                   type="button"
                   onClick={() => onChange({ ...settings, customConditions: settings.customConditions.filter((x) => x !== c) })}
-                  aria-label={`Hapus catatan: ${c}`}
+                  aria-label={t.removeNote(c)}
                   className="pressable grid h-8 w-8 shrink-0 place-items-center rounded-control text-muted hover:bg-subtle-strong hover:text-danger-ink"
                 >
                   ✕

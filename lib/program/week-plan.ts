@@ -13,14 +13,15 @@
  *   minggu berikutnya (D5).
  */
 import { addDays } from "@/lib/date";
+import { formatDay, WEEKDAY_LONG } from "@/lib/i18n/format";
+import type { Locale } from "@/lib/i18n/locale";
 import { isHardRun, isLegStrength, isLongRun } from "@/lib/coach";
 import type { Activity } from "@/lib/intervals/types";
 import { isLegSession, type StSession } from "@/lib/st-session";
 import { isDone, weekBounds, type SessionResult } from "./compliance";
 import { isRunKind, type PlannedSession } from "./sessions";
 
-const WEEKDAY = new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "UTC" });
-export const dayName = (d: string) => WEEKDAY.format(new Date(`${d}T00:00:00Z`));
+export const dayName = (d: string, locale: Locale = "id") => formatDay(locale, d, WEEKDAY_LONG);
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
 
 /** Sesi minggu kalender `today` beserta sisanya. */

@@ -7,6 +7,9 @@ import { Switch } from "@/components/ui/Switch";
 import type { AthleteSettings } from "@/lib/athlete-settings";
 import { BAND_LEVELS, ITEM_LABEL, MAX_ITEMS, barbellLoads, dumbbellLoads, type Equipment, type EquipmentItemKind } from "@/lib/equipment";
 import { LoadRuleNotice } from "@/components/strength/LoadRuleNotice";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { SETTINGS } from "@/lib/i18n/messages/settings";
+import { formatNumber } from "@/lib/i18n/format";
 
 const INPUT = "min-h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-base text-ink tabular focus:border-brand";
 
@@ -46,15 +49,17 @@ function NumberField({
 }
 
 function LoadList({ label, loads }: { label: string; loads?: number[] }) {
+  const locale = useLocale();
+  const t = useT(SETTINGS).equipment;
   return (
     <div>
       <p className="text-[12px] text-muted">{label}</p>
       {loads === undefined ? (
-        <p className="text-[13px] text-faint">Isi berat handle/batang dulu.</p>
+        <p className="text-[13px] text-faint">{t.fillFirst}</p>
       ) : loads.length ? (
-        <p className="tabular text-[13px] text-ink">{loads.map((v) => v.toLocaleString("id-ID")).join(" · ")} kg</p>
+        <p className="tabular text-[13px] text-ink">{loads.map((v) => formatNumber(locale, v)).join(" · ")} kg</p>
       ) : (
-        <p className="text-[13px] text-danger-ink">✕ Tidak ada kombinasi.</p>
+        <p className="text-[13px] text-danger-ink">{t.noCombo}</p>
       )}
     </div>
   );
@@ -65,42 +70,40 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
   const eq = settings.equipment;
   const set = (patch: Partial<Equipment>) => onChange({ ...settings, equipment: { ...eq, ...patch } });
   const [other, setOther] = useState("");
+  const t = useT(SETTINGS).equipment;
 
   return (
-    <Card title="Alat">
-      <p className="text-[13px] text-muted">
-        Gerakan yang butuh alat yang tidak dimiliki otomatis tidak dipakai. Setelah berat handle/batang diisi, beban yang diresepkan selalu bisa dirakit
-        dari plat yang ada.
-      </p>
+    <Card title={t.title}>
+      <p className="text-[13px] text-muted">{t.intro}</p>
 
       <div className="mt-4 space-y-4">
         <section className="space-y-3">
-          <p className="text-body font-semibold">Batas beban</p>
+          <p className="text-body font-semibold">{t.loadLimit}</p>
           <LoadRuleNotice inset />
           {settings.loadRule?.acceptedAt && (
             <Switch
               checked={!!settings.loadRule.limitToLibrary}
               onChange={(limitToLibrary) => onChange({ ...settings, loadRule: { ...settings.loadRule, limitToLibrary } })}
-              label="Batasi ke rentang awal library"
-              description="Nyala: beban tidak melewati rentang library seperti sebelum 0.14. Mati: beban boleh naik sampai batas alat dan batas keamanan kondisi aktif."
+              label={t.limitLibrary}
+              description={t.limitLibraryDesc}
             />
           )}
         </section>
 
         <section className="space-y-3 border-t border-line pt-4">
-          <Switch checked={eq.dumbbell.enabled} onChange={(enabled) => set({ dumbbell: { ...eq.dumbbell, enabled } })} label="Dumbbell modular" />
+          <Switch checked={eq.dumbbell.enabled} onChange={(enabled) => set({ dumbbell: { ...eq.dumbbell, enabled } })} label={t.dumbbell} />
           {eq.dumbbell.enabled && (
             <div className="grid grid-cols-2 gap-3">
               <NumberField
                 key={`h-${eq.dumbbell.handleKg}`}
-                label="Berat handle kosong"
+                label={t.handleKg}
                 value={eq.dumbbell.handleKg}
-                placeholder="mis. 2"
+                placeholder={t.eg("2")}
                 suffix="kg"
                 onSave={(handleKg) => set({ dumbbell: { ...eq.dumbbell, handleKg } })}
               />
               <Segmented
-                label="Jumlah handle"
+                label={t.handles}
                 value={eq.dumbbell.handles >= 2 ? 2 : 1}
                 onChange={(handles) => set({ dumbbell: { ...eq.dumbbell, handles } })}
                 options={[
@@ -116,15 +119,15 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
           <Switch
             checked={eq.barbell.enabled}
             onChange={(enabled) => set({ barbell: { ...eq.barbell, enabled } })}
-            label="Barbell mode"
-            description="Connecting bar untuk Hip Thrust/Sumo Deadlift & Squat ringan."
+            label={t.barbell}
+            description={t.barbellDesc}
           />
           {eq.barbell.enabled && (
             <NumberField
               key={`b-${eq.barbell.barKg}`}
-              label="Berat batang kosong (termasuk connector)"
+              label={t.barKg}
               value={eq.barbell.barKg}
-              placeholder="mis. 5"
+              placeholder={t.eg("5")}
               suffix="kg"
               onSave={(barKg) => set({ barbell: { ...eq.barbell, barKg } })}
             />
@@ -132,26 +135,26 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
         </section>
 
         <section className="border-t border-line pt-4">
-          <p className="text-body font-semibold">Plat</p>
-          <p className="mt-0.5 text-[13px] text-muted">Jumlah keping per berat. Plat dipasang berpasangan (kiri dan kanan) supaya seimbang.</p>
+          <p className="text-body font-semibold">{t.plates}</p>
+          <p className="mt-0.5 text-[13px] text-muted">{t.platesDesc}</p>
           <ul className="mt-2 space-y-2">
             {eq.plates.map((p, i) => (
               <li key={`${i}-${p.kg}-${p.count}`} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2">
                 <NumberField
-                  label="Berat"
+                  label={t.weight}
                   value={p.kg}
                   suffix="kg"
                   onSave={(kg) => kg && set({ plates: eq.plates.map((x, j) => (j === i ? { ...x, kg } : x)) })}
                 />
                 <NumberField
-                  label="Jumlah"
+                  label={t.count}
                   value={p.count}
                   suffix="pcs"
                   onSave={(count) => count && set({ plates: eq.plates.map((x, j) => (j === i ? { ...x, count: Math.round(count) } : x)) })}
                 />
                 <button
                   type="button"
-                  aria-label={`Hapus plat ${p.kg} kg`}
+                  aria-label={t.removePlate(p.kg)}
                   onClick={() => set({ plates: eq.plates.filter((_, j) => j !== i) })}
                   className="pressable grid h-11 w-11 place-items-center rounded-control text-muted hover:bg-subtle hover:text-danger-ink"
                 >
@@ -166,36 +169,36 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
             onClick={() => set({ plates: [...eq.plates, { kg: 2.5, count: 2 }] })}
             className={`${BUTTON.base} ${BUTTON.secondary} mt-2 w-full disabled:opacity-40`}
           >
-            + Tambah plat
+            {t.addPlate}
           </button>
           <div className="mt-3 space-y-2 rounded-inner bg-subtle p-3">
-            <LoadList label="Bisa dirakit · sepasang dumbbell (per tangan)" loads={eq.dumbbell.enabled || eq.items.some((i) => i.kind === "fixedDumbbell") ? dumbbellLoads(eq, true) : []} />
-            {eq.barbell.enabled && <LoadList label="Bisa dirakit · barbell (total)" loads={barbellLoads(eq)} />}
+            <LoadList label={t.pairLoads} loads={eq.dumbbell.enabled || eq.items.some((i) => i.kind === "fixedDumbbell") ? dumbbellLoads(eq, true) : []} />
+            {eq.barbell.enabled && <LoadList label={t.barLoads} loads={barbellLoads(eq)} />}
           </div>
         </section>
 
         <section className="border-t border-line pt-4">
-          <p className="text-body font-semibold">Dumbbell fixed & kettlebell</p>
-          <p className="mt-0.5 text-[13px] text-muted">Alat berbobot tetap. Dumbbell fixed ikut beban dumbbell (sepasang butuh 2 buah). Kettlebell dicatat dulu karena library belum punya gerakan kettlebell.</p>
+          <p className="text-body font-semibold">{t.fixed}</p>
+          <p className="mt-0.5 text-[13px] text-muted">{t.fixedDesc}</p>
           <ul className="mt-2 space-y-2">
             {eq.items.map((it) => (
               <li key={it.id} className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2">
                 <p className="pb-3 text-[14px] font-semibold">{ITEM_LABEL[it.kind]}</p>
                 <NumberField
-                  label="Berat"
+                  label={t.weight}
                   value={it.kg}
                   suffix="kg"
                   onSave={(kg) => kg && set({ items: eq.items.map((x) => (x.id === it.id ? { ...x, kg } : x)) })}
                 />
                 <NumberField
-                  label="Jumlah"
+                  label={t.count}
                   value={it.count}
                   suffix="pcs"
                   onSave={(count) => count && set({ items: eq.items.map((x) => (x.id === it.id ? { ...x, count: Math.round(count) } : x)) })}
                 />
                 <button
                   type="button"
-                  aria-label={`Hapus ${ITEM_LABEL[it.kind]} ${it.kg} kg`}
+                  aria-label={t.removeItem(ITEM_LABEL[it.kind], it.kg)}
                   onClick={() => set({ items: eq.items.filter((x) => x.id !== it.id) })}
                   className="pressable grid h-11 w-11 place-items-center rounded-control text-muted hover:bg-subtle hover:text-danger-ink"
                 >
@@ -221,7 +224,7 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
 
         <section className="border-t border-line pt-4">
           <p className="text-body font-semibold">Resistance band</p>
-          <div className="mt-2 grid grid-cols-3 gap-2" role="group" aria-label="Band yang dimiliki">
+          <div className="mt-2 grid grid-cols-3 gap-2" role="group" aria-label={t.bands}>
             {BAND_LEVELS.map((b) => {
               const on = eq.bands.includes(b);
               return (
@@ -244,20 +247,20 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
             <Switch
               checked={eq.bandAnchor}
               onChange={(bandAnchor) => set({ bandAnchor })}
-              label="Titik tambat band"
-              description="Kaki meja, handle pintu, atau door anchor. Dibutuhkan Band Reverse Fly, Band External Rotation, Standing Band Hip Abduction, dan Seated Band Hamstring Curl."
+              label={t.anchor}
+              description={t.anchorDesc}
             />
           </div>
         </section>
 
         <section className="space-y-4 border-t border-line pt-4">
           <Switch checked={eq.pullUpBar} onChange={(pullUpBar) => set({ pullUpBar })} label="Pull-up bar" />
-          <Switch checked={eq.bench} onChange={(bench) => set({ bench })} label="Kursi / bench / step box" description="Dinding & lantai dianggap selalu ada." />
+          <Switch checked={eq.bench} onChange={(bench) => set({ bench })} label={t.bench} description={t.benchDesc} />
         </section>
 
         <section className="border-t border-line pt-4">
-          <p className="text-body font-semibold">Alat lainnya</p>
-          <p className="mt-0.5 text-[13px] text-muted">Dicatat dulu; gerakan untuk alat ini akan ditambahkan di pengembangan berikutnya.</p>
+          <p className="text-body font-semibold">{t.other}</p>
+          <p className="mt-0.5 text-[13px] text-muted">{t.otherDesc}</p>
           <form
             className="mt-2 flex gap-2"
             onSubmit={(e) => {
@@ -271,12 +274,12 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
               value={other}
               onChange={(e) => setOther(e.target.value)}
               maxLength={60}
-              placeholder="mis. Kettlebell 8 kg"
-              aria-label="Alat lain"
+              placeholder={t.otherPlaceholder}
+              aria-label={t.otherLabel}
               className={`${INPUT} min-w-0 flex-1`}
             />
             <button type="submit" disabled={!other.trim()} className={`${BUTTON.base} ${BUTTON.secondary} shrink-0 px-3 disabled:opacity-40`}>
-              Tambah
+              {t.add}
             </button>
           </form>
           {eq.other.length > 0 && (
@@ -286,7 +289,7 @@ export function EquipmentSettings({ settings, onChange }: { settings: AthleteSet
                   {o}
                   <button
                     type="button"
-                    aria-label={`Hapus ${o}`}
+                    aria-label={t.remove(o)}
                     onClick={() => set({ other: eq.other.filter((x) => x !== o) })}
                     className="grid h-6 w-6 place-items-center rounded-full text-muted hover:text-danger-ink"
                   >

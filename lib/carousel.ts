@@ -9,9 +9,9 @@ export function carouselMode(count: number): CarouselMode {
   return count <= 0 ? "none" : count === 1 ? "single" : "carousel";
 }
 
-/** Label tiap slide untuk pembaca layar: "1 dari 4". */
-export function slideLabels(count: number): string[] {
-  return Array.from({ length: Math.max(0, count) }, (_, i) => `${i + 1} dari ${count}`);
+/** Label tiap slide untuk pembaca layar: "1 dari 4" (bahasa lain lewat `of`). */
+export function slideLabels(count: number, of: (i: number, n: number) => string = (i, n) => `${i} dari ${n}`): string[] {
+  return Array.from({ length: Math.max(0, count) }, (_, i) => of(i + 1, count));
 }
 
 export function clampIndex(i: number, count: number): number {

@@ -8,6 +8,8 @@ import { shouldPromptUpdate } from "@/lib/offline";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import { useStoredString } from "@/lib/preferences";
 import { useOnline } from "./useOnline";
+import { useT } from "@/lib/i18n/client";
+import { MISC } from "@/lib/i18n/messages/misc";
 
 /**
  * Mode offline (0.16, docs/RELEASE-1.0.md #1): mendaftarkan service worker (produksi saja), menampilkan banner
@@ -21,6 +23,7 @@ export function OfflineAgent() {
   const [active] = useStoredString(PREF_KEYS.activeWorkout, "");
   const [waiting, setWaiting] = useState<ServiceWorker | null>(null);
   const reloading = useRef(false);
+  const t = useT(MISC).offline;
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
@@ -78,7 +81,7 @@ export function OfflineAgent() {
     <>
       {!online && (
         <div role="status" aria-live="polite" className="border-b border-line bg-subtle px-4 py-2 text-center text-[13px] text-ink">
-          <strong className="font-semibold">Sedang offline</strong> · perubahan disimpan di perangkat dan dikirim saat online.
+          <strong className="font-semibold">{t.title}</strong>{t.body}
         </div>
       )}
       {showUpdate && (
@@ -88,9 +91,9 @@ export function OfflineAgent() {
           className="fixed inset-x-4 z-30 mx-auto flex max-w-xl items-center justify-between gap-3 rounded-card border border-line bg-surface-raised px-4 py-2 shadow-card"
           style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" }}
         >
-          <span className="text-[13px] text-ink">Versi baru tersedia</span>
+          <span className="text-[13px] text-ink">{t.update}</span>
           <button type="button" onClick={reload} className={`${BUTTON.base} ${BUTTON.secondary} text-[13px]`}>
-            Muat ulang
+            {t.reload}
           </button>
         </div>
       )}

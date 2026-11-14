@@ -2,22 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useT } from "@/lib/i18n/client";
+import { CHROME } from "@/lib/i18n/messages/chrome";
 
-const ITEMS = [
-  { href: "/", label: "Profil", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" },
-  { href: "/run", label: "Lari", icon: "M13 4a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0M9.5 21l2-6 3 2v4m-7-9 3-3 3 1 2 3 3 1" },
-  { href: "/program", label: "Program", icon: "M5 21V4m0 0h12l-2.5 4L17 12H5" },
-  { href: "/strength", label: "Strength", icon: "M3 10v4m3-6v8m0-4h12m0-4v8m3-6v4" },
-  { href: "/setting", label: "Setting", icon: "M4 6h9m4 0h3M4 12h3m4 0h9M4 18h11m4 0h1M15 4v4M9 10v4M17 16v4" },
+const ITEMS: { href: string; label: "profile" | "run" | "program" | "strength" | "setting"; icon: string }[] = [
+  { href: "/", label: "profile", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" },
+  { href: "/run", label: "run", icon: "M13 4a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0M9.5 21l2-6 3 2v4m-7-9 3-3 3 1 2 3 3 1" },
+  { href: "/program", label: "program", icon: "M5 21V4m0 0h12l-2.5 4L17 12H5" },
+  { href: "/strength", label: "strength", icon: "M3 10v4m3-6v8m0-4h12m0-4v8m3-6v4" },
+  { href: "/setting", label: "setting", icon: "M4 6h9m4 0h3M4 12h3m4 0h9M4 18h11m4 0h1M15 4v4M9 10v4M17 16v4" },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
+  const t = useT(CHROME).nav;
   // Onboarding & halaman kunci sandi tampil tanpa navigasi tab.
   if (pathname.startsWith("/onboarding") || pathname === "/unlock") return null;
   return (
     <nav
-      aria-label="Navigasi utama"
+      aria-label={t.label}
       className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-bg/90 backdrop-blur-md"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
@@ -38,7 +41,7 @@ export function BottomNav() {
                 <svg viewBox="0 0 24 24" className={`h-6 w-6 ${active ? "text-brand" : ""}`} fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d={item.icon} />
                 </svg>
-                {item.label}
+                {t[item.label]}
               </Link>
             </li>
           );

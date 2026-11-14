@@ -13,6 +13,9 @@ import { redisEnv } from "@/lib/redis";
 import { availability } from "@/lib/sync/server";
 import { isDemoMode } from "@/lib/intervals/data-source";
 import { THEME_BOOT_SCRIPT } from "@/lib/preference-keys";
+import { LocaleProvider } from "@/lib/i18n/client";
+import { CHROME } from "@/lib/i18n/messages/chrome";
+import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
 // Archivo variable (sumbu wdth untuk display condensed & ledger expanded) + Geist Mono untuk label.
@@ -25,9 +28,8 @@ const archivo = Archivo({
 });
 const geistMono = Geist_Mono({ subsets: ["latin"], display: "swap", variable: "--font-geist-mono" });
 
-export const metadata: Metadata = {
+const METADATA: Metadata = {
   title: "Hybrid Athlete Dashboard",
-  description: "Profil atlet, data intervals.icu, dan generator latihan lari & strength.",
   applicationName: "Hybrid App",
   manifest: "/manifest.json",
   appleWebApp: {
@@ -47,6 +49,12 @@ export const metadata: Metadata = {
   },
 };
 
+/** Deskripsi mengikuti bahasa (1.2.0). */
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  return { ...METADATA, description: CHROME[locale].meta.description };
+}
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -60,13 +68,16 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Nonce CSP dari proxy.ts (0.16) untuk script tema inline.
   const nonce = (await headers()).get("x-nonce") ?? undefined;
+  // Bahasa (1.2.0): cookie ha-lang → Accept-Language → Indonesia. Client mengikuti lewat LocaleProvider.
+  const locale = await getLocale();
   return (
     // data-theme dipasang oleh script boot sebelum hydrate → abaikan perbedaan atribut.
-    <html lang="id" suppressHydrationWarning className={`${archivo.variable} ${geistMono.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${archivo.variable} ${geistMono.variable}`}>
       <head>
         <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
       <body className="min-h-dvh pt-[env(safe-area-inset-top)]">
+        <LocaleProvider locale={locale}>
         {/* iOS standalone + black-translucent: konten tembus ke bawah status bar.
             Strip gelap ini menjaga jam/baterai (teks putih) tetap terbaca di light mode. */}
         <div aria-hidden className="fixed inset-x-0 top-0 z-30 h-[env(safe-area-inset-top)] bg-black" />
@@ -82,6 +93,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </main>
           <BottomNav />
         </TourProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

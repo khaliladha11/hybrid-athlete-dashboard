@@ -10,6 +10,8 @@ import { checkUpload, sendToCalendar, useSendQueue, useSent, type SendOutcome } 
 import { WATCH_BRANDS, WATCH_LABEL, WATCH_STEPS, type WatchBrand } from "@/lib/intervals/watch";
 import { useAthleteSettings } from "@/lib/settings-store";
 import { eventHash, type ExportResult } from "@/lib/intervals/workout-export";
+import { useT } from "@/lib/i18n/client";
+import { INTERVALS } from "@/lib/i18n/messages/intervals";
 
 /**
  * "Kirim ke jam" (0.17, docs/RELEASE-1.0.md #6): kirim workout ke kalender intervals.icu atas ketukan pengguna,
@@ -23,7 +25,7 @@ export function SendToWatch({
   result,
   sendLabel = SEND_LABEL,
   deviceNote = true,
-  title = "Kirim ke jam",
+  title,
 }: {
   /** Id luar event untuk tanggal ini (`externalId.*`). */
   externalId: string;
@@ -35,6 +37,8 @@ export function SendToWatch({
   deviceNote?: boolean;
   title?: string;
 }) {
+  const t = useT(INTERVALS).send;
+  title ??= t.title;
   const sent = useSent()[externalId];
   const queued = useSendQueue()[externalId];
   const [busy, setBusy] = useState(false);
@@ -85,7 +89,7 @@ export function SendToWatch({
   const status = queued
     ? last?.kind === "queued"
       ? last.text
-      : "Menunggu online untuk dikirim."
+      : t.waiting
     : last && last.kind !== "queued"
       ? last.text
       : sent
@@ -99,7 +103,7 @@ export function SendToWatch({
         <p className="t-label">{title}</p>
         {onDateChange ? (
           <label className="flex items-center gap-2 text-[13px] text-muted">
-            Tanggal
+            {t.date}
             <input
               type="date"
               value={date}
@@ -113,10 +117,10 @@ export function SendToWatch({
       <div className="flex flex-wrap items-center gap-2">
         {(!sent || changed) && (
           <button type="button" disabled={busy} onClick={() => void run("upsert")} className={`${BUTTON.base} ${BUTTON.secondary} flex-1`}>
-            {busy ? "Mengirim" : sent ? RESEND_LABEL : sendLabel}
+            {busy ? t.sending : sent ? RESEND_LABEL : sendLabel}
           </button>
         )}
-        {sent && <ConfirmButton size="md" label={REMOVE_LABEL} confirmLabel="Tap lagi untuk menghapus" disabled={busy} onConfirm={() => void run("delete")} />}
+        {sent && <ConfirmButton size="md" label={REMOVE_LABEL} confirmLabel={t.removeConfirm} disabled={busy} onConfirm={() => void run("delete")} />}
       </div>
 
       <p role="status" aria-live="polite" className={`text-[13px] ${tone}`}>
@@ -132,18 +136,18 @@ export function SendToWatch({
       {deviceNote && (
         <div className="space-y-2 text-[13px]">
           {!watch || pickWatch ? (
-            <Segmented label="Jam kamu" value={watch ?? "other"} onChange={setWatch} options={WATCH_BRANDS.map((w) => ({ value: w, label: WATCH_LABEL[w] }))} />
+            <Segmented label={t.yourWatch} value={watch ?? "other"} onChange={setWatch} options={WATCH_BRANDS.map((w) => ({ value: w, label: WATCH_LABEL[w] }))} />
           ) : (
             <p className="text-muted">
-              Jam: <span className="font-semibold text-ink">{WATCH_LABEL[watch]}</span>{" "}
+              {t.watch}<span className="font-semibold text-ink">{WATCH_LABEL[watch]}</span>{" "}
               <button type="button" onClick={() => setPickWatch(true)} className="pressable inline-flex min-h-11 items-center px-1 font-semibold text-ink underline">
-                Ganti
+                {t.change}
               </button>
             </p>
           )}
           {sent && watch && !pickWatch && (
             <>
-              <p className="t-label">Sampai di jam</p>
+              <p className="t-label">{t.onWatch}</p>
               <ol className="list-decimal space-y-1 pl-5 text-ink">
                 {WATCH_STEPS[watch].map((s) => (
                   <li key={s}>{s}</li>
@@ -161,7 +165,7 @@ export function SendToWatch({
         <details className="text-[13px] text-muted">
           <summary className="flex min-h-11 cursor-pointer items-center gap-2">
             <span className="flex-1">{DEVICE_NOTE}</span>
-            <span className="shrink-0 font-semibold text-ink underline">Apa ini?</span>
+            <span className="shrink-0 font-semibold text-ink underline">{t.what}</span>
           </summary>
           <dl className="mt-2 space-y-2">
             {DEVICE_HELP.map((d) => (
@@ -172,14 +176,14 @@ export function SendToWatch({
               </div>
             ))}
           </dl>
-          <p className="mt-2 font-semibold text-ink">Batas Huawei</p>
+          <p className="mt-2 font-semibold text-ink">{t.huawei}</p>
           <ul className="mt-1 list-disc space-y-1 pl-5">
             {HUAWEI_LIMITS.map((l) => (
               <li key={l}>{l}</li>
             ))}
           </ul>
           <Link href="/bantuan#jam" className="mt-1 inline-flex min-h-11 items-center font-semibold text-brand-ink underline underline-offset-2">
-            Bantuan lengkap
+            {t.help}
           </Link>
         </details>
       )}

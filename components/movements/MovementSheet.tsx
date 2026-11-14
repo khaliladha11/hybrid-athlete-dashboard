@@ -8,6 +8,8 @@ import { MEDIA_ATTRIBUTION, mediaFor } from "@/lib/movements/media";
 import { muscleAriaLabel, muscleSummary, TEXT_ONLY_MOVEMENTS, TEXT_ONLY_MUSCLES } from "@/lib/movements/muscle-regions";
 import { MuscleMap } from "@/components/charts/MuscleMap";
 import { MovementPlaceholderIcon } from "./MovementThumb";
+import { useT } from "@/lib/i18n/client";
+import { MISC } from "@/lib/i18n/messages/misc";
 
 const FRAME_MS = 1200;
 const REDUCED = "(prefers-reduced-motion: reduce)";
@@ -49,6 +51,7 @@ export function MovementSheet({
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const t = useT(MISC).sheet;
   const media = mediaFor(name);
   // Peta otot per gerakan (0.14.2): komponen yang sama dengan ringkasan sesi 0.14.1.
   const muscles = muscleSummary([name]);
@@ -99,16 +102,16 @@ export function MovementSheet({
             {loadNote && <p className="mt-1 text-[13px] text-ink">{loadNote}</p>}
             {suggestion && (
               <p className="mt-1 text-[13px] text-ink">
-                <span className="t-label mr-1 text-brand-ink">Saran Gita</span>
+                <span className="t-label mr-1 text-brand-ink">{t.gita}</span>
                 {suggestion}
               </p>
             )}
-            {item?.tempo && <p className="mt-1 text-[13px] font-semibold text-ink">Tempo: turun 3 detik, jeda 2 detik di bawah</p>}
+            {item?.tempo && <p className="mt-1 text-[13px] font-semibold text-ink">{t.tempo}</p>}
           </div>
           <button
             type="button"
             onClick={() => ref.current?.close()}
-            aria-label="Tutup detail gerakan"
+            aria-label={t.close}
             className="pressable grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted hover:bg-subtle hover:text-ink"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" aria-hidden>
@@ -119,12 +122,12 @@ export function MovementSheet({
 
         <div className="mt-3">
           {media?.images ? <MovementFrames name={name} images={media.images} /> : <NoImage />}
-          {media?.imageNote && <p className="mt-1.5 text-[12px] text-faint">Catatan gambar: {media.imageNote}</p>}
+          {media?.imageNote && <p className="mt-1.5 text-[12px] text-faint">{t.imageNote(media.imageNote)}</p>}
         </div>
 
         {media && media.cues.length > 0 && (
           <section className="mt-4">
-            <h3 className="t-label mb-2">Cue teknik</h3>
+            <h3 className="t-label mb-2">{t.cues}</h3>
             <ul className="space-y-1.5 text-[14px] leading-snug">
               {media.cues.map((c) => (
                 <li key={c} className="flex gap-2">
@@ -138,11 +141,11 @@ export function MovementSheet({
 
         {media && (
           <section className="mt-4">
-            <h3 className="t-label mb-2">Otot</h3>
+            <h3 className="t-label mb-2">{t.muscles}</h3>
             {(muscles.primaryRegions.length > 0 || muscles.secondaryRegions.length > 0) && (
               <MuscleMap primary={muscles.primaryRegions} secondary={muscles.secondaryRegions} label={muscleAriaLabel(muscles)} className="mb-3" />
             )}
-            <ul className="flex flex-wrap gap-1.5" aria-label="Otot utama dan sekunder">
+            <ul className="flex flex-wrap gap-1.5" aria-label={t.musclesList}>
               {media.primaryMuscles.map((m) => (
                 <li key={m} className="rounded-full bg-brand px-2.5 py-0.5 text-[12px] font-semibold text-on-brand">
                   {m}
@@ -154,7 +157,7 @@ export function MovementSheet({
                 </li>
               ))}
             </ul>
-            <p className="mt-1 text-[12px] text-faint">Oranye penuh = otot utama · bergaris oranye = sekunder</p>
+            <p className="mt-1 text-[12px] text-faint">{t.legend}</p>
             {textOnly && <p className="mt-1 text-[12px] text-muted">{textOnly}</p>}
             {!textOnly &&
               [...media.primaryMuscles, ...media.secondaryMuscles]
@@ -169,7 +172,7 @@ export function MovementSheet({
 
         {notes.length > 0 && (
           <section className="mt-4">
-            <h3 className="t-label mb-2">Kondisi aktif</h3>
+            <h3 className="t-label mb-2">{t.conditions}</h3>
             <ul className="space-y-1.5">
               {notes.map((n) => (
                 <li key={n.id} className="rounded-inner bg-brand-soft px-3 py-2 text-[13px] text-ink">
@@ -187,11 +190,12 @@ export function MovementSheet({
 }
 
 function NoImage() {
+  const t = useT(MISC).sheet;
   return (
     <div className="grid aspect-[4/3] w-full place-items-center rounded-inner bg-subtle text-faint">
       <div className="flex flex-col items-center gap-2">
         <MovementPlaceholderIcon className="h-10 w-10" />
-        <p className="text-[13px] font-semibold">Gambar belum tersedia</p>
+        <p className="text-[13px] font-semibold">{t.noImage}</p>
       </div>
     </div>
   );
@@ -202,6 +206,7 @@ function MovementFrames({ name, images }: { name: string; images: readonly [stri
   const reduced = useReducedMotion();
   const [frame, setFrame] = useState<0 | 1>(0);
   const [playing, setPlaying] = useState(true);
+  const t = useT(MISC).sheet;
 
   useEffect(() => {
     if (reduced || !playing) return;
@@ -209,7 +214,7 @@ function MovementFrames({ name, images }: { name: string; images: readonly [stri
     return () => clearInterval(t);
   }, [reduced, playing]);
 
-  const alt = (i: 0 | 1) => `${name}, posisi ${i ? "akhir" : "awal"}`;
+  const alt = (i: 0 | 1) => t.position(name, !!i);
 
   if (reduced) {
     return (
@@ -218,7 +223,7 @@ function MovementFrames({ name, images }: { name: string; images: readonly [stri
           <figure key={i}>
             {/* eslint-disable-next-line @next/next/no-img-element -- gambar statis di /public */}
             <img src={images[i]} alt={alt(i)} decoding="async" className="aspect-[4/3] w-full rounded-inner bg-white object-contain" />
-            <figcaption className="t-label mt-1.5 text-center">{i ? "Akhir" : "Awal"}</figcaption>
+            <figcaption className="t-label mt-1.5 text-center">{i ? t.end : t.start}</figcaption>
           </figure>
         ))}
       </div>
@@ -239,12 +244,12 @@ function MovementFrames({ name, images }: { name: string; images: readonly [stri
         />
       ))}
       <span className="absolute top-2 left-2 rounded-full bg-black/60 px-2 py-0.5 font-mono text-[11px] font-medium tracking-[0.08em] text-white uppercase" aria-live="off">
-        {frame ? "Akhir" : "Awal"}
+        {frame ? t.end : t.start}
       </span>
       <button
         type="button"
         onClick={() => setPlaying((p) => !p)}
-        aria-label={playing ? "Jeda animasi gerakan" : "Putar animasi gerakan"}
+        aria-label={playing ? t.pause : t.play}
         aria-pressed={!playing}
         className="pressable absolute right-2 bottom-2 grid h-11 w-11 place-items-center rounded-full bg-black/60 text-white hover:bg-black/75"
       >

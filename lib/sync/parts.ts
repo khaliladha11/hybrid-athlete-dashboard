@@ -18,9 +18,9 @@ export const isPartName = (x: unknown): x is PartName => typeof x === "string" &
 
 export const SETTINGS_KEYS = ["conditions", "customConditions", "runZones", "equipment", "movements", "raceResults", "zoneOfferDismissedVdot", "loadRule", "buyReminderDismissed", "hrZones", "strengthRpe", "watchBrand"] as const;
 export type SettingsPart = Pick<AthleteSettings, (typeof SETTINGS_KEYS)[number]>;
-export const PREFERENCE_KEYS = ["theme", "blockEnabled"] as const;
-/** Kunci tidak ada = default (tema sistem; blok mengikuti profil). */
-export type PreferencesPart = { theme?: "light" | "dark"; blockEnabled?: boolean };
+export const PREFERENCE_KEYS = ["theme", "blockEnabled", "lang"] as const;
+/** Kunci tidak ada = default (tema sistem; blok mengikuti profil; bahasa mengikuti browser). */
+export type PreferencesPart = { theme?: "light" | "dark"; blockEnabled?: boolean; lang?: "id" | "en" };
 
 export interface PartData {
   profile: ProfileSettings | null;
@@ -47,6 +47,8 @@ export interface LocalRaw {
   theme: string | null;
   blockEnabled: string | null;
   onboarding: string | null;
+  /** Bahasa tampilan (1.2.0). Opsional supaya pemanggil lama tetap valid. */
+  lang?: string | null;
 }
 
 const pickSettings = (s: AthleteSettings): SettingsPart => ({
@@ -70,6 +72,7 @@ export function partsFromLocal(raw: LocalRaw, log: LogEntry[], base: AthleteProf
   const preferences: PreferencesPart = {};
   if (raw.theme === "light" || raw.theme === "dark") preferences.theme = raw.theme;
   if (raw.blockEnabled === "1" || raw.blockEnabled === "0") preferences.blockEnabled = raw.blockEnabled === "1";
+  if (raw.lang === "id" || raw.lang === "en") preferences.lang = raw.lang;
   return {
     profile: parsed ? parsed.profile : null,
     settings: parsed ? pickSettings(parsed) : null,
@@ -93,6 +96,7 @@ export function localFromParts(p: PartData, base: AthleteProfile): LocalRaw {
     theme: p.preferences.theme ?? null,
     blockEnabled: p.preferences.blockEnabled === undefined ? null : p.preferences.blockEnabled ? "1" : "0",
     onboarding: p.onboarding ? JSON.stringify(p.onboarding) : null,
+    lang: p.preferences.lang ?? null,
   };
 }
 
@@ -111,6 +115,7 @@ export function validatePart<K extends PartName>(name: K, data: unknown, base: A
       const out: PreferencesPart = {};
       if (data.theme === "light" || data.theme === "dark") out.theme = data.theme;
       if (typeof data.blockEnabled === "boolean") out.blockEnabled = data.blockEnabled;
+      if (data.lang === "id" || data.lang === "en") out.lang = data.lang;
       return out as PartData[K];
     }
     case "onboarding": {

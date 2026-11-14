@@ -5,14 +5,9 @@ import { defaultSelected, MOVEMENT_CATEGORIES, type AthleteSettings, type Resolv
 import { STABILITY_HIP } from "@/lib/generator/meta";
 import { baseProfile, type MovementCategory } from "@/lib/profile";
 import { Card } from "@/components/ui/Card";
-
-const CATEGORY_LABEL: Record<MovementCategory, string> = {
-  upperPush: "Upper Push",
-  upperPull: "Upper Pull",
-  lower: "Lower",
-  stabilityAndCore: "Stabilitas & Core",
-  prehab: "Prehab",
-};
+import { useLocale, useT } from "@/lib/i18n/client";
+import { SETTINGS } from "@/lib/i18n/messages/settings";
+import { formatNumber } from "@/lib/i18n/format";
 
 /** Pilih gerakan library yang boleh dipakai generator ST. */
 export function MovementSettings({
@@ -24,6 +19,8 @@ export function MovementSettings({
   onChange: (s: AthleteSettings) => void;
   resolved: ResolvedProfile;
 }) {
+  const locale = useLocale();
+  const t = useT(SETTINGS).movements;
   // Status terpilih dari resolveProfile, termasuk gerakan cadangan yang aktif otomatis.
   const selected = (name: string) =>
     settings.movements[name] ?? resolved.movementStatus[name]?.selected ?? defaultSelected(baseProfile.movementLibrary[categoryOf(name)]!.find((m) => m.name === name)!);
@@ -32,10 +29,10 @@ export function MovementSettings({
   // Gerakan yang dikunci karena diwajibkan kondisi aktif.
   const lockReason = (name: string): string | undefined => {
     const req = resolved.activeConditions.filter((id) => CONDITIONS[id].rules.requiredLower?.includes(name));
-    if (req.length) return `Wajib: ${req.map((id) => CONDITIONS[id].label.split(" (")[0].split(" /")[0]).join(", ")}`;
+    if (req.length) return t.required(req.map((id) => CONDITIONS[id].label.split(" (")[0].split(" /")[0]).join(", "));
     if (resolved.rules.hipStability && STABILITY_HIP.includes(name)) {
       const others = STABILITY_HIP.filter((n) => n !== name && selected(n));
-      if (!others.length && selected(name)) return "Minimal satu gerakan stabilitas panggul";
+      if (!others.length && selected(name)) return t.hipMin;
     }
     return undefined;
   };
@@ -44,17 +41,17 @@ export function MovementSettings({
   const total = counts.reduce((a, b) => a + b, 0);
 
   return (
-    <Card title="Movement library" action={<span className="text-[12px] text-faint">{total} gerakan aktif</span>}>
+    <Card title={t.title} action={<span className="text-[12px] text-faint">{t.active(total)}</span>}>
       <p className="text-[13px] text-muted">
-        Centang gerakan yang boleh dipakai generator ST. Gerakan baru akan ditambahkan di pengembangan berikutnya.
+        {t.intro}
       </p>
       <div className="mt-2 divide-y divide-line">
         {MOVEMENT_CATEGORIES.map((cat, ci) => (
           <details key={cat} className="group">
             <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 text-body font-semibold">
-              <span className="flex-1">{CATEGORY_LABEL[cat]}</span>
+              <span className="flex-1">{t.category[cat]}</span>
               <span className={`text-[12px] ${counts[ci] ? "text-muted" : "font-semibold text-danger-ink"}`}>
-                {counts[ci]}/{baseProfile.movementLibrary[cat].length} aktif
+                {t.count(counts[ci], baseProfile.movementLibrary[cat].length)}
               </span>
               <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
                 ›
@@ -81,11 +78,11 @@ export function MovementSettings({
                         <span className={`block text-[14px] ${isOn ? "font-semibold text-ink" : "text-muted line-through decoration-faint"}`}>{m.name}</span>
                         <span className="tabular block text-[12px] text-muted">
                           {resolvedWeight}
-                          {status?.loads?.length ? ` · bisa: ${status.loads.map((v) => v.toLocaleString("id-ID")).join("/")} kg` : ""}
+                          {status?.loads?.length ? t.loads(status.loads.map((v) => formatNumber(locale, v)).join("/")) : ""}
                         </span>
                         {status?.fallback && !note && settings.movements[m.name] === undefined && (
                           <span className="block text-[12px] text-faint">
-                            {status.autoSelected ? "Cadangan · aktif karena belum ada gerakan lain di kategori ini" : "Cadangan · dipakai bila tidak ada gerakan lain"}
+                            {status.autoSelected ? t.fallbackAuto : t.fallback}
                           </span>
                         )}
                         {note && (

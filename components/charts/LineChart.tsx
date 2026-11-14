@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale } from "@/lib/i18n/client";
+
 import { areaPath, axisNumber, extent, linePath, linearScale, niceTicks, placeLabels, thinLabels, type Point } from "./chart-scale";
 import { useWidth } from "./useWidth";
 
@@ -38,7 +40,7 @@ export function LineChart({
   band,
   target,
   invert = false,
-  yFormat = axisNumber,
+  yFormat,
 }: {
   ariaLabel: string;
   /** Label sumbu-x per indeks; ditipiskan ke ≤ 6. */
@@ -55,6 +57,7 @@ export function LineChart({
   yFormat?: (v: number) => string;
 }) {
   const [ref, width] = useWidth<HTMLDivElement>();
+  const locale = useLocale();
   const n = labels.length;
   const all = [...series.flatMap((s) => s.values), ...(area ?? []), ...(band ?? []), ...(target !== undefined ? [target] : [])];
   const ext = extent(all) ?? [0, 1];
@@ -81,7 +84,7 @@ export function LineChart({
           <g key={t}>
             <line x1={LEFT} x2={width - RIGHT} y1={y(t)} y2={y(t)} className="stroke-line" strokeWidth={1} />
             <text x={LEFT - 6} y={y(t)} dy="0.32em" textAnchor="end" className="fill-muted font-mono text-[11px] tabular-nums">
-              {yFormat(t)}
+              {(yFormat ?? ((v: number) => axisNumber(v, locale)))(t)}
             </text>
           </g>
         ))}

@@ -1,25 +1,28 @@
 "use client";
 
 import { useBlockContext, useBlockMode } from "@/lib/settings-store";
+import { useT } from "@/lib/i18n/client";
+import { GENERATOR } from "@/lib/i18n/messages/generator";
 
 /** Posisi di blok periodisasi: segmen per minggu, minggu berjalan oranye, deload biru. */
 export function BlockBadge() {
   const [enabled] = useBlockMode();
   const block = useBlockContext();
+  const t = useT(GENERATOR).block;
   if (!enabled) {
     return (
       <div className="shrink-0 text-right">
-        <p className="t-label">Program blok</p>
-        <p className="text-body font-semibold text-danger-ink">Nonaktif</p>
-        <p className="t-label">Mode bebas</p>
+        <p className="t-label">{t.program}</p>
+        <p className="text-body font-semibold text-danger-ink">{t.off}</p>
+        <p className="t-label">{t.free}</p>
       </div>
     );
   }
   return (
-    <div className="shrink-0 text-right" aria-label={`Blok ${block.index + 1}, minggu ${block.week} dari ${block.weeks}${block.deload ? ", deload" : ""}`}>
-      <p className="t-label">Blok {block.index + 1}</p>
+    <div className="shrink-0 text-right" aria-label={t.aria(block.index + 1, block.week, block.weeks, block.deload)}>
+      <p className="t-label">{t.label(block.index + 1)}</p>
       <p className={`tabular text-body font-semibold ${block.deload ? "text-info" : "text-ink"}`}>
-        {block.deload ? "Deload" : `Minggu ${block.week}/${block.weeks}`}
+        {block.deload ? t.deload : t.week(block.week, block.weeks)}
       </p>
       <div className="mt-1 flex justify-end gap-1" aria-hidden>
         {Array.from({ length: block.weeks }, (_, i) => {

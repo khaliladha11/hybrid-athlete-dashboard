@@ -8,24 +8,17 @@ import { MAX_DURATION_MIN, sessionLoad, ST_COMPLETE_RATIO } from "@/lib/st-sessi
 import { stSessionStore } from "@/lib/st-session-store";
 import { newEntryId, trainingLog } from "@/lib/training-log";
 import { elapsedMin, finishWorkout, setsDone, setsPlanned, type ActiveWorkout } from "@/lib/workout-state";
-
-/** Skala CR-10 (Foster dkk. 2001) untuk RPE sesi. */
-const CR10: Record<number, string> = {
-  0: "Istirahat",
-  1: "Sangat ringan",
-  2: "Ringan",
-  3: "Sedang",
-  4: "Agak berat",
-  5: "Berat",
-  7: "Sangat berat",
-  10: "Maksimal",
-};
+import { useT } from "@/lib/i18n/client";
+import { WORKOUT } from "@/lib/i18n/messages/workout";
 
 /** Setelah sesi: RPE sesi 0–10 dan durasi (terisi dari timer). Beban = RPE × menit. */
 export function FinishSession({ state, onBack, onSaved }: { state: ActiveWorkout; onBack: () => void; onSaved: (summary: string) => void }) {
   const [rpe, setRpe] = useState<number | null>(null);
   const [minutes, setMinutes] = useState(() => String(Math.min(MAX_DURATION_MIN, elapsedMin(state, Date.now()))));
   const [error, setError] = useState<string | null>(null);
+  const t = useT(WORKOUT).finishForm;
+  /** Skala CR-10 (Foster dkk. 2001) untuk RPE sesi. */
+  const CR10 = t.cr10;
   const done = setsDone(state);
   const total = setsPlanned(state);
   const min = Number(minutes);
@@ -33,19 +26,19 @@ export function FinishSession({ state, onBack, onSaved }: { state: ActiveWorkout
   const partial = total > 0 && done / total < ST_COMPLETE_RATIO;
 
   const save = () => {
-    if (rpe === null) return setError("Pilih RPE sesi.");
-    if (!validMin) return setError(`Isi durasi 1–${MAX_DURATION_MIN} menit.`);
+    if (rpe === null) return setError(t.pickRpe);
+    if (!validMin) return setError(t.fillDuration(MAX_DURATION_MIN));
     const { session, entries } = finishWorkout(state, {
       rpe,
       durationMin: min,
       newId: newEntryId,
     });
     if (!stSessionStore.add(session) || (entries.length && !trainingLog.add(entries))) {
-      return setError("Gagal menyimpan di perangkat ini (mode privat atau memori penuh).");
+      return setError(t.saveFailed);
     }
     // PR kemampuan dari sesi ini (0.14.0).
     const prs = entries.length ? prStore.detectFromLog(trainingLog.all()) : 0;
-    onSaved(`${min}' · RPE ${rpe} · beban ${sessionLoad({ rpe, durationMin: min })} · ${done}/${total} set${prs ? ` · ${prs} PR baru` : ""}`);
+    onSaved(t.summary(min, rpe, sessionLoad({ rpe, durationMin: min }), done, total, prs));
   };
 
   return (
@@ -57,15 +50,15 @@ export function FinishSession({ state, onBack, onSaved }: { state: ActiveWorkout
       className="space-y-4"
     >
       <button type="button" onClick={onBack} className={`${BUTTON.base} ${BUTTON.ghost} -ml-3 px-3`}>
-        ‹ Kembali ke sesi
+        {t.back}
       </button>
       <section className="space-y-4 rounded-card border border-line bg-surface p-5 shadow-card">
         <div>
-          <h1 className="text-[22px] leading-tight font-semibold">Seberat apa sesi ini?</h1>
-          <p className="mt-1 text-[14px] text-muted">Nilai seluruh sesi, bukan set terakhir. 0 istirahat, 10 maksimal.</p>
+          <h1 className="text-[22px] leading-tight font-semibold">{t.title}</h1>
+          <p className="mt-1 text-[14px] text-muted">{t.intro}</p>
         </div>
         <fieldset>
-          <legend className="t-label mb-2">RPE sesi</legend>
+          <legend className="t-label mb-2">{t.rpe}</legend>
           <div role="radiogroup" className="grid grid-cols-4 gap-1.5 min-[420px]:grid-cols-6">
             {Array.from({ length: 11 }, (_, r) => (
               <button
@@ -82,26 +75,26 @@ export function FinishSession({ state, onBack, onSaved }: { state: ActiveWorkout
             ))}
           </div>
           <p className="mt-2 min-h-5 text-[13px] text-muted" aria-live="polite">
-            {rpe !== null ? (CR10[rpe] ?? (rpe > 7 ? "Sangat berat" : "Berat")) : "Pilih satu angka."}
+            {rpe !== null ? (CR10[rpe] ?? (rpe > 7 ? t.veryHard : t.hard)) : t.pickOne}
           </p>
         </fieldset>
         <label className="block">
-          <span className="t-label">Durasi (menit)</span>
+          <span className="t-label">{t.duration}</span>
           <input
             inputMode="numeric"
             value={minutes}
             onChange={(e) => setMinutes(e.target.value)}
             className="tabular mt-1 min-h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-base"
           />
-          <span className="mt-1 block text-[12px] text-muted">Terisi dari timer sesi. Ubah bila sesi sempat terhenti lama.</span>
+          <span className="mt-1 block text-[12px] text-muted">{t.durationHint}</span>
         </label>
         <p className="tabular text-[14px]">
-          Beban sesi: <strong>{rpe !== null && validMin ? sessionLoad({ rpe, durationMin: min }) : "·"}</strong>
-          <span className="text-muted"> (RPE × menit)</span>
+          {t.load}<strong>{rpe !== null && validMin ? sessionLoad({ rpe, durationMin: min }) : "·"}</strong>
+          <span className="text-muted">{t.loadUnit}</span>
         </p>
         <p className="tabular text-[13px] text-muted">
-          {done}/{total} set dicentang
-          {partial ? ": dihitung sebagian di program." : "."}
+          {t.checked(done, total)}
+          {partial ? t.partial : "."}
         </p>
         {error && (
           <p role="alert" className="text-[13px] font-semibold text-danger-ink">
@@ -109,7 +102,7 @@ export function FinishSession({ state, onBack, onSaved }: { state: ActiveWorkout
           </p>
         )}
         <button type="submit" className={`${BUTTON.base} ${BUTTON.primary} ${BUTTON.lg} w-full`}>
-          Simpan sesi
+          {t.save}
         </button>
       </section>
       <section className="rounded-card border border-line bg-surface p-5 shadow-card">

@@ -203,8 +203,11 @@ export function cardElements(m: WeekRunModel, lang: CardLang, opts: { watermark?
 export const CARD_BLOCK = { x: 80, y: 540, w: 920, h: 960 } as const;
 
 /** Kalimat aksesibel kartu (bahasa UI). */
-export function cardAriaLabel(m: WeekRunModel): string {
-  const names = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+export function cardAriaLabel(m: WeekRunModel, lang: CardLang = "id"): string {
+  const names = lang === "en" ? ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] : ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
   const days = m.days.flatMap((d, i) => (d.km === undefined ? [] : [`${names[i]} ${dayValue(d.km)} km`]));
-  return `Minggu ini, lari ${totalValue(m.totalKm)} km dari ${m.runs} lari, ${rangeText(m.from, m.to, "id").toLowerCase()}.${days.length ? ` ${days.join(", ")}.` : ""}`;
+  const list = days.length ? ` ${days.join(", ")}.` : "";
+  const range = rangeText(m.from, m.to, lang).toLowerCase();
+  if (lang === "en") return `This week, ran ${totalValue(m.totalKm)} km over ${m.runs} ${m.runs === 1 ? "run" : "runs"}, ${range}.${list}`;
+  return `Minggu ini, lari ${totalValue(m.totalKm)} km dari ${m.runs} lari, ${range}.${list}`;
 }

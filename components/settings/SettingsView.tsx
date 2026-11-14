@@ -16,17 +16,10 @@ import { HrZonesSettings, type HrRefs } from "./HrZonesSettings";
 import { RunZonesSettings } from "./RunZonesSettings";
 import type { Availability } from "@/lib/sync/server";
 import { SyncSecurityCard } from "./SyncSecurityCard";
+import { useT } from "@/lib/i18n/client";
+import { SETTINGS } from "@/lib/i18n/messages/settings";
 
-const SECTIONS = [
-  ["profil", "Profil"],
-  ["kondisi", "Kondisi"],
-  ["zona", "Zona lari"],
-  ["alat", "Alat"],
-  ["gerakan", "Gerakan"],
-  ["tampilan", "Tampilan"],
-  ["data", "Data"],
-  ["tentang", "Tentang"],
-] as const;
+const SECTIONS = [["profil"], ["kondisi"], ["zona"], ["alat"], ["gerakan"], ["tampilan"], ["data"], ["tentang"]] as const;
 type SectionId = (typeof SECTIONS)[number][0];
 
 const FLASH_MS = 1300;
@@ -80,6 +73,7 @@ export function SettingsView({ status = OFF, hrRefs, version = "" }: { status?: 
   const [flash, setFlash] = useState<{ id: SectionId; key: number } | null>(null);
   const navRef = useRef<HTMLElement>(null);
   const jumping = useRef(false);
+  const t = useT(SETTINGS).nav;
 
   // Scroll spy: section aktif = yang terakhir melewati bawah nav sticky; di dasar halaman = section terakhir.
   useEffect(() => {
@@ -157,11 +151,11 @@ export function SettingsView({ status = OFF, hrRefs, version = "" }: { status?: 
       <PendingCard />
       <nav
         ref={navRef}
-        aria-label="Bagian setting"
+        aria-label={t.label}
         className="sticky top-[env(safe-area-inset-top)] z-10 -mx-4 overflow-x-auto bg-bg/95 px-4 py-2 backdrop-blur [scrollbar-width:none]"
       >
         <ul className="flex gap-2">
-          {SECTIONS.map(([id, label]) => {
+          {SECTIONS.map(([id]) => {
             const on = active === id;
             return (
               <li key={id}>
@@ -177,7 +171,7 @@ export function SettingsView({ status = OFF, hrRefs, version = "" }: { status?: 
                     on ? "border-brand bg-brand-soft text-brand-ink" : "border-line-strong bg-surface text-ink hover:bg-subtle"
                   }`}
                 >
-                  {label}
+                  {t[id]}
                 </a>
               </li>
             );

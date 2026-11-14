@@ -6,6 +6,8 @@ import { BUTTON } from "@/components/ui/Card";
 import { completeTour } from "@/lib/onboarding";
 import { useOnboardingState } from "@/lib/onboarding-store";
 import { TOUR_STEPS, holeRect, placePopover, type Rect } from "@/lib/tour";
+import { useT } from "@/lib/i18n/client";
+import { ONBOARDING } from "@/lib/i18n/messages/onboarding";
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
 /** Durasi fade keluar (lebih cepat dari masuk 180ms, DESIGN-SYSTEM §5). */
@@ -63,6 +65,8 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
 
 function TourLayer({ index, closing, onBack, onNext, onSkip }: { index: number; closing: boolean; onBack: () => void; onNext: () => void; onSkip: () => void }) {
   const step = TOUR_STEPS[index];
+  const t = useT(ONBOARDING).tour;
+  const copy = t.steps[step.id] ?? step;
   const last = index === TOUR_STEPS.length - 1;
   const router = useRouter();
   const pathname = usePathname();
@@ -193,25 +197,25 @@ function TourLayer({ index, closing, onBack, onNext, onSkip }: { index: number; 
         style={{ top: pos?.top ?? 0, left: pos?.left ?? 16, width: pos?.width ?? popSize.width, transformOrigin: origin }}
       >
         <p className="t-label">
-          Tur · {index + 1}/{TOUR_STEPS.length}
+          {t.step(index + 1, TOUR_STEPS.length)}
         </p>
         <h2 id="tour-title" className="mt-1.5 text-[15px] leading-snug font-semibold">
-          {step.title}
+          {copy.title}
         </h2>
         <p id="tour-body" className="mt-1 text-[13px] leading-snug text-muted">
-          {step.body}
+          {copy.body}
         </p>
         <div className="mt-2 flex items-center gap-2">
           <button type="button" onClick={onSkip} className={`${BUTTON.base} ${BUTTON.ghost} mr-auto px-3 text-body text-muted`}>
-            Lewati tur
+            {t.skip}
           </button>
           {index > 0 && (
             <button type="button" onClick={onBack} className={`${BUTTON.base} ${BUTTON.secondary} px-3 text-body`}>
-              Kembali
+              {t.back}
             </button>
           )}
           <button ref={primaryRef} type="button" onClick={onNext} className={`${BUTTON.base} ${BUTTON.primary} px-4 text-body`}>
-            {last ? "Selesai" : "Lanjut"}
+            {last ? t.done : t.next}
           </button>
         </div>
       </div>

@@ -6,6 +6,8 @@ import type { Advice, Suggestion } from "@/lib/coach";
 import { adviceLevel, SEVERITY_RANK, type CoachLevel } from "@/lib/coach-collapse";
 import { DIFFICULTY_LABEL } from "@/lib/generator/types";
 import { INTENSITY_TONE, TONES, type Tone } from "@/components/ui/tones";
+import type { Locale } from "@/lib/i18n/locale";
+import { GENERATOR } from "@/lib/i18n/messages/generator";
 
 export interface Severity {
   word: string;
@@ -16,24 +18,21 @@ export interface Severity {
   rank?: number;
 }
 
-const LEVEL: Record<CoachLevel, { word: string; tone?: Tone }> = {
-  easy: { word: "Easy", tone: "success" },
-  lower: { word: "Turunkan", tone: "warning" },
-  limit: { word: "Batasi", tone: "warning" },
-  info: { word: "Info" },
-};
+const LEVEL_TONE: Record<CoachLevel, Tone | undefined> = { easy: "success", lower: "warning", limit: "warning", info: undefined };
 
 /** Dari daftar saran (Profil, tanpa pilihan aktif). */
-export function adviceSeverity(advice: Advice[]): Severity {
+export function adviceSeverity(advice: Advice[], locale: Locale = "id"): Severity {
   const level = adviceLevel(advice);
-  const { word, tone } = LEVEL[level];
+  const word = GENERATOR[locale].coach.level[level];
+  const tone = LEVEL_TONE[level];
   return { word, tone, className: tone ? TONES[tone].ink : "text-muted", rank: SEVERITY_RANK[level] };
 }
 
 /** Dari saran terhadap pilihan saat ini (generator). */
-export function suggestionSeverity(s: Suggestion): Severity {
+export function suggestionSeverity(s: Suggestion, locale: Locale = "id"): Severity {
+  const t = GENERATOR[locale].coach;
   if (s.difficulty) return { word: DIFFICULTY_LABEL[s.difficulty], className: TONES[INTENSITY_TONE[s.difficulty]].ink };
-  if (s.duration) return { word: "Batasi", className: TONES.warning.ink };
-  if (s.type) return { word: "Ganti tipe", className: TONES.warning.ink };
-  return { word: "Sesuai", className: TONES.success.ink };
+  if (s.duration) return { word: t.limit, className: TONES.warning.ink };
+  if (s.type) return { word: t.changeType, className: TONES.warning.ink };
+  return { word: t.fits, className: TONES.success.ink };
 }

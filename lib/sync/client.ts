@@ -20,7 +20,7 @@ export const SYNC_META_KEY = "hybrid-athlete.sync.v1";
 export const DEBOUNCE_MS = 2000;
 
 /** Key localStorage yang termasuk data sinkron. */
-const SYNCED_KEYS = new Set<string>([PREF_KEYS.settings, PREF_KEYS.program, PREF_KEYS.theme, PREF_KEYS.blockEnabled, PREF_KEYS.onboarding, PREF_KEYS.log, PREF_KEYS.prs, PREF_KEYS.sessions, PREF_KEYS.checkins]);
+const SYNCED_KEYS = new Set<string>([PREF_KEYS.settings, PREF_KEYS.program, PREF_KEYS.theme, PREF_KEYS.blockEnabled, PREF_KEYS.lang, PREF_KEYS.onboarding, PREF_KEYS.log, PREF_KEYS.prs, PREF_KEYS.sessions, PREF_KEYS.checkins]);
 
 // ---------- Meta & status (localStorage langsung, tanpa memicu perubahan lokal) ----------
 
@@ -58,6 +58,7 @@ function readLocal(): PartData {
       theme: readStored(PREF_KEYS.theme),
       blockEnabled: readStored(PREF_KEYS.blockEnabled),
       onboarding: readStored(PREF_KEYS.onboarding),
+      lang: readStored(PREF_KEYS.lang),
     },
     trainingLog.all(),
     baseProfile,
@@ -79,6 +80,8 @@ function applyLocal(changes: Partial<PartData>) {
     if ("preferences" in changes) {
       writeStored(PREF_KEYS.theme, raw.theme);
       writeStored(PREF_KEYS.blockEnabled, raw.blockEnabled);
+      // Bahasa: LocaleProvider memantau kunci ini, lalu memperbarui cookie dan merender ulang.
+      writeStored(PREF_KEYS.lang, raw.lang ?? null);
       applyTheme(next.preferences.theme ?? "system");
     }
     if (changes.log) trainingLog.replaceAll(changes.log);

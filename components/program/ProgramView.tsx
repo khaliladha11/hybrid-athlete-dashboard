@@ -20,6 +20,9 @@ import { PredictionCard } from "./PredictionCard";
 import { PostRaceOffer, RaceWeekChecklist, countdownText } from "./RaceDay";
 import { TargetForm } from "./TargetForm";
 import { WeekSessions } from "./WeekSessions";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { PROGRAM } from "@/lib/i18n/messages/program";
+import { DAY_MONTH, formatDay, WEEKDAY_LONG } from "@/lib/i18n/format";
 
 /** Warna fase: Base hijau (ringan), Build kuning, Peak merah (paling berat), Taper biru. */
 const PHASE_STYLE: Record<Phase, { fill: string; text: string }> = {
@@ -30,13 +33,12 @@ const PHASE_STYLE: Record<Phase, { fill: string; text: string }> = {
   taper: { fill: "bg-info", text: "text-info" },
 };
 
-const DAY_MONTH = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
-const WEEKDAY = new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "UTC" });
-const weekdayYear = (d: Date) => `${WEEKDAY.format(d)}, ${d.getUTCFullYear()}`;
 
 /** Halaman Program: pengaturan target, status sesi per minggu dari aktivitas (0.13), dan rencana semua minggu. */
 export function ProgramView({ today, activities, oldest, longAdjust }: { today: string; activities: Activity[]; oldest: string; longAdjust?: { km: number; easy: boolean } }) {
   const plan = useProgramPlan({ activities, oldest, today });
+  const locale = useLocale();
+  const t = useT(PROGRAM).view;
   const { settings, program } = plan;
   // Tanggal mulai selalu dinormalkan ke Senin.
   const startDate = startOfWeekMonday(settings.startDate);
@@ -55,7 +57,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
     const d = program && prediction?.distances.find((x) => x.distance === program.input.race);
     return d ? d.seconds / (d.meters / 1000) : undefined;
   })();
-  const countdown = program && plan.saved ? countdownText(program, today) : null;
+  const countdown = program && plan.saved ? countdownText(program, today, locale) : null;
 
   return (
     <div className="space-y-4">
@@ -66,12 +68,12 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
           {plan.saved && postRaceOffer(program, athlete.raceResults, today) && <PostRaceOffer program={program} />}
           <Card
             title={program.spec.label}
-            action={<span className={pillClasses(current ? "success" : "danger")}>{current ? `Minggu ${current}/${program.weeks.length}` : today < startDate ? "Belum mulai" : "Selesai"}</span>}
+            action={<span className={pillClasses(current ? "success" : "danger")}>{current ? t.week(current, program.weeks.length) : today < startDate ? t.notStarted : t.finished}</span>}
           >
             <div className="grid grid-cols-3 gap-x-3 gap-y-3">
-              <Fact label="Hari lomba" value={DAY_MONTH.format(new Date(`${program.raceDate}T00:00:00Z`))} sub={weekdayYear(new Date(`${program.raceDate}T00:00:00Z`))} />
-              <Fact label="Race pace" value={formatPaceSec(program.racePaceSec).replace("/km", "")} sub="/km" />
-              <Fact label="Durasi" value={`${program.weeks.length}`} sub="minggu" />
+              <Fact label={t.raceDay} value={formatDay(locale, program.raceDate, DAY_MONTH)} sub={`${formatDay(locale, program.raceDate, WEEKDAY_LONG)}, ${program.raceDate.slice(0, 4)}`} />
+              <Fact label={t.racePace} value={formatPaceSec(program.racePaceSec).replace("/km", "")} sub="/km" />
+              <Fact label={t.duration} value={`${program.weeks.length}`} sub={t.weeks} />
             </div>
             {countdown && <p className="t-label tabular mt-3 text-ink">{countdown}</p>}
 
@@ -90,8 +92,8 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
               </ul>
             )}
             <p className="mt-3 text-[12px] text-faint">
-              Long run awal {plan.baseLongRunKm ? `dari lari terjauh 30 hari sebelum program mulai (${plan.baseLongRunKm} km)` : "memakai default program"}.
-              {!plan.saved && " Ini pratinjau. Pilih Hari H lalu Buat program untuk menyimpan program dan melihat status sesi."}
+              {plan.baseLongRunKm ? t.longStartData(plan.baseLongRunKm) : t.longStartDefault}
+              {!plan.saved && t.preview}
             </p>
             {plan.error && (
               <div className="mt-3">
@@ -103,8 +105,8 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
           {currentWeek && (
             <div id="minggu-ini" className="scroll-mt-4">
               <Card
-                title={`Minggu ini · ${PHASE_LABEL[currentWeek.phase]}`}
-                action={<CopyButton text={weekToText(program, currentWeek)} label="Copy" className={`${BUTTON.secondary} min-h-9 px-3 text-[13px]`} />}
+                title={t.thisWeek(PHASE_LABEL[currentWeek.phase])}
+                action={<CopyButton text={weekToText(program, currentWeek)} label={t.copy} className={`${BUTTON.secondary} min-h-9 px-3 text-[13px]`} />}
               >
                 {showStatus && plan.active && (
                   <div id="sesi-minggu-ini" className="mb-4 scroll-mt-4 border-b border-line pb-4 empty:hidden">
@@ -120,7 +122,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
 
           {!plan.loading && <PredictionCard program={program} prediction={prediction} />}
 
-          <Card title="Semua minggu" flush className="!pb-1">
+          <Card title={t.allWeeks} flush className="!pb-1">
             <ul className="divide-y divide-line">
               {program.weeks.map((w) => (
                 <li key={w.index}>
@@ -129,16 +131,16 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
                       <span className={`h-8 w-1 shrink-0 rounded-full ${PHASE_STYLE[w.phase].fill}`} aria-hidden />
                       <div className="min-w-0 flex-1">
                         <p className="text-body font-semibold">
-                          Minggu {w.index}
-                          {w.index === current && <span className="ml-2 text-[12px] font-semibold text-brand-ink">● sekarang</span>}
+                          {t.weekN(w.index)}
+                          {w.index === current && <span className="ml-2 text-[12px] font-semibold text-brand-ink">{t.now}</span>}
                         </p>
                         <p className="text-[13px] text-muted">
                           <span className={`font-semibold ${PHASE_STYLE[w.phase].text}`}>{PHASE_LABEL[w.phase]}</span>
-                          {w.cutback && " · cutback"} · {formatDateId(w.start)} · ±{w.totalKm} km
+                          {w.cutback && t.cutback} · {formatDateId(w.start, locale)} · ±{w.totalKm} km
                           {showStatus && w.start <= today && (
                             <span className="tabular">
                               {" "}
-                              · {doneOf(w.index)}/{weekSessions(w.index).length} terpenuhi
+                              · {t.fulfilled(doneOf(w.index), weekSessions(w.index).length)}
                             </span>
                           )}
                         </p>
@@ -157,7 +159,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
           </Card>
 
           {plan.archived.length > 0 && showStatus && (
-            <Card title="Program sebelumnya" flush className="!pb-1">
+            <Card title={t.previous} flush className="!pb-1">
               <ul className="divide-y divide-line">
                 {[...plan.archived].reverse().map((a) => {
                   const weeks = a.program.weeks.filter((w) => a.sessions.some((s) => s.week === w.index));
@@ -169,7 +171,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
                           <div className="min-w-0 flex-1">
                             <p className="text-body font-semibold">{a.program.spec.label}</p>
                             <p className="tabular text-[13px] text-muted">
-                              {formatDateId(a.archive.startDate)} sampai {formatDateId(addDays(a.archive.endedAt, -1))} · Hari H {formatDateId(a.archive.raceDate)} · {done}/{a.sessions.length} terpenuhi
+                              {t.archiveLine(formatDateId(a.archive.startDate, locale), formatDateId(addDays(a.archive.endedAt, -1), locale), formatDateId(a.archive.raceDate, locale), done, a.sessions.length)}
                             </p>
                           </div>
                           <span className="text-[13px] text-faint transition-transform duration-150 ease-out group-open:rotate-90 motion-reduce:transition-none" aria-hidden>
@@ -180,7 +182,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
                           {weeks.map((w) => (
                             <div key={w.index}>
                               <p className="t-label mb-2">
-                                Minggu {w.index} · {PHASE_LABEL[w.phase]}
+                                {t.weekPhase(w.index, PHASE_LABEL[w.phase])}
                               </p>
                               <WeekDetail week={w} sessions={a.sessions.filter((s) => s.week === w.index)} results={plan.results} />
                             </div>
@@ -194,7 +196,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
             </Card>
           )}
 
-          <Card title="Kombinasi dengan strength">
+          <Card title={t.strength}>
             <p className="text-[14px] text-ink">{program.strengthNote}</p>
           </Card>
         </>
@@ -215,6 +217,7 @@ function Fact({ label, value, sub }: { label: string; value: string; sub?: strin
 
 function PhaseBar({ weeks, current }: { weeks: ProgramWeek[]; current: number }) {
   const phases = [...new Set(weeks.map((w) => w.phase))];
+  const t = useT(PROGRAM).view;
   return (
     <div className="mt-4">
       <div className="flex gap-1" aria-hidden>
@@ -236,7 +239,7 @@ function PhaseBar({ weeks, current }: { weeks: ProgramWeek[]; current: number })
         ))}
         <span className="inline-flex items-center gap-1">
           <span className="h-2 w-2 rounded-full bg-faint opacity-50" />
-          Cutback
+          {t.phaseCutback}
         </span>
       </div>
     </div>
@@ -244,6 +247,8 @@ function PhaseBar({ weeks, current }: { weeks: ProgramWeek[]; current: number })
 }
 
 function WeekDetail({ week, sessions, results }: { week: ProgramWeek; sessions: PlannedSession[]; results?: Map<string, SessionResult> }) {
+  const locale = useLocale();
+  const t = useT(PROGRAM).view;
   return (
     <div className="space-y-2">
       <p className="text-[13px] text-muted">{week.focus}</p>
@@ -251,7 +256,7 @@ function WeekDetail({ week, sessions, results }: { week: ProgramWeek; sessions: 
         {sessions.map((s) => {
           const tone: Tone = INTENSITY_TONE[s.intensity];
           const r = results?.get(s.id);
-          const note = sessionNote(r);
+          const note = sessionNote(r, locale);
           const st = s.kind === "st-lower" || s.kind === "st-upper";
           return (
             <li key={s.id} className="flex gap-3 rounded-inner bg-subtle px-3 py-2.5">
@@ -259,13 +264,13 @@ function WeekDetail({ week, sessions, results }: { week: ProgramWeek; sessions: 
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-body font-semibold">
-                    <span className="text-muted">{s.day} (disarankan) · </span>
+                    <span className="text-muted">{s.day} {t.suggested} · </span>
                     {s.title}
                   </p>
                   {st ? (
-                    <span className="t-label shrink-0 pt-1">Strength</span>
+                    <span className="t-label shrink-0 pt-1">{t.strengthTag}</span>
                   ) : (
-                    <span className={`shrink-0 ${pillClasses(tone)}`}>{s.kind === "race" ? "Lomba" : DIFFICULTY_LABEL[s.intensity]}</span>
+                    <span className={`shrink-0 ${pillClasses(tone)}`}>{s.kind === "race" ? t.race : DIFFICULTY_LABEL[s.intensity]}</span>
                   )}
                 </div>
                 {s.detail && <p className="mt-0.5 text-[13px] text-muted">{s.detail}</p>}
@@ -281,7 +286,7 @@ function WeekDetail({ week, sessions, results }: { week: ProgramWeek; sessions: 
         })}
       </ul>
       <p className="text-[12px] text-faint">
-        Total ±{week.totalKm} km · {formatDateId(week.start)} sampai {formatDateId(addDays(week.start, 6))}. Hari hanya saran; sesi boleh dikerjakan di hari apa pun minggu ini.
+        {t.weekFooter(week.totalKm, formatDateId(week.start, locale), formatDateId(addDays(week.start, 6), locale))}
       </p>
     </div>
   );

@@ -7,22 +7,26 @@ import { compactDuration, formatPaceTag } from "@/components/ui/format";
 import { formatDateId, formatTimeOfDay } from "@/lib/date";
 import { getActivityDetail } from "@/lib/intervals/data-source";
 import { CATEGORY_LABEL, formatDuration } from "@/lib/intervals/summary";
+import type { Locale } from "@/lib/i18n/locale";
+import { MISC } from "@/lib/i18n/messages/misc";
+import { getLocale } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function ActivityPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const res = await getActivityDetail(decodeURIComponent(id));
+  const locale = await getLocale();
 
   return (
     <div className="space-y-3">
       <Link href="/" className="inline-flex min-h-11 items-center text-body text-muted hover:text-ink">
-        ← Profil
+        {MISC[locale].activity.back}
       </Link>
       {!res.ok ? (
         <ErrorState error={res.error} />
       ) : (
-        <ActivityDetailView data={res.data} />
+        <ActivityDetailView data={res.data} locale={locale} />
       )}
     </div>
   );
@@ -30,18 +34,19 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
 
 type Detail = Extract<Awaited<ReturnType<typeof getActivityDetail>>, { ok: true }>["data"];
 
-function ActivityDetailView({ data }: { data: Detail }) {
+function ActivityDetailView({ data, locale }: { data: Detail; locale: Locale }) {
+  const t = MISC[locale].activity;
   const empty = (v: number | undefined) => (v ? undefined : true);
-  const dur = compactDuration(data.movingTimeSec);
+  const dur = compactDuration(data.movingTimeSec, locale);
   const onFoot = data.category === "run" || data.category === "walk";
 
   return (
     <>
-      <Card tone="tag" kicker={`${CATEGORY_LABEL[data.category]} · ${formatDateId(data.date)} ${formatTimeOfDay(data.startLocal)}`} title={<span className="block">{data.name}</span>}>
+      <Card tone="tag" kicker={`${CATEGORY_LABEL[data.category]} · ${formatDateId(data.date, locale)} ${formatTimeOfDay(data.startLocal)}`} title={<span className="block">{data.name}</span>}>
         <StatRow
           items={[
-            { label: "Jarak", value: data.distanceKm ? data.distanceKm.toFixed(2) : undefined, unit: "km", muted: empty(data.distanceKm) },
-            { label: "Durasi", value: dur?.value, unit: dur?.unit ?? "waktu" },
+            { label: t.distance, value: data.distanceKm ? data.distanceKm.toFixed(2) : undefined, unit: "km", muted: empty(data.distanceKm) },
+            { label: t.duration, value: dur?.value, unit: dur?.unit ?? t.time },
             { label: "Pace", value: formatPaceTag(data.avgPaceSecPerKm), unit: "/km", muted: empty(data.avgPaceSecPerKm) },
             { label: "Avg HR", value: data.avgHr ? Math.round(data.avgHr) : undefined, unit: "bpm" },
             { label: "Cadence", value: data.cadenceSpm, unit: "spm" },
@@ -50,30 +55,26 @@ function ActivityDetailView({ data }: { data: Detail }) {
         />
         {data.source === "STRAVA" && (
           <p className="mt-4 border-t border-line pt-4 text-[13px] text-muted">
-            Aktivitas ini datang dari Strava. intervals.icu tidak boleh meneruskan isi aktivitas Strava lewat API, jadi datanya kosong di sini. Sambungkan jam langsung ke intervals.icu agar datanya lengkap.
+            {t.strava}
           </p>
         )}
       </Card>
 
       {data.splits.length > 0 ? (
-        <SplitsCard data={data} />
+        <SplitsCard data={data} locale={locale} />
       ) : (
         onFoot &&
         data.intervals.length <= 1 && (
-          <Card title="Split per km">
+          <Card title={t.splits}>
             <p className="text-body text-muted">
-              {data.splitIssue === "no-gps"
-                ? "Split belum tersedia: data dari jam di intervals.icu hanya berisi total jarak, tanpa GPS per detik, jadi pace tiap km tidak bisa dihitung."
-                : data.splitIssue === "inconsistent"
-                  ? "Split tidak ditampilkan: data per detik dari jam tidak cocok dengan ringkasan aktivitas (jumlah jarak atau waktu split meleset jauh), jadi pace tiap km tidak bisa dipercaya."
-                  : "Split belum tersedia: intervals.icu tidak punya data per detik untuk aktivitas ini."}
+              {data.splitIssue === "no-gps" ? t.noGps : data.splitIssue === "inconsistent" ? t.inconsistent : t.noStreams}
             </p>
           </Card>
         )
       )}
 
       {/* Satu interval = seluruh sesi, sama dengan ringkasan di atas; hanya tampil bila ada struktur atau lap. */}
-      {data.intervals.length > 1 && <IntervalsCard data={data} />}
+      {data.intervals.length > 1 && <IntervalsCard data={data} locale={locale} />}
     </>
   );
 }
@@ -81,7 +82,8 @@ function ActivityDetailView({ data }: { data: Detail }) {
 /** Label split: nomor km, atau jarak untuk sisa terakhir yang kurang dari 1 km. */
 const splitLabel = (km: number, index: number) => (km >= 0.995 ? String(index) : km.toFixed(2));
 
-function SplitsCard({ data }: { data: Detail }) {
+function SplitsCard({ data, locale }: { data: Detail; locale: Locale }) {
+  const t = MISC[locale].activity;
   const segments = splitSegments(data.splits);
   const full = data.splits.filter((s) => s.distanceKm >= 0.995 && s.avgPaceSecPerKm);
   const fastest = full.length > 1 ? full.reduce((a, b) => (b.avgPaceSecPerKm! < a.avgPaceSecPerKm! ? b : a)) : undefined;
@@ -89,19 +91,19 @@ function SplitsCard({ data }: { data: Detail }) {
   const faint = <span className="text-faint">·</span>;
 
   return (
-    <Card title="Split per km" flush action={<span className="t-label">{data.splits.length} split</span>}>
+    <Card title={t.splits} flush action={<span className="t-label">{t.splitCount(data.splits.length)}</span>}>
       {segments.length > 1 && (
         <div className="px-5 pb-4">
           <SegmentSkyline
             mode="done"
             segments={segments}
-            ariaLabel={`Pace per km ${data.name}: ${data.splits.map((s) => `${splitLabel(s.distanceKm, s.index)} ${formatPaceTag(s.avgPaceSecPerKm)}`).join(", ")}.`}
+            ariaLabel={t.splitsAria(data.name, data.splits.map((s) => `${splitLabel(s.distanceKm, s.index)} ${formatPaceTag(s.avgPaceSecPerKm)}`).join(", "))}
           />
           {fastest && (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
-              <span className="t-label">{data.splitSource === "gps" ? "Dihitung dari GPS" : "Lebar = waktu · tinggi = kecepatan"}</span>
+              <span className="t-label">{data.splitSource === "gps" ? t.fromGps : t.legend}</span>
               <span className="t-label font-semibold text-brand-ink">
-                Km {fastest.index} tercepat {formatPaceTag(fastest.avgPaceSecPerKm)}/km
+                {t.fastestKm(fastest.index, formatPaceTag(fastest.avgPaceSecPerKm))}
               </span>
             </div>
           )}
@@ -141,23 +143,24 @@ function SplitsCard({ data }: { data: Detail }) {
   );
 }
 
-function IntervalsCard({ data }: { data: Detail }) {
+function IntervalsCard({ data, locale }: { data: Detail; locale: Locale }) {
+  const t = MISC[locale].activity;
   const segments = doneSegments(data.intervals);
   const summary = summarizeDone(segments);
   return (
-    <Card title="Interval / lap" flush>
+    <Card title={t.intervals} flush>
       {segments.length > 1 && (
         <div className="px-5 pb-4">
           <SegmentSkyline
             mode="done"
             segments={segments}
-            ariaLabel={`Bentuk sesi ${data.name}: ${summary.structure}${summary.bestPace ? `, rep tercepat ${formatPaceTag(summary.bestPace)} per km` : ""}. Rincian di daftar di bawah.`}
+            ariaLabel={t.shapeAria(data.name, summary.structure, summary.bestPace ? formatPaceTag(summary.bestPace) : null)}
           />
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
             <span className="t-label">{summary.structure}</span>
             {summary.bestPace && (
               <span className="t-label font-semibold text-brand-ink">
-                {summary.hasWork ? "Best rep" : "Tercepat"} {formatPaceTag(summary.bestPace)}/km
+                {summary.hasWork ? t.bestRep : t.fastest} {formatPaceTag(summary.bestPace)}/km
               </span>
             )}
           </div>

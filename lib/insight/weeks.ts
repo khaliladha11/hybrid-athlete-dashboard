@@ -1,3 +1,5 @@
+import { DAY_MONTH, formatDay } from "../i18n/format";
+import type { Locale } from "../i18n/locale";
 /**
  * Minggu Insight (docs/INSIGHT.md §3): Senin sampai Minggu WIB, sama dengan Week Ledger dan program. Murni: tanggal
  * dari parameter sebagai string YYYY-MM-DD (dihitung di UTC, jadi bebas DST).
@@ -32,10 +34,8 @@ export function bucketIndex(date: string | undefined, buckets: WeekBucket[]): nu
   return buckets.findIndex((b) => b.start === start);
 }
 
-const LABEL = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
-
-/** Label sumbu minggu: tanggal Senin, mis. "5 Okt". */
-export const weekLabel = (start: string) => LABEL.format(new Date(`${start}T00:00:00Z`)).replace(".", "");
+/** Label sumbu minggu: tanggal Senin, mis. "5 Okt" / "5 Oct". */
+export const weekLabel = (start: string, locale: Locale = "id") => formatDay(locale, start, DAY_MONTH).replace(".", "");
 
 /** Hari dalam rentang (inklusif), lama → baru. */
 export function daysBetween(from: string, to: string): string[] {

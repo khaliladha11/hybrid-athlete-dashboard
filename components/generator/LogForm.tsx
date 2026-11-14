@@ -9,6 +9,8 @@ import { findMovement, parseWeight, type MovementLibrary } from "@/lib/profile";
 import { parseRepRange, type LogEntry } from "@/lib/progression";
 import { prStore } from "@/lib/pr-store";
 import { newEntryId, trainingLog } from "@/lib/training-log";
+import { useT } from "@/lib/i18n/client";
+import { GENERATOR } from "@/lib/i18n/messages/generator";
 
 const RPE_OPTIONS = [4, 5, 6, 7, 8, 9];
 
@@ -48,6 +50,7 @@ export function LogForm({
 }) {
   const [rows, setRows] = useState<Row[]>(() => workout.items.filter((i) => i.anchor).map(initialRow));
   const [error, setError] = useState<string | null>(null);
+  const t = useT(GENERATOR).log;
 
   const update = (i: number, patch: Partial<Row>) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
 
@@ -57,12 +60,12 @@ export function LogForm({
     for (const r of rows) {
       const value = Number(r.value.replace(",", "."));
       if (!Number.isFinite(value) || value <= 0) {
-        setError(`Isi ${r.item.durationSec ? "detik" : "repetisi"} untuk ${r.item.movement}.`);
+        setError(t.fillValue(!!r.item.durationSec, r.item.movement));
         return;
       }
       const load = r.item.load.kind === "load" ? Number(r.load.replace(",", ".")) : undefined;
       if (load !== undefined && (!Number.isFinite(load) || load <= 0)) {
-        setError(`Isi beban (kg) untuk ${r.item.movement}.`);
+        setError(t.fillLoad(r.item.movement));
         return;
       }
       const target = r.item.durationSec
@@ -86,7 +89,7 @@ export function LogForm({
       });
     }
     if (!trainingLog.add(entries)) {
-      setError("Gagal menyimpan di perangkat ini (mode privat atau memori penuh).");
+      setError(t.saveFailed);
       return;
     }
     // PR kemampuan dari sesi ini (0.14.0).
@@ -105,8 +108,8 @@ export function LogForm({
       className="swap-in mt-4 space-y-4 rounded-card border border-line-strong p-4"
     >
       <div>
-        <h3 className="text-base font-semibold">Catat sesi: gerakan utama ★</h3>
-        <p className="text-[13px] text-muted">Isi set terakhir. Disimpan di perangkat ini saja.</p>
+        <h3 className="text-base font-semibold">{t.title}</h3>
+        <p className="text-[13px] text-muted">{t.intro}</p>
       </div>
       {rows.map((r, i) => {
         const spec = parseWeight(findMovement(r.item.movement, library)?.weight ?? "");
@@ -117,7 +120,7 @@ export function LogForm({
             <div className="grid grid-cols-2 gap-2">
               {r.item.load.kind === "load" && spec.kind === "load" && (
                 <label className="text-[12px] text-muted">
-                  Beban (kg{spec.perHand ? "/tangan" : ""})
+                  {t.load(!!spec.perHand)}
                   <input
                     type="text"
                     inputMode="decimal"
@@ -130,7 +133,7 @@ export function LogForm({
               )}
               {r.item.load.kind === "band" && spec.kind === "band" && (
                 <label className="text-[12px] text-muted">
-                  Band
+                  {t.band}
                   <select
                     value={r.band}
                     onChange={(e) => update(i, { band: e.target.value })}
@@ -143,7 +146,7 @@ export function LogForm({
                 </label>
               )}
               <label className="text-[12px] text-muted">
-                {sec ? "Detik tercapai" : "Rep set terakhir"}
+                {sec ? t.secondsDone : t.lastReps}
                 <input
                   type="text"
                   inputMode="numeric"
@@ -181,10 +184,10 @@ export function LogForm({
       )}
       <div className="grid grid-cols-2 gap-2">
         <button type="button" onClick={onDone} className={`${BUTTON.base} ${BUTTON.secondary}`}>
-          Batal
+          {t.cancel}
         </button>
         <button type="submit" className={`${BUTTON.base} ${BUTTON.primary}`}>
-          Simpan
+          {t.save}
         </button>
       </div>
     </form>

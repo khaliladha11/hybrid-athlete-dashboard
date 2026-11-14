@@ -5,11 +5,15 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { ABOUT_LINKS, formatReleaseDate, isNewer, newVersionText, RELEASE_DATE, releaseUrl, UPDATE_HINT } from "@/lib/app-info";
 
+import { useT } from "@/lib/i18n/client";
+import { SETTINGS } from "@/lib/i18n/messages/settings";
+
 const LINK = "inline-flex min-h-11 items-center text-sm font-semibold text-brand-ink underline underline-offset-2";
 
 /** Setting › Tentang & versi (1.0): versi terpasang, tautan, dan "Ada versi baru" bila rilis upstream lebih baru. */
 export function AboutCard({ version }: { version: string }) {
   const [latest, setLatest] = useState<string | undefined>();
+  const t = useT(SETTINGS).about;
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -22,13 +26,13 @@ export function AboutCard({ version }: { version: string }) {
   }, []);
 
   return (
-    <Card title="Tentang & versi">
+    <Card title={t.title}>
       <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1">
-        <dt className="t-label">Versi</dt>
+        <dt className="t-label">{t.version}</dt>
         <dd className="font-mono text-sm" data-testid="app-version">
           {version}
         </dd>
-        <dt className="t-label">Dirilis</dt>
+        <dt className="t-label">{t.released}</dt>
         <dd className="text-sm">{formatReleaseDate(RELEASE_DATE)}</dd>
       </dl>
       {isNewer(latest, version) && (
@@ -42,7 +46,7 @@ export function AboutCard({ version }: { version: string }) {
       <ul className="mt-3 border-t border-line pt-2">
         <li>
           <Link href="/bantuan" className={LINK}>
-            Bantuan & panduan
+            {t.help}
           </Link>
         </li>
         {ABOUT_LINKS.map((l) => (

@@ -8,27 +8,40 @@ import { PREF_KEYS } from "@/lib/preference-keys";
 import { EXPORT_SIZES, cardSvg, parseShareOptions, shareFileName, type ShareOptions } from "@/lib/share-card";
 import { embeddedFontCss, renderPng } from "@/lib/share-export";
 import type { WeekRunModel } from "@/lib/week-run-card";
+import { useLocale, useT } from "@/lib/i18n/client";
+import type { Locale } from "@/lib/i18n/locale";
+import { SHARE } from "@/lib/i18n/messages/share";
 
 /** Tombol "Bagikan" di kartu mingguan: membuka sheet ekspor PNG. */
 export function ShareWeekButton({ model }: { model: WeekRunModel }) {
   const [open, setOpen] = useState(false);
+  const t = useT(SHARE);
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={`${BUTTON.base} ${BUTTON.secondary} min-h-11 px-3 text-[14px]`}>
         <ShareIcon />
-        Bagikan
+        {t.share}
       </button>
       {open && <ShareWeekSheet model={model} onClose={() => setOpen(false)} />}
     </>
   );
 }
 
-function readOptions(): ShareOptions {
+function readOptions(lang: Locale): ShareOptions {
   try {
-    return parseShareOptions(localStorage.getItem(PREF_KEYS.shareCard));
+    return parseShareOptions(localStorage.getItem(PREF_KEYS.shareCard), lang);
   } catch {
-    return parseShareOptions(null);
+    return parseShareOptions(null, lang);
   }
+}
+
+/** Simpan pilihan sheet. Bahasa kartu hanya disimpan bila pernah dipilih sendiri, supaya bawaannya tetap mengikuti app. */
+function storeOptions(next: ShareOptions, patch: Partial<ShareOptions>) {
+  try {
+    const prev = JSON.parse(localStorage.getItem(PREF_KEYS.shareCard) ?? "{}") as Partial<ShareOptions>;
+    const { lang, ...rest } = next;
+    localStorage.setItem(PREF_KEYS.shareCard, JSON.stringify({ ...rest, ...("lang" in patch || prev.lang ? { lang } : {}) }));
+  } catch {}
 }
 
 /** Bisa membagikan file PNG lewat Web Share API? */
@@ -46,7 +59,9 @@ function canShareFiles(): boolean {
  */
 export function ShareWeekSheet({ model, onClose }: { model: WeekRunModel; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
-  const [opts, setOpts] = useState<ShareOptions>(readOptions);
+  const locale = useLocale();
+  const t = useT(SHARE);
+  const [opts, setOpts] = useState<ShareOptions>(() => readOptions(locale));
   const [fonts, setFonts] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,9 +89,7 @@ export function ShareWeekSheet({ model, onClose }: { model: WeekRunModel; onClos
   const update = (patch: Partial<ShareOptions>) => {
     const next = { ...opts, ...patch };
     setOpts(next);
-    try {
-      localStorage.setItem(PREF_KEYS.shareCard, JSON.stringify(next));
-    } catch {}
+    storeOptions(next, patch);
   };
 
   const svg = fonts === null ? null : cardSvg(model, opts, fonts);
@@ -110,7 +123,7 @@ export function ShareWeekSheet({ model, onClose }: { model: WeekRunModel; onClos
         setTimeout(() => URL.revokeObjectURL(url), 10_000);
       }
     } catch {
-      setError(action === "share" ? "Gagal membagikan. Coba Unduh PNG." : "Gagal membuat PNG. Coba lagi.");
+      setError(action === "share" ? t.shareFailed : t.pngFailed);
     } finally {
       setBusy(false);
     }
@@ -131,14 +144,14 @@ export function ShareWeekSheet({ model, onClose }: { model: WeekRunModel; onClos
         <header className="flex items-start gap-2">
           <div className="min-w-0 flex-1 pt-1.5">
             <h2 id="share-week-title" className="text-[18px] leading-tight font-semibold">
-              Bagikan kartu minggu ini
+              {t.title}
             </h2>
-            <p className="mt-0.5 text-[13px] text-muted">PNG transparan untuk ditempel di atas foto. Tanpa nama dan tanpa alamat app.</p>
+            <p className="mt-0.5 text-[13px] text-muted">{t.intro}</p>
           </div>
           <button
             type="button"
             onClick={() => ref.current?.close()}
-            aria-label="Tutup"
+            aria-label={t.close}
             className="pressable inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-control text-[20px] text-muted hover:bg-subtle hover:text-ink"
           >
             <span aria-hidden>×</span>
@@ -151,14 +164,14 @@ export function ShareWeekSheet({ model, onClose }: { model: WeekRunModel; onClos
           >
             {svg && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`} alt={`Pratinjau kartu ${size.w}×${size.h}`} className="absolute inset-0 h-full w-full" />
+              <img src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`} alt={t.preview(size.w, size.h)} className="absolute inset-0 h-full w-full" />
             )}
           </div>
         </div>
 
         <div className="mt-4 space-y-4">
           <Segmented
-            label="Format"
+            label={t.format}
             value={opts.format}
             options={[
               { value: "story", label: "Story 9:16" },
@@ -167,16 +180,16 @@ export function ShareWeekSheet({ model, onClose }: { model: WeekRunModel; onClos
             onChange={(format) => update({ format })}
           />
           <Segmented
-            label="Warna teks"
+            label={t.ink}
             value={opts.ink}
             options={[
-              { value: "light", label: "Teks terang" },
-              { value: "dark", label: "Teks gelap" },
+              { value: "light", label: t.light },
+              { value: "dark", label: t.dark },
             ]}
             onChange={(ink) => update({ ink })}
           />
           <Segmented
-            label="Bahasa kartu"
+            label={t.lang}
             value={opts.lang}
             options={[
               { value: "en", label: "EN" },
@@ -195,7 +208,7 @@ export function ShareWeekSheet({ model, onClose }: { model: WeekRunModel; onClos
         <div className={`mt-4 grid gap-2 ${shareable ? "grid-cols-2" : "grid-cols-1"}`}>
           {shareable && (
             <button type="button" disabled={busy || svg === null} onClick={() => run("share")} className={`${BUTTON.base} ${BUTTON.primary} ${BUTTON.lg}`}>
-              Bagikan
+              {t.share}
             </button>
           )}
           <button
@@ -204,7 +217,7 @@ export function ShareWeekSheet({ model, onClose }: { model: WeekRunModel; onClos
             onClick={() => run("download")}
             className={`${BUTTON.base} ${shareable ? BUTTON.secondary : BUTTON.primary} ${BUTTON.lg}`}
           >
-            Unduh PNG
+            {t.download}
           </button>
         </div>
         <p className="mt-2 text-center text-[12px] text-faint">{name}</p>

@@ -32,6 +32,8 @@ export const BACKUP_APP = "hybrid-athlete";
 export const BACKUP_VERSION = 7;
 
 export type ThemeValue = "system" | "light" | "dark";
+/** Bahasa tampilan (1.2.0, field opsional; versi cadangan tidak naik). */
+export type LangValue = "id" | "en";
 export type BackupKind = "backup" | "defaults";
 
 export interface BackupFile {
@@ -44,7 +46,7 @@ export interface BackupFile {
   log: unknown[];
   settings: AthleteSettings | null;
   program: string | null;
-  preferences: { theme?: ThemeValue; blockEnabled?: boolean };
+  preferences: { theme?: ThemeValue; blockEnabled?: boolean; lang?: LangValue };
   onboarding: OnboardingState | null;
   prs: unknown[];
   sessions: unknown[];
@@ -62,6 +64,7 @@ export interface ParsedBackup {
   program?: string;
   theme?: ThemeValue;
   blockEnabled?: boolean;
+  lang?: LangValue;
   onboarding?: OnboardingState;
   prs?: unknown[];
   sessions?: unknown[];
@@ -76,6 +79,9 @@ export interface BackupStore {
   setProgramRaw(v: string): void;
   getThemeRaw(): string;
   setTheme(v: ThemeValue): void;
+  /** Opsional (1.2.0): store lama tanpa bahasa tetap valid. */
+  getLangRaw?(): string;
+  setLang?(v: LangValue): void;
   getBlockRaw(): string;
   setBlockEnabled(v: boolean): void;
   setOnboarding(v: OnboardingState): void;
@@ -93,6 +99,7 @@ export function buildBackup(input: {
   program: string | null;
   theme?: ThemeValue;
   blockEnabled?: boolean;
+  lang?: LangValue;
   onboarding: OnboardingState | null;
   prs?: unknown[];
   sessions?: unknown[];
@@ -108,7 +115,7 @@ export function buildBackup(input: {
     log: input.log,
     settings: input.settings,
     program: input.program,
-    preferences: { theme: input.theme, blockEnabled: input.blockEnabled },
+    preferences: { theme: input.theme, blockEnabled: input.blockEnabled, ...(input.lang ? { lang: input.lang } : {}) },
     onboarding: input.onboarding,
     prs: input.prs ?? [],
     sessions: input.sessions ?? [],
@@ -192,9 +199,10 @@ export function parseBackup(data: unknown, base: AthleteProfile = baseProfile, t
   const prefs = d.preferences && typeof d.preferences === "object" ? (d.preferences as Record<string, unknown>) : {};
   if (isTheme(prefs.theme)) out.theme = prefs.theme;
   if (typeof prefs.blockEnabled === "boolean") out.blockEnabled = prefs.blockEnabled;
+  if (prefs.lang === "id" || prefs.lang === "en") out.lang = prefs.lang;
   const ob = parseOnboardingState(d.onboarding);
   if (ob) out.onboarding = ob;
-  const known = out.log || out.prs || out.sessions || out.checkins || out.settings || out.program !== undefined || out.theme || out.blockEnabled !== undefined || out.onboarding;
+  const known = out.log || out.prs || out.sessions || out.checkins || out.settings || out.program !== undefined || out.theme || out.blockEnabled !== undefined || out.lang || out.onboarding;
   return known ? out : null;
 }
 
@@ -255,6 +263,7 @@ export function applyBackup(b: ParsedBackup, store: BackupStore, base: AthletePr
   }
   if (b.theme && (!fill || !store.getThemeRaw())) store.setTheme(b.theme);
   if (b.blockEnabled !== undefined && (!fill || !store.getBlockRaw())) store.setBlockEnabled(b.blockEnabled);
+  if (b.lang && store.setLang && (!fill || !store.getLangRaw?.())) store.setLang(b.lang);
   if (b.onboarding && !fill) store.setOnboarding(b.onboarding);
   return parts;
 }

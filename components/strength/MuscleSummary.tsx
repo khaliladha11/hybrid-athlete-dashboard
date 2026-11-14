@@ -1,8 +1,14 @@
+"use client";
+
 import { MuscleMap } from "@/components/charts/MuscleMap";
 import { muscleAriaLabel, muscleSummary, TEXT_ONLY_MUSCLES } from "@/lib/movements/muscle-regions";
+import { useT } from "@/lib/i18n/client";
+import { STRENGTH } from "@/lib/i18n/messages/strength";
 
 /** Ringkasan otot sesi (0.14.1): gabungan otot utama/sekunder semua gerakan, peta depan/belakang, dan daftar teks. */
-export function MuscleSummary({ movements, title = "Hari ini melatih" }: { movements: readonly string[]; title?: string }) {
+export function MuscleSummary({ movements, title }: { movements: readonly string[]; title?: string }) {
+  const t = useT(STRENGTH).muscles;
+  title ??= t.title;
   const s = muscleSummary(movements);
   if (!s.primary.length) return null;
   const notes = [...s.primary, ...s.secondary].filter((m) => TEXT_ONLY_MUSCLES[m]);
@@ -14,7 +20,7 @@ export function MuscleSummary({ movements, title = "Hari ini melatih" }: { movem
         <div className="flex gap-2">
           <dt className="flex shrink-0 items-center gap-1.5 font-semibold">
             <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-brand" />
-            Utama
+            {t.primary}
           </dt>
           <dd>{s.primary.join(", ")}</dd>
         </div>
@@ -22,7 +28,7 @@ export function MuscleSummary({ movements, title = "Hari ini melatih" }: { movem
           <div className="flex gap-2">
             <dt className="flex shrink-0 items-center gap-1.5 font-semibold">
               <span aria-hidden className="h-2.5 w-2.5 rounded-full border border-brand bg-brand-soft" />
-              Sekunder
+              {t.secondary}
             </dt>
             <dd className="text-muted">{s.secondary.join(", ")}</dd>
           </div>

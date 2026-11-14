@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale } from "@/lib/i18n/client";
+
 import { axisNumber, bandLayout, linearScale, niceTicks, placeLabels, thinLabels } from "./chart-scale";
 import { useWidth } from "./useWidth";
 
@@ -30,7 +32,7 @@ export function BarChart({
   marks = [],
   partial,
   integer = false,
-  yFormat = axisNumber,
+  yFormat,
 }: {
   ariaLabel: string;
   labels: string[];
@@ -44,6 +46,7 @@ export function BarChart({
   yFormat?: (v: number) => string;
 }) {
   const [ref, width] = useWidth<HTMLDivElement>();
+  const locale = useLocale();
   const n = labels.length;
   const totals = labels.map((_, i) => stacks.reduce((t, s) => t + (s.values[i] ?? 0), 0));
   const { domain, ticks } = niceTicks(0, Math.max(0, ...totals), { zero: true, integer });
@@ -58,7 +61,7 @@ export function BarChart({
           <g key={t}>
             <line x1={LEFT} x2={width - RIGHT} y1={y(t)} y2={y(t)} className="stroke-line" strokeWidth={1} />
             <text x={LEFT - 6} y={y(t)} dy="0.32em" textAnchor="end" className="fill-muted font-mono text-[11px] tabular-nums">
-              {yFormat(t)}
+              {(yFormat ?? ((v: number) => axisNumber(v, locale)))(t)}
             </text>
           </g>
         ))}

@@ -1,6 +1,8 @@
 "use client";
 
 import { useId } from "react";
+import { useT } from "@/lib/i18n/client";
+import { CHROME } from "@/lib/i18n/messages/chrome";
 
 /**
  * Sakelar on/off. Aktif = hijau, nonaktif = merah (sesuai sistem warna status).
@@ -18,6 +20,7 @@ export function Switch({
   description?: React.ReactNode;
 }) {
   const id = useId();
+  const t = useT(CHROME).ui;
   return (
     <div className="flex items-center gap-3">
       <div className="min-w-0 flex-1">
@@ -27,7 +30,7 @@ export function Switch({
         {description && <p className="mt-0.5 text-[13px] text-muted">{description}</p>}
       </div>
       <span className={`text-[12px] font-semibold ${checked ? "text-success-ink" : "text-danger-ink"}`} aria-hidden>
-        {checked ? "Aktif" : "Nonaktif"}
+        {checked ? t.on : t.off}
       </span>
       <button
         id={id}

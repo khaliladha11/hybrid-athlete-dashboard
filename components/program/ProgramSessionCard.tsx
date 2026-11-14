@@ -11,8 +11,9 @@ import { formatPaceSec, type Program } from "@/lib/program";
 import type { PlannedSession } from "@/lib/program/sessions";
 import { sessionCardText } from "@/lib/program/to-generator";
 import { useResolvedProfile } from "@/lib/settings-store";
-
-const kmText = (v: number) => v.toLocaleString("id-ID");
+import { useLocale, useT } from "@/lib/i18n/client";
+import { PROGRAM } from "@/lib/i18n/messages/program";
+import { formatNumber } from "@/lib/i18n/format";
 // Catatan kondisi (termasuk yang ditulis pengguna) bisa memakai em dash; tampilan memakai titik (DESIGN-SYSTEM §7).
 const tidy = (t: string) => t.replace(/\s—\s/g, ". ");
 // Jarak ditampilkan terpisah, jadi "Long run 14 km" cukup "Long run".
@@ -24,6 +25,9 @@ const titleOf = (t: string) => t.replace(/\s+[\d.,]+\s*km$/i, "");
  */
 export function ProgramSessionCard({ session, program, km, easyOnly }: { session: PlannedSession; program: Program; km?: number; easyOnly?: boolean }) {
   const p = useResolvedProfile();
+  const locale = useLocale();
+  const m = useT(PROGRAM).card;
+  const kmText = (v: number) => formatNumber(locale, v);
   const t = runTargets(p);
   const ref = useRef<HTMLDivElement>(null);
   // Kartu muncul setelah data program dimuat, jadi lompatan #sesi-hari-ini bawaan browser sudah lewat.
@@ -41,20 +45,20 @@ export function ProgramSessionCard({ session, program, km, easyOnly }: { session
     ...(p.rules.cadenceCue ? [CADENCE_NOTES[0]] : []),
     ...(p.rules.crossoverCue ? [CADENCE_NOTES[1]] : []),
     ...p.rules.runNotes,
-    ...p.customConditions.map((c) => `Catatan kondisimu: ${c}`),
+    ...p.customConditions.map((c) => m.conditionNote(c)),
   ].map(tidy);
   return (
     <div ref={ref} id="sesi-hari-ini" className="scroll-mt-4 rounded-inner border border-line-strong p-3">
-      <p className="t-label">Sesi program</p>
+      <p className="t-label">{m.title}</p>
       <p className="mt-1 text-body font-semibold">
         {titleOf(session.title)}
         {session.km !== undefined && (
           <span className="tabular ml-2 font-normal text-muted">
-            {adjusted ? `${kmText(km!)} km · rencana ${kmText(session.km)} km` : `${kmText(session.km)} km`}
+            {adjusted ? m.adjustedKm(kmText(km!), kmText(session.km)) : `${kmText(session.km)} km`}
           </span>
         )}
       </p>
-      {adjusted && <p className="mt-1 text-[13px] font-semibold text-ink">Dipendekkan sesuai saran hari ini{easyOnly ? ", seluruhnya pace easy" : ""}.</p>}
+      {adjusted && <p className="mt-1 text-[13px] font-semibold text-ink">{m.shortened(!!easyOnly)}</p>}
       {session.detail && <p className="mt-1 text-[13px] text-muted">{tidy(session.detail)}</p>}
       {cues.length > 0 && (
         <ul className="mt-2 space-y-1 text-[13px] text-ink">
@@ -67,7 +71,7 @@ export function ProgramSessionCard({ session, program, km, easyOnly }: { session
         </ul>
       )}
       <pre className="tabular mt-3 overflow-x-auto rounded-inner bg-subtle p-3 font-mono text-[12px] leading-relaxed whitespace-pre-wrap text-ink">{text}</pre>
-      <CopyButton text={text} label="Copy Set" className={`${BUTTON.secondary} mt-2 w-full text-body`} />
+      <CopyButton text={text} label={m.copySet} className={`${BUTTON.secondary} mt-2 w-full text-body`} />
       <div className="mt-2">
         <SendToWatch externalId={externalId.session(session.id)} date={sendDate} onDateChange={setSendDate} result={exported} />
       </div>

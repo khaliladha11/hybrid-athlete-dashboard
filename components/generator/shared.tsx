@@ -4,6 +4,8 @@ import type { Ref } from "react";
 import { BUTTON, Kicker } from "@/components/ui/Card";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { pillClasses, type Tone } from "@/components/ui/tones";
+import { useT } from "@/lib/i18n/client";
+import { GENERATOR } from "@/lib/i18n/messages/generator";
 
 export function OutputShell({
   title,
@@ -74,6 +76,7 @@ export function GeneratorActions({
   /** Sasaran tur in-app (`data-tour`). */
   tour?: string;
 }) {
+  const t = useT(GENERATOR).actions;
   return (
     <div
       data-tour={tour}
@@ -92,12 +95,12 @@ export function GeneratorActions({
           disabled={!canRegenerate}
           className={`pressable inline-flex min-h-11 items-center justify-center rounded-control px-3 text-body font-semibold whitespace-nowrap disabled:cursor-not-allowed ${BUTTON.primary}`}
         >
-          {canRegenerate ? "↻ Variasi lain" : "Pola baku"}
+          {canRegenerate ? t.another : t.fixed}
         </button>
       </div>
       {!canRegenerate && (
         <p className="px-1 pt-2 text-center text-[12px] text-muted">
-          Kombinasi ini hanya punya satu pola. Ganti durasi/kesulitan untuk variasi lain.
+          {t.onePattern}
         </p>
       )}
     </div>

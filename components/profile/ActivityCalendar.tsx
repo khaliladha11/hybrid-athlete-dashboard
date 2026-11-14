@@ -13,6 +13,9 @@ import type { PlannedSession } from "@/lib/program/sessions";
 import { useProgramPlan } from "@/lib/program/use-program-plan";
 import { useStSessions } from "@/lib/st-session-store";
 import { useTrainingLog } from "@/lib/training-log";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { DAY_TITLE, formatDay, MONTH_YEAR } from "@/lib/i18n/format";
+import { PROFILE } from "@/lib/i18n/messages/profile";
 
 /** Ikon garis 24×24 per kategori. */
 const CATEGORY_ICON: Record<ActivityCategory, string> = {
@@ -44,9 +47,6 @@ function planCell(s: PlannedSession, m: PlanMarker): { className: string; mark?:
   }
 }
 
-const WEEKDAYS = ["S", "S", "R", "K", "J", "S", "M"];
-const MONTH_FMT = new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric", timeZone: "UTC" });
-const DAY_TITLE_FMT = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 const utc = (date: string) => new Date(`${date}T00:00:00Z`);
 
 function shiftMonth(month: string, delta: number): string {
@@ -68,6 +68,8 @@ function monthWeeks(month: string): string[][] {
 export function ActivityCalendar({ activities: serverActivities, today, oldest }: { activities: Activity[]; today: string; oldest: string }) {
   // Program tersimpan: aktivitas sejak awal program (diambil sekali bila perlu) + sesi rencana & statusnya.
   const plan = useProgramPlan({ activities: serverActivities, oldest, today });
+  const locale = useLocale();
+  const t = useT(PROFILE).calendar;
   const activities = plan.activities;
   const stSessions = useStSessions();
   const log = useTrainingLog();
@@ -115,34 +117,34 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
   return (
     <section className="rounded-card border border-line bg-surface p-5 shadow-card">
       <header className="flex items-center justify-between gap-2">
-        <h2 className="text-base font-semibold capitalize">{MONTH_FMT.format(utc(month))}</h2>
+        <h2 className="text-base font-semibold capitalize">{formatDay(locale, month, MONTH_YEAR)}</h2>
         <div className="flex gap-1">
-          <MonthButton label="Bulan sebelumnya" disabled={month <= firstMonth} onClick={() => go(-1)} d="m15 6-6 6 6 6" />
-          <MonthButton label="Bulan berikutnya" disabled={month >= lastMonth} onClick={() => go(1)} d="m9 6 6 6-6 6" />
+          <MonthButton label={t.prevMonth} disabled={month <= firstMonth} onClick={() => go(-1)} d="m15 6-6 6 6 6" />
+          <MonthButton label={t.nextMonth} disabled={month >= lastMonth} onClick={() => go(1)} d="m9 6 6 6-6 6" />
         </div>
       </header>
 
       <div className="mt-3 grid grid-cols-2 gap-3">
         <div>
-          <p className="text-[12px] text-muted">Aktivitas</p>
+          <p className="text-[12px] text-muted">{t.activities}</p>
           <p className="tabular text-[22px] leading-tight font-semibold">{monthItems.length}</p>
         </div>
         <div>
-          <p className="text-[12px] text-muted">Jarak lari</p>
+          <p className="text-[12px] text-muted">{t.runDistance}</p>
           <p className="tabular text-[22px] leading-tight font-semibold">
             {runKm.toFixed(1)} <span className="text-[13px] font-normal text-muted">km</span>
           </p>
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-[repeat(7,minmax(0,1fr))_2.25rem] gap-y-2 text-center" role="grid" aria-label="Kalender aktivitas">
-        {WEEKDAYS.map((w, i) => (
+      <div className="mt-4 grid grid-cols-[repeat(7,minmax(0,1fr))_2.25rem] gap-y-2 text-center" role="grid" aria-label={t.grid}>
+        {t.weekdays.map((w, i) => (
           <span key={i} className="text-[12px] font-semibold text-muted" aria-hidden>
             {w}
           </span>
         ))}
         <span className="text-[12px] font-semibold text-muted" aria-hidden>
-          Mg
+          {t.weekCol}
         </span>
 
         {weeks.map((week) => {
@@ -159,8 +161,8 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
                 const first = list[0];
                 const cell = !first && planned[0] ? planCell(planned[0], planMarker(planned[0], plan.results.get(planned[0].id), today)) : null;
                 const label = [
-                  list.length ? `${list.length} aktivitas` : future ? null : "tidak ada aktivitas",
-                  planned.length ? `rencana: ${planned.map((p) => p.title).join(", ")}` : null,
+                  list.length ? t.count(list.length) : future ? null : t.none,
+                  planned.length ? t.plan(planned.map((p) => p.title).join(", ")) : null,
                 ].filter(Boolean);
                 return (
                   <div key={d} role="gridcell" className="flex justify-center">
@@ -169,7 +171,7 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
                         type="button"
                         onClick={() => setSelected(d)}
                         aria-pressed={isSel}
-                        aria-label={`${DAY_TITLE_FMT.format(utc(d))}: ${label.join("; ")}`}
+                        aria-label={`${formatDay(locale, d, DAY_TITLE)}: ${label.join("; ")}`}
                         className={`pressable relative flex h-9 w-9 items-center justify-center rounded-full text-[14px] tabular ${
                           first ? DONE_FILL : cell ? cell.className : "bg-subtle text-ink"
                         } ${d === today ? "ring-2 ring-brand" : ""} ${isSel ? "outline-2 outline-offset-2 outline-ink" : ""}`}
@@ -198,15 +200,15 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
               {/* Status minggu: aktif = hijau ✓, minggu lewat tanpa aktivitas = netral (tanpa merah, 0.14.3). */}
               <div role="gridcell" className="flex items-center justify-center">
                 {weekActive ? (
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-success text-bg" title="Minggu aktif">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-success text-bg" title={t.weekActive}>
                     <Icon d="m5 12 4.5 4.5L19 7" className="h-4 w-4" strokeWidth={3} />
                   </span>
                 ) : weekDone ? (
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-subtle-strong text-faint" title="Tidak ada aktivitas">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-subtle-strong text-faint" title={t.weekEmpty}>
                     <Icon d="M7 12h10" className="h-3.5 w-3.5" strokeWidth={3} />
                   </span>
                 ) : (
-                  <span className="h-6 w-6 rounded-full border-2 border-line-strong" title="Minggu berjalan" />
+                  <span className="h-6 w-6 rounded-full border-2 border-line-strong" title={t.weekRunning} />
                 )}
               </div>
             </div>
@@ -215,27 +217,27 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
       </div>
 
       <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted">
-        <Legend className="bg-brand" label="Selesai" />
+        <Legend className="bg-brand" label={t.done} />
         {showPlan && (
           <>
-            <Legend className="border-2 border-success" label="Rencana easy" />
+            <Legend className="border-2 border-success" label={t.planEasy} />
             <Legend className="border-2 border-warning" label="Moderate" />
             <Legend className="border-2 border-danger" label="High" />
-            <Legend className="border border-line" label="Rencana sudah dipenuhi" />
+            <Legend className="border border-line" label={t.planFulfilled} />
           </>
         )}
       </div>
 
       <div className="mt-4 border-t border-line pt-3">
-        <p className="text-[13px] font-semibold text-muted">{DAY_TITLE_FMT.format(utc(selected))}</p>
+        <p className="text-[13px] font-semibold text-muted">{formatDay(locale, selected, DAY_TITLE)}</p>
         {selectedPlan.length > 0 && (
           <ul className="mt-2 space-y-1.5">
             {selectedPlan.map((s) => {
               const r = plan.results.get(s.id);
-              const note = sessionNote(r);
+              const note = sessionNote(r, locale);
               return (
                 <li key={s.id} className="flex flex-wrap items-center gap-2 text-[14px]">
-                  <span className="t-label">Disarankan</span>
+                  <span className="t-label">{t.suggested}</span>
                   <span className="font-semibold">{s.title}</span>
                   <SessionStatusChip session={s} result={r} />
                   {note && <span className="text-[12px] text-muted">{note}</span>}
@@ -245,7 +247,7 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
           </ul>
         )}
         {selectedList.length === 0 ? (
-          selectedPlan.length === 0 && <p className="mt-1 text-body text-faint">{selected > today ? "Belum ada rencana." : "Tidak ada aktivitas. Hari istirahat."}</p>
+          selectedPlan.length === 0 && <p className="mt-1 text-body text-faint">{selected > today ? t.noPlan : t.rest}</p>
         ) : (
           <ul key={selected} className="swap-in -mx-5 mt-1 divide-y divide-line">
             {selectedList.map((i) => (i.kind === "activity" ? <ActivityRow key={i.activity.id} a={i.activity} /> : <LocalStRow key={i.id} item={i} />))}
@@ -257,6 +259,7 @@ export function ActivityCalendar({ activities: serverActivities, today, oldest }
 }
 
 function ActivityRow({ a }: { a: Activity }) {
+  const t = useT(PROFILE).calendar;
   const meta = [
     a.distanceKm ? `${a.distanceKm.toFixed(2)} km` : null,
     a.movingTimeSec ? formatDuration(a.movingTimeSec) : null,
@@ -281,10 +284,10 @@ function ActivityRow({ a }: { a: Activity }) {
           <p className="tabular truncate text-[13px] text-muted">
             <span className="text-faint">
               {CATEGORY_LABEL[a.category]}
-              {a.category === "run" ? (isHardRun(a) ? " berat" : " easy") : ""}
+              {a.category === "run" ? (isHardRun(a) ? t.hard : t.easy) : ""}
               {meta.length ? " · " : ""}
             </span>
-            {meta.length ? meta.join(" · ") : <span className="text-faint">{a.source === "STRAVA" ? "data Strava tidak tersedia lewat API" : "tanpa data"}</span>}
+            {meta.length ? meta.join(" · ") : <span className="text-faint">{a.source === "STRAVA" ? t.stravaMissing : t.noData}</span>}
           </p>
           {extra.length > 0 && <p className="tabular truncate text-[13px] text-faint">{extra.join(" · ")}</p>}
         </div>
@@ -298,6 +301,7 @@ function ActivityRow({ a }: { a: Activity }) {
 
 /** ST yang dicatat di perangkat (mode latihan atau log ★), tanpa aktivitas intervals.icu. */
 function LocalStRow({ item }: { item: Extract<CalendarItem, { kind: "local-st" }> }) {
+  const t = useT(PROFILE).calendar;
   return (
     <li className="flex items-center gap-3 px-5 py-3">
       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${DONE_FILL}`} aria-hidden>
@@ -306,7 +310,7 @@ function LocalStRow({ item }: { item: Extract<CalendarItem, { kind: "local-st" }
       <div className="min-w-0 flex-1">
         <p className="truncate text-body font-semibold">{item.title}</p>
         <p className="tabular truncate text-[13px] text-muted">
-          <span className="text-faint">Dicatat di perangkat</span>
+          <span className="text-faint">{t.onDevice}</span>
           {item.minutes ? ` · ${item.minutes}'` : ""}
         </p>
       </div>

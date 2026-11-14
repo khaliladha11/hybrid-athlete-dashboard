@@ -5,17 +5,20 @@ import { BUTTON } from "@/components/ui/Card";
 import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import { syncNow } from "@/lib/sync/client";
 import type { SnapshotMeta } from "@/lib/sync/snapshots";
+import { useLocale } from "@/lib/i18n/client";
+import { formatInstant } from "@/lib/i18n/format";
+import type { Locale } from "@/lib/i18n/locale";
+import { SETTINGS } from "@/lib/i18n/messages/settings";
 
-const KIND_LABEL: Record<SnapshotMeta["kind"], string> = { daily: "Harian", "before-restore": "Sebelum pulihkan", "before-migrate": "Sebelum pembaruan data" };
+const formatWhen = (iso: string, l: Locale) =>
+  formatInstant(l, iso, { timeZone: "Asia/Jakarta", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false }) + " WIB";
 
-const formatWhen = (iso: string) =>
-  new Date(iso).toLocaleString("id-ID", { timeZone: "Asia/Jakarta", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " WIB";
-
-function describe(m: SnapshotMeta): string {
-  const parts = [`${m.summary.logEntries} entri log`];
-  if (m.summary.profile) parts.push("profil");
-  if (m.summary.settings) parts.push("setting");
-  if (m.summary.program) parts.push("program");
+function describe(m: SnapshotMeta, l: Locale): string {
+  const t = SETTINGS[l].history;
+  const parts = [t.entries(m.summary.logEntries)];
+  if (m.summary.profile) parts.push(t.profile);
+  if (m.summary.settings) parts.push(t.settings);
+  if (m.summary.program) parts.push(t.program);
   return parts.join(" · ");
 }
 
@@ -24,6 +27,8 @@ export function BackupHistory() {
   const [list, setList] = useState<SnapshotMeta[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; ok: boolean; undoId?: string } | null>(null);
+  const locale = useLocale();
+  const t = SETTINGS[locale].history;
 
   const load = useCallback(async () => {
     try {
@@ -47,10 +52,10 @@ export function BackupHistory() {
       const body = (await res.json()) as { undoId?: string };
       if (!res.ok || !body.undoId) throw new Error(String(res.status));
       await syncNow();
-      setMessage(isUndo ? { text: "✓ Pulihkan dibatalkan.", ok: true } : { text: `✓ Dipulihkan dari ${label}.`, ok: true, undoId: body.undoId });
+      setMessage(isUndo ? { text: t.undone, ok: true } : { text: t.restored(label), ok: true, undoId: body.undoId });
       await load();
     } catch {
-      setMessage({ text: "✕ Gagal memulihkan. Periksa koneksi lalu coba lagi.", ok: false });
+      setMessage({ text: t.failed, ok: false });
     } finally {
       setBusy(false);
     }
@@ -58,22 +63,22 @@ export function BackupHistory() {
 
   return (
     <div className="mt-4 border-t border-line pt-3">
-      <p className="t-label">Riwayat cadangan</p>
+      <p className="t-label">{t.title}</p>
       {list === null ? (
         <p className="mt-2 text-[13px] text-faint">·</p>
       ) : list.length === 0 ? (
-        <p className="mt-2 text-[13px] text-muted">Snapshot pertama dibuat saat sinkron pertama besok.</p>
+        <p className="mt-2 text-[13px] text-muted">{t.empty}</p>
       ) : (
         <ul className="mt-1 divide-y divide-line">
           {list.map((m) => (
             <li key={m.id} className="flex items-center gap-3 py-2">
               <span className="min-w-0 flex-1">
-                <span className="block text-[14px] font-semibold">{formatWhen(m.createdAt)}</span>
+                <span className="block text-[14px] font-semibold">{formatWhen(m.createdAt, locale)}</span>
                 <span className="tabular block text-[12px] text-muted">
-                  {KIND_LABEL[m.kind]} · {describe(m)}
+                  {t.kind[m.kind]} · {describe(m, locale)}
                 </span>
               </span>
-              <ConfirmButton size="md" label="Pulihkan" confirmLabel="Tap lagi" disabled={busy} onConfirm={() => void restore(m.id, formatWhen(m.createdAt))} />
+              <ConfirmButton size="md" label={t.restore} confirmLabel={t.tapAgain} disabled={busy} onConfirm={() => void restore(m.id, formatWhen(m.createdAt, locale))} />
             </li>
           ))}
         </ul>
@@ -83,12 +88,12 @@ export function BackupHistory() {
           <p className={`text-[13px] font-semibold ${message.ok ? "text-success-ink" : "text-danger-ink"}`}>{message.text}</p>
           {message.undoId && (
             <button type="button" disabled={busy} onClick={() => void restore(message.undoId!, "", true)} className={`${BUTTON.base} ${BUTTON.secondary}`}>
-              Batalkan pulihkan
+              {t.undo}
             </button>
           )}
         </div>
       )}
-      <p className="mt-2 text-[12px] text-faint">Pulihkan mengganti data di semua perangkat. Keadaan sekarang disimpan dulu, jadi bisa dibatalkan.</p>
+      <p className="mt-2 text-[12px] text-faint">{t.note}</p>
     </div>
   );
 }

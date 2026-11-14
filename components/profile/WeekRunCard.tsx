@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ShareWeekButton } from "@/components/share/ShareWeekSheet";
+import { getLocale } from "@/lib/i18n/server";
+import { PROFILE } from "@/lib/i18n/messages/profile";
 import { CARD_BLOCK, cardAriaLabel, cardElements, type CardElement, type CardFont, type CardRole, type WeekRunModel } from "@/lib/week-run-card";
 
 /** Peran warna kartu → token tema (layar). Ekspor PNG memakai warna tetap (`lib/share-card.ts`). */
@@ -60,14 +62,16 @@ export function WeekCardSvg({ elements, ariaLabel }: { elements: CardElement[]; 
  * Kartu "Minggu ini · lari" di Profil (1.1.0), pengganti kartu "7 hari terakhir". Ketuk kartu untuk detail di Tren
  * (pace, HR, long run, load, 80/20, Week Ledger). Tombol Bagikan di luar tautan.
  */
-export function WeekRunCard({ model }: { model: WeekRunModel }) {
+export async function WeekRunCard({ model }: { model: WeekRunModel }) {
+  const locale = await getLocale();
+  const t = PROFILE[locale].week;
   return (
-    <section aria-label="Minggu ini · lari" className="rounded-card border border-line bg-surface shadow-card">
+    <section aria-label={t.region} className="rounded-card border border-line bg-surface shadow-card">
       <Link href="/insight#minggu-ini" className="pressable block rounded-card px-3 pt-4 hover:bg-subtle/60">
-        <WeekCardSvg elements={cardElements(model, "id")} ariaLabel={`${cardAriaLabel(model)} Buka detail di Tren.`} />
+        <WeekCardSvg elements={cardElements(model, locale)} ariaLabel={`${cardAriaLabel(model, locale)} ${t.openDetail}`} />
       </Link>
       <div className="flex items-center justify-between gap-2 px-5 pt-1 pb-4">
-        <span className="text-[13px] text-muted">Ketuk kartu untuk detail di Tren</span>
+        <span className="text-[13px] text-muted">{t.hint}</span>
         <ShareWeekButton model={model} />
       </div>
     </section>

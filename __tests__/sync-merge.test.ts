@@ -76,7 +76,7 @@ describe("bagian data ↔ localStorage", () => {
   it("perangkat kosong → bagian kosong; tema sistem & blok default tidak disimpan", () => {
     const empty = partsFromLocal({ settings: null, program: null, theme: null, blockEnabled: null, onboarding: null }, [], baseProfile);
     expect(empty).toEqual({ profile: null, settings: null, program: null, preferences: {}, onboarding: null, log: [], prs: [], sessions: [], checkins: [] });
-    expect(localFromParts(empty, baseProfile)).toEqual({ settings: null, program: null, theme: null, blockEnabled: null, onboarding: null });
+    expect(localFromParts(empty, baseProfile)).toEqual({ settings: null, program: null, theme: null, blockEnabled: null, lang: null, onboarding: null });
     for (const n of ["profile", "settings", "program", "preferences", "onboarding", "log", "prs", "sessions", "checkins"] as const) expect(hasData(n, emptyPart(n))).toBe(false);
   });
 

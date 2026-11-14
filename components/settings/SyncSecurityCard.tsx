@@ -6,6 +6,8 @@ import { statusView } from "@/components/sync/syncStatus";
 import { BUTTON, Card, Chip } from "@/components/ui/Card";
 import { syncNow, useSyncStatus } from "@/lib/sync/client";
 import type { Availability } from "@/lib/sync/server";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { SETTINGS } from "@/lib/i18n/messages/settings";
 
 /** Setting › Data: status sinkron, Sinkron sekarang, dan Kunci perangkat ini (docs/SYNC.md §7). */
 export function SyncSecurityCard({ status }: { status: Availability }) {
@@ -14,6 +16,8 @@ export function SyncSecurityCard({ status }: { status: Availability }) {
   const [busy, setBusy] = useState(false);
   const [locking, setLocking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const locale = useLocale();
+  const t = useT(SETTINGS).sync;
 
   // Perbarui "x menit lalu" tiap menit.
   useEffect(() => {
@@ -21,7 +25,7 @@ export function SyncSecurityCard({ status }: { status: Availability }) {
     return () => clearInterval(t);
   }, []);
 
-  const view = status.sync ? statusView(meta, now) : statusView({ ...meta, state: "off" }, now);
+  const view = status.sync ? statusView(meta, now, locale) : statusView({ ...meta, state: "off" }, now, locale);
 
   const sync = async () => {
     setBusy(true);
@@ -40,54 +44,48 @@ export function SyncSecurityCard({ status }: { status: Availability }) {
       await clearOfflineData();
       window.location.replace("/unlock");
     } catch {
-      setError("Gagal mengunci. Periksa koneksi lalu coba lagi.");
+      setError(t.lockFailed);
       setLocking(false);
     }
   };
 
   return (
-    <Card title="Sinkron & keamanan">
+    <Card title={t.title}>
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <span className="t-label">Status</span>
+        <span className="t-label">{t.status}</span>
         <Chip tone={view.tone}>{view.label}</Chip>
       </div>
       {status.sync ? (
         <p className="text-[13px] text-muted">
-          {meta.blocked === "schema-newer"
-            ? "Data sinkron berasal dari versi aplikasi yang lebih baru. Perbarui deploy ini dulu; data di perangkat ini tidak dikirim sampai itu."
-            : meta.state === "pending"
-            ? "Perubahan tersimpan di perangkat ini dan dikirim saat koneksi kembali."
-            : meta.state === "conflict"
-              ? "Data diubah di perangkat lain pada saat yang sama. Ketuk Sinkron sekarang untuk mencoba lagi."
-              : "Log, Setting, program, dan profil tersimpan di database milikmu dan sama di semua perangkat."}
+          {meta.blocked === "schema-newer" ? t.newer : meta.state === "pending" ? t.pending : meta.state === "conflict" ? t.conflict : t.ok}
         </p>
       ) : (
         <div className="space-y-2 text-[13px] text-muted">
-          <p>Sinkron belum aktif. Data hanya ada di perangkat ini.</p>
+          <p>{t.off}</p>
           <ol className="list-decimal space-y-1 pl-5">
             {!status.database && (
               <li>
-                Di Vercel: <span className="font-semibold text-ink">Storage › Upstash Redis</span>, lalu hubungkan ke project ini.
+                {t.stepDbA}<span className="font-semibold text-ink">Storage › Upstash Redis</span>{t.stepDbB}
               </li>
             )}
             {!status.passcode && (
               <li>
-                Isi <code className="font-mono text-[12px]">APP_PASSCODE</code> dan <code className="font-mono text-[12px]">SESSION_SECRET</code> di Environment Variables.
+                {t.stepEnvA}<code className="font-mono text-[12px]">APP_PASSCODE</code>{t.stepEnvB}<code className="font-mono text-[12px]">SESSION_SECRET</code>{t.stepEnvC}
               </li>
             )}
-            <li>Redeploy, lalu buka lagi aplikasinya.</li>
+            <li>{t.stepRedeploy}</li>
           </ol>
         </div>
       )}
       <div className="mt-3 grid gap-2">
         {status.sync && (
           <button type="button" onClick={sync} disabled={busy} className={`${BUTTON.base} ${BUTTON.secondary} w-full`}>
-            {busy ? "Menyinkronkan" : "Sinkron sekarang"}
+            {busy ? t.syncing : t.syncNow}
           </button>
         )}
         {status.passcode && (
           <button type="button" onClick={lock} disabled={locking} className={`${BUTTON.base} ${BUTTON.ghost} w-full`}>
-            Kunci perangkat ini
+            {t.lock}
           </button>
         )}
       </div>

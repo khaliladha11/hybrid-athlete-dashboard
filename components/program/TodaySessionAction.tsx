@@ -7,6 +7,8 @@ import type { Program } from "@/lib/program";
 import type { PlannedSession } from "@/lib/program/sessions";
 import { generatorHref, toGenerator } from "@/lib/program/to-generator";
 import { ProgramSessionCard } from "./ProgramSessionCard";
+import { useT } from "@/lib/i18n/client";
+import { PROGRAM } from "@/lib/i18n/messages/program";
 
 /**
  * Tombol membuka sesi program (PROGRAM-HIDUP §4.4). Sesi lari/ST → generator dengan isian dari program.
@@ -18,7 +20,7 @@ export function TodaySessionAction({
   program,
   where,
   longAdjust,
-  label = "Kerjakan sesi ini",
+  label,
 }: {
   session: PlannedSession;
   program: Program;
@@ -26,6 +28,8 @@ export function TodaySessionAction({
   longAdjust?: { km: number; easy: boolean };
   label?: string;
 }) {
+  const m = useT(PROGRAM).card;
+  label ??= m.doThis;
   const t = toGenerator(session);
   const [open, setOpen] = useState(!!longAdjust);
   useEffect(() => {
@@ -51,7 +55,7 @@ export function TodaySessionAction({
   return (
     <div className="space-y-2">
       <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={cls}>
-        {open ? "Tutup kartu sesi" : label}
+        {open ? m.closeCard : label}
       </button>
       {open && <ProgramSessionCard session={session} program={program} km={longAdjust?.km} easyOnly={longAdjust?.easy} />}
     </div>

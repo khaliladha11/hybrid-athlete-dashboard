@@ -2,6 +2,8 @@
 
 import { useId, useState } from "react";
 import { Card } from "@/components/ui/Card";
+import { useT } from "@/lib/i18n/client";
+import { INSIGHT } from "@/lib/i18n/messages/insight";
 
 export interface ChartTable {
   columns: string[];
@@ -33,6 +35,7 @@ export function ChartCard({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const t = useT(INSIGHT).chart;
   const id = useId();
   return (
     <Card title={title}>
@@ -49,7 +52,7 @@ export function ChartCard({
             onClick={() => setOpen((v) => !v)}
             className="pressable mt-2 inline-flex min-h-11 items-center text-body font-semibold text-brand-ink"
           >
-            {open ? "Sembunyikan tabel" : "Lihat tabel"}
+            {open ? t.hideTable : t.showTable}
           </button>
           {open && (
             <div id={id} className="mt-1 overflow-x-auto">

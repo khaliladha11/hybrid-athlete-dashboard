@@ -39,6 +39,8 @@ import { SendToWatch } from "@/components/intervals/SendToWatch";
 import { exportRun, externalId } from "@/lib/intervals/workout-export";
 import { CoachStrip } from "./CoachStrip";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { GENERATOR } from "@/lib/i18n/messages/generator";
 
 type Intensity = "recovery" | "easy" | "tempo" | "hard";
 
@@ -51,7 +53,7 @@ function intensityOf(s: RunStep): Intensity {
 
 /** Warna langkah rencana = tone intensitas; jalan/jog = track (sama dengan Segment Skyline). */
 const INTENSITY_STYLE: Record<Intensity, { dot: string; label: string }> = {
-  recovery: { dot: "bg-track", label: "Jalan/jog" },
+  recovery: { dot: "bg-track", label: "" },
   easy: { dot: "bg-success", label: "Easy · Z2" },
   tempo: { dot: "bg-warning", label: "Tempo" },
   hard: { dot: "bg-danger", label: "Interval" },
@@ -74,6 +76,8 @@ export function RunGenerator({
 }) {
   const stSessions = useStSessions();
   const checkins = useCheckins();
+  const locale = useLocale();
+  const t = useT(GENERATOR);
   // Sesi mode latihan di perangkat: ST kaki → lari maks Moderate, dan jeda ≥ 3 jam di hari yang sama (0.14.1).
   // Check-in hari ini (0.15.2) hanya menurunkan.
   const advice = useMemo(
@@ -159,13 +163,13 @@ export function RunGenerator({
       <div className="space-y-4 rounded-card border border-line bg-surface p-5 shadow-card">
         {prefill && (fromPlan || fromSuggestion) && (
           <Chip tone="accent">
-            Dari program · Minggu {prefill.week}
-            {fromSuggestion ? " · disesuaikan saran" : ""}
+            {t.form.fromProgram(prefill.week)}
+            {fromSuggestion ? t.form.adjusted : ""}
           </Chip>
         )}
-        <Segmented label="Durasi" value={duration} onChange={setDuration} options={DURATIONS.map((d) => ({ value: d, label: `${d}'` }))} />
+        <Segmented label={t.form.duration} value={duration} onChange={setDuration} options={DURATIONS.map((d) => ({ value: d, label: `${d}'` }))} />
         <Segmented
-          label="Kesulitan"
+          label={t.form.difficulty}
           value={difficulty}
           onChange={setDifficulty}
           options={DIFFICULTIES.map((d) => ({ value: d, label: DIFFICULTY_LABEL[d] }))}
@@ -175,12 +179,8 @@ export function RunGenerator({
           <Switch
             checked={blockEnabled}
             onChange={setBlockEnabled}
-            label="Program blok mingguan"
-            description={
-              blockEnabled
-                ? `${blockLabel(block)}. Deload & gerakan utama mengikuti blok.`
-                : "Mode bebas: latihan tanpa jadwal blok atau deload."
-            }
+            label={t.form.blockSwitch}
+            description={blockEnabled ? t.form.runBlockOn(blockLabel(block, locale)) : t.form.runBlockOff}
           />
         </div>
       </div>
@@ -190,16 +190,16 @@ export function RunGenerator({
         ref={outputRef}
         swapKey={`${duration}-${difficulty}-${seed}-${free}`}
         display
-        kicker={`${DIFFICULTY_LABEL[difficulty]} run · ${duration}'`}
+        kicker={t.run.kicker(DIFFICULTY_LABEL[difficulty], duration)}
         tag={{ label: DIFFICULTY_LABEL[difficulty], tone: INTENSITY_TONE[difficulty] }}
         title={displayTitle}
-        subtitle={`Seed #${seed}`}
+        subtitle={t.run.seed(seed)}
       >
         <StatRow
           items={[
-            { label: "Durasi", value: duration, unit: "menit" },
-            workMin > 0 ? { label: "Kerja", value: workMin, unit: "menit" } : { label: "Z2", value: minutesOf(["easy"]), unit: "menit" },
-            { label: "Pace target", value: formatPaceTag(targetPace), unit: "/km", muted: !targetPace },
+            { label: t.run.duration, value: duration, unit: t.run.minutes },
+            workMin > 0 ? { label: t.run.work, value: workMin, unit: t.run.minutes } : { label: "Z2", value: minutesOf(["easy"]), unit: t.run.minutes },
+            { label: t.run.targetPace, value: formatPaceTag(targetPace), unit: "/km", muted: !targetPace },
           ]}
         />
         <SegmentSkyline
@@ -207,17 +207,17 @@ export function RunGenerator({
           mode="plan"
           segments={segments}
           animateKey={seed}
-          ariaLabel={`Rencana ${displayTitle}, ${duration} menit: ${timeline.length} langkah${workMin ? `, ${workMin} menit kerja` : ""}. Rincian langkah ada di daftar di bawah.`}
+          ariaLabel={t.run.skyline(displayTitle, duration, timeline.length, workMin)}
         />
         <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 border-t border-line pt-3">
-          <span className="t-label">Warna = intensitas</span>
+          <span className="t-label">{t.run.colorKey}</span>
           <span className="flex flex-wrap gap-x-3 gap-y-1">
             {(Object.keys(INTENSITY_STYLE) as Intensity[])
               .filter((k) => used.has(k))
               .map((k) => (
                 <span key={k} className="t-label inline-flex items-center gap-1.5">
                   <span aria-hidden className={`h-2 w-2 rounded-full ${INTENSITY_STYLE[k].dot}`} />
-                  {INTENSITY_STYLE[k].label}
+                  {k === "recovery" ? t.run.walkJog : INTENSITY_STYLE[k].label}
                 </span>
               ))}
           </span>
@@ -230,12 +230,12 @@ export function RunGenerator({
                 <li key={bi}>
                   <div className="flex items-baseline justify-between">
                     <p className="t-label">
-                      {b.title.startsWith(PHASE_LABEL[b.phase]) ? b.title : `${PHASE_LABEL[b.phase]} · ${b.title}`}
+                      {b.title.startsWith(t.phase[b.phase]) || b.title.startsWith(PHASE_LABEL[b.phase]) ? b.title : `${t.phase[b.phase]} · ${b.title}`}
                     </p>
                     <span className="tabular text-[13px] text-muted">{blockMin}&apos;</span>
                   </div>
                   <div className={`mt-2 rounded-inner ${b.repeat > 1 ? "border border-dashed border-line-strong p-2" : ""}`}>
-                    {b.repeat > 1 && <p className="mb-1.5 px-1 text-[13px] font-semibold text-brand-ink">Ulangi {b.repeat}×</p>}
+                    {b.repeat > 1 && <p className="mb-1.5 px-1 text-[13px] font-semibold text-brand-ink">{t.run.repeat(b.repeat)}</p>}
                     <ul className="space-y-1.5">
                       {b.steps.map((s, si) => {
                         const it = intensityOf(s);
@@ -277,7 +277,7 @@ export function RunGenerator({
 
       <GeneratorActions
         copyText={setText}
-        copyLabel="Copy Set"
+        copyLabel={t.actions.copySet}
         tour="run-generator"
         onRegenerate={regenerate}
         canRegenerate={canRegenerate}

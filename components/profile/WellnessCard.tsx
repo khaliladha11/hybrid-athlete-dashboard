@@ -3,6 +3,8 @@ import { InfoCarousel } from "@/components/ui/InfoCarousel";
 import { Card, StatRow } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { formatDateId } from "@/lib/date";
+import { getLocale } from "@/lib/i18n/server";
+import { PROFILE } from "@/lib/i18n/messages/profile";
 import type { FetchResult, Wellness } from "@/lib/intervals/types";
 import { availableSignals, joinId, SIGNAL_LABEL, WELLNESS_SIGNALS, type WellnessSignal } from "@/lib/wellness-signals";
 
@@ -10,16 +12,18 @@ function fmt(v: number | undefined, digits = 0) {
   return v === undefined ? undefined : v.toFixed(digits);
 }
 
-function sleep(sec: number | undefined) {
+function sleep(sec: number | undefined, fmt: (h: number, m: string) => string) {
   if (!sec) return undefined;
-  return `${Math.floor(sec / 3600)}j ${String(Math.round((sec % 3600) / 60)).padStart(2, "0")}m`;
+  return fmt(Math.floor(sec / 3600), String(Math.round((sec % 3600) / 60)).padStart(2, "0"));
 }
 
 /** `basis`: kalimat sinyal yang dipakai readiness (0.14.3). Sinyal yang tidak dikirim jam dalam 14 hari tidak ditampilkan. */
-export function WellnessCard({ result, today, basis, used, thresholds }: { result: FetchResult<Wellness[]>; today: string; basis?: string; used?: string[]; thresholds?: string[] }) {
+export async function WellnessCard({ result, today, basis, used, thresholds }: { result: FetchResult<Wellness[]>; today: string; basis?: string; used?: string[]; thresholds?: string[] }) {
+  const locale = await getLocale();
+  const t = PROFILE[locale].wellness;
   if (!result.ok) {
     return (
-      <Card title="Wellness">
+      <Card title={t.title}>
         <ErrorState error={result.error} compact />
       </Card>
     );
@@ -28,10 +32,8 @@ export function WellnessCard({ result, today, basis, used, thresholds }: { resul
   const latest = [...result.data].reverse().find((w) => w.hrv ?? w.restingHr ?? w.ctl ?? w.atl ?? w.sleepSecs);
   if (!latest) {
     return (
-      <Card title="Wellness">
-        <p className="text-body text-muted">
-          Belum ada data wellness 14 hari terakhir. Pastikan resting HR atau HRV tersinkron ke intervals.icu.
-        </p>
+      <Card title={t.title}>
+        <p className="text-body text-muted">{t.empty}</p>
       </Card>
     );
   }
@@ -44,7 +46,7 @@ export function WellnessCard({ result, today, basis, used, thresholds }: { resul
   const items = [
     ...(signals.has("hrv") ? [{ label: "HRV", value: fmt(latest.hrv), unit: "ms" }] : []),
     ...(signals.has("restingHr") ? [{ label: "RHR", value: fmt(latest.restingHr), unit: "bpm" }] : []),
-    ...(signals.has("sleep") ? [{ label: "Tidur", value: sleep(latest.sleepSecs), unit: "durasi" }] : []),
+    ...(signals.has("sleep") ? [{ label: t.sleep, value: sleep(latest.sleepSecs, t.sleepValue), unit: t.duration }] : []),
     ...(signals.has("load")
       ? [
           { label: "CTL", value: fmt(latest.ctl, 1), unit: "fitness" },
@@ -57,18 +59,18 @@ export function WellnessCard({ result, today, basis, used, thresholds }: { resul
 
   return (
     <Card
-      title="Wellness"
+      title={t.title}
       action={
         <span className={`text-[13px] font-semibold ${isToday ? "text-success-ink" : "text-danger-ink"}`}>
-          {isToday ? "✓ Data hari ini" : `✕ Terakhir ${formatDateId(latest.date)}`}
+          {isToday ? t.today : t.last(formatDateId(latest.date, locale))}
         </span>
       }
     >
       <StatRow items={items} />
       <InfoCarousel
-        label="Info wellness"
+        label={t.info}
         items={[
-          ...(missing > 0 ? [{ key: "missing", content: `${missing} metrik kosong (·). Biasanya karena jam belum sinkron atau tidak dipakai saat tidur.` }] : []),
+          ...(missing > 0 ? [{ key: "missing", content: t.missing(missing) }] : []),
           ...(basis || used || absent.length > 0
             ? [
                 {
@@ -76,7 +78,7 @@ export function WellnessCard({ result, today, basis, used, thresholds }: { resul
                   content: (
                     <>
                       {used ? <ReadinessBasis used={used} today={today} /> : basis}
-                      {absent.length > 0 && ` Jammu tidak mengirim ${joinId(absent.map((s) => SIGNAL_LABEL[s]))} dalam 14 hari terakhir, jadi tidak ditampilkan.`}
+                      {absent.length > 0 && t.absent(joinId(absent.map((s) => SIGNAL_LABEL[s])))}
                     </>
                   ),
                 },

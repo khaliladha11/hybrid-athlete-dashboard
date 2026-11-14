@@ -43,25 +43,10 @@ import { InstallStep } from "./InstallStep";
 import { ProtectStep } from "./ProtectStep";
 import { TermsStep } from "./TermsStep";
 import { useTour } from "./Tour";
+import { useT } from "@/lib/i18n/client";
+import { ONBOARDING } from "@/lib/i18n/messages/onboarding";
 
-const TITLE: Record<OnboardingStep, string> = {
-  welcome: "Selamat datang",
-  terms: "Sebelum mulai",
-  connection: "Koneksi intervals.icu",
-  protect: "Amankan deploy",
-  profile: "Profil dasar",
-  conditions: "Kondisi & batasan",
-  zones: "Zona lari",
-  equipment: "Alat",
-  install: "Pasang ke layar utama",
-  summary: "Siap latihan",
-};
-
-const ZONE_PATHS: { value: ZonePath; label: string; desc: string }[] = [
-  { value: "vdot", label: "Dari hasil lomba (VDOT)", desc: "Isi jarak dan waktu lomba atau time trial terbaru." },
-  { value: "manual", label: "Manual", desc: "Isi sendiri pace tiap zona." },
-  { value: "estimate", label: "Belum tahu", desc: "Pakai zona perkiraan untuk pemula. Bisa diubah kapan saja di Setting." },
-];
+const ZONE_PATHS: ZonePath[] = ["vdot", "manual", "estimate"];
 
 const now = () => new Date().toISOString();
 
@@ -70,6 +55,9 @@ export function OnboardingWizard() {
   const ready = useIsClient();
   const router = useRouter();
   const tour = useTour();
+  const m = useT(ONBOARDING);
+  const t = m.wizard;
+  const TITLE: Record<OnboardingStep, string> = m.title;
   const [stored, setState] = useOnboardingState();
   const [settings, saveSettings] = useAthleteSettings();
   const resolved = useResolvedProfile();
@@ -127,10 +115,10 @@ export function OnboardingWizard() {
     <div className="space-y-5">
       <div>
         <p className="t-label">
-          Langkah {stepNumber(step)}/{STEPS.length}
+          {t.step(stepNumber(step), STEPS.length)}
         </p>
         <p className="sr-only" aria-live="polite">
-          Langkah {stepNumber(step)} dari {STEPS.length}: {TITLE[step]}
+          {t.stepSr(stepNumber(step), STEPS.length, TITLE[step])}
         </p>
         {step === "welcome" ? (
           <h1 ref={headingRef} tabIndex={-1} className="t-display mt-2 outline-none">
@@ -145,9 +133,9 @@ export function OnboardingWizard() {
 
       {step === "welcome" && (
         <div className="space-y-4">
-          <p className="text-body text-muted">Pelatih pribadi untuk lari dan strength di rumah. Kita siapkan profilmu dalam beberapa menit.</p>
+          <p className="text-body text-muted">{t.welcome}</p>
           <button type="button" onClick={next} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.primary} w-full`}>
-            Mulai
+            {t.start}
           </button>
           <ConnectButton onDone={(path) => router.replace(path)} />
           <ImportButton onFile={importFile} />
@@ -169,7 +157,7 @@ export function OnboardingWizard() {
 
       {step === "profile" && (
         <>
-          <p className="text-body text-muted">Cukup nama dulu. Sisanya boleh kosong dan bisa diisi nanti di Setting.</p>
+          <p className="text-body text-muted">{t.profile}</p>
           <ProfileSettings settings={settings} onChange={saveSettings} showGoals={false} />
         </>
       )}
@@ -177,7 +165,7 @@ export function OnboardingWizard() {
       {step === "conditions" && (
         <>
           <p className="text-body text-muted">
-            Pilih kondisi yang sedang kamu alami, atau pilih Tidak ada kondisi. Aturan keselamatan generator bergantung pada langkah ini.
+            {t.conditions}
           </p>
           <button
             type="button"
@@ -191,7 +179,7 @@ export function OnboardingWizard() {
               choice === "none" ? "border-brand bg-brand-soft text-brand-ink" : "border-line-strong bg-surface text-ink hover:bg-subtle"
             }`}
           >
-            Tidak ada kondisi
+            {t.noCondition}
             <span aria-hidden>{choice === "none" ? "✓" : ""}</span>
           </button>
           <ConditionsSettings
@@ -210,9 +198,10 @@ export function OnboardingWizard() {
 
       {step === "zones" && (
         <>
-          <p className="text-body text-muted">Pilih cara mengisi pace latihan. Bisa diganti kapan saja di Setting.</p>
-          <div role="radiogroup" aria-label="Cara mengisi zona lari" className="space-y-2">
-            {ZONE_PATHS.map((o) => {
+          <p className="text-body text-muted">{t.zones}</p>
+          <div role="radiogroup" aria-label={t.zonesGroup} className="space-y-2">
+            {ZONE_PATHS.map((value) => {
+              const o = { value, ...m.zonePath[value] };
               const on = zonePath === o.value;
               return (
                 <button
@@ -236,7 +225,7 @@ export function OnboardingWizard() {
           )}
           {zonePath === "estimate" && (
             <p className="rounded-inner bg-subtle p-3 text-[13px] text-muted">
-              Zona perkiraan dihitung dari VDOT 30 (setara 5K sekitar 30:40). Lebih aman terlalu pelan daripada terlalu cepat.
+              {t.estimate}
             </p>
           )}
         </>
@@ -244,11 +233,11 @@ export function OnboardingWizard() {
 
       {step === "equipment" && (
         <>
-          <p className="text-body text-muted">Centang alat yang ada di rumah. Lewati bila latihan tanpa alat.</p>
+          <p className="text-body text-muted">{t.equipment}</p>
           <EquipmentSettings settings={settings} onChange={saveSettings} />
           <LimitedNote />
           <button type="button" onClick={later} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.secondary} w-full`}>
-            Lewati, latihan tanpa alat
+            {t.noEquipment}
           </button>
         </>
       )}
@@ -258,7 +247,7 @@ export function OnboardingWizard() {
       {step !== "welcome" && step !== "terms" && (
         <div className="sticky bottom-0 -mx-4 flex gap-2 border-t border-line bg-bg/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur">
           <button type="button" onClick={() => save(back(state, env))} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.ghost} shrink-0`}>
-            Kembali
+            {t.back}
           </button>
           {/* Langkah 3, 4, 9 punya tombolnya sendiri (Lanjut / Demo Mode / Nanti saja). */}
           {/* Ringkasan: kedua tombol menyelesaikan onboarding; "Mulai tur" juga membuka tur in-app. */}
@@ -268,7 +257,7 @@ export function OnboardingWizard() {
               onClick={() => save(completeTour(advance(state, ctx, now(), env), now()))}
               className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.secondary} shrink-0 px-3`}
             >
-              Lewati tur
+              {t.skipTour}
             </button>
           )}
           {step !== "connection" && step !== "protect" && step !== "install" && (
@@ -281,7 +270,7 @@ export function OnboardingWizard() {
               }}
               className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.primary} flex-1`}
             >
-              {step === "summary" ? "Mulai tur" : "Simpan dan lanjut"}
+              {step === "summary" ? t.startTour : t.saveNext}
             </button>
           )}
         </div>
@@ -298,6 +287,7 @@ function ConnectButton({ onDone }: { onDone: (path: string) => void }) {
   const [available, setAvailable] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const t = useT(ONBOARDING).wizard;
   useEffect(() => {
     let alive = true;
     fetch("/api/status", { cache: "no-store" })
@@ -317,13 +307,13 @@ function ConnectButton({ onDone }: { onDone: (path: string) => void }) {
     const decision = connectDecision(parseOnboardingState(readStored(PREF_KEYS.onboarding) ?? ""));
     setBusy(false);
     if (decision !== "no-data") return onDone("/");
-    setMsg(meta.state === "ok" ? "Belum ada data di server. Mulai dari awal di perangkat ini." : "Tidak bisa mengambil data. Periksa koneksi lalu coba lagi.");
+    setMsg(meta.state === "ok" ? t.noServerData : t.fetchFailed);
   };
 
   return (
     <>
       <button type="button" onClick={connect} disabled={busy} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.secondary} w-full`}>
-        {busy ? "Mengambil data" : "Sambungkan perangkat ini"}
+        {busy ? t.fetching : t.connectDevice}
       </button>
       {msg && (
         <p role="status" className="text-[13px] font-semibold text-muted">
@@ -336,10 +326,11 @@ function ConnectButton({ onDone }: { onDone: (path: string) => void }) {
 
 function ImportButton({ onFile }: { onFile: (f: File) => void }) {
   const ref = useRef<HTMLInputElement>(null);
+  const t = useT(ONBOARDING).wizard;
   return (
     <>
       <button type="button" onClick={() => ref.current?.click()} className={`${BUTTON.base} ${BUTTON.lg} ${BUTTON.secondary} w-full`}>
-        Impor cadangan
+        {t.importBackup}
       </button>
       <input
         ref={ref}
@@ -359,6 +350,7 @@ function ImportButton({ onFile }: { onFile: (f: File) => void }) {
 /** Dampak alat sekarang: jenis sesi ST yang belum bisa disusun penuh (generator menandainya `limited`). */
 function LimitedNote() {
   const p = useResolvedProfile();
+  const t = useT(ONBOARDING).wizard;
   const limited = useMemo(
     () =>
       STRENGTH_TYPES.filter((type) => {
@@ -370,41 +362,43 @@ function LimitedNote() {
       }),
     [p],
   );
-  if (!limited.length) return <p className="text-[13px] text-success-ink">✓ Semua jenis sesi strength bisa disusun lengkap dengan alat ini.</p>;
+  if (!limited.length) return <p className="text-[13px] text-success-ink">{t.allTypes}</p>;
   return (
     <p className="rounded-inner bg-subtle p-3 text-[13px] text-muted">
-      Dengan alat sekarang, sesi {limited.map((t) => STRENGTH_TYPE_LABEL[t]).join(", ")} jadi lebih pendek dari durasi yang dipilih karena gerakannya terbatas.
+      {t.limited(limited.map((x) => STRENGTH_TYPE_LABEL[x]).join(", "))}
     </p>
   );
 }
 
 function Summary({ state, choice, zonePath, standalone }: { state: OnboardingState; choice?: ConditionsChoice; zonePath?: ZonePath; standalone: boolean }) {
   const p = useResolvedProfile();
+  const m = useT(ONBOARDING);
+  const t = m.summary;
   const eq = p.equipmentModel;
   const owned = [
     eq.dumbbell.enabled && "dumbbell",
     eq.barbell.enabled && "barbell",
     eq.bands.length > 0 && "band",
     eq.pullUpBar && "pull-up bar",
-    eq.bench && "kursi/bench",
+    eq.bench && t.bench,
   ].filter(Boolean) as string[];
   const rows: { label: string; value: string; later?: boolean }[] = [
     state.completed.includes("connection")
-      ? { label: "Koneksi intervals.icu", value: "Tersambung" }
-      : { label: "Koneksi intervals.icu", value: "Demo Mode", later: true },
+      ? { label: t.connection, value: t.connected }
+      : { label: t.connection, value: t.demo, later: true },
     state.protectionConfirmedAt
-      ? { label: "Amankan deploy", value: "Sudah dikonfirmasi" }
-      : { label: "Amankan deploy", value: "Belum dikonfirmasi", later: true },
-    { label: "Profil", value: p.name || "·" },
+      ? { label: t.protect, value: t.confirmed }
+      : { label: t.protect, value: t.notConfirmed, later: true },
+    { label: t.profile, value: p.name || "·" },
     {
-      label: "Kondisi",
-      value: choice === "none" ? "Tidak ada kondisi" : p.activeConditions.map((c) => CONDITIONS[c].label.split(" (")[0]).join(", ") || "·",
+      label: t.conditions,
+      value: choice === "none" ? t.none : p.activeConditions.map((c) => CONDITIONS[c].label.split(" (")[0]).join(", ") || "·",
     },
-    { label: "Zona lari", value: ZONE_PATHS.find((z) => z.value === zonePath)?.label ?? "·" },
-    { label: "Alat", value: owned.length ? owned.join(", ") : "Tanpa alat (bodyweight)", later: state.skipped.includes("equipment") },
+    { label: t.zones, value: zonePath ? m.zonePath[zonePath].label : "·" },
+    { label: t.equipment, value: owned.length ? owned.join(", ") : t.bodyweight, later: state.skipped.includes("equipment") },
     standalone || state.completed.includes("install")
-      ? { label: "Pasang ke layar utama", value: "Terpasang" }
-      : { label: "Pasang ke layar utama", value: "Belum dipasang", later: true },
+      ? { label: t.install, value: t.installed }
+      : { label: t.install, value: t.notInstalled, later: true },
   ];
   return (
     <ul className="divide-y divide-line rounded-card border border-line bg-surface">
@@ -414,7 +408,7 @@ function Summary({ state, choice, zonePath, standalone }: { state: OnboardingSta
             <p className="t-label">{r.label}</p>
             <p className="mt-0.5 text-body text-ink">{r.value}</p>
           </div>
-          {r.later && <Chip>Nanti</Chip>}
+          {r.later && <Chip>{t.later}</Chip>}
         </li>
       ))}
     </ul>

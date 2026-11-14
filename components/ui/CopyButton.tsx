@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "@/lib/i18n/client";
+import { CHROME } from "@/lib/i18n/messages/chrome";
 
 /** Clipboard API butuh secure context (HTTPS/localhost); fallback untuk akses via IP LAN di HP. */
 async function copyText(text: string): Promise<boolean> {
@@ -29,7 +31,8 @@ async function copyText(text: string): Promise<boolean> {
   return ok;
 }
 
-export function CopyButton({ text, label = "Copy", className = "" }: { text: string; label?: string; className?: string }) {
+export function CopyButton({ text, label, className = "" }: { text: string; label?: string; className?: string }) {
+  const t = useT(CHROME).ui;
   const [state, setState] = useState<"idle" | "ok" | "fail">("idle");
   useEffect(() => {
     if (state === "idle") return;
@@ -48,7 +51,7 @@ export function CopyButton({ text, label = "Copy", className = "" }: { text: str
       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         {state === "ok" ? <path d="M5 12l5 5L20 7" /> : <path d="M9 9h10v10H9zM5 15V5h10" />}
       </svg>
-      {state === "ok" ? "Tersalin" : state === "fail" ? "Gagal menyalin" : label}
+      {state === "ok" ? t.copied : state === "fail" ? t.copyFailed : (label ?? t.copy)}
       </span>
     </button>
   );

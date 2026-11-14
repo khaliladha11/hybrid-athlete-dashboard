@@ -8,6 +8,8 @@ import { eventHash, exportPlannedSession, externalId } from "@/lib/intervals/wor
 import { formatPaceSec, type Program } from "@/lib/program";
 import { isRunKind, type PlannedSession } from "@/lib/program/sessions";
 import { useAthleteSettings, useBlockContext, useResolvedProfile } from "@/lib/settings-store";
+import { useT } from "@/lib/i18n/client";
+import { INTERVALS } from "@/lib/i18n/messages/intervals";
 
 /**
  * "Kirim minggu ini" (0.17): sisa sesi lari minggu ini dikirim berurutan ke kalender intervals.icu (versi rencana;
@@ -20,6 +22,7 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
   const sent = useSent();
   const [{ watchBrand }] = useAthleteSettings();
   const [busy, setBusy] = useState(false);
+  const t = useT(INTERVALS).week;
   const [summary, setSummary] = useState<string | null>(null);
   const runs = remaining.filter((s) => isRunKind(s.kind));
 
@@ -69,20 +72,20 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
     <div className="space-y-2">
       {orphans.length > 0 && (
         <div role="note" className="space-y-2 rounded-inner border border-line bg-subtle p-3">
-          <p className="text-[14px] text-ink">{orphanText(orphans.length)} Hapus juga dari kalender intervals.icu?</p>
+          <p className="text-[14px] text-ink">{orphanText(orphans.length)} {t.removeAsk}</p>
           <div className="grid grid-cols-2 gap-2">
             <button type="button" disabled={busy} onClick={() => void removeOrphans()} className={`${BUTTON.base} ${BUTTON.secondary}`}>
-              Hapus dari kalender
+              {t.remove}
             </button>
             <button type="button" disabled={busy} onClick={() => orphans.forEach((o) => forgetSent(o.externalId))} className={`${BUTTON.base} ${BUTTON.ghost}`}>
-              Biarkan
+              {t.keep}
             </button>
           </div>
         </div>
       )}
       {runs.length > 0 && (
         <button type="button" disabled={busy} onClick={() => void sendWeek()} className={`${BUTTON.base} ${BUTTON.secondary} w-full`}>
-          {busy ? "Mengirim" : `Kirim minggu ini ke jam · ${runs.length} lari`}
+          {busy ? t.sending : t.send(runs.length)}
         </button>
       )}
       <p role="status" aria-live="polite" className="text-[13px] text-ink">

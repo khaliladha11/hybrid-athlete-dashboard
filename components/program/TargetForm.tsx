@@ -12,10 +12,12 @@ import { baseLongRunKm, legacyRaceDate } from "@/lib/program/settings";
 import { completedDistance, makeTimeline, phaseSummary, programShape, readiness, spacingWarnings, vdotGap } from "@/lib/program/timeline";
 import type { ProgramPlan } from "@/lib/program/use-program-plan";
 import { useAthleteSettings, useResolvedProfile } from "@/lib/settings-store";
-import { BAND_CELL, BAND_LABEL, RaceDatePicker } from "./RaceDatePicker";
+import { BAND_CELL, RaceDatePicker } from "./RaceDatePicker";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { PROGRAM } from "@/lib/i18n/messages/program";
+import { formatNumber } from "@/lib/i18n/format";
 
 const RACE_OPTIONS: RaceTarget[] = ["5k", "10k", "hm", "fm"];
-const km = (v: number) => v.toLocaleString("id-ID");
 
 /**
  * Program › Target (0.13.3): jarak, target waktu, tanggal mulai, Hari H, lari per minggu. Saat memilih Hari H,
@@ -27,6 +29,10 @@ export function TargetForm({ plan, today }: { plan: ProgramPlan; today: string }
   const { settings, saved, active } = plan;
   const [athlete] = useAthleteSettings();
   const p = useResolvedProfile();
+  const locale = useLocale();
+  const t = useT(PROGRAM).target;
+  const bandText = useT(PROGRAM).picker.band;
+  const km = (v: number) => formatNumber(locale, v);
   const [race, setRace] = useState<RaceTarget>(settings.race);
   const [goalSec, setGoalSec] = useState(parseGoal(settings.goal) ?? goalFromProfile(settings.race, p));
   const [startDate, setStartDate] = useState(saved ? settings.startDate : startOfWeekMonday(today));
@@ -96,15 +102,15 @@ export function TargetForm({ plan, today }: { plan: ProgramPlan; today: string }
     });
 
   return (
-    <Card title="Target" tour="program-target">
+    <Card title={t.title} tour="program-target">
       <div className="space-y-4">
-        <Segmented label="Program" value={race} onChange={pickRace} options={RACE_OPTIONS.map((r) => ({ value: r, label: r === "hm" ? "HM" : r === "fm" ? "FM" : RACES[r].short }))} />
+        <Segmented label={t.program} value={race} onChange={pickRace} options={RACE_OPTIONS.map((r) => ({ value: r, label: r === "hm" ? "HM" : r === "fm" ? "FM" : RACES[r].short }))} />
         <div>
-          <p className="t-label">Target waktu</p>
-          <TimePicker aria-label="Target waktu" format="hms" maxHours={race === "fm" ? 7 : race === "hm" ? 4 : 2} value={goalSec} onChange={setGoal} units className="mt-1" />
+          <p className="t-label">{t.goal}</p>
+          <TimePicker aria-label={t.goal} format="hms" maxHours={race === "fm" ? 7 : race === "hm" ? 4 : 2} value={goalSec} onChange={setGoal} units className="mt-1" />
         </div>
         <label className="block text-[12px] text-muted">
-          Mulai (Senin)
+          {t.start}
           <input
             type="date"
             value={restart ? effStart : startDate}
@@ -112,17 +118,17 @@ export function TargetForm({ plan, today }: { plan: ProgramPlan; today: string }
             onChange={(e) => e.target.value && setStartDate(startOfWeekMonday(e.target.value))}
             className="mt-1 block min-h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand disabled:text-muted"
           />
-          {restart && <span className="mt-1 block text-[12px] text-muted">Program baru mulai minggu ini. Program sekarang diarsipkan beserta riwayatnya.</span>}
+          {restart && <span className="mt-1 block text-[12px] text-muted">{t.restart}</span>}
         </label>
 
         <div>
-          <p className="t-label">Hari H</p>
+          <p className="t-label">{t.raceDay}</p>
           <div className="mt-2">
             <RaceDatePicker key={`${race}-${pickStart}`} value={raceDate} onChange={(d) => (setRaceDate(d), setAck(false))} bandOf={pickTimeline.bandOf} earliestDate={pickTimeline.earliestDate} />
           </div>
           <div className={`mt-3 rounded-inner px-3 py-2 ${BAND_CELL[band.band]}`} role="status">
             <p className="text-[14px] font-semibold">
-              {formatDateId(raceDate)} · {band.weeks} minggu · {BAND_LABEL[band.band]}
+              {t.bandLine(formatDateId(raceDate, locale), band.weeks, bandText[band.band])}
             </p>
             {band.reasons.map((r) => (
               <p key={r} className="mt-1 text-[13px]">
@@ -130,23 +136,23 @@ export function TargetForm({ plan, today }: { plan: ProgramPlan; today: string }
               </p>
             ))}
           </div>
-          <p className="mt-1 text-[12px] text-faint">Warna memakai rekomendasi umum dan datamu sendiri, bukan bukti klinis. Semua tanggal yang bisa disusun boleh dipilih.</p>
+          <p className="mt-1 text-[12px] text-faint">{t.colorsNote}</p>
         </div>
 
         <Switch
           checked={completedBefore}
           onChange={(v) => setCompletedPick(v)}
-          label="Pernah menyelesaikan jarak ini?"
-          description={completedPick === undefined ? (fromData ? "Terisi dari hasil lomba atau aktivitasmu." : "Belum terlihat di hasil lomba atau aktivitasmu.") : "Pilihanmu sendiri."}
+          label={t.completed}
+          description={completedPick === undefined ? (fromData ? t.fromData : t.notSeen) : t.ownPick}
         />
 
         <Segmented
-          label="Lari per minggu"
+          label={t.runsPerWeek}
           value={runsPerWeek}
           onChange={setRuns}
           options={[
-            { value: 3, label: "3× lari" },
-            { value: 4, label: "4× lari" },
+            { value: 3, label: t.runs(3) },
+            { value: 4, label: t.runs(4) },
           ]}
         />
 
@@ -154,12 +160,12 @@ export function TargetForm({ plan, today }: { plan: ProgramPlan; today: string }
           <div className="space-y-3 rounded-inner border border-line p-3">
             <p className="t-label text-ink">{phaseSummary(race, band.mainWeeks, band.preBaseWeeks)}</p>
             <p className="text-[14px]">
-              <span className="text-muted">Long run puncak </span>
+              <span className="text-muted">{t.peak}</span>
               <span className="tabular font-semibold">{km(peak)} km</span>
             </p>
             {capped && <p className="text-[13px] text-ink">{capped}</p>}
             {ready.checks.length > 0 && (
-              <ul className="space-y-1 text-[13px]" aria-label="Kesiapan">
+              <ul className="space-y-1 text-[13px]" aria-label={t.readiness}>
                 {ready.checks.map((c) => (
                   <li key={c.label} className="flex gap-2">
                     <span aria-hidden className={c.met ? "text-success-ink" : "text-danger-ink"}>
@@ -178,15 +184,15 @@ export function TargetForm({ plan, today }: { plan: ProgramPlan; today: string }
               </p>
             ))}
             <p className="text-[13px] text-muted">
-              Target {formatGoal(goalSec)} setara VDOT <span className="tabular text-ink">{gap.required.toFixed(1)}</span>
+              {t.vdotLine(formatGoal(goalSec))}<span className="tabular text-ink">{gap.required.toFixed(1)}</span>
               {gap.current !== undefined ? (
                 <>
-                  . Perkiraan sekarang VDOT <span className="tabular text-ink">{gap.current.toFixed(1)}</span>
+                  {t.vdotNow}<span className="tabular text-ink">{gap.current.toFixed(1)}</span>
                 </>
               ) : (
-                ". Belum ada perkiraan VDOT dari hasil lomba atau lari 90 hari"
+                t.vdotNone
               )}
-              . Waktu tersedia {band.weeks} minggu.
+              {t.weeksLeft(band.weeks)}
             </p>
           </div>
         )}
@@ -194,15 +200,15 @@ export function TargetForm({ plan, today }: { plan: ProgramPlan; today: string }
         {changed && needAck && (
           <label className="flex min-h-11 cursor-pointer items-center gap-3 text-[14px] text-ink">
             <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} className="h-5 w-5 accent-[var(--color-brand)]" />
-            Saya mengerti risikonya
+            {t.ack}
           </label>
         )}
         {changed ? (
           <button type="button" disabled={!canCreate} onClick={create} className={`${BUTTON.base} ${BUTTON.primary} w-full`}>
-            {saved ? "Buat program baru" : "Buat program"}
+            {saved ? t.createNew : t.create}
           </button>
         ) : (
-          <p className="text-[12px] text-faint">Target waktu dan lari per minggu tersimpan otomatis. Ganti jarak atau tanggal untuk membuat program baru.</p>
+          <p className="text-[12px] text-faint">{t.autoSaved}</p>
         )}
       </div>
     </Card>

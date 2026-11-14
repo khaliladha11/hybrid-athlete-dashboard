@@ -13,6 +13,8 @@ import { usePrs } from "@/lib/pr-store";
 import { useAthleteSettings, useIsClient, useResolvedProfile } from "@/lib/settings-store";
 import { useStSessions } from "@/lib/st-session-store";
 import { useTrainingLog } from "@/lib/training-log";
+import { useT } from "@/lib/i18n/client";
+import { PROFILE } from "@/lib/i18n/messages/profile";
 
 /**
  * Kartu ringkasan bulanan di Profil (0.15.2, #12): tanggal 1–7, sekali per bulan (ditutup di perangkat ini).
@@ -20,6 +22,7 @@ import { useTrainingLog } from "@/lib/training-log";
  */
 export function MonthlyProfileCard({ today }: { today: string }) {
   const client = useIsClient();
+  const t = useT(PROFILE).monthly;
   const [dismissed, setDismissed] = useStoredString(PREF_KEYS.monthlyDismissed, "");
   const show = client && showMonthlyCard(today, dismissed || null);
   const month = previousMonth(today);
@@ -55,12 +58,12 @@ export function MonthlyProfileCard({ today }: { today: string }) {
         summary={summary}
         action={
           <button type="button" onClick={() => setDismissed(summary.key)} className="pressable inline-flex min-h-11 items-center text-[13px] text-muted">
-            Tutup
+            {t.close}
           </button>
         }
       />
       <Link href="/insight" className="pressable inline-flex min-h-11 items-center px-1 text-body font-semibold text-brand-ink">
-        Lihat tren →
+        {t.trends}
       </Link>
     </div>
   );

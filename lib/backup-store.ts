@@ -22,6 +22,8 @@ export const deviceBackupStore: BackupStore = {
     writeStored(PREF_KEYS.theme, t === "system" ? null : t);
     applyTheme(t);
   },
+  getLangRaw: () => readStored(PREF_KEYS.lang) ?? "",
+  setLang: (v) => writeStored(PREF_KEYS.lang, v),
   getBlockRaw: () => readStored(PREF_KEYS.blockEnabled) ?? "",
   setBlockEnabled: (v) => writeStored(PREF_KEYS.blockEnabled, v ? "1" : "0"),
   setOnboarding: (v) => writeStored(PREF_KEYS.onboarding, JSON.stringify(v)),
@@ -36,12 +38,14 @@ export function exportDeviceBackup(now = new Date().toISOString()): BackupFile {
   const settingsRaw = readStored(PREF_KEYS.settings);
   const theme = readStored(PREF_KEYS.theme);
   const block = readStored(PREF_KEYS.blockEnabled);
+  const lang = readStored(PREF_KEYS.lang);
   return buildBackup({
     log: JSON.parse(trainingLog.exportJson()),
     settings: settingsRaw ? parseSettings(settingsRaw, baseProfile) : null,
     program: readStored(PREF_KEYS.program),
     theme: theme === "light" || theme === "dark" ? theme : "system",
     blockEnabled: block === "1" ? true : block === "0" ? false : undefined,
+    lang: lang === "id" || lang === "en" ? lang : undefined,
     onboarding: parseOnboardingState(readStored(PREF_KEYS.onboarding) ?? ""),
     prs: prStore.live(),
     sessions: stSessionStore.live(),

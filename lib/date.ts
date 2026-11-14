@@ -1,3 +1,5 @@
+import { formatDay, WEEKDAY_DAY_MONTH } from "./i18n/format";
+import type { Locale } from "./i18n/locale";
 /** Semua tanggal di app memakai WIB (UTC+7) dalam format YYYY-MM-DD. */
 export const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
 
@@ -26,12 +28,9 @@ export function datePart(local: string | undefined): string | undefined {
   return local && /^\d{4}-\d{2}-\d{2}/.test(local) ? local.slice(0, 10) : undefined;
 }
 
-const DAY_FMT = new Intl.DateTimeFormat("id-ID", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
-
-export function formatDateId(date: string | undefined): string {
-  if (!date) return "·";
-  const d = new Date(`${date.slice(0, 10)}T00:00:00Z`);
-  return Number.isNaN(d.getTime()) ? "·" : DAY_FMT.format(d);
+/** "Sen, 14 Sep" / "Mon 14 Sep". Kosong/tidak valid → "·". */
+export function formatDateId(date: string | undefined, locale: Locale = "id"): string {
+  return formatDay(locale, date, WEEKDAY_DAY_MONTH);
 }
 
 export function formatTimeOfDay(local: string | undefined): string {

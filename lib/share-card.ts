@@ -34,7 +34,8 @@ export interface ShareOptions {
 export const DEFAULT_SHARE: ShareOptions = { format: "story", ink: "light", lang: "en", watermark: true };
 
 /** Baca opsi tersimpan; nilai tidak dikenal diganti bawaan. */
-export function parseShareOptions(raw: string | null): ShareOptions {
+/** `fallbackLang`: bahasa kartu bila belum pernah dipilih di sheet (1.2: mengikuti bahasa app). */
+export function parseShareOptions(raw: string | null, fallbackLang: ShareOptions["lang"] = "en"): ShareOptions {
   let v: Partial<ShareOptions> = {};
   try {
     v = raw ? (JSON.parse(raw) as Partial<ShareOptions>) : {};
@@ -42,7 +43,7 @@ export function parseShareOptions(raw: string | null): ShareOptions {
   return {
     format: v.format === "feed" ? "feed" : "story",
     ink: v.ink === "dark" ? "dark" : "light",
-    lang: v.lang === "id" ? "id" : "en",
+    lang: v.lang === "id" || v.lang === "en" ? v.lang : fallbackLang,
     watermark: typeof v.watermark === "boolean" ? v.watermark : DEFAULT_SHARE.watermark,
   };
 }

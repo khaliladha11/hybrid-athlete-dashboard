@@ -6,6 +6,8 @@ import { suggestFor, type Advice, type AdviceTarget, type PlanToday, type Sugges
 import { DIFFICULTIES, DIFFICULTY_LABEL, type Difficulty, type Duration } from "@/lib/generator/types";
 import { planLabel } from "@/components/program/planText";
 import { suggestionSeverity } from "./coach-severity";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { GENERATOR } from "@/lib/i18n/messages/generator";
 
 /**
  * Saran hari ini versi ringkas untuk halaman generator: satu baris ringkasan,
@@ -27,6 +29,8 @@ export function CoachStrip({
 }) {
   // Sama seperti CoachCard: "turun satu level" tidak ditawarkan berantai.
   const [appliedLevel, setAppliedLevel] = useState<Difficulty | null>(null);
+  const locale = useLocale();
+  const t = useT(GENERATOR).coach;
   const relevant = advice.filter((a) => a.targets.includes(target));
   if (!relevant.length) return null;
 
@@ -43,17 +47,17 @@ export function CoachStrip({
   const actionable = !!(s.difficulty || s.duration) && !!(lowered.difficulty || lowered.duration);
   // Ringkas supaya muat satu baris di layar 360px: "Moderate · 30'".
   const summary = plan
-    ? `Rencana ${planLabel(plan.label, plan.plan)} · ${s.difficulty || s.duration ? `saran ${DIFFICULTY_LABEL[difficulty]} ${duration}'` : "sesuai"}`
+    ? t.plan(planLabel(plan.label, plan.plan, false, locale), s.difficulty || s.duration ? t.suggest(DIFFICULTY_LABEL[difficulty], duration) : t.fitsLower)
     : `${DIFFICULTY_LABEL[difficulty]} · ${duration}'`;
-  const spoken = `${DIFFICULTY_LABEL[difficulty]} ${duration} menit`;
-  const severity = suggestionSeverity(s);
+  const spoken = t.spoken(DIFFICULTY_LABEL[difficulty], duration);
+  const severity = suggestionSeverity(s, locale);
   // Aturan hari yang sama (0.14.1) tidak mengubah isian, jadi ditulis sebagai baris sendiri.
   const sameDay = relevant.find((a) => a.id === "same-day");
 
   return (
     <aside
       role="note"
-      aria-label="Saran Gita hari ini"
+      aria-label={t.strip}
       title={relevant.map((a) => a.title).join(" · ")}
       className="flex min-h-14 items-center gap-2.5 rounded-card border border-line bg-surface py-2 pr-2 pl-3.5"
     >
@@ -62,7 +66,7 @@ export function CoachStrip({
       </svg>
       <div className="grid min-w-0 flex-1 gap-0.5">
         <span className="t-label truncate">
-          Saran Gita · hari ini · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
+          {t.heading} · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
         </span>
         {/* Label di atas sudah menyebut "Saran", jadi baris ini cukup ringkasan + tautan detail. */}
         <p className="flex min-w-0 items-baseline gap-2 text-[14px]">
@@ -73,7 +77,7 @@ export function CoachStrip({
             href="/#saran"
             className="relative shrink-0 text-[12px] font-semibold text-muted underline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 after:content-[''] hover:text-ink hover:underline"
           >
-            Lihat detail
+            {t.detail}
           </Link>
         </p>
         {sameDay && <p className="text-[13px] text-muted">{sameDay.title}</p>}
@@ -81,14 +85,14 @@ export function CoachStrip({
       {actionable && (
         <button
           type="button"
-          aria-label={`Gunakan saran ini: ${spoken}`}
+          aria-label={t.useAria(spoken)}
           onClick={() => {
             if (s.difficulty) setAppliedLevel(s.difficulty);
             onApply(lowered);
           }}
           className="pressable relative ml-0.5 min-h-8 shrink-0 rounded-control bg-brand px-2.5 text-[13px] font-semibold text-on-brand after:absolute after:-inset-1.5 after:content-[''] hover:bg-brand-hover"
         >
-          Gunakan
+          {t.use}
         </button>
       )}
     </aside>

@@ -18,11 +18,15 @@ import { weekRunModel } from "@/lib/week-run-card";
 import { MonthlyProfileCard } from "@/components/profile/MonthlyProfileCard";
 import { readinessAdvice, weeklyAdvice } from "@/lib/coach";
 import { assessReadiness } from "@/lib/readiness";
+import { getLocale } from "@/lib/i18n/server";
+import { PROFILE } from "@/lib/i18n/messages/profile";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
   const today = todayWib();
+  const locale = await getLocale();
+  const t = PROFILE[locale].page;
   // Kalender butuh bulan ini + bulan lalu; kartu lain memfilter tanggal sendiri.
   const prevMonth = new Date(`${today.slice(0, 7)}-01T00:00:00Z`);
   prevMonth.setUTCMonth(prevMonth.getUTCMonth() - 1);
@@ -78,20 +82,20 @@ export default async function ProfilePage() {
       {activities.ok ? (
         <WeekRunCard model={weekRunModel(activities.data, today)} />
       ) : (
-        <Card title="Minggu ini · lari">
+        <Card title={t.weekRun}>
           <ErrorState error={activities.error} compact />
         </Card>
       )}
       {activities.ok ? (
         <ActivityCalendar activities={activities.data} today={today} oldest={oldest} />
       ) : (
-        <Card title="Kalender aktivitas">
+        <Card title={t.calendar}>
           <ErrorState error={activities.error} compact />
         </Card>
       )}
       <TargetsCard />
       <Link href="/setting" className={`${BUTTON.base} ${BUTTON.secondary} w-full`}>
-        Kondisi, zona lari & alat → Setting
+        {t.toSetting}
       </Link>
     </div>
   );

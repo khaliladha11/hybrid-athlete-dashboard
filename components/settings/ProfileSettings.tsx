@@ -7,6 +7,8 @@ import { TimePicker } from "@/components/ui/TimePicker";
 import { formatRaceTarget, RACE_LABEL, type AthleteSettings, type ProfileSettings as Profile, type RaceKey } from "@/lib/athlete-settings";
 import { startOfWeekMonday, todayWib } from "@/lib/date";
 import { useBlockMode } from "@/lib/settings-store";
+import { useT } from "@/lib/i18n/client";
+import { SETTINGS } from "@/lib/i18n/messages/settings";
 
 const INPUT = "mt-1 block min-h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand";
 const RACE_KEYS: RaceKey[] = ["5k", "10k", "hm", "fm"];
@@ -36,6 +38,7 @@ function TextField({
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? value ?? "";
+  const t = useT(SETTINGS).profile;
   const commit = () => {
     if (draft === null) return;
     const v = draft.trim();
@@ -45,7 +48,7 @@ function TextField({
   return (
     <label className="block text-[12px] text-muted">
       {label}
-      {required && <span className="text-danger-ink"> · wajib</span>}
+      {required && <span className="text-danger-ink">{t.required}</span>}
       <input
         value={shown}
         onChange={(e) => setDraft(e.target.value)}
@@ -66,6 +69,7 @@ function TextField({
 function AgeField({ value, onCommit }: { value?: number; onCommit: (v: number | undefined) => void }) {
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? (value ? String(value) : "");
+  const t = useT(SETTINGS).profile;
   const n = Number(shown);
   const invalid = shown !== "" && !(n >= 10 && n <= 100);
   const commit = () => {
@@ -77,7 +81,7 @@ function AgeField({ value, onCommit }: { value?: number; onCommit: (v: number | 
   };
   return (
     <label className="block text-[12px] text-muted">
-      Usia
+      {t.age}
       <input
         inputMode="numeric"
         maxLength={3}
@@ -85,11 +89,11 @@ function AgeField({ value, onCommit }: { value?: number; onCommit: (v: number | 
         onChange={(e) => setDraft(e.target.value.replace(/\D/g, "").slice(0, 3))}
         onBlur={commit}
         onKeyDown={(e) => e.key === "Enter" && commit()}
-        placeholder="th"
+        placeholder={t.agePlaceholder}
         aria-invalid={invalid || undefined}
         className={invalid ? INPUT.replace("border-line-strong", "border-danger") : INPUT}
       />
-      {invalid && <span className="mt-1 block text-danger-ink">10 sampai 100</span>}
+      {invalid && <span className="mt-1 block text-danger-ink">{t.ageRange}</span>}
     </label>
   );
 }
@@ -116,6 +120,7 @@ export function ProfileSettings({
   const [goalSec, setGoalSec] = useState(DEFAULT_GOAL["5k"]);
   const [goalDraft, setGoalDraft] = useState("");
   const dateId = useId();
+  const t = useT(SETTINGS).profile;
   const targets = pr.raceTargets ?? [];
   const goals = pr.goals ?? [];
 
@@ -127,29 +132,29 @@ export function ProfileSettings({
   };
 
   return (
-    <Card title="Profil">
-      <p className="text-[13px] text-muted">Tersimpan di perangkat ini. Nama dan target tampil di Profil; target jadi target awal Program.</p>
+    <Card title={t.title}>
+      <p className="text-[13px] text-muted">{t.intro}</p>
       <div className="mt-3 space-y-3">
-        <TextField label="Nama" value={pr.name} onCommit={(name) => set({ name })} maxLength={60} placeholder="Nama panggilan" required />
+        <TextField label={t.name} value={pr.name} onCommit={(name) => set({ name })} maxLength={60} placeholder={t.namePlaceholder} required />
         <div className="grid grid-cols-[6rem_1fr] gap-2">
           <AgeField value={pr.age} onCommit={(age) => set({ age })} />
-          <TextField label="Gaya hidup" value={pr.occupation} onCommit={(occupation) => set({ occupation })} maxLength={80} placeholder="mis. Kerja kantoran" />
+          <TextField label={t.lifestyle} value={pr.occupation} onCommit={(occupation) => set({ occupation })} maxLength={80} placeholder={t.lifestylePlaceholder} />
         </div>
-        <TextField label="Fokus latihan" value={pr.category} onCommit={(category) => set({ category })} maxLength={80} placeholder="mis. Lari 10K + strength di rumah" />
+        <TextField label={t.focus} value={pr.category} onCommit={(category) => set({ category })} maxLength={80} placeholder={t.focusPlaceholder} />
       </div>
 
       <div className="mt-4 border-t border-line pt-4">
-        <p className="text-body font-semibold">Target lomba</p>
-        <p className="mt-0.5 text-[13px] text-muted">Boleh kosong. Satu target per jarak.</p>
+        <p className="text-body font-semibold">{t.targets}</p>
+        <p className="mt-0.5 text-[13px] text-muted">{t.targetsHint}</p>
         {targets.length > 0 && (
           <ul className="mt-2 space-y-1.5">
-            {targets.map((t) => (
-              <li key={t} className="flex items-center gap-2 rounded-inner bg-subtle py-1 pr-1 pl-3 text-[14px]">
-                <span className="min-w-0 flex-1">{t}</span>
+            {targets.map((tg) => (
+              <li key={tg} className="flex items-center gap-2 rounded-inner bg-subtle py-1 pr-1 pl-3 text-[14px]">
+                <span className="min-w-0 flex-1">{tg}</span>
                 <button
                   type="button"
-                  onClick={() => set({ raceTargets: targets.filter((x) => x !== t) })}
-                  aria-label={`Hapus target ${t}`}
+                  onClick={() => set({ raceTargets: targets.filter((x) => x !== tg) })}
+                  aria-label={t.removeTarget(tg)}
                   className="pressable grid h-11 w-11 shrink-0 place-items-center rounded-control text-muted hover:bg-subtle-strong hover:text-danger-ink"
                 >
                   ✕
@@ -160,7 +165,7 @@ export function ProfileSettings({
         )}
         <div className="mt-3 space-y-2">
           <Segmented
-            label="Jarak"
+            label={t.distance}
             value={race}
             onChange={(r) => {
               setRace(r);
@@ -168,17 +173,17 @@ export function ProfileSettings({
             }}
             options={RACE_KEYS.map((k) => ({ value: k, label: RACE_SHORT[k] }))}
           />
-          <p className="t-label">Target waktu</p>
-          <TimePicker aria-label={`Target waktu ${RACE_LABEL[race]}`} format="hms" maxHours={MAX_HOURS[race]} value={goalSec} onChange={setGoalSec} units />
+          <p className="t-label">{t.goalTime}</p>
+          <TimePicker aria-label={t.goalTimeOf(RACE_LABEL[race])} format="hms" maxHours={MAX_HOURS[race]} value={goalSec} onChange={setGoalSec} units />
           <button type="button" onClick={addTarget} disabled={goalSec <= 0} className={`${BUTTON.base} ${BUTTON.secondary} w-full disabled:opacity-40`}>
-            Simpan target {RACE_LABEL[race]}
+            {t.saveTarget(RACE_LABEL[race])}
           </button>
         </div>
       </div>
 
       {showGoals && (
         <div className="mt-4 border-t border-line pt-4">
-          <p className="text-body font-semibold">Tujuan latihan</p>
+          <p className="text-body font-semibold">{t.goals}</p>
           <form
             className="mt-2 flex gap-2"
             onSubmit={(e) => {
@@ -193,12 +198,12 @@ export function ProfileSettings({
               value={goalDraft}
               onChange={(e) => setGoalDraft(e.target.value)}
               maxLength={80}
-              placeholder="mis. Konsisten 3x seminggu"
-              aria-label="Tujuan latihan baru"
+              placeholder={t.goalPlaceholder}
+              aria-label={t.newGoal}
               className="min-h-11 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-3 text-base text-ink focus:border-brand"
             />
             <button type="submit" disabled={!goalDraft.trim()} className={`${BUTTON.base} ${BUTTON.secondary} shrink-0 px-3 disabled:opacity-40`}>
-              Tambah
+              {t.add}
             </button>
           </form>
           {goals.length > 0 && (
@@ -209,7 +214,7 @@ export function ProfileSettings({
                   <button
                     type="button"
                     onClick={() => set({ goals: goals.filter((x) => x !== g) })}
-                    aria-label={`Hapus tujuan: ${g}`}
+                    aria-label={t.removeGoal(g)}
                     className="pressable grid h-11 w-11 shrink-0 place-items-center rounded-control text-muted hover:bg-subtle-strong hover:text-danger-ink"
                   >
                     ✕
@@ -223,25 +228,23 @@ export function ProfileSettings({
 
       <div className="mt-4 border-t border-line pt-4">
         <Segmented
-          label="Periodisasi"
+          label={t.periodization}
           value={blockOn ? "block" : "free"}
           onChange={(v) => {
             if (v === "block" && !pr.blockStart) set({ blockStart: startOfWeekMonday(todayWib()) });
             setBlockOn(v === "block");
           }}
           options={[
-            { value: "block", label: "Blok mingguan" },
-            { value: "free", label: "Mode bebas" },
+            { value: "block", label: t.block },
+            { value: "free", label: t.free },
           ]}
         />
         <p className="mt-2 text-[13px] text-muted">
-          {blockOn
-            ? "Blok 4 minggu: 3 minggu naik, 1 minggu deload. Gerakan ★ tetap selama satu blok."
-            : "Tanpa jadwal blok. Generator memilih bebas setiap kali."}
+          {blockOn ? t.blockDesc : t.freeDesc}
         </p>
         {blockOn && (
           <label htmlFor={dateId} className="mt-3 block text-[12px] text-muted">
-            Tanggal mulai blok (hari Senin)
+            {t.blockStart}
             <input
               id={dateId}
               type="date"

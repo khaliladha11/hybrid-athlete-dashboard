@@ -12,19 +12,25 @@ import { randomSeed } from "@/lib/generator/rng";
 import { getTrainingContext } from "@/lib/intervals/data-source";
 import { parseStrengthPrefill } from "@/lib/program/to-generator";
 
+import { GENERATOR } from "@/lib/i18n/messages/generator";
+import { getLocale } from "@/lib/i18n/server";
+
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Generator ST · Hybrid Athlete" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: GENERATOR[await getLocale()].stPage.meta };
+}
 
 export default async function StrengthPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [ctx, params] = await Promise.all([getTrainingContext(), searchParams]);
   const prefill = parseStrengthPrefill(params);
+  const t = GENERATOR[await getLocale()].stPage;
   return (
     <div className="space-y-4">
       <SnapshotTime at={new Date().toISOString()} />
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-[22px] leading-tight font-semibold">Generator Strength</h1>
-          <p className="mt-0.5 text-[13px] text-muted">Sesuai kondisi & alat di Setting · hanya gerakan dari movement library · RPE maks 7.</p>
+          <h1 className="text-[22px] leading-tight font-semibold">{t.title}</h1>
+          <p className="mt-0.5 text-[13px] text-muted">{t.intro}</p>
         </div>
         <BlockBadge />
       </header>
@@ -32,7 +38,7 @@ export default async function StrengthPage({ searchParams }: { searchParams: Pro
       <LoadRuleNotice />
       <StrengthGenerator advice={ctx.advice} todayDone={ctx.todayDone} initialSeed={randomSeed()} prefill={prefill} />
       <Link href="/setting#alat" className="inline-flex min-h-11 items-center text-[14px] font-semibold text-brand-ink hover:underline">
-        Atur alat di Setting
+        {t.equipment}
       </Link>
       <BuyReminderCard />
       <PrSection />

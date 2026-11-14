@@ -1,6 +1,8 @@
 /** Kunci localStorage preferensi (dipakai client & server-rendered boot script). */
 export const PREF_KEYS = {
   theme: "hybrid-athlete.theme",
+  /** Bahasa tampilan "id" | "en" (1.2.0). Ikut sinkron & cadangan; dicerminkan ke cookie `ha-lang` untuk server. */
+  lang: "hybrid-athlete.lang",
   blockEnabled: "hybrid-athlete.block-enabled",
   program: "hybrid-athlete.program",
   /** Pengaturan atlet (profil dasar, kondisi, zona, alat, movement library). */

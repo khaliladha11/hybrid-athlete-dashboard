@@ -12,6 +12,7 @@ import { generatorHref, planToday, shortTitle, toGenerator } from "@/lib/program
 import { recommendToday, weekSessions } from "@/lib/program/week-plan";
 import { useProgramPlan } from "@/lib/program/use-program-plan";
 import { planLine } from "./planText";
+import { useLocale } from "@/lib/i18n/client";
 
 /**
  * Kartu "Saran hari ini" di Profil. Dengan program aktif dan sesi lari hari ini, kartu memulai dengan
@@ -20,6 +21,7 @@ import { planLine } from "./planText";
  */
 export function ProfileCoach({ advice: serverAdvice, activities, oldest, today }: { advice: Advice[]; activities: Activity[]; oldest: string; today: string }) {
   const plan = useProgramPlan({ activities, oldest, today });
+  const locale = useLocale();
   const stSessions = useStSessions();
   const checkins = useCheckins();
   // 0.14.3: rencana hari ini = sesi minggu ini yang direkomendasikan untuk hari ini (bukan yang jatuh di tanggal ini).
@@ -39,7 +41,7 @@ export function ProfileCoach({ advice: serverAdvice, activities, oldest, today }
     // Quality spesifik lomba (kartu) yang diturunkan dikerjakan sebagai lari biasa di generator.
     const card = t.to === "card";
     const target = card && pt.duration ? { to: "run" as const, difficulty: pt.difficulty, duration: pt.duration } : t;
-    const text = planLine(card ? session.title : shortTitle(session.title), pt, s, card);
+    const text = planLine(card ? session.title : shortTitle(session.title), pt, s, card, locale);
     let href: string | undefined;
     if (s.longRunKm !== undefined) href = `/program?long=${s.longRunKm}${s.longRunEasy ? "&easy=1" : ""}#sesi-hari-ini`;
     else if (s.difficulty || s.duration) href = generatorHref(session, target, { difficulty: s.difficulty, duration: s.duration }) ?? undefined;

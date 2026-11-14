@@ -3,16 +3,15 @@
 import type { DayClass, HeatWeek } from "@/lib/insight/activity-heatmap";
 import { placeLabels } from "./chart-scale";
 import { useWidth } from "./useWidth";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { formatDay, MONTH_SHORT } from "@/lib/i18n/format";
+import { INSIGHT } from "@/lib/i18n/messages/insight";
 
 const LEFT = 30;
 const TOP = 18;
 const GAP_RATIO = 0.18;
-const ROW_LABELS: [number, string][] = [
-  [0, "Sen"],
-  [2, "Rab"],
-  [4, "Jum"],
-  [6, "Min"],
-];
+/** Baris berlabel: Senin, Rabu, Jumat, Minggu (teks dari kamus). */
+const ROW_INDEX = [0, 2, 4, 6];
 
 const FILL: Record<DayClass, string> = {
   run: "fill-brand",
@@ -22,8 +21,6 @@ const FILL: Record<DayClass, string> = {
   future: "fill-none stroke-line",
 };
 
-const MONTH = new Intl.DateTimeFormat("id-ID", { month: "short", timeZone: "UTC" });
-const monthOf = (d: string) => MONTH.format(new Date(`${d}T00:00:00Z`)).replace(".", "");
 
 /**
  * Kalender heatmap (0.15.1): kolom = minggu (lama → baru), baris = Senin sampai Minggu. Lari `brand`, ST `brand-soft`
@@ -32,6 +29,9 @@ const monthOf = (d: string) => MONTH.format(new Date(`${d}T00:00:00Z`)).replace(
  */
 export function HeatGrid({ weeks, ariaLabel }: { weeks: HeatWeek[]; ariaLabel: string }) {
   const [ref, width] = useWidth<HTMLDivElement>();
+  const locale = useLocale();
+  const rowText = useT(INSIGHT).heatmap.rows;
+  const monthOf = (d: string) => formatDay(locale, d, MONTH_SHORT).replace(".", "");
   const n = weeks.length;
   const slot = Math.min(26, (width - LEFT) / Math.max(1, n));
   const cell = slot * (1 - GAP_RATIO);
@@ -47,7 +47,7 @@ export function HeatGrid({ weeks, ariaLabel }: { weeks: HeatWeek[]; ariaLabel: s
             {m.text}
           </text>
         ))}
-        {ROW_LABELS.map(([r, t]) => (
+        {ROW_INDEX.map((r, i) => [r, rowText[i]] as const).map(([r, t]) => (
           <text key={t} x={0} y={TOP + r * slot + cell / 2} dy="0.32em" className="fill-muted font-mono text-[11px]">
             {t}
           </text>
