@@ -7,94 +7,72 @@
  */
 import type { CheckResult, SendErrorCode, SendRequest, SendResponse, SendWarning } from "./calendar";
 import { WATCH_LABEL, type WatchBrand } from "./watch";
+import { DAY_MONTH, formatDay, WEEKDAY_LONG } from "@/lib/i18n/format";
+import type { Locale } from "@/lib/i18n/locale";
+import { SEND } from "@/lib/i18n/messages/send";
 
-const WEEKDAY = new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "UTC" });
-const DAY_MONTH = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
-
-/** "Rabu 4 Nov". */
-export function dayLabel(date: string): string {
-  const d = new Date(`${date}T00:00:00Z`);
-  return `${WEEKDAY.format(d)} ${DAY_MONTH.format(d).replace(".", "")}`;
+/** "Rabu 4 Nov" / "Wednesday 4 Nov". */
+export function dayLabel(date: string, locale: Locale = "id"): string {
+  return `${formatDay(locale, date, WEEKDAY_LONG)} ${formatDay(locale, date, DAY_MONTH).replace(".", "")}`;
 }
 
-export const SEND_LABEL = "Kirim ke jam";
-export const RESEND_LABEL = "Kirim ulang";
-export const REMOVE_LABEL = "Hapus dari kalender";
+export const SEND_LABEL = SEND.id.send;
+export const RESEND_LABEL = SEND.id.resend;
+export const REMOVE_LABEL = SEND.id.remove;
 
-export const sentText = (date: string) => `Terkirim ke kalender intervals.icu · ${dayLabel(date)}`;
-export const removedText = "Dihapus dari kalender intervals.icu.";
-export const queuedText = (action: SendRequest["action"]) =>
-  action === "delete" ? "Sedang offline. Penghapusan dikirim saat online lagi." : "Sedang offline. Workout dikirim saat online lagi.";
-export const demoText = "Mode demo: tidak ada yang dikirim. Isi INTERVALS_API_KEY di Vercel untuk mengirim ke kalender.";
-export const changedText = "Workout berubah sejak dikirim. Kirim ulang untuk memperbarui event yang sama.";
+export const sentText = (date: string, locale: Locale = "id") => SEND[locale].sent(dayLabel(date, locale));
+export const removedText = SEND.id.removed;
+export const queuedText = (action: SendRequest["action"], locale: Locale = "id") => (action === "delete" ? SEND[locale].queuedDelete : SEND[locale].queued);
+export const demoText = SEND.id.demo;
+export const changedText = SEND.id.changed;
 /** Kirim berhasil, tetapi intervals.icu belum punya threshold pace lari: jam menolak workout pace. */
-export const thresholdPaceText =
-  "Masuk ke kalender, tetapi threshold pace lari di intervals.icu masih kosong, jadi jam menolak workout ini. Isi di intervals.icu › Settings › Run › Pace settings › Threshold pace, lalu buka event dan ketuk Upload to Huawei.";
+export const thresholdPaceText = SEND.id.thresholdPace;
 
 /** Satu kalimat catatan perangkat di bawah tombol. */
-export const DEVICE_NOTE = "Huawei menerima satu lari terencana berikutnya dalam seminggu, biasanya masuk sendiri ke Huawei Health. Garmin dan Coros menerima seminggu ke depan.";
+export const DEVICE_NOTE = SEND.id.deviceNote;
 
 /** Unggah ke merek jam pengguna belum diaktifkan di intervals.icu. */
-export const uploadOffText = (brand: WatchBrand) =>
-  `Unggah ke ${WATCH_LABEL[brand]} belum aktif di intervals.icu, jadi workout berhenti di kalender. Aktifkan di intervals.icu › Settings › Connections › ${WATCH_LABEL[brand]} › Upload planned workouts.`;
+export const uploadOffText = (brand: WatchBrand, locale: Locale = "id") => SEND[locale].uploadOff(WATCH_LABEL[brand]);
 
 /** Teks peringatan setelah kirim, berurutan. */
-export function warningTexts(warnings: SendWarning[] | undefined, brand?: WatchBrand): string[] {
-  return (warnings ?? []).map((w) => (w === "NO_THRESHOLD_PACE" ? thresholdPaceText : uploadOffText(brand ?? "other")));
+export function warningTexts(warnings: SendWarning[] | undefined, brand?: WatchBrand, locale: Locale = "id"): string[] {
+  return (warnings ?? []).map((w) => (w === "NO_THRESHOLD_PACE" ? SEND[locale].thresholdPace : uploadOffText(brand ?? "other", locale)));
 }
 
-export const CHECK_LABEL = "Cek status unggah";
+export const CHECK_LABEL = SEND.id.check;
 
 /** Hasil "Cek status unggah". Tanpa error tercatat bukan bukti sudah di jam, jadi tidak diklaim. */
-export function checkText(r: CheckResult, brand?: WatchBrand): string {
-  if (!r.found) return "Event tidak ditemukan di kalender intervals.icu. Kirim ulang workout ini.";
-  if (r.errors.length) return `intervals.icu mencatat unggah gagal: ${r.errors.join(" · ")}`;
-  if (r.uploadOn === false && brand) return uploadOffText(brand);
-  return "Tidak ada error unggah yang tercatat di intervals.icu. Kalau belum ada di jam, ikuti langkah di bawah.";
+export function checkText(r: CheckResult, brand?: WatchBrand, locale: Locale = "id"): string {
+  const t = SEND[locale];
+  if (!r.found) return t.notFound;
+  if (r.errors.length) return t.uploadFailed(r.errors.join(" · "));
+  if (r.uploadOn === false && brand) return uploadOffText(brand, locale);
+  return t.noErrors;
 }
 
 /** Isi lembar "Apa ini?": merek, yang diterima, dan pengaturan di intervals.icu. */
-export const DEVICE_HELP: { brand: string; receives: string; setting: string }[] = [
-  {
-    brand: "Huawei",
-    receives: "Hanya lari, jalan, dan hiking. Satu workout: lari terencana berikutnya dalam seminggu. Di jam: Workout › Outdoor Run › Courses › Custom Courses.",
-    setting: "Settings › Connections › HUAWEI Health › centang Upload planned workouts. Threshold pace lari wajib diisi di Settings › Run.",
-  },
-  { brand: "Garmin", receives: "Workout terencana seminggu ke depan, muncul setelah sinkron Garmin Connect.", setting: "Settings › Garmin › centang Upload planned workouts." },
-  { brand: "Coros", receives: "Workout terencana seminggu ke depan. Tambahkan Intervals.icu Training Plan ke kalender aplikasi Coros bila belum muncul.", setting: "Settings › Coros › aktifkan unggah workout terencana." },
-  { brand: "Lainnya", receives: "Mengikuti halaman integrasi intervals.icu. Tanpa jam yang terhubung, pakai Copy Set.", setting: "intervals.icu › Settings › Connections." },
-];
+export const DEVICE_HELP: { brand: string; receives: string; setting: string }[] = SEND.id.help;
 
-export const HUAWEI_LIMITS = [
-  "intervals.icu mengunggah sendiri lari terencana berikutnya dalam seminggu. Kalau workout lain yang ingin dipakai, buka event-nya di kalender intervals.icu lalu pilih Upload to Huawei.",
-  "Kalau unggah gagal (mis. Workout has no suitable steps), isi threshold pace lari di intervals.icu › Settings › Run, lalu unggah lagi.",
-  "Setiap langkah dikirim dengan target pace, termasuk jalan dan jog, karena Huawei membuang langkah tanpa target.",
-  "Tampilan ulangan di jam bisa berbeda. Periksa jumlah repetisi sebelum mulai.",
-];
+export const HUAWEI_LIMITS: string[] = SEND.id.huaweiLimits;
 
 /** Pesan error singkat: penyebab dan langkah berikutnya, tanpa stack trace atau key. */
-export function sendErrorText(code: SendErrorCode, retryAfterSec?: number): string {
+export function sendErrorText(code: SendErrorCode, retryAfterSec?: number, locale: Locale = "id"): string {
+  const e = SEND[locale].error;
   switch (code) {
     case "UNAUTHORIZED":
-      return "Key ditolak intervals.icu. Periksa INTERVALS_API_KEY di Vercel lalu coba lagi.";
     case "FORBIDDEN":
-      return "Key tidak punya akses ke atlet ini. Periksa INTERVALS_ATHLETE_ID di Vercel.";
+    case "NETWORK":
+    case "SERVER_ERROR":
+    case "LOCKED":
+    case "NOT_FOUND":
+    case "INVALID":
+      return e[code];
     case "RATE_LIMITED": {
       const min = retryAfterSec ? Math.max(1, Math.ceil(retryAfterSec / 60)) : undefined;
-      return min ? `Batas permintaan intervals.icu tercapai. Coba lagi dalam ${min} menit.` : "Batas permintaan intervals.icu tercapai. Coba lagi beberapa menit lagi.";
+      return min ? e.rateIn(min) : e.rate;
     }
-    case "NETWORK":
-      return "Tidak tersambung ke intervals.icu. Kiriman disimpan dan dicoba lagi saat online.";
-    case "SERVER_ERROR":
-      return "intervals.icu sedang bermasalah. Coba lagi beberapa menit lagi.";
-    case "LOCKED":
-      return "Aplikasi terkunci. Buka dengan sandi lalu kirim lagi.";
-    case "NOT_FOUND":
-      return "Atlet tidak ditemukan di intervals.icu. Periksa INTERVALS_ATHLETE_ID di Vercel.";
-    case "INVALID":
-      return "Workout ini tidak bisa dikirim. Buat ulang lalu coba lagi.";
     default:
-      return "Gagal mengirim ke intervals.icu. Coba lagi.";
+      return e.other;
   }
 }
 
@@ -102,14 +80,10 @@ export function sendErrorText(code: SendErrorCode, retryAfterSec?: number): stri
 export const retryable = (code: SendErrorCode) => code === "NETWORK" || code === "SERVER_ERROR" || code === "RATE_LIMITED";
 
 /** "3 terkirim · 1 gagal · 1 menunggu online". */
-export function batchSummary(r: { sent: number; failed: number; queued: number; skipped?: number }): string {
-  const parts = [
-    r.sent ? `${r.sent} terkirim` : "",
-    r.queued ? `${r.queued} menunggu online` : "",
-    r.failed ? `${r.failed} gagal` : "",
-    r.skipped ? `${r.skipped} tidak dikirim` : "",
-  ].filter(Boolean);
-  return parts.length ? parts.join(" · ") : "Tidak ada sesi lari tersisa minggu ini.";
+export function batchSummary(r: { sent: number; failed: number; queued: number; skipped?: number }, locale: Locale = "id"): string {
+  const t = SEND[locale].batch;
+  const parts = [r.sent ? t.sent(r.sent) : "", r.queued ? t.queued(r.queued) : "", r.failed ? t.failed(r.failed) : "", r.skipped ? t.skipped(r.skipped) : ""].filter(Boolean);
+  return parts.length ? parts.join(" · ") : t.none;
 }
 
 // ---------- Catatan "sudah dikirim" (perangkat ini) ----------
@@ -152,8 +126,7 @@ export function orphanedSends(map: SentMap, liveSessionIds: ReadonlySet<string>,
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
-export const orphanText = (n: number) =>
-  n === 1 ? "1 workout di kalender intervals.icu tidak ada lagi di program." : `${n} workout di kalender intervals.icu tidak ada lagi di program.`;
+export const orphanText = (n: number, locale: Locale = "id") => SEND[locale].orphan(n);
 
 /** Tanggal kirim sesi program: hari disarankan, atau hari ini bila sudah lewat. */
 export const sendDateFor = (plannedDate: string, today: string) => (plannedDate < today ? today : plannedDate);

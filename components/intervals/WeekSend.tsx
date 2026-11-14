@@ -8,7 +8,7 @@ import { eventHash, exportPlannedSession, externalId } from "@/lib/intervals/wor
 import { formatPaceSec, type Program } from "@/lib/program";
 import { isRunKind, type PlannedSession } from "@/lib/program/sessions";
 import { useAthleteSettings, useBlockContext, useResolvedProfile } from "@/lib/settings-store";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
 import { INTERVALS } from "@/lib/i18n/messages/intervals";
 
 /**
@@ -23,6 +23,7 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
   const [{ watchBrand }] = useAthleteSettings();
   const [busy, setBusy] = useState(false);
   const t = useT(INTERVALS).week;
+  const locale = useLocale();
   const [summary, setSummary] = useState<string | null>(null);
   const runs = remaining.filter((s) => isRunKind(s.kind));
 
@@ -42,7 +43,7 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
           continue;
         }
         const date = sendDateFor(s.plannedDate, today);
-        const out = await sendToCalendar({ action: "upsert", externalId: externalId.session(s.id), date, event: r.event, ...(watchBrand ? { watch: watchBrand } : {}) }, eventHash(r.event, date));
+        const out = await sendToCalendar({ action: "upsert", externalId: externalId.session(s.id), date, event: r.event, ...(watchBrand ? { watch: watchBrand } : {}) }, eventHash(r.event, date), locale);
         if (out.kind === "sent") {
           tally.sent++;
           warnings ??= out.warnings;
@@ -53,7 +54,7 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
           return;
         } else tally.failed++;
       }
-      setSummary([batchSummary(tally), ...(warnings ?? [])].join(" "));
+      setSummary([batchSummary(tally, locale), ...(warnings ?? [])].join(" "));
     } finally {
       setBusy(false);
     }
@@ -62,7 +63,7 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
   const removeOrphans = async () => {
     setBusy(true);
     try {
-      for (const o of orphans) await sendToCalendar({ action: "delete", externalId: o.externalId, date: o.date });
+      for (const o of orphans) await sendToCalendar({ action: "delete", externalId: o.externalId, date: o.date }, undefined, locale);
     } finally {
       setBusy(false);
     }
@@ -72,7 +73,7 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
     <div className="space-y-2">
       {orphans.length > 0 && (
         <div role="note" className="space-y-2 rounded-inner border border-line bg-subtle p-3">
-          <p className="text-[14px] text-ink">{orphanText(orphans.length)} {t.removeAsk}</p>
+          <p className="text-[14px] text-ink">{orphanText(orphans.length, locale)} {t.removeAsk}</p>
           <div className="grid grid-cols-2 gap-2">
             <button type="button" disabled={busy} onClick={() => void removeOrphans()} className={`${BUTTON.base} ${BUTTON.secondary}`}>
               {t.remove}

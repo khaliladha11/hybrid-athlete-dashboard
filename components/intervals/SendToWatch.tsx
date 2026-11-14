@@ -5,12 +5,13 @@ import { useState } from "react";
 import { BUTTON } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
 import { ConfirmButton } from "@/components/ui/ConfirmButton";
-import { CHECK_LABEL, DEVICE_HELP, DEVICE_NOTE, HUAWEI_LIMITS, REMOVE_LABEL, RESEND_LABEL, SEND_LABEL, changedText, sentText } from "@/lib/intervals/send-status";
+import { sentText } from "@/lib/intervals/send-status";
+import { SEND } from "@/lib/i18n/messages/send";
 import { checkUpload, sendToCalendar, useSendQueue, useSent, type SendOutcome } from "@/lib/intervals/send-store";
 import { WATCH_BRANDS, WATCH_LABEL, WATCH_STEPS, type WatchBrand } from "@/lib/intervals/watch";
 import { useAthleteSettings } from "@/lib/settings-store";
 import { eventHash, type ExportResult } from "@/lib/intervals/workout-export";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
 import { INTERVALS } from "@/lib/i18n/messages/intervals";
 
 /**
@@ -23,7 +24,7 @@ export function SendToWatch({
   date,
   onDateChange,
   result,
-  sendLabel = SEND_LABEL,
+  sendLabel,
   deviceNote = true,
   title,
 }: {
@@ -38,7 +39,10 @@ export function SendToWatch({
   title?: string;
 }) {
   const t = useT(INTERVALS).send;
+  const locale = useLocale();
+  const S = SEND[locale];
   title ??= t.title;
+  sendLabel ??= S.send;
   const sent = useSent()[externalId];
   const queued = useSendQueue()[externalId];
   const [busy, setBusy] = useState(false);
@@ -69,6 +73,7 @@ export function SendToWatch({
         await sendToCalendar(
           action === "upsert" ? { action, externalId, date, event: result.event, ...(watch ? { watch } : {}) } : { action, externalId, date: sent?.date ?? date },
           action === "upsert" ? hash : undefined,
+          locale,
         ),
       );
     } finally {
@@ -79,7 +84,7 @@ export function SendToWatch({
   const check = async () => {
     setBusy(true);
     try {
-      setLast(await checkUpload({ externalId, date: sent?.date ?? date, ...(watch ? { watch } : {}) }));
+      setLast(await checkUpload({ externalId, date: sent?.date ?? date, ...(watch ? { watch } : {}) }, locale));
     } finally {
       setBusy(false);
     }
@@ -93,7 +98,7 @@ export function SendToWatch({
     : last && last.kind !== "queued"
       ? last.text
       : sent
-        ? sentText(sent.date)
+        ? sentText(sent.date, locale)
         : null;
   const tone = last?.kind === "error" ? "text-danger-ink" : "text-ink";
 
@@ -117,15 +122,15 @@ export function SendToWatch({
       <div className="flex flex-wrap items-center gap-2">
         {(!sent || changed) && (
           <button type="button" disabled={busy} onClick={() => void run("upsert")} className={`${BUTTON.base} ${BUTTON.secondary} flex-1`}>
-            {busy ? t.sending : sent ? RESEND_LABEL : sendLabel}
+            {busy ? t.sending : sent ? S.resend : sendLabel}
           </button>
         )}
-        {sent && <ConfirmButton size="md" label={REMOVE_LABEL} confirmLabel={t.removeConfirm} disabled={busy} onConfirm={() => void run("delete")} />}
+        {sent && <ConfirmButton size="md" label={S.remove} confirmLabel={t.removeConfirm} disabled={busy} onConfirm={() => void run("delete")} />}
       </div>
 
       <p role="status" aria-live="polite" className={`text-[13px] ${tone}`}>
         {status}
-        {changed && !queued && last?.kind !== "error" ? <span className="block text-muted">{changedText}</span> : null}
+        {changed && !queued && last?.kind !== "error" ? <span className="block text-muted">{S.changed}</span> : null}
         {last?.warnings?.map((w) => (
           <span key={w} className="mt-1 block font-semibold text-warning-ink">
             {w}
@@ -154,7 +159,7 @@ export function SendToWatch({
                 ))}
               </ol>
               <button type="button" disabled={busy} onClick={() => void check()} className={`${BUTTON.base} ${BUTTON.ghost} w-full text-[13px]`}>
-                {CHECK_LABEL}
+                {S.check}
               </button>
             </>
           )}
@@ -164,11 +169,11 @@ export function SendToWatch({
       {deviceNote && (
         <details className="text-[13px] text-muted">
           <summary className="flex min-h-11 cursor-pointer items-center gap-2">
-            <span className="flex-1">{DEVICE_NOTE}</span>
+            <span className="flex-1">{S.deviceNote}</span>
             <span className="shrink-0 font-semibold text-ink underline">{t.what}</span>
           </summary>
           <dl className="mt-2 space-y-2">
-            {DEVICE_HELP.map((d) => (
+            {S.help.map((d) => (
               <div key={d.brand}>
                 <dt className="font-semibold text-ink">{d.brand}</dt>
                 <dd>{d.receives}</dd>
@@ -178,7 +183,7 @@ export function SendToWatch({
           </dl>
           <p className="mt-2 font-semibold text-ink">{t.huawei}</p>
           <ul className="mt-1 list-disc space-y-1 pl-5">
-            {HUAWEI_LIMITS.map((l) => (
+            {S.huaweiLimits.map((l) => (
               <li key={l}>{l}</li>
             ))}
           </ul>

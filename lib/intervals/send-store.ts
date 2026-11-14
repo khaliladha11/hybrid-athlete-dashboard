@@ -9,7 +9,9 @@
 import { useSyncExternalStore } from "react";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import type { SendRequest, SendResponse } from "./calendar";
-import { applySent, checkText, demoText, warningTexts, dequeue, enqueue, normalizeQueue, normalizeSent, queueOrder, queuedText, removedText, retryable, sendErrorText, sentText, type SendQueue, type SentMap } from "./send-status";
+import { applySent, checkText, warningTexts, dequeue, enqueue, normalizeQueue, normalizeSent, queueOrder, queuedText, retryable, sendErrorText, sentText, type SendQueue, type SentMap } from "./send-status";
+import type { Locale } from "@/lib/i18n/locale";
+import { SEND } from "@/lib/i18n/messages/send";
 
 const ENDPOINT = "/api/intervals/workout";
 
@@ -72,37 +74,38 @@ async function post(req: SendRequest): Promise<SendResponse> {
 
 const now = () => new Date().toISOString();
 
-function outcome(req: SendRequest, res: SendResponse, hash?: string): SendOutcome {
-  if (res.status === "error") return { kind: "error", text: sendErrorText(res.code, res.retryAfterSec) };
-  if (res.status === "demo") return { kind: "demo", text: demoText };
-  if (res.status === "checked") return { kind: "checked", text: checkText(res, req.watch) };
+function outcome(req: SendRequest, res: SendResponse, hash?: string, locale: Locale = "id"): SendOutcome {
+  const t = SEND[locale];
+  if (res.status === "error") return { kind: "error", text: sendErrorText(res.code, res.retryAfterSec, locale) };
+  if (res.status === "demo") return { kind: "demo", text: t.demo };
+  if (res.status === "checked") return { kind: "checked", text: checkText(res, req.watch, locale) };
   sentStore.write(applySent(sentStore.read(), req, res, hash, now()));
-  if (req.action === "delete") return { kind: "removed", text: removedText };
-  const warnings = warningTexts(res.warnings, req.watch);
-  return { kind: "sent", text: sentText(req.date), ...(warnings.length ? { warnings } : {}) };
+  if (req.action === "delete") return { kind: "removed", text: t.removed };
+  const warnings = warningTexts(res.warnings, req.watch, locale);
+  return { kind: "sent", text: sentText(req.date, locale), ...(warnings.length ? { warnings } : {}) };
 }
 
 /** Kirim / hapus satu event. Offline atau jaringan putus = masuk antrean. */
-export async function sendToCalendar(req: SendRequest, hash?: string): Promise<SendOutcome> {
+export async function sendToCalendar(req: SendRequest, hash?: string, locale: Locale = "id"): Promise<SendOutcome> {
   if (!navigator.onLine) {
     queueStore.write(enqueue(queueStore.read(), req, hash, now()));
-    return { kind: "queued", text: queuedText(req.action) };
+    return { kind: "queued", text: queuedText(req.action, locale) };
   }
   const res = await post(req);
   if (res.status === "error" && res.code === "NETWORK") {
     queueStore.write(enqueue(queueStore.read(), req, hash, now()));
-    return { kind: "queued", text: queuedText(req.action) };
+    return { kind: "queued", text: queuedText(req.action, locale) };
   }
   // Kiriman langsung menggantikan kiriman lama yang masih antre untuk event yang sama.
   const q = queueStore.read()[req.externalId];
   if (q) queueStore.write(dequeue(queueStore.read(), req.externalId, q.queuedAt));
-  return outcome(req, res, hash);
+  return outcome(req, res, hash, locale);
 }
 
 /** "Cek status unggah" (hanya baca): event, sakelar unggah merek jam, dan error unggah dari intervals.icu. */
-export async function checkUpload(req: Omit<SendRequest, "action" | "event">): Promise<SendOutcome> {
-  if (!navigator.onLine) return { kind: "error", text: sendErrorText("NETWORK") };
-  return outcome({ ...req, action: "check" }, await post({ ...req, action: "check" }));
+export async function checkUpload(req: Omit<SendRequest, "action" | "event">, locale: Locale = "id"): Promise<SendOutcome> {
+  if (!navigator.onLine) return { kind: "error", text: sendErrorText("NETWORK", undefined, locale) };
+  return outcome({ ...req, action: "check" }, await post({ ...req, action: "check" }), undefined, locale);
 }
 
 /** Berhenti mencatat event (tanpa menyentuh kalender), mis. "Biarkan" pada tawaran hapus. */

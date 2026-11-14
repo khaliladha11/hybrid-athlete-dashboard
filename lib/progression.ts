@@ -21,6 +21,8 @@ import { parseWeight, type Movement, type WeightSpec } from "@/lib/profile";
 import { META } from "@/lib/generator/meta";
 import type { Difficulty, StrengthItem, StrengthWorkout } from "@/lib/generator/types";
 import { latestPr, type PrEntry } from "@/lib/prs";
+import type { Locale } from "@/lib/i18n/locale";
+import { PROGRESSION } from "@/lib/i18n/messages/progression";
 
 export interface LogEntry {
   id: string;
@@ -57,7 +59,7 @@ export const CAPPED_REPS: Record<Difficulty, { lo: number; hi: number }> = {
   high: { lo: 6, hi: 10 },
 };
 export const cappedRepsLabel = (d: Difficulty) => `${CAPPED_REPS[d].lo}–${CAPPED_REPS[d].hi}`;
-export const TEMPO_TEXT = "turun 3 detik, jeda 2 detik di bawah";
+export const TEMPO_TEXT = PROGRESSION.id.tempo;
 
 /** Konteks sesi untuk aturan baru: level, awal blok (untuk varian ★), mode bebas, dan pencari varian. */
 export interface ProgressionCtx {
@@ -79,6 +81,8 @@ export type Recommendation =
       reps?: string;
       tempo?: boolean;
       variant?: string;
+      /** 1.2.0: alasan tanpa kalimat "pindah ke varian" (untuk merangkai alasan lain tanpa mencocokkan teks). */
+      reasonBase?: string;
     }
   | { kind: "band"; band: string; reason: string }
   | { kind: "hold"; seconds: number; reason: string }
@@ -113,26 +117,35 @@ export function historyFor(entries: LogEntry[], movement: string): LogEntry[] {
     .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
 }
 
-export function recommend(movement: Movement, entries: LogEntry[], opts: { deload: boolean; ctx?: ProgressionCtx }): Recommendation | null {
-  if (movement.cap && opts.ctx) return recommendCapped(movement, entries, opts.deload, opts.ctx);
-  return recommendLegacy(movement, entries, opts);
+export function recommend(movement: Movement, entries: LogEntry[], opts: { deload: boolean; ctx?: ProgressionCtx; locale?: Locale }): Recommendation | null {
+  const locale = opts.locale ?? "id";
+  if (movement.cap && opts.ctx) return recommendCapped(movement, entries, opts.deload, opts.ctx, locale);
+  return recommendLegacy(movement, entries, opts, locale);
 }
 
 const kgs = (v: number) => `${Math.round(v * 100) / 100} kg`;
-/** "RPE 5" bila dua sesi sama, "RPE 5 dan 6" bila beda (lama → baru). */
-const rpePair = (a: LogEntry, b: LogEntry) => (a.rpe === b.rpe ? `RPE ${b.rpe}` : `RPE ${a.rpe} dan ${b.rpe}`);
-const repsPair = (a: LogEntry, b: LogEntry) => (a.value === b.value ? `${b.value} rep` : `${a.value} dan ${b.value} rep`);
-const capLabel = (m: Movement, kg: number) =>
-  m.cap?.source === "equipment" ? `batas alat ${kgs(kg)}` : m.cap?.source === "safety" ? `batas keamanan ${kgs(kg)}` : `batas ${kgs(kg)}`;
+
+/** Perangkai teks per bahasa: "RPE 5" bila dua sesi sama, "RPE 5 dan 6" bila beda (lama → baru). */
+function texts(locale: Locale) {
+  const P = PROGRESSION[locale];
+  return {
+    P,
+    rpePair: (a: LogEntry, b: LogEntry) => (a.rpe === b.rpe ? `RPE ${b.rpe}` : `RPE ${a.rpe} ${P.and} ${b.rpe}`),
+    repsPair: (a: LogEntry, b: LogEntry) => (a.value === b.value ? `${b.value} ${P.rep}` : `${a.value} ${P.and} ${b.value} ${P.rep}`),
+    capLabel: (m: Movement, kg: number) =>
+      m.cap?.source === "equipment" ? P.capEquipment(kgs(kg)) : m.cap?.source === "safety" ? P.capSafety(kgs(kg)) : P.capOther(kgs(kg)),
+  };
+}
 
 /**
  * Aturan baru (aturan batas beban aktif): syarat naik relatif (RPE ≤ target − 1), double progression saat mentok,
  * dan alasan berangka. Gerakan tahan & band memakai syarat relatif yang sama.
  */
-function recommendCapped(m: Movement, entries: LogEntry[], deload: boolean, ctx: ProgressionCtx): Recommendation | null {
+function recommendCapped(m: Movement, entries: LogEntry[], deload: boolean, ctx: ProgressionCtx, locale: Locale): Recommendation | null {
+  const { P, rpePair, repsPair, capLabel } = texts(locale);
   const h = historyFor(entries, m.name).filter((e) => !e.deload);
   if (!h.length) return null;
-  if (deload) return { kind: "info", reason: "Minggu deload: progresi ditunda, pakai beban deload." };
+  if (deload) return { kind: "info", reason: P.deload };
   const [last, prev] = h;
   const ok = (e: LogEntry) => e.value >= e.target.hi && e.rpe <= e.targetRpe - 1;
   const twice = !!prev && ok(last) && ok(prev);
@@ -142,22 +155,22 @@ function recommendCapped(m: Movement, entries: LogEntry[], deload: boolean, ctx:
   if (last.valueUnit === "sec") {
     if (twice && last.value < MAX_HOLD_SEC) {
       const seconds = Math.min(MAX_HOLD_SEC, last.value + 5);
-      return { kind: "hold", seconds, reason: `2 sesi terakhir ${rpePair(prev, last)} di ${last.value} detik (target RPE ${t}), naik ke ${seconds} detik.` };
+      return { kind: "hold", seconds, reason: P.holdUp(rpePair(prev, last), last.value, t, seconds) };
     }
-    return { kind: "hold", seconds: last.value, reason: `Tahan ${last.value} detik sampai 2 sesi tuntas dengan RPE ≤ ${t - 1}.` };
+    return { kind: "hold", seconds: last.value, reason: P.holdKeep(last.value, t - 1) };
   }
 
   if (spec.kind === "band") {
     const idx = spec.options.indexOf(last.band ?? spec.options[0]);
     if (twice && idx >= 0 && idx < spec.options.length - 1) {
-      return { kind: "band", band: spec.options[idx + 1], reason: `2 sesi terakhir ${rpePair(prev, last)} di ${last.value} rep dengan ${spec.options[idx]}, naik ke ${spec.options[idx + 1]} Band.` };
+      return { kind: "band", band: spec.options[idx + 1], reason: P.bandUp(rpePair(prev, last), last.value, spec.options[idx], spec.options[idx + 1]) };
     }
   }
 
   if (spec.kind !== "load" || last.load === undefined) {
     return {
       kind: "info",
-      reason: twice ? `2 sesi terakhir ${rpePair(prev, last)} di ${repsPair(prev, last)}: tambah 1–2 rep atau perlambat fase turun 3 detik.` : `Target ${last.target.hi} rep dengan RPE ≤ ${t - 1}.`,
+      reason: twice ? P.infoTwice(rpePair(prev, last), repsPair(prev, last)) : P.infoTarget(last.target.hi, t - 1),
     };
   }
 
@@ -169,23 +182,23 @@ function recommendCapped(m: Movement, entries: LogEntry[], deload: boolean, ctx:
   const down = loads ? ([...loads].reverse().find((v) => v < from - 1e-9) ?? from) : Math.max(spec.min, round(from - step, 0.25));
 
   if (last.rpe > t + 1) {
-    return { kind: "load", action: down < from ? "decrease" : "hold", load: down, from, reason: `RPE terakhir ${last.rpe} (target ${t}): turunkan dulu ke ${kgs(down)}.` };
+    return { kind: "load", action: down < from ? "decrease" : "hold", load: down, from, reason: P.down(last.rpe, t, kgs(down)) };
   }
   if (last.rpe > t) {
-    return { kind: "load", action: "hold", load: from, from, reason: `RPE terakhir ${last.rpe} sedikit di atas target ${t}: tahan ${kgs(from)}.` };
+    return { kind: "load", action: "hold", load: from, from, reason: P.slightlyOver(last.rpe, t, kgs(from)) };
   }
 
   // Belum mentok: progresi beban biasa (syarat relatif).
   if (up !== undefined && up <= hi + 1e-9) {
     if (twice) {
-      return { kind: "load", action: "increase", load: up, from, reason: `2 sesi terakhir ${rpePair(prev, last)} di ${repsPair(prev, last)} (target RPE ${t}): naik ke ${kgs(up)}.` };
+      return { kind: "load", action: "increase", load: up, from, reason: P.up(rpePair(prev, last), repsPair(prev, last), t, kgs(up)) };
     }
     const reason =
       last.value < last.target.hi
-        ? `Tambah rep dulu: ${last.value} dari ${last.target.hi} rep di ${kgs(from)}.`
+        ? P.moreReps(last.value, last.target.hi, kgs(from))
         : last.rpe > t - 1
-          ? `${last.value} rep di ${kgs(from)} dengan RPE ${last.rpe}. Naik beban setelah 2 sesi dengan RPE ≤ ${t - 1}.`
-          : `1 dari 2 sesi tuntas di ${kgs(from)} (RPE ${last.rpe}, ${last.value} rep). Tuntaskan sekali lagi untuk naik.`;
+          ? P.rpeHigh(last.value, kgs(from), last.rpe, t - 1)
+          : P.oneOfTwo(kgs(from), last.rpe, last.value);
     return { kind: "load", action: "hold", load: from, from, reason };
   }
 
@@ -202,29 +215,30 @@ function recommendCapped(m: Movement, entries: LogEntry[], deload: boolean, ctx:
       from,
       reps,
       ...(tempo ? { tempo: true } : {}),
-      reason: `Beban sudah di ${capText}. Naikkan rep sampai ${range.hi} (terakhir ${last.value}) dengan RPE ≤ ${t - 1}${tempo ? `, tetap dengan tempo ${TEMPO_TEXT}` : ""}.`,
+      reason: P.cappedReps(capText, range.hi, last.value, t - 1, tempo ? P.tempo : null),
     };
   }
-  const base = `2 sesi terakhir ${rpePair(prev, last)} di ${repsPair(prev, last)} (target RPE ${t}), beban sudah di ${capText}.`;
+  const base = P.cappedBase(rpePair(prev, last), repsPair(prev, last), t, capText);
   if (!tempo) {
-    return { kind: "load", action: "hold", load: from, from, reps, tempo: true, reason: `${base} Tambah tempo: ${TEMPO_TEXT}.` };
+    return { kind: "load", action: "hold", load: from, from, reps, tempo: true, reason: `${base} ${P.addTempo(P.tempo)}` };
   }
   const variantName = META[m.name]?.harderVariant;
   const variant = variantName ? ctx.usable?.(variantName) : undefined;
   if (!variant) {
-    return { kind: "load", action: "hold", load: from, from, reps, tempo: true, reason: `${base} Belum ada varian lebih sulit di library, tetap tempo dan jeda.` };
+    return { kind: "load", action: "hold", load: from, from, reps, tempo: true, reason: `${base} ${P.noVariant}` };
   }
   const now = !!ctx.free || (!!ctx.blockStart && last.date < ctx.blockStart);
   if (!now) {
-    return { kind: "load", action: "hold", load: from, from, reps, tempo: true, reason: `${base} Siap pindah ke ${variant.name} mulai blok berikutnya. Sampai itu tetap tempo dan jeda.` };
+    return { kind: "load", action: "hold", load: from, from, reps, tempo: true, reason: `${base} ${P.variantNext(variant.name)}` };
   }
-  return { kind: "load", action: "hold", load: from, from, reps, variant: variant.name, reason: `${base} Pindah ke varian lebih sulit: ${variant.name}.` };
+  return { kind: "load", action: "hold", load: from, from, reps, variant: variant.name, reason: `${base} ${P.variantNow(variant.name)}`, reasonBase: base };
 }
 
-function recommendLegacy(movement: Movement, entries: LogEntry[], opts: { deload: boolean }): Recommendation | null {
+function recommendLegacy(movement: Movement, entries: LogEntry[], opts: { deload: boolean }, locale: Locale): Recommendation | null {
+  const { P } = texts(locale);
   const h = historyFor(entries, movement.name).filter((e) => !e.deload);
   if (!h.length) return null;
-  if (opts.deload) return { kind: "info", reason: "Minggu deload: progresi ditunda, pakai beban deload." };
+  if (opts.deload) return { kind: "info", reason: P.deload };
 
   const spec = parseWeight(movement.weight);
   const [last, prev] = h;
@@ -233,9 +247,9 @@ function recommendLegacy(movement: Movement, entries: LogEntry[], opts: { deload
   if (last.valueUnit === "sec") {
     if (twice && last.value < MAX_HOLD_SEC) {
       const seconds = Math.min(MAX_HOLD_SEC, last.value + 5);
-      return { kind: "hold", seconds, reason: `2 sesi tuntas di ${last.value} dtk, naik ke ${seconds} dtk.` };
+      return { kind: "hold", seconds, reason: P.legacyHoldUp(last.value, seconds) };
     }
-    return { kind: "hold", seconds: last.value, reason: `Tahan ${last.value} dtk sampai 2 sesi tuntas dengan RPE ≤ ${last.targetRpe}.` };
+    return { kind: "hold", seconds: last.value, reason: P.legacyHoldKeep(last.value, last.targetRpe) };
   }
 
   if (spec.kind === "load" && last.load !== undefined) {
@@ -250,20 +264,20 @@ function recommendLegacy(movement: Movement, entries: LogEntry[], opts: { deload
     const stepUp = () => (loads ? (loads.find((v) => v > from) ?? from) : clamp(from + step));
     if (last.rpe > last.targetRpe + 1) {
       const load = stepDown();
-      return { kind: "load", action: load < from ? "decrease" : "hold", load, from, reason: `RPE terakhir ${last.rpe} (target ${last.targetRpe}): turunkan dulu.` };
+      return { kind: "load", action: load < from ? "decrease" : "hold", load, from, reason: P.legacyDown(last.rpe, last.targetRpe) };
     }
     if (last.rpe > last.targetRpe) {
-      return { kind: "load", action: "hold", load: from, from, reason: `RPE terakhir ${last.rpe} sedikit di atas target: tahan beban.` };
+      return { kind: "load", action: "hold", load: from, from, reason: P.legacyOver(last.rpe) };
     }
     if (twice) {
       if (from >= hi) {
-        return { kind: "load", action: "hold", load: from, from, reason: capReason(movement, hi) };
+        return { kind: "load", action: "hold", load: from, from, reason: capReason(movement, hi, locale) };
       }
       const load = stepUp();
       if (load <= from) {
-        return { kind: "load", action: "hold", load: from, from, reason: "Sudah beban terberat yang bisa dirakit dari alat. Progresi lewat tempo lebih lambat atau tambah rep." };
+        return { kind: "load", action: "hold", load: from, from, reason: P.heaviest };
       }
-      return { kind: "load", action: "increase", load, from, reason: `2 sesi berturut di batas atas rep dengan RPE ≤ ${last.targetRpe}: naik ${load - from} kg.` };
+      return { kind: "load", action: "increase", load, from, reason: P.legacyUp(last.targetRpe, load - from) };
     }
     return {
       kind: "load",
@@ -271,35 +285,36 @@ function recommendLegacy(movement: Movement, entries: LogEntry[], opts: { deload
       load: from,
       from,
       reason: hitTarget(last)
-        ? `1/2 sesi tuntas di ${from} kg. Tuntaskan sekali lagi untuk naik.`
-        : `Tahan ${from} kg sampai 2 sesi berturut mencapai ${last.target.hi} rep.`,
+        ? P.legacyHalf(from)
+        : P.legacyKeep(from, last.target.hi),
     };
   }
 
   if (spec.kind === "band") {
     const idx = spec.options.indexOf(last.band ?? spec.options[0]);
     if (twice && idx >= 0 && idx < spec.options.length - 1) {
-      return { kind: "band", band: spec.options[idx + 1], reason: `2 sesi tuntas dengan ${spec.options[idx]}, naik ke ${spec.options[idx + 1]} Band.` };
+      return { kind: "band", band: spec.options[idx + 1], reason: P.legacyBand(spec.options[idx], spec.options[idx + 1]) };
     }
   }
 
   return {
     kind: "info",
     reason: twice
-      ? "2 sesi tuntas: tambah 1–2 rep atau perlambat fase turun 3 detik."
-      : `Target: ${last.target.hi} rep dengan RPE ≤ ${last.targetRpe}.`,
+      ? P.legacyTwice
+      : P.legacyTarget(last.target.hi, last.targetRpe),
   };
 }
 
 /** Alasan tahan di batas atas: library (aturan lama), alat, atau keamanan (0.14.0). */
-function capReason(m: Movement, hi: number): string {
+function capReason(m: Movement, hi: number, locale: Locale): string {
+  const P = PROGRESSION[locale];
   switch (m.cap?.source) {
     case "equipment":
-      return `Sudah di batas alat (${hi} kg). Progresi lewat rep atau tempo sampai alat bertambah.`;
+      return P.capEquipmentReason(hi);
     case "safety":
-      return `Sudah di batas keamanan (${hi} kg) karena kondisi aktif. Progresi lewat rep atau tempo.`;
+      return P.capSafetyReason(hi);
     default:
-      return `Sudah di batas library (${hi} kg). Progresi lewat tempo lebih lambat, bukan beban.`;
+      return P.capLibraryReason(hi);
   }
 }
 
@@ -316,9 +331,11 @@ export function applyProgression(
   movements: Map<string, Movement>,
   entries: LogEntry[],
   prs: PrEntry[] = [],
-  opts: { blockStart?: string; free?: boolean; holdLoad?: string } = {},
+  opts: { blockStart?: string; free?: boolean; holdLoad?: string; locale?: Locale } = {},
 ): StrengthWorkout {
   if (!entries.length && !prs.length) return w;
+  const locale = opts.locale ?? "id";
+  const P = PROGRESSION[locale];
   const usable = (name: string) => {
     const v = movements.get(name);
     return v && v.available !== false ? v : undefined;
@@ -327,15 +344,15 @@ export function applyProgression(
   const items = w.items.map((it): StrengthItem => {
     const m = movements.get(it.movement);
     if (!it.anchor || !m) return it;
-    const raw = recommend(m, entries, { deload: w.deload, ctx }) ?? (w.deload ? null : prStart(m, prs));
-    const rec = raw && opts.holdLoad ? holdForPhase(raw, opts.holdLoad) : raw;
+    const raw = recommend(m, entries, { deload: w.deload, ctx, locale }) ?? (w.deload ? null : prStart(m, prs, locale));
+    const rec = raw && opts.holdLoad ? holdForPhase(raw, opts.holdLoad, locale) : raw;
     if (!rec) return it;
     switch (rec.kind) {
       case "load": {
         if (it.load.kind !== "load") return it;
         if (rec.variant && w.items.some((x) => x.movement === rec.variant)) {
           // Varian sudah ada di sesi ini: jangan dobel, tetap tempo/jeda.
-          return { ...it, ...(rec.reps ? { reps: `${rec.reps}${it.reps?.match(/\/\S+/)?.[0] ?? ""}` } : {}), tempo: true, progression: `→ ${rec.reason.replace(/ Pindah ke varian lebih sulit: .*$/, "")} ${rec.variant} sudah ada di sesi ini, tetap tempo dan jeda.` };
+          return { ...it, ...(rec.reps ? { reps: `${rec.reps}${it.reps?.match(/\/\S+/)?.[0] ?? ""}` } : {}), tempo: true, progression: `→ ${P.variantInSession(rec.reasonBase ?? rec.reason, rec.variant)}` };
         }
         if (rec.variant) {
           // Varian lebih sulit: gerakan baru mulai dari titik awal rentang library-nya.
@@ -382,26 +399,27 @@ export function applyProgression(
  * Fase program yang menahan beban (0.14.1: Peak, Taper, minggu lomba): naik beban, naik band, atau pindah ke varian
  * ditahan dulu; rep, tempo, dan turun beban tetap berlaku.
  */
-function holdForPhase(rec: Recommendation, phase: string): Recommendation {
-  const why = `Fase ${phase}: beban ditahan, volume dikurangi. Naik lagi setelah fase ini.`;
-  if (rec.kind === "load" && rec.action === "increase") return { kind: "load", action: "hold", load: rec.from, from: rec.from, reason: `Siap naik, tetapi tahan ${kgs(rec.from)}. ${why}` };
+function holdForPhase(rec: Recommendation, phase: string, locale: Locale): Recommendation {
+  const P = PROGRESSION[locale];
+  const why = P.phaseWhy(phase);
+  if (rec.kind === "load" && rec.action === "increase") return { kind: "load", action: "hold", load: rec.from, from: rec.from, reason: P.phaseHoldLoad(kgs(rec.from), why) };
   if (rec.kind === "load" && rec.variant) {
-    const { variant: _v, ...rest } = rec;
-    return { ...rest, tempo: true, reason: `${rec.reason.replace(/ Pindah ke varian lebih sulit: .*$/, "")} Varian ${rec.variant} menunggu sampai fase ini selesai, tetap tempo dan jeda.` };
+    const { variant: _v, reasonBase: _b, ...rest } = rec;
+    return { ...rest, tempo: true, reason: P.phaseVariant(rec.reasonBase ?? rec.reason, rec.variant) };
   }
-  if (rec.kind === "band") return { kind: "info", reason: `Siap naik ke ${rec.band} Band, tetapi tahan band sekarang. ${why}` };
+  if (rec.kind === "band") return { kind: "info", reason: P.phaseBand(rec.band, why) };
   return rec;
 }
 
 /** Titik awal dari PR terbaru untuk gerakan tanpa log (hanya saat aturan batas beban aktif, `cap` ada). */
-function prStart(m: Movement, prs: PrEntry[]): Recommendation | null {
+function prStart(m: Movement, prs: PrEntry[], locale: Locale): Recommendation | null {
   const spec = parseWeight(m.weight);
   const pr = latestPr(prs, m.name);
   if (!m.cap || spec.kind !== "load" || !pr) return null;
   const target = Math.min(m.cap.kg, Math.max(spec.min, pr.loadKg));
   // Beban yang bisa dirakit ≤ PR (tidak melompat di atas PR); tanpa alat terisi pakai PR apa adanya.
   const load = m.loads?.length ? ([...m.loads].reverse().find((v) => v <= target + 1e-9) ?? m.loads[0]) : target;
-  return { kind: "load", action: "hold", load, from: load, reason: `Mulai dari PR ${pr.loadKg} kg (${pr.date}).` };
+  return { kind: "load", action: "hold", load, from: load, reason: PROGRESSION[locale].fromPr(pr.loadKg, pr.date) };
 }
 
 /** Validasi longgar untuk data impor (JSON dari cadangan). */

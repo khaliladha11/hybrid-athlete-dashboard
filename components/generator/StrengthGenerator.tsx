@@ -141,7 +141,7 @@ export function StrengthGenerator({
   const workout = useMemo(() => {
     if (!generated) return null;
     const holdLoad = phaseRule?.holdLoad ? stPhaseLabel(phaseRule.key, locale).split(":")[0] : undefined;
-    const w = applyProgression(generated, movements, log, prs, { blockStart: block.start, free, holdLoad });
+    const w = applyProgression(generated, movements, log, prs, { blockStart: block.start, free, holdLoad, locale });
     return phaseRule ? applyPhaseRule(w, phaseRule, locale) : w;
   }, [generated, movements, log, prs, block.start, free, phaseRule, locale]);
   const startSession = () => {
