@@ -7,11 +7,15 @@
  * Health setelah dikirim. Langkah di bawah menulis jalur cadangan bila belum muncul, tanpa menjanjikan "pasti di jam".
  */
 
+import type { Locale } from "@/lib/i18n/locale";
+import { HELP } from "@/lib/i18n/messages/help";
+
 export const WATCH_BRANDS = ["huawei", "garmin", "coros", "other"] as const;
 export type WatchBrand = (typeof WATCH_BRANDS)[number];
 export const isWatchBrand = (x: unknown): x is WatchBrand => typeof x === "string" && (WATCH_BRANDS as readonly string[]).includes(x);
 
-export const WATCH_LABEL: Record<WatchBrand, string> = { huawei: "Huawei", garmin: "Garmin", coros: "Coros", other: "Lainnya" };
+export const WATCH_LABEL: Record<WatchBrand, string> = { huawei: "Huawei", garmin: "Garmin", coros: "Coros", other: HELP.id.watchOther };
+export const watchLabel = (b: WatchBrand, locale: Locale = "id"): string => (b === "other" ? HELP[locale].watchOther : WATCH_LABEL[b]);
 
 /** Sakelar "Upload planned workouts" per merek di objek athlete intervals.icu. */
 export const UPLOAD_FLAG: Partial<Record<WatchBrand, string>> = {
@@ -21,25 +25,8 @@ export const UPLOAD_FLAG: Partial<Record<WatchBrand, string>> = {
 };
 
 /** Langkah setelah "Kirim ke jam", per merek. */
-export const WATCH_STEPS: Record<WatchBrand, string[]> = {
-  huawei: [
-    "Biasanya masuk sendiri ke Huawei Health beberapa saat setelah dikirim (lari terencana berikutnya dalam seminggu).",
-    "Belum muncul: buka event di kalender intervals.icu lalu ketuk Upload to Huawei.",
-    "Di jam: Workout › Outdoor Run › Courses › Custom Courses. Belum ada di jam: buka Huawei Health › Olahraga › Lari luar ruangan › My running courses, lalu ketuk ikon jam.",
-  ],
-  garmin: [
-    "intervals.icu mengunggah workout seminggu ke depan ke Garmin Connect.",
-    "Muncul di jam setelah Garmin Connect sinkron dengan jam.",
-  ],
-  coros: [
-    "intervals.icu mengunggah workout seminggu ke depan ke Coros.",
-    "Belum muncul: tambahkan Intervals.icu Training Plan ke kalender aplikasi Coros.",
-  ],
-  other: [
-    "Workout masuk ke kalender intervals.icu. Jam lain mengikuti halaman integrasi intervals.icu.",
-    "Tanpa jam yang tersambung ke intervals.icu, pakai Copy Set.",
-  ],
-};
+export const watchSteps = (b: WatchBrand, locale: Locale = "id"): string[] => HELP[locale].watchSteps[b];
+export const WATCH_STEPS: Record<WatchBrand, string[]> = HELP.id.watchSteps;
 
 /** Sakelar unggah merek ini di data athlete; undefined = tidak diketahui (merek lain atau bentuk tidak dikenal). */
 export function uploadEnabled(athlete: unknown, brand: WatchBrand): boolean | undefined {

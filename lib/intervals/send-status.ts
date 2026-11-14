@@ -6,7 +6,7 @@
  * lihat docs/RELEASE-1.0.md §3.
  */
 import type { CheckResult, SendErrorCode, SendRequest, SendResponse, SendWarning } from "./calendar";
-import { WATCH_LABEL, type WatchBrand } from "./watch";
+import { watchLabel, type WatchBrand } from "./watch";
 import { DAY_MONTH, formatDay, WEEKDAY_LONG } from "@/lib/i18n/format";
 import type { Locale } from "@/lib/i18n/locale";
 import { SEND } from "@/lib/i18n/messages/send";
@@ -32,7 +32,7 @@ export const thresholdPaceText = SEND.id.thresholdPace;
 export const DEVICE_NOTE = SEND.id.deviceNote;
 
 /** Unggah ke merek jam pengguna belum diaktifkan di intervals.icu. */
-export const uploadOffText = (brand: WatchBrand, locale: Locale = "id") => SEND[locale].uploadOff(WATCH_LABEL[brand]);
+export const uploadOffText = (brand: WatchBrand, locale: Locale = "id") => SEND[locale].uploadOff(watchLabel(brand, locale));
 
 /** Teks peringatan setelah kirim, berurutan. */
 export function warningTexts(warnings: SendWarning[] | undefined, brand?: WatchBrand, locale: Locale = "id"): string[] {

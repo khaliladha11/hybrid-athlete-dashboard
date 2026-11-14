@@ -8,7 +8,7 @@ import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import { sentText } from "@/lib/intervals/send-status";
 import { SEND } from "@/lib/i18n/messages/send";
 import { checkUpload, sendToCalendar, useSendQueue, useSent, type SendOutcome } from "@/lib/intervals/send-store";
-import { WATCH_BRANDS, WATCH_LABEL, WATCH_STEPS, type WatchBrand } from "@/lib/intervals/watch";
+import { WATCH_BRANDS, watchLabel, watchSteps, type WatchBrand } from "@/lib/intervals/watch";
 import { useAthleteSettings } from "@/lib/settings-store";
 import { eventHash, type ExportResult } from "@/lib/intervals/workout-export";
 import { useLocale, useT } from "@/lib/i18n/client";
@@ -141,10 +141,10 @@ export function SendToWatch({
       {deviceNote && (
         <div className="space-y-2 text-[13px]">
           {!watch || pickWatch ? (
-            <Segmented label={t.yourWatch} value={watch ?? "other"} onChange={setWatch} options={WATCH_BRANDS.map((w) => ({ value: w, label: WATCH_LABEL[w] }))} />
+            <Segmented label={t.yourWatch} value={watch ?? "other"} onChange={setWatch} options={WATCH_BRANDS.map((w) => ({ value: w, label: watchLabel(w, locale) }))} />
           ) : (
             <p className="text-muted">
-              {t.watch}<span className="font-semibold text-ink">{WATCH_LABEL[watch]}</span>{" "}
+              {t.watch}<span className="font-semibold text-ink">{watchLabel(watch, locale)}</span>{" "}
               <button type="button" onClick={() => setPickWatch(true)} className="pressable inline-flex min-h-11 items-center px-1 font-semibold text-ink underline">
                 {t.change}
               </button>
@@ -154,7 +154,7 @@ export function SendToWatch({
             <>
               <p className="t-label">{t.onWatch}</p>
               <ol className="list-decimal space-y-1 pl-5 text-ink">
-                {WATCH_STEPS[watch].map((s) => (
+                {watchSteps(watch, locale).map((s) => (
                   <li key={s}>{s}</li>
                 ))}
               </ol>
