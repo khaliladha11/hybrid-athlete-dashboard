@@ -88,6 +88,7 @@ export async function intervalsRequest<T = unknown>(
       ok: false,
       error: {
         code: "NETWORK",
+        ...(timeout ? { detail: "timeout" as const } : {}),
         title: timeout ? "Koneksi timeout" : "Tidak bisa terhubung ke intervals.icu",
         message: "Periksa koneksi internet server lalu muat ulang halaman.",
       },

@@ -42,7 +42,7 @@ function fetchSince(oldest: string): Promise<Fetched> {
   if (hit) return hit;
   const p = fetch(`/api/activities?oldest=${oldest}`, { cache: "no-store" })
     .then((r) => r.json() as Promise<Fetched>)
-    .catch((): Fetched => ({ ok: false, error: { code: "NETWORK", title: "Tidak bisa terhubung", message: "Periksa koneksi lalu muat ulang halaman." } }));
+    .catch((): Fetched => ({ ok: false, error: { code: "NETWORK", detail: "offline", title: "Tidak bisa terhubung", message: "Periksa koneksi lalu muat ulang halaman." } }));
   cache.set(oldest, p);
   // Gagal tidak disimpan supaya bisa dicoba lagi saat halaman dibuka ulang.
   void p.then((r) => !r.ok && cache.delete(oldest));

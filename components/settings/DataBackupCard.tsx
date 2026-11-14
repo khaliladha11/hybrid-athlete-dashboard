@@ -32,7 +32,7 @@ export function DataBackupCard({ synced = false }: { synced?: boolean }) {
   const exportFile = () => downloadDeviceBackup(`hybrid-athlete-backup-${todayWib()}.json`);
 
   const importFile = async (file: File) => {
-    const r = await importBackupFile(file);
+    const r = await importBackupFile(file, locale);
     setStatus(r.message);
     if (fileRef.current) fileRef.current.value = "";
   };

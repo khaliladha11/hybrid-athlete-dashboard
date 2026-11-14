@@ -11,6 +11,8 @@
  * Judul quality yang tidak dikenali menjadi kartu, tidak dipaksa masuk generator.
  */
 import type { PlanToday } from "@/lib/coach";
+import type { Locale } from "@/lib/i18n/locale";
+import { LIB_MISC } from "@/lib/i18n/messages/lib-misc";
 import { isRunPattern, type RunPattern } from "@/lib/generator/run";
 import { DIFFICULTIES, DURATIONS, STRENGTH_TYPES, type Difficulty, type Duration, type StrengthType } from "@/lib/generator/types";
 import { isRunKind, type PlanKind, type PlannedSession } from "./sessions";
@@ -158,7 +160,7 @@ export function generatorHref(s: PlannedSession, t: GeneratorTarget, override: {
   return `/strength?${q.toString()}`;
 }
 
-function base(params: Params) {
+function base(params: Params, locale: Locale = "id") {
   if (one(params.src) !== "program") return null;
   const week = Number(one(params.w));
   const duration = Number(one(params.d)) as Duration;
@@ -166,11 +168,11 @@ function base(params: Params) {
   const label = one(params.t) ?? "";
   if (!Number.isInteger(week) || week < 1 || week > 30) return null;
   if (!DURATIONS.includes(duration) || !DIFFICULTIES.includes(difficulty)) return null;
-  return { week, duration, difficulty, label: LABEL_RE.test(label) ? label : "Sesi program" };
+  return { week, duration, difficulty, label: LABEL_RE.test(label) ? label : LIB_MISC[locale].programSession };
 }
 
-export function parseRunPrefill(params: Params): RunPrefill | null {
-  const b = base(params);
+export function parseRunPrefill(params: Params, locale: Locale = "id"): RunPrefill | null {
+  const b = base(params, locale);
   const kind = one(params.k) as PlanKind;
   if (!b || !KINDS.includes(kind) || !isRunKind(kind)) return null;
   const p = one(params.p);
@@ -182,8 +184,8 @@ export function parseRunPrefill(params: Params): RunPrefill | null {
   return { ...b, kind, ...(isRunPattern(p) ? { pattern: p } : {}), ...(adjusted ? { adjusted: true } : {}), ...plan, ...(sid && SESSION_ID_RE.test(sid) ? { sessionId: sid } : {}) };
 }
 
-export function parseStrengthPrefill(params: Params): StrengthPrefill | null {
-  const b = base(params);
+export function parseStrengthPrefill(params: Params, locale: Locale = "id"): StrengthPrefill | null {
+  const b = base(params, locale);
   const type = one(params.type) as StrengthType;
   if (!b || !STRENGTH_TYPES.includes(type)) return null;
   const ph = one(params.ph);

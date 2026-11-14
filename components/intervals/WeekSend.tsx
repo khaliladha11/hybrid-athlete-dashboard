@@ -37,7 +37,7 @@ export function WeekSend({ remaining, sessions, program, today }: { remaining: P
     const racePace = formatPaceSec(program.racePaceSec);
     try {
       for (const s of runs) {
-        const r = exportPlannedSession(s, { profile: p, racePace, block });
+        const r = exportPlannedSession(s, { profile: p, racePace, block, locale });
         if (!r.ok) {
           tally.skipped++;
           continue;

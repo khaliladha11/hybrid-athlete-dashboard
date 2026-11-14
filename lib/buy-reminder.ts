@@ -14,6 +14,8 @@ import { safetyCap } from "./load-bounds";
 import type { Movement, MovementLibrary } from "./profile";
 import { historyFor, type LogEntry } from "./progression";
 import { parseWeight } from "./weights";
+import type { Locale } from "@/lib/i18n/locale";
+import { LIB_MISC } from "@/lib/i18n/messages/lib-misc";
 
 export const BUY_AREAS = ["lower", "upperPush", "upperPull"] as const;
 export type BuyArea = (typeof BUY_AREAS)[number];
@@ -49,7 +51,7 @@ const withPlatePair = (eq: Equipment, kg: number): Equipment => {
   return { ...eq, plates: has ? eq.plates.map((p) => (Math.abs(p.kg - kg) < 1e-9 ? { ...p, count: p.count + 2 } : p)) : [...eq.plates, { kg, count: 2 }] };
 };
 
-export function buyReminders({ lib, eq, active, log }: { lib: MovementLibrary; eq: Equipment; active: readonly ConditionId[]; log: LogEntry[] }): BuyReminder[] {
+export function buyReminders({ lib, eq, active, log, locale = "id" }: { lib: MovementLibrary; eq: Equipment; active: readonly ConditionId[]; log: LogEntry[]; locale?: Locale }): BuyReminder[] {
   const out: BuyReminder[] = [];
   for (const area of BUY_AREAS) {
     const loaded = (lib[area] ?? []).filter((m) => m.available !== false && !!m.cap && parseWeight(m.weight).kind === "load");
@@ -73,7 +75,7 @@ export function buyReminders({ lib, eq, active, log }: { lib: MovementLibrary; e
       unlocks: best.n,
       stuck: names,
       signature: names.map((n) => `${n}@${stuck.find((m) => m.name === n)!.cap!.kg}`).join("|"),
-      text: `Sepasang plat ${kgText(best.kg)} kg membuka progresi untuk ${best.n} gerakan ${AREA_LABEL[area]}.`,
+      text: LIB_MISC[locale].buy.text(locale === "id" ? kgText(best.kg) : String(best.kg), best.n, LIB_MISC[locale].buy.area[area]),
     });
   }
   return out;

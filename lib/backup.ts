@@ -22,6 +22,8 @@
  * bagian itu tidak menyentuhnya.
  */
 import { mergeRaceResults, parseProfileSettings, parseSettings, type AthleteSettings } from "./athlete-settings";
+import type { Locale } from "@/lib/i18n/locale";
+import { LIB_MISC } from "@/lib/i18n/messages/lib-misc";
 import { parseOnboardingState, type OnboardingState } from "./onboarding";
 import { baseProfile, type AthleteProfile } from "./profile";
 import { todayWib } from "./date";
@@ -227,23 +229,24 @@ export function fillSettings(current: AthleteSettings, fileRaw: Record<string, u
 }
 
 /** Terapkan cadangan ke perangkat. Mengembalikan ringkasan untuk ditampilkan. */
-export function applyBackup(b: ParsedBackup, store: BackupStore, base: AthleteProfile): string[] {
+export function applyBackup(b: ParsedBackup, store: BackupStore, base: AthleteProfile, locale: Locale = "id"): string[] {
+  const T = LIB_MISC[locale].backup;
   const parts: string[] = [];
   if (b.log) {
     const r = store.mergeLog(b.log);
-    parts.push(`${r.added} entri log baru, ${r.skipped} dilewati`);
+    parts.push(T.log(r.added, r.skipped));
   }
   if (b.prs) {
     const r = store.mergePrs(b.prs);
-    parts.push(`${r.added} PR baru, ${r.skipped} dilewati`);
+    parts.push(T.prs(r.added, r.skipped));
   }
   if (b.sessions) {
     const r = store.mergeSessions(b.sessions);
-    parts.push(`${r.added} sesi ST baru, ${r.skipped} dilewati`);
+    parts.push(T.sessions(r.added, r.skipped));
   }
   if (b.checkins) {
     const r = store.mergeCheckins(b.checkins);
-    parts.push(`${r.added} check-in baru, ${r.skipped} dilewati`);
+    parts.push(T.checkins(r.added, r.skipped));
   }
   const fill = b.kind === "defaults";
   if (b.settings) {
@@ -251,15 +254,15 @@ export function applyBackup(b: ParsedBackup, store: BackupStore, base: AthletePr
     if (fill) {
       const current = parseSettings(raw, base);
       store.setSettingsRaw(JSON.stringify(fillSettings(current, b.settings, Boolean(raw), base)));
-      parts.push("profil & pengaturan yang masih kosong diisi");
+      parts.push(T.filled);
     } else {
       store.setSettingsRaw(JSON.stringify(parseSettings(b.settings, base)));
-      parts.push("pengaturan atlet dipulihkan");
+      parts.push(T.settings);
     }
   }
   if (b.program !== undefined && (!fill || !store.getProgramRaw())) {
     store.setProgramRaw(b.program);
-    parts.push("program target dipulihkan");
+    parts.push(T.program);
   }
   if (b.theme && (!fill || !store.getThemeRaw())) store.setTheme(b.theme);
   if (b.blockEnabled !== undefined && (!fill || !store.getBlockRaw())) store.setBlockEnabled(b.blockEnabled);

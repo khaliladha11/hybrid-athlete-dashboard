@@ -40,7 +40,7 @@ export function ProgramSessionCard({ session, program, km, easyOnly }: { session
   const text = sessionCardText(s, { easyPace: t.easy.pace ?? "", racePace, km });
   // Kirim ke jam (0.17): bawaan hari disarankan, atau hari ini bila sudah lewat (sesi boleh di hari mana pun minggu itu).
   const [sendDate, setSendDate] = useState(() => (session.plannedDate < todayWib() ? todayWib() : session.plannedDate));
-  const exported = useMemo(() => exportProgramCard(s, { easyPace: t.easy.pace, racePace, km }), [s, t.easy.pace, racePace, km]);
+  const exported = useMemo(() => exportProgramCard(s, { easyPace: t.easy.pace, racePace, km, locale }), [s, t.easy.pace, racePace, km, locale]);
   const cues = [
     ...(p.rules.cadenceCue ? [CADENCE_NOTES[0]] : []),
     ...(p.rules.crossoverCue ? [CADENCE_NOTES[1]] : []),

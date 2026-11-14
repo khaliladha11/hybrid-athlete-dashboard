@@ -416,6 +416,7 @@ function CoverageNote({ type, p, limited, duration }: { type: Parameters<typeof 
 function StCalendarNote({ title, minutes }: { title: string; minutes: number }) {
   const [date, setDate] = useState(() => todayWib());
   const t = useT(GENERATOR).st;
-  const result = useMemo(() => exportStNote(title, minutes), [title, minutes]);
+  const locale = useLocale();
+  const result = useMemo(() => exportStNote(title, minutes, locale), [title, minutes, locale]);
   return <SendToWatch title={t.calendarTitle} sendLabel={t.calendarSend} deviceNote={false} externalId={externalId.stNote(date)} date={date} onDateChange={setDate} result={result} />;
 }

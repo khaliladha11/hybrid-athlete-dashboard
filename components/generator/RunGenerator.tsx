@@ -121,7 +121,7 @@ export function RunGenerator({
   // Kirim ke jam (0.17): dari program = event sesi itu; generator bebas = satu event per tanggal.
   const [sendDate, setSendDate] = useState(() => todayWib());
   const easyPace = runTargets(p).easy.pace;
-  const exported = useMemo(() => exportRun(workout, { easyPace }), [workout, easyPace]);
+  const exported = useMemo(() => exportRun(workout, { easyPace, locale }), [workout, easyPace, locale]);
   const sendId = prefill?.sessionId ? externalId.session(prefill.sessionId) : externalId.generator(sendDate);
 
   const render = useCallback(

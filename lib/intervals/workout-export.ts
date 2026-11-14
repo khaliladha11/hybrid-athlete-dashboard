@@ -16,6 +16,8 @@
  * - HR dan RPE tidak dijadikan target (satu satuan per workout; HR absolut tidak terdokumentasi), hanya catatan.
  */
 import type { ResolvedProfile } from "@/lib/profile";
+import type { Locale } from "@/lib/i18n/locale";
+import { LIB_MISC } from "@/lib/i18n/messages/lib-misc";
 import type { BlockContext } from "@/lib/generator/block";
 import { generateRunWorkout, runTargets } from "@/lib/generator/run";
 import type { RunBlock, RunStep, RunWorkout } from "@/lib/generator/types";
@@ -135,16 +137,16 @@ function assemble(sections: { header?: string; lines: string[] }[], intro: strin
 }
 
 /** Catatan HR/RPE singkat di atas langkah (bukan target). Tidak pernah diakhiri pola "Nx" supaya tidak jadi ulangan. */
-function hrNote(w: RunWorkout): string[] {
+function hrNote(w: RunWorkout, locale: Locale): string[] {
   const hrs = new Set<string>();
   for (const b of w.blocks) for (const s of b.steps) if (s.kind === "run" && s.hr) hrs.add(s.hr.replace(/[–—]/g, "-"));
-  return hrs.size ? [`Acuan HR: ${[...hrs].join(", ")}.`] : [];
+  return hrs.size ? [LIB_MISC[locale].export.hrRef([...hrs].join(", "))] : [];
 }
 
 const totalSec = (w: RunWorkout) => Math.round(w.blocks.reduce((sum, b) => sum + b.repeat * b.steps.reduce((a, s) => a + s.durationMin, 0), 0) * 60);
 
 /** Workout generator lari → event WORKOUT. `easyPace` = zona Easy profil, untuk target jog. */
-export function exportRun(w: RunWorkout, ctx: { easyPace?: string }): ExportResult {
+export function exportRun(w: RunWorkout, ctx: { easyPace?: string; locale?: Locale }): ExportResult {
   const paces: Paces = { easy: parseRange(ctx.easyPace) ?? FALLBACK_EASY };
   const lines = (phase: RunBlock["phase"]) => w.blocks.filter((b) => b.phase === phase).flatMap((b) => blockLines(b, paces));
   const description = assemble(
@@ -153,7 +155,7 @@ export function exportRun(w: RunWorkout, ctx: { easyPace?: string }): ExportResu
       { lines: lines("main") },
       { header: "Cooldown", lines: lines("cooldown") },
     ],
-    hrNote(w),
+    hrNote(w, ctx.locale ?? "id"),
   );
   return { ok: true, event: { category: "WORKOUT", name: tidyName(w.title), description, movingTimeSec: totalSec(w) } };
 }
@@ -162,20 +164,21 @@ export function exportRun(w: RunWorkout, ctx: { easyPace?: string }): ExportResu
  * Kartu sesi program (long run, race pace, sharpener) → event WORKOUT. Sesi yang masuk generator dikirim lewat
  * `exportRun`; lomba tidak dikirim (intervals.icu punya kategori lomba sendiri).
  */
-export function exportProgramCard(s: PlannedSession, ctx: { easyPace?: string; racePace: string; km?: number }): ExportResult {
+export function exportProgramCard(s: PlannedSession, ctx: { easyPace?: string; racePace: string; km?: number; locale?: Locale }): ExportResult {
+  const X = LIB_MISC[ctx.locale ?? "id"].export;
   const easy = parseRange(ctx.easyPace) ?? FALLBACK_EASY;
   const race = parseRange(ctx.racePace);
   const jog: PaceRange = { fast: easy.slow, slow: easy.slow + JOG_SLOWER_SEC };
   const mid = (r: PaceRange) => (r.fast + r.slow) / 2;
-  const walk = (min: number, cue = "Jalan") => `- ${cue} ${durationToken(min)} ${paceTarget(WALK_PACE)}`;
+  const walk = (min: number, cue = X.walk) => `- ${cue} ${durationToken(min)} ${paceTarget(WALK_PACE)}`;
   const name = tidyName(s.title);
 
-  if (s.kind === "race") return { ok: false, reason: "Lomba tidak dikirim. Tambahkan lombanya langsung di kalender intervals.icu." };
-  if (!race) return { ok: false, reason: "Pace lomba belum ada di program." };
+  if (s.kind === "race") return { ok: false, reason: X.race };
+  if (!race) return { ok: false, reason: X.noRacePace };
 
   if (s.kind === "long") {
     const km = ctx.km ?? s.km ?? 0;
-    if (km <= 0) return { ok: false, reason: "Jarak long run belum ada di program." };
+    if (km <= 0) return { ok: false, reason: X.noLongKm };
     const progressive = s.intensity === "moderate" && km > 3;
     const main = progressive
       ? [`- Long run ${distanceToken(km - 3)} ${paceTarget(easy)}`, `- Race pace ${distanceToken(3)} ${paceTarget(race)}`]
@@ -212,7 +215,7 @@ export function exportProgramCard(s: PlannedSession, ctx: { easyPace?: string; r
     return { ok: true, event: { category: "WORKOUT", name, description, movingTimeSec: 25 * 60 } };
   }
 
-  return { ok: false, reason: "Sesi ini belum punya bentuk workout terstruktur. Pakai Copy Set." };
+  return { ok: false, reason: X.unstructured };
 }
 
 /** Seed tetap dari id sesi: kirim ulang sesi yang sama menghasilkan workout yang sama. */
@@ -226,21 +229,23 @@ export function seedFromId(id: string): number {
  * Sesi lari program → event, untuk "Kirim minggu ini". Sesi yang masuk generator memakai isian rencana (level, durasi,
  * pola) dengan seed dari id sesi; penyesuaian saran hari itu berlaku saat sesi dibuka di generator lalu dikirim ulang.
  */
-export function exportPlannedSession(s: PlannedSession, ctx: { profile: ResolvedProfile; racePace: string; block?: BlockContext }): ExportResult {
-  if (!isRunKind(s.kind)) return { ok: false, reason: "Sesi ST tidak dikirim sebagai workout." };
+export function exportPlannedSession(s: PlannedSession, ctx: { profile: ResolvedProfile; racePace: string; block?: BlockContext; locale?: Locale }): ExportResult {
+  const locale = ctx.locale ?? "id";
+  if (!isRunKind(s.kind)) return { ok: false, reason: LIB_MISC[locale].export.stNotSent };
   const easyPace = runTargets(ctx.profile).easy.pace;
   const t = toGenerator(s);
-  if (t.to === "card") return exportProgramCard(s, { easyPace, racePace: ctx.racePace });
-  if (t.to !== "run") return { ok: false, reason: "Sesi ST tidak dikirim sebagai workout." };
-  const w = generateRunWorkout({ duration: t.duration, difficulty: t.difficulty, pattern: t.pattern, seed: seedFromId(s.id), block: ctx.block }, ctx.profile);
-  return exportRun(w, { easyPace });
+  if (t.to === "card") return exportProgramCard(s, { easyPace, racePace: ctx.racePace, locale });
+  if (t.to !== "run") return { ok: false, reason: LIB_MISC[locale].export.stNotSent };
+  const w = generateRunWorkout({ duration: t.duration, difficulty: t.difficulty, pattern: t.pattern, seed: seedFromId(s.id), block: ctx.block, locale }, ctx.profile);
+  return exportRun(w, { easyPace, locale });
 }
 
 /** Catatan ST di kalender (opsional, bawaan mati): teks saja, bukan workout terstruktur. */
-export function exportStNote(title: string, minutes: number): ExportResult {
+export function exportStNote(title: string, minutes: number, locale: Locale = "id"): ExportResult {
+  const X = LIB_MISC[locale].export;
   return {
     ok: true,
-    event: { category: "NOTE", name: tidyName(`${title} ${minutes} menit`), description: "Sesi strength dicatat di aplikasi Hybrid Athlete.", movingTimeSec: minutes * 60 },
+    event: { category: "NOTE", name: tidyName(X.stName(title, minutes)), description: X.stDescription, movingTimeSec: minutes * 60 },
   };
 }
 

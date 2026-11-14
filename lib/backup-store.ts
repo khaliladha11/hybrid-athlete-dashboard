@@ -2,6 +2,8 @@
 
 /** `BackupStore` di atas localStorage perangkat (dipakai Setting › Data & cadangan dan onboarding langkah 1). */
 import { parseSettings } from "./athlete-settings";
+import type { Locale } from "@/lib/i18n/locale";
+import { LIB_MISC } from "@/lib/i18n/messages/lib-misc";
 import { applyBackup, backupIsNewer, buildBackup, parseBackup, type BackupFile, type BackupStore } from "./backup";
 import { parseOnboardingState } from "./onboarding";
 import { PREF_KEYS } from "./preference-keys";
@@ -55,18 +57,19 @@ export function exportDeviceBackup(now = new Date().toISOString()): BackupFile {
 }
 
 /** Baca file JSON pilihan pengguna lalu terapkan ke perangkat. Pesan mengikuti gaya UI (✓/✕). */
-export async function importBackupFile(file: File): Promise<{ ok: boolean; message: string; kind?: "backup" | "defaults" }> {
+export async function importBackupFile(file: File, locale: Locale = "id"): Promise<{ ok: boolean; message: string; kind?: "backup" | "defaults" }> {
+  const T = LIB_MISC[locale].backup;
   let data: unknown;
   try {
     data = JSON.parse(await file.text());
   } catch {
-    return { ok: false, message: "✕ File tidak bisa dibaca. Pastikan itu file JSON hasil ekspor." };
+    return { ok: false, message: T.unreadable };
   }
-  if (backupIsNewer(data)) return { ok: false, message: "✕ File dari versi aplikasi yang lebih baru. Perbarui aplikasi dulu, lalu impor lagi." };
+  if (backupIsNewer(data)) return { ok: false, message: T.newer };
   const parsed = parseBackup(data);
-  if (!parsed) return { ok: false, message: "✕ File tidak berisi data yang dikenali." };
-  const parts = applyBackup(parsed, deviceBackupStore, baseProfile);
-  return { ok: true, kind: parsed.kind, message: parts.length ? `✓ Impor selesai: ${parts.join("; ")}.` : "✓ Impor selesai." };
+  if (!parsed) return { ok: false, message: T.unknown };
+  const parts = applyBackup(parsed, deviceBackupStore, baseProfile, locale);
+  return { ok: true, kind: parsed.kind, message: T.done(parts.join("; ")) };
 }
 
 /** Unduh cadangan sebagai file JSON. */

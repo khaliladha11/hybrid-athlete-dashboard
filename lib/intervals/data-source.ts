@@ -109,10 +109,10 @@ export async function getActivityDetail(id: string): Promise<FetchResult<Activit
     const detail = mockActivityDetail(id, todayWib());
     return detail
       ? { ok: true, data: detail, source: "demo" }
-      : { ok: false, error: { code: "NOT_FOUND", status: 404, title: "Aktivitas demo tidak ditemukan", message: "ID ini tidak ada di data dummy." } };
+      : { ok: false, error: { code: "NOT_FOUND", status: 404, detail: "demoMissing", title: "Aktivitas demo tidak ditemukan", message: "ID ini tidak ada di data dummy." } };
   }
   if (!/^[\w-]+$/.test(id)) {
-    return { ok: false, error: { code: "NOT_FOUND", status: 404, title: "ID aktivitas tidak valid", message: "Periksa tautan aktivitas." } };
+    return { ok: false, error: { code: "NOT_FOUND", status: 404, detail: "invalidId", title: "ID aktivitas tidak valid", message: "Periksa tautan aktivitas." } };
   }
   // Stream untuk split per km; bila gagal (mis. aktivitas tanpa GPS) detail tetap tampil tanpa split.
   const [res, streams] = await Promise.all([
@@ -123,7 +123,7 @@ export async function getActivityDetail(id: string): Promise<FetchResult<Activit
   const data = normalizeActivityDetail(res.data, streams.ok ? streams.data : undefined);
   return data
     ? { ok: true, data, source: "live" }
-    : { ok: false, error: { code: "UNKNOWN", title: "Format data tidak dikenali", message: "Respons intervals.icu tidak sesuai format yang diharapkan." } };
+    : { ok: false, error: { code: "UNKNOWN", detail: "format", title: "Format data tidak dikenali", message: "Respons intervals.icu tidak sesuai format yang diharapkan." } };
 }
 
 export interface TrainingContext {

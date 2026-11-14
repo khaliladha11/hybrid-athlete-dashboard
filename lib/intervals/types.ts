@@ -72,6 +72,8 @@ export interface IntervalsError {
   message: string;
   /** 429 (0.17): detik sampai boleh mencoba lagi, dari header `Retry-After`. */
   retryAfterSec?: number;
+  /** Varian teks untuk kode yang sama (1.2.0, terjemahan saat render lewat `errorText`). */
+  detail?: "timeout" | "demoMissing" | "invalidId" | "format" | "offline";
 }
 
 export type DataSource = "live" | "demo";

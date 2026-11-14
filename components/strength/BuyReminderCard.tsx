@@ -5,7 +5,7 @@ import { BUTTON } from "@/components/ui/Card";
 import { buyReminders, visibleReminders } from "@/lib/buy-reminder";
 import { useAthleteSettings, useIsClient, useResolvedProfile } from "@/lib/settings-store";
 import { useTrainingLog } from "@/lib/training-log";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
 import { STRENGTH } from "@/lib/i18n/messages/strength";
 
 /**
@@ -18,7 +18,8 @@ export function BuyReminderCard() {
   const log = useTrainingLog();
   const isClient = useIsClient();
   const t = useT(STRENGTH).buy;
-  const all = useMemo(() => buyReminders({ lib: p.movementLibrary, eq: p.equipmentModel, active: p.activeConditions, log }), [p, log]);
+  const locale = useLocale();
+  const all = useMemo(() => buyReminders({ lib: p.movementLibrary, eq: p.equipmentModel, active: p.activeConditions, log, locale }), [p, log, locale]);
   if (!isClient) return null;
   const shown = visibleReminders(all, settings.buyReminderDismissed);
   if (!shown.length) return null;

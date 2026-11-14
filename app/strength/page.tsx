@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function StrengthPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [ctx, params] = await Promise.all([getTrainingContext(undefined, await getLocale()), searchParams]);
-  const prefill = parseStrengthPrefill(params);
+  const prefill = parseStrengthPrefill(params, await getLocale());
   const t = GENERATOR[await getLocale()].stPage;
   return (
     <div className="space-y-4">

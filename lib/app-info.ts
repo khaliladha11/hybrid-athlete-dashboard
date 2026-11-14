@@ -6,6 +6,9 @@
  * Semver sama dengan `scripts/release-notes.mjs` (dijaga test dengan tabel yang sama).
  */
 import { DOCS } from "./docs-links";
+import { formatDay, LONG_DATE } from "@/lib/i18n/format";
+import type { Locale } from "@/lib/i18n/locale";
+import { LIB_MISC } from "@/lib/i18n/messages/lib-misc";
 import { UPSTREAM_REPO } from "./env-schema";
 
 /** Tanggal rilis versi terpasang (YYYY-MM-DD). Naik bersama `version` di package.json; dijaga test terhadap CHANGELOG. */
@@ -56,21 +59,24 @@ export const releaseUrl = (tag: string) => `${UPSTREAM_REPO}/releases/tag/${enco
 /** Pemilik/nama repo upstream (untuk API GitHub). */
 export const UPSTREAM_SLUG = UPSTREAM_REPO.replace(/^https:\/\/github\.com\//, "");
 
-export const ABOUT_LINKS: readonly { label: string; href: string }[] = [
-  { label: "Kode sumber di GitHub", href: UPSTREAM_REPO },
-  { label: "Catatan rilis (CHANGELOG)", href: `${UPSTREAM_REPO}/blob/main/CHANGELOG.md` },
-  { label: "Lisensi (MIT)", href: `${UPSTREAM_REPO}/blob/main/LICENSE` },
-  { label: "Kredit & atribusi", href: DOCS.notice },
-  { label: "Referensi ilmiah", href: `${UPSTREAM_REPO}/blob/main/docs/TRAINING-LOGIC.md` },
-];
-
-const LONG_DATE = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+export const aboutLinks = (locale: Locale = "id"): { label: string; href: string }[] => {
+  const t = LIB_MISC[locale].about;
+  return [
+    { label: t.source, href: UPSTREAM_REPO },
+    { label: t.changelog, href: `${UPSTREAM_REPO}/blob/main/CHANGELOG.md` },
+    { label: t.license, href: `${UPSTREAM_REPO}/blob/main/LICENSE` },
+    { label: t.credits, href: DOCS.notice },
+    { label: t.references, href: `${UPSTREAM_REPO}/blob/main/docs/TRAINING-LOGIC.md` },
+  ];
+};
+export const ABOUT_LINKS: readonly { label: string; href: string }[] = aboutLinks();
 
 /** "2026-11-01" → "1 November 2026". */
-export const formatReleaseDate = (date: string) => {
+export const formatReleaseDate = (date: string, locale: Locale = "id") => {
   const d = new Date(`${date}T00:00:00Z`);
-  return Number.isNaN(d.getTime()) ? "·" : LONG_DATE.format(d);
+  return Number.isNaN(d.getTime()) ? "·" : formatDay(locale, date, LONG_DATE);
 };
 
-export const newVersionText = (tag: string) => `Ada versi baru · ${tag}`;
-export const UPDATE_HINT = "Pemilik deploy menerimanya lewat pull request pembaruan di GitHub.";
+export const newVersionText = (tag: string, locale: Locale = "id") => LIB_MISC[locale].about.newVersion(tag);
+export const updateHint = (locale: Locale = "id") => LIB_MISC[locale].about.updateHint;
+export const UPDATE_HINT = updateHint();

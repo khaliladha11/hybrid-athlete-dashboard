@@ -43,7 +43,7 @@ import { InstallStep } from "./InstallStep";
 import { ProtectStep } from "./ProtectStep";
 import { TermsStep } from "./TermsStep";
 import { useTour } from "./Tour";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
 import { ONBOARDING } from "@/lib/i18n/messages/onboarding";
 
 const ZONE_PATHS: ZonePath[] = ["vdot", "manual", "estimate"];
@@ -56,6 +56,7 @@ export function OnboardingWizard() {
   const router = useRouter();
   const tour = useTour();
   const m = useT(ONBOARDING);
+  const locale = useLocale();
   const t = m.wizard;
   const TITLE: Record<OnboardingStep, string> = m.title;
   const [stored, setState] = useOnboardingState();
@@ -102,7 +103,7 @@ export function OnboardingWizard() {
   const later = () => save(skip(state, env));
 
   const importFile = async (file: File) => {
-    const r = await importBackupFile(file);
+    const r = await importBackupFile(file, locale);
     setImportMsg(r.message);
     if (!r.ok) return;
     // State hasil impor (bila ada) sudah tertulis; lanjutkan dari situ.
