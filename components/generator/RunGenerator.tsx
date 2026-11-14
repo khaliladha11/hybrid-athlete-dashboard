@@ -81,8 +81,8 @@ export function RunGenerator({
   // Sesi mode latihan di perangkat: ST kaki → lari maks Moderate, dan jeda ≥ 3 jam di hari yang sama (0.14.1).
   // Check-in hari ini (0.15.2) hanya menurunkan.
   const advice = useMemo(
-    () => withCheckin(withStSessions(serverAdvice, { sessions: stSessions, today: todayWib(), done: todayDone, current: "run" }), filledCheckin(checkins, todayWib())),
-    [serverAdvice, stSessions, todayDone, checkins],
+    () => withCheckin(withStSessions(serverAdvice, { sessions: stSessions, today: todayWib(), done: todayDone, current: "run", locale }), filledCheckin(checkins, todayWib()), locale),
+    [serverAdvice, stSessions, todayDone, checkins, locale],
   );
   const [duration, setDuration] = useState<Duration>(prefill?.duration ?? 45);
   const [difficulty, setDifficulty] = useState<Difficulty>(prefill?.difficulty ?? "easy");
@@ -112,8 +112,8 @@ export function RunGenerator({
   const pattern = fromPlan ? prefill?.pattern : undefined;
 
   const workout = useMemo(
-    () => generateRunWorkout({ duration, difficulty, seed, block, cadenceSpm, free, pattern }, p),
-    [duration, difficulty, seed, block, cadenceSpm, free, pattern, p],
+    () => generateRunWorkout({ duration, difficulty, seed, block, cadenceSpm, free, pattern, locale }, p),
+    [duration, difficulty, seed, block, cadenceSpm, free, pattern, p, locale],
   );
   // Format set Huawei Health untuk tombol "Copy Set" (cadangan bila tidak memakai Kirim ke jam).
   const setText = useMemo(() => runToHuaweiSets(workout), [workout]);
@@ -125,8 +125,8 @@ export function RunGenerator({
   const sendId = prefill?.sessionId ? externalId.session(prefill.sessionId) : externalId.generator(sendDate);
 
   const render = useCallback(
-    (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm, free, pattern }, p)),
-    [duration, difficulty, block, cadenceSpm, free, pattern, p],
+    (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm, free, pattern, locale }, p)),
+    [duration, difficulty, block, cadenceSpm, free, pattern, p, locale],
   );
   const canRegenerate = useMemo(() => hasVariations(render), [render]);
   const regenerate = () => {

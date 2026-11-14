@@ -36,7 +36,7 @@ import {
 } from "@/lib/workout-state";
 import { canVibrate, useNow, useWakeLock, vibrate } from "./device";
 import { FinishSession } from "./FinishSession";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
 import { WORKOUT } from "@/lib/i18n/messages/workout";
 
 const RPE_OPTIONS = [4, 5, 6, 7, 8, 9];
@@ -143,11 +143,13 @@ function Running({
   const it = items[i];
   const left = timerLeft(s, now);
   const today = todayWib(new Date(now));
+  const locale = useLocale();
   const sameDay = sameDayAdvice({
     done: todayDone,
     sessions,
     current: "strength",
     today,
+    locale,
   });
 
   // Timer habis: getar sekali, lalu timer ditutup (pesan singkat tetap tampil sampai set berikutnya).

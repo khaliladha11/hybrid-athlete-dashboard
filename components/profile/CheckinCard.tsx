@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { BUTTON, Card } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
-import { CHECKIN_LABEL, checkinOn, hasValues, moodNote, type CheckinField } from "@/lib/checkin";
+import { checkinLabel, checkinOn, hasValues, moodNote, type CheckinField } from "@/lib/checkin";
 import { checkinStore, useCheckins } from "@/lib/checkin-store";
 import { useIsClient } from "@/lib/settings-store";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
 import { PROFILE } from "@/lib/i18n/messages/profile";
 
 type Values = Partial<Record<CheckinField, number>>;
@@ -21,6 +21,7 @@ const SCALE5 = [1, 2, 3, 4, 5].map((v) => ({ value: v, label: String(v) }));
 export function CheckinCard({ today }: { today: string }) {
   const client = useIsClient();
   const t = useT(PROFILE).checkin;
+  const locale = useLocale();
   const list = useCheckins();
   const entry = checkinOn(list, today);
   const [editing, setEditing] = useState(false);
@@ -38,7 +39,7 @@ export function CheckinCard({ today }: { today: string }) {
         <span className="min-w-0 flex-1">
           <span className="t-label block text-ink">{t.title}</span>
           <span className="tabular block text-[13px] text-muted">{parts.join(" · ")}</span>
-          {moodNote(entry) && <span className="block text-[13px] text-muted">{moodNote(entry)}</span>}
+          {moodNote(entry, locale) && <span className="block text-[13px] text-muted">{moodNote(entry, locale)}</span>}
         </span>
         <button type="button" onClick={() => setEditing(true)} className={`${BUTTON.base} ${BUTTON.ghost} text-[13px]`}>
           {t.edit}
@@ -51,6 +52,7 @@ export function CheckinCard({ today }: { today: string }) {
 
 function CheckinForm({ today, initial, onDone }: { today: string; initial: Values; onDone: () => void }) {
   const t = useT(PROFILE).checkin;
+  const locale = useLocale();
   const [v, setV] = useState<Values>({ shin: initial.shin ?? 0, soreness: initial.soreness ?? 0, sleep: initial.sleep, mood: initial.mood });
   const set = (f: CheckinField, n: number) => setV((cur) => ({ ...cur, [f]: n }));
   const save = () => {
@@ -68,10 +70,10 @@ function CheckinForm({ today, initial, onDone }: { today: string; initial: Value
         <Slider field="shin" value={v.shin ?? 0} onChange={(n) => set("shin", n)} low={t.shinLow} high={t.shinHigh} />
         <Slider field="soreness" value={v.soreness ?? 0} onChange={(n) => set("soreness", n)} low={t.soreLow} high={t.soreHigh} />
         <div>
-          <Segmented label={`${CHECKIN_LABEL.sleep} ${t.scale}`} value={v.sleep ?? 0} options={SCALE5} onChange={(n) => set("sleep", n)} />
+          <Segmented label={`${checkinLabel("sleep", locale)} ${t.scale}`} value={v.sleep ?? 0} options={SCALE5} onChange={(n) => set("sleep", n)} />
         </div>
         <div>
-          <Segmented label={`${CHECKIN_LABEL.mood} ${t.scale}`} value={v.mood ?? 0} options={SCALE5} onChange={(n) => set("mood", n)} />
+          <Segmented label={`${checkinLabel("mood", locale)} ${t.scale}`} value={v.mood ?? 0} options={SCALE5} onChange={(n) => set("mood", n)} />
         </div>
       </div>
       <div className="mt-5 grid grid-cols-2 gap-2">
@@ -88,12 +90,13 @@ function CheckinForm({ today, initial, onDone }: { today: string; initial: Value
 
 function Slider({ field, value, onChange, low, high }: { field: CheckinField; value: number; onChange: (n: number) => void; low: string; high: string }) {
   const t = useT(PROFILE).checkin;
+  const locale = useLocale();
   const id = `checkin-${field}`;
   return (
     <div>
       <div className="mb-1 flex items-baseline justify-between">
         <label htmlFor={id} className="t-label">
-          {CHECKIN_LABEL[field]}
+          {checkinLabel(field, locale)}
         </label>
         <span className="font-mono text-base font-semibold tabular-nums text-ink">{value}/10</span>
       </div>

@@ -15,17 +15,16 @@
  * RPE ST per level bisa diubah dalam 4–7: PRD §3 "RPE ≤ 7 untuk semua set" tetap dijaga `sanitizeStrength`.
  */
 import type { Difficulty } from "./generator/types";
+import type { Locale } from "./i18n/locale";
+import { ZONES } from "./i18n/messages/zones";
 
 export const HR_ZONE_MODES = ["default", "lthr", "maxHr", "manual"] as const;
 export type HrZoneMode = (typeof HR_ZONE_MODES)[number];
 
-export const HR_MODE_LABEL: Record<HrZoneMode, string> = { default: "Bawaan", lthr: "LTHR", maxHr: "HR maks", manual: "Manual" };
-export const HR_MODE_SOURCE: Record<HrZoneMode, string> = {
-  default: "Angka konservatif aplikasi: Easy di bawah 140, Tempo 160–170.",
-  lthr: "Zona lari Friel dari LTHR: Z2 85–89%, Z4 95–99%, Z5 dari 100%.",
-  maxHr: "Lima zona dari HR maks (Edwards): Z2 60–69%, Z4 80–89%, Z5 dari 90%.",
-  manual: "Batas atas Z1 sampai Z4 diisi sendiri.",
-};
+export const HR_MODE_LABEL: Record<HrZoneMode, string> = ZONES.id.hr.mode;
+export const HR_MODE_SOURCE: Record<HrZoneMode, string> = ZONES.id.hr.source;
+export const hrModeLabel = (m: HrZoneMode, locale: Locale = "id"): string => ZONES[locale].hr.mode[m];
+export const hrModeSource = (m: HrZoneMode, locale: Locale = "id"): string => ZONES[locale].hr.source[m];
 
 /** Batas atas Z1–Z4 (bpm, inklusif). */
 export type ZoneTops = [number, number, number, number];
@@ -56,12 +55,13 @@ const inRange = (v: unknown, [lo, hi]: readonly [number, number]): v is number =
  * Kesalahan per batas (indeks Z1–Z4); null = baik. Batas naik ketat dan tiap zona ≥ 3 bpm, jadi zona tidak pernah
  * tumpang tindih.
  */
-export function validateTops(t: readonly number[]): (string | null)[] {
+export function validateTops(t: readonly number[], locale: Locale = "id"): (string | null)[] {
+  const m = ZONES[locale].hr;
   return [0, 1, 2, 3].map((i) => {
     const v = t[i];
-    if (typeof v !== "number" || !Number.isInteger(v)) return "Isi angka bpm.";
-    if (v < BPM_MIN || v > BPM_MAX) return `Antara ${BPM_MIN} dan ${BPM_MAX} bpm.`;
-    if (i > 0 && typeof t[i - 1] === "number" && v < t[i - 1] + MIN_WIDTH) return `Minimal ${t[i - 1] + MIN_WIDTH} bpm, supaya Z${i + 1} tidak tumpang tindih dengan Z${i}.`;
+    if (typeof v !== "number" || !Number.isInteger(v)) return m.fillBpm;
+    if (v < BPM_MIN || v > BPM_MAX) return m.between(BPM_MIN, BPM_MAX);
+    if (i > 0 && typeof t[i - 1] === "number" && v < t[i - 1] + MIN_WIDTH) return m.minTop(t[i - 1] + MIN_WIDTH, i + 1, i);
     return null;
   });
 }
@@ -69,9 +69,9 @@ export function validateTops(t: readonly number[]): (string | null)[] {
 export const validTops = (t: readonly number[]) => validateTops(t).every((e) => e === null);
 
 /** Kesalahan acuan LTHR / HR maks; null = baik. */
-export function validateRef(mode: "lthr" | "maxHr", v: unknown): string | null {
+export function validateRef(mode: "lthr" | "maxHr", v: unknown, locale: Locale = "id"): string | null {
   const r = mode === "lthr" ? LTHR_RANGE : MAXHR_RANGE;
-  return inRange(v, r) ? null : `${mode === "lthr" ? "LTHR" : "HR maks"} antara ${r[0]} dan ${r[1]} bpm.`;
+  return inRange(v, r) ? null : ZONES[locale].hr.refRange(mode === "lthr", r[0], r[1]);
 }
 
 /** Batas zona efektif dari pengaturan. Pengaturan tidak lengkap atau tidak valid → bawaan. */
@@ -116,7 +116,7 @@ export interface HrTargets {
   easyBelow: number;
 }
 
-export function hrTargets(t: ZoneTops): HrTargets {
+export function hrTargets(t: ZoneTops, locale: Locale = "id"): HrTargets {
   const z4 = `${t[2] + 1}–${t[3]}`;
   return {
     recovery: `< ${t[0] + 1}`,
@@ -124,7 +124,7 @@ export function hrTargets(t: ZoneTops): HrTargets {
     tempo: z4,
     norwegian: z4,
     interval: `≥ ${t[2] + 1}`,
-    jogDown: `turun ke < ${t[1] + 1}`,
+    jogDown: ZONES[locale].hr.jogDown(t[1] + 1),
     easyBelow: t[1] + 1,
   };
 }
@@ -152,23 +152,21 @@ export const STRENGTH_RPE_MIN = 4;
 export const STRENGTH_RPE_MAX = 7;
 
 /** RPE lari per level (tampilan; tidak diubah di Setting). */
-export const RUN_RPE: { label: string; rpe: string }[] = [
-  { label: "Pemulihan, jalan, jog", rpe: "2–3" },
-  { label: "Easy", rpe: "3–4" },
-  { label: "Tempo", rpe: "6–7" },
-  { label: "Interval, Norwegian 4×4", rpe: "7–8" },
-];
+const RUN_RPE_VALUES = ["2–3", "3–4", "6–7", "7–8"];
+export const runRpe = (locale: Locale = "id"): { label: string; rpe: string }[] => RUN_RPE_VALUES.map((rpe, i) => ({ label: ZONES[locale].hr.runRpe[i], rpe }));
+export const RUN_RPE = runRpe("id");
 
 /** Kesalahan per level; null = baik. Nilai 4–7, tidak turun dari level sebelumnya. */
-export function validateStrengthRpe(r: Partial<Record<Difficulty, unknown>>): Record<Difficulty, string | null> {
+export function validateStrengthRpe(r: Partial<Record<Difficulty, unknown>>, locale: Locale = "id"): Record<Difficulty, string | null> {
+  const m = ZONES[locale].hr;
   const order: Difficulty[] = ["easy", "moderate", "high"];
   const out = {} as Record<Difficulty, string | null>;
   order.forEach((d, i) => {
     const v = r[d];
     const prev = i > 0 ? r[order[i - 1]] : undefined;
-    if (typeof v !== "number" || !Number.isInteger(v)) out[d] = "Isi angka.";
-    else if (v < STRENGTH_RPE_MIN || v > STRENGTH_RPE_MAX) out[d] = `RPE ${STRENGTH_RPE_MIN} sampai ${STRENGTH_RPE_MAX}.`;
-    else if (typeof prev === "number" && v < prev) out[d] = "Tidak boleh lebih ringan dari level sebelumnya.";
+    if (typeof v !== "number" || !Number.isInteger(v)) out[d] = m.fill;
+    else if (v < STRENGTH_RPE_MIN || v > STRENGTH_RPE_MAX) out[d] = m.rpeRange(STRENGTH_RPE_MIN, STRENGTH_RPE_MAX);
+    else if (typeof prev === "number" && v < prev) out[d] = m.notLighter;
     else out[d] = null;
   });
   return out;

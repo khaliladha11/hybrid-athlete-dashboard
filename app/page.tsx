@@ -35,7 +35,7 @@ export default async function ProfilePage() {
   const [activities, wellness, runThreshold] = await Promise.all([getActivities(Math.max(days, 30), today), getWellness(READINESS_WELLNESS_DAYS, today), getRunThreshold()]);
   const readiness =
     activities.ok || wellness.ok
-      ? assessReadiness(wellness.ok ? wellness.data : [], activities.ok ? activities.data : [], today)
+      ? assessReadiness(wellness.ok ? wellness.data : [], activities.ok ? activities.data : [], today, locale)
       : null;
 
   return (
@@ -56,7 +56,7 @@ export default async function ProfilePage() {
       <CheckinCard today={today} />
 
       <ProfileCoach
-        advice={[...readinessAdvice(readiness), ...(activities.ok ? weeklyAdvice(activities.data, today) : [])]}
+        advice={[...readinessAdvice(readiness, locale), ...(activities.ok ? weeklyAdvice(activities.data, today, [], locale) : [])]}
         activities={activities.ok ? activities.data : []}
         oldest={oldest}
         today={today}
@@ -75,7 +75,7 @@ export default async function ProfilePage() {
                 restingHr: readiness.baselines.restingHr,
                 hrvAvailable: readiness.used.includes("HRV"),
                 rhrAvailable: readiness.used.includes("resting HR"),
-              })
+              }, locale)
             : undefined
         }
       />

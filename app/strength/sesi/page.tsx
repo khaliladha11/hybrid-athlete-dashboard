@@ -11,6 +11,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function WorkoutPage() {
-  const ctx = await getTrainingContext();
+  const ctx = await getTrainingContext(undefined, await getLocale());
   return <WorkoutMode todayDone={ctx.todayDone} />;
 }

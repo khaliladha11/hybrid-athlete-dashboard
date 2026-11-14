@@ -14,9 +14,11 @@
  */
 import { addDays } from "@/lib/date";
 import type { Activity } from "@/lib/intervals/types";
-import type { Readiness } from "@/lib/readiness";
+import type { Readiness, ReadinessReason } from "@/lib/readiness";
 import { dedupeStSessions, type StItem, type StSession } from "@/lib/st-session";
 import { DIFFICULTIES, type Difficulty, type Duration, type StrengthType } from "@/lib/generator/types";
+import type { Locale } from "@/lib/i18n/locale";
+import { COACH } from "@/lib/i18n/messages/coach";
 
 /** Lari dianggap berat di atas HR ini (batas bawah zona tempo generator = 160). */
 export const HARD_RUN_HR = 155;
@@ -111,7 +113,8 @@ export function weekStats(activities: Activity[], today: string, sessions: StSes
   };
 }
 
-export function weeklyAdvice(activities: Activity[], today: string, sessions: StSession[] = []): Advice[] {
+export function weeklyAdvice(activities: Activity[], today: string, sessions: StSession[] = [], locale: Locale = "id"): Advice[] {
+  const t = COACH[locale].weekly;
   const out: Advice[] = [];
   const s = weekStats(activities, today, sessions);
 
@@ -120,8 +123,8 @@ export function weeklyAdvice(activities: Activity[], today: string, sessions: St
     out.push({
       id: "polarized",
       targets: ["run"],
-      title: `${s.hardRuns7} lari berat dalam 7 hari`,
-      message: `Sudah ${s.hardRuns7} sesi lari berat dalam 7 hari (${pct}% dari ${s.runs7} sesi). Prinsip 80/20: sesi berikutnya sebaiknya Easy.`,
+      title: t.polarizedTitle(s.hardRuns7),
+      message: t.polarized(s.hardRuns7, pct, s.runs7),
       maxDifficulty: "easy",
     });
   }
@@ -131,18 +134,15 @@ export function weeklyAdvice(activities: Activity[], today: string, sessions: St
     out.push({
       id: "volume",
       targets: ["run"],
-      title: `Jarak lari naik ${Math.round(s.kmChange * 100)}%`,
-      message:
-        `Jarak lari 7 hari ${s.runKm7.toFixed(1)} km, naik ${Math.round(s.kmChange * 100)}% dari minggu sebelumnya (${s.runKmPrev7.toFixed(1)} km). ` +
-        `Kenaikan > 30% dikaitkan dengan shin splints. ` +
-        (left > 0 ? `Sisa ruang aman ±${left.toFixed(1)} km.` : "Pertimbangkan hari istirahat atau sesi pendek."),
+      title: t.volumeTitle(Math.round(s.kmChange * 100)),
+      message: t.volume(s.runKm7.toFixed(1), Math.round(s.kmChange * 100), s.runKmPrev7.toFixed(1), left > 0 ? left.toFixed(1) : null),
       maxDuration: 30,
     });
   }
 
   const yesterday = addDays(today, -1);
   const recent = activities.filter((a) => a.date === today || a.date === yesterday);
-  const when = (a: Pick<Activity, "date">) => (a.date === today ? "Hari ini" : "Kemarin");
+  const isToday = (a: Pick<Activity, "date">) => a.date === today;
 
   // ST kaki dari aktivitas intervals.icu (nama) atau sesi mode latihan (tipe Lower/Full Body).
   const legSession = sessions.find((x) => !x.deletedAt && (x.date === today || x.date === yesterday) && (x.type === "lower" || x.type === "fullBody"));
@@ -151,8 +151,8 @@ export function weeklyAdvice(activities: Activity[], today: string, sessions: St
     out.push({
       id: "after-leg-st",
       targets: ["run"],
-      title: `${when(legSt)} ST kaki`,
-      message: `${when(legSt)} ada ST kaki (${legSt.name}). Hindari interval berat dulu supaya adaptasi kekuatan & pemulihan kaki tidak terganggu.`,
+      title: t.legTitle(isToday(legSt)),
+      message: t.leg(isToday(legSt), legSt.name),
       maxDifficulty: "moderate",
     });
   }
@@ -162,8 +162,8 @@ export function weeklyAdvice(activities: Activity[], today: string, sessions: St
     out.push({
       id: "after-hard-run",
       targets: ["strength"],
-      title: `${when(hardOrLong)} ${isLongRun(hardOrLong) ? "long run" : "lari berat"}`,
-      message: `${when(hardOrLong)} ${isLongRun(hardOrLong) ? "long run" : "lari berat"} (${hardOrLong.name}). Kalau ST hari ini, prioritaskan Upper Push/Pull agar kaki pulih.`,
+      title: t.hardTitle(isToday(hardOrLong), isLongRun(hardOrLong)),
+      message: t.hard(isToday(hardOrLong), isLongRun(hardOrLong), hardOrLong.name),
       preferTypes: ["upperPull", "upperPush"],
     });
   }
@@ -199,6 +199,7 @@ export function sameDayAdvice(o: {
   plannedToday?: { run: boolean; strength: boolean };
   current?: AdviceTarget;
   today: string;
+  locale?: Locale;
 }): Advice | null {
   const fromActs = todayDone(o.activities ?? [], o.today);
   const runDone = fromActs.run || !!o.done?.run;
@@ -209,8 +210,8 @@ export function sameDayAdvice(o: {
   return {
     id: "same-day",
     targets: ["run", "strength"],
-    title: `Lari dan ST hari ini: jeda ≥ ${SAME_DAY_GAP_H} jam`,
-    message: `Hari ini ada lari dan ST. Beri jeda minimal ${SAME_DAY_GAP_H} jam di antaranya supaya adaptasi kekuatan tidak terganggu.`,
+    title: COACH[o.locale ?? "id"].weekly.sameDayTitle(SAME_DAY_GAP_H),
+    message: COACH[o.locale ?? "id"].weekly.sameDay(SAME_DAY_GAP_H),
   };
 }
 
@@ -220,30 +221,31 @@ export function sameDayAdvice(o: {
  */
 export function withStSessions(
   advice: Advice[],
-  o: { sessions: StSession[]; today: string; done?: TodayDone; plannedToday?: { run: boolean; strength: boolean }; current?: AdviceTarget },
+  o: { sessions: StSession[]; today: string; done?: TodayDone; plannedToday?: { run: boolean; strength: boolean }; current?: AdviceTarget; locale?: Locale },
 ): Advice[] {
   const out = [...advice];
   if (!out.some((a) => a.id === "after-leg-st")) {
-    const leg = weeklyAdvice([], o.today, o.sessions).find((a) => a.id === "after-leg-st");
+    const leg = weeklyAdvice([], o.today, o.sessions, o.locale).find((a) => a.id === "after-leg-st");
     if (leg) out.push(leg);
   }
   const same = out.some((a) => a.id === "same-day") ? null : sameDayAdvice(o);
   return same ? [...out, same] : out;
 }
 
-export function readinessAdvice(r: Readiness | null): Advice[] {
+export function readinessAdvice(r: Readiness | null, locale: Locale = "id"): Advice[] {
   if (!r?.caution) return [];
   return r.reasons.map(
-    (message) => ({ id: "readiness", targets: ["run", "strength"], title: readinessTitle(message), message, lowerBy: 1 }) satisfies Advice,
+    (message, i) =>
+      ({ id: "readiness", targets: ["run", "strength"], title: readinessTitle(r.reasonIds?.[i], message, locale), message, lowerBy: 1 }) satisfies Advice,
   );
 }
 
-function readinessTitle(reason: string): string {
-  if (/^HRV/i.test(reason)) return "HRV di bawah rata-rata";
-  if (/^Resting HR/i.test(reason)) return "Resting HR naik";
-  if (/^Kemarin long run/i.test(reason)) return "Kemarin long run";
-  if (/^Kemarin sesi berat/i.test(reason)) return "Kemarin sesi berat";
-  return "Readiness rendah";
+/** Judul dari jenis alasan; tanpa jenis (data lama) dicocokkan dari teks Indonesia. */
+function readinessTitle(id: ReadinessReason | undefined, reason: string, locale: Locale): string {
+  const t = COACH[locale].readiness.title;
+  const kind =
+    id ?? (/^HRV/i.test(reason) ? "hrv" : /^Resting HR/i.test(reason) ? "rhr" : /^Kemarin long run/i.test(reason) ? "longRun" : /^Kemarin sesi berat/i.test(reason) ? "heavy" : undefined);
+  return kind ? t[kind] : t.low;
 }
 
 export interface Suggestion {

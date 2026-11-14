@@ -8,10 +8,10 @@ import type { Difficulty } from "@/lib/generator/types";
 import { DIFFICULTY_LABEL } from "@/lib/generator/types";
 import {
   DEFAULT_STRENGTH_RPE,
-  HR_MODE_LABEL,
-  HR_MODE_SOURCE,
+  hrModeLabel,
+  hrModeSource,
   HR_ZONE_MODES,
-  RUN_RPE,
+  runRpe,
   STRENGTH_RPE_MAX,
   STRENGTH_RPE_MIN,
   hrTargets,
@@ -25,7 +25,7 @@ import {
   type StrengthRpe,
   type ZoneTops,
 } from "@/lib/hr-zones";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
 import { SETTINGS } from "@/lib/i18n/messages/settings";
 
 /** LTHR dan HR maks lari dari intervals.icu (server), untuk mengisi awal. */
@@ -48,6 +48,7 @@ export function HrZonesSettings({ settings, onChange, refs = {} }: { settings: A
   const targets = hrTargets(tops);
   const customized = !!settings.hrZones && settings.hrZones.mode !== "default";
   const t = useT(SETTINGS).hr;
+  const locale = useLocale();
 
   const setHr = (next: AthleteSettings["hrZones"]) => {
     const { hrZones: _old, ...rest } = settings;
@@ -64,9 +65,9 @@ export function HrZonesSettings({ settings, onChange, refs = {} }: { settings: A
     <Card title={t.title} action={customized ? <button type="button" onClick={() => setHr(undefined)} className={RESET}>{t.restore}</button> : <span className="text-[12px] text-faint">{t.default}</span>}>
       <p className="text-[13px] text-muted">{t.intro}</p>
       <div className="mt-3">
-        <Segmented wrap label={t.source} value={hr.mode} onChange={pickMode} options={HR_ZONE_MODES.map((m) => ({ value: m, label: HR_MODE_LABEL[m] }))} />
+        <Segmented wrap label={t.source} value={hr.mode} onChange={pickMode} options={HR_ZONE_MODES.map((m) => ({ value: m, label: hrModeLabel(m, locale) }))} />
       </div>
-      <p className="mt-2 text-[12px] text-faint">{HR_MODE_SOURCE[hr.mode]}</p>
+      <p className="mt-2 text-[12px] text-faint">{hrModeSource(hr.mode, locale)}</p>
 
       {(hr.mode === "lthr" || hr.mode === "maxHr") && (
         <RefInput
@@ -114,7 +115,8 @@ function RefInput({ mode, value, fromIcu, onSave }: { mode: "lthr" | "maxHr"; va
   const [draft, setDraft] = useState(value !== undefined ? String(value) : "");
   const n = draft.trim() === "" ? undefined : Number(draft);
   const t = useT(SETTINGS).hr;
-  const error = draft.trim() === "" ? (value === undefined ? t.fillRef(mode === "lthr") : null) : validateRef(mode, n);
+  const locale = useLocale();
+  const error = draft.trim() === "" ? (value === undefined ? t.fillRef(mode === "lthr") : null) : validateRef(mode, n, locale);
   const label = t.refLabel(mode === "lthr");
   return (
     <label className="mt-3 block text-[13px] text-muted">
@@ -139,9 +141,10 @@ function RefInput({ mode, value, fromIcu, onSave }: { mode: "lthr" | "maxHr"; va
 }
 
 function ManualTops({ saved, onSave }: { saved: ZoneTops; onSave: (t: ZoneTops) => void }) {
+  const locale = useLocale();
   const [draft, setDraft] = useState<string[]>(saved.map(String));
   const nums = draft.map((d) => (d.trim() === "" ? NaN : Number(d)));
-  const errors = validateTops(nums);
+  const errors = validateTops(nums, locale);
   const t = useT(SETTINGS).hr;
   const change = (i: number, v: string) => {
     const next = draft.map((d, j) => (j === i ? v : d));
@@ -178,6 +181,7 @@ const LEVELS: Difficulty[] = ["easy", "moderate", "high"];
 function RpeSection({ settings, onChange }: { settings: AthleteSettings; onChange: (s: AthleteSettings) => void }) {
   const rpe: StrengthRpe = settings.strengthRpe ?? DEFAULT_STRENGTH_RPE;
   const t = useT(SETTINGS).hr;
+  const locale = useLocale();
   const set = (next: StrengthRpe | undefined) => {
     const { strengthRpe: _old, ...rest } = settings;
     const isDefault = !next || LEVELS.every((d) => next[d] === DEFAULT_STRENGTH_RPE[d]);
@@ -203,7 +207,7 @@ function RpeSection({ settings, onChange }: { settings: AthleteSettings; onChang
       </div>
       <p className="mt-1 text-[13px] text-muted">{t.run}</p>
       <dl className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[13px]">
-        {RUN_RPE.map((r) => (
+        {runRpe(locale).map((r) => (
           <div key={r.label} className="contents">
             <dt className="text-muted">{r.label}</dt>
             <dd className="tabular text-right text-ink">RPE {r.rpe}</dd>

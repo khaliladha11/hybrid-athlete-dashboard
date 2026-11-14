@@ -12,6 +12,9 @@
  */
 import { addDays } from "./date";
 import type { Wellness } from "./intervals/types";
+import { DAY_MONTH, formatDay } from "./i18n/format";
+import type { Locale } from "./i18n/locale";
+import { ZONES } from "./i18n/messages/zones";
 
 export const HARD_RUN_HR_DEFAULT = 155;
 export const LTHR_HARD_RATIO = 0.9;
@@ -81,28 +84,29 @@ export function hrvPersonalDrop(wellness: Wellness[], today: string, b: Baseline
 /** Batas resting HR pribadi: rata-rata 30 hari + maks(1 SD, 3 bpm). */
 export const rhrPersonalLimit = (b: Baseline) => (b.active && b.mean !== undefined && b.sd !== undefined ? b.mean + Math.max(RHR_SD * b.sd, RHR_MIN_RISE) : undefined);
 
-const DAY = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
-const day = (d: string) => DAY.format(new Date(`${d}T00:00:00Z`)).replace(".", "");
+const day = (d: string, locale: Locale) => formatDay(locale, d, DAY_MONTH).replace(".", "");
 
 /** Satu baris status ambang untuk ditampilkan. */
-export function baselineStatus(label: string, b: Baseline): string {
-  if (b.active && !b.since) return `${label}: ambang pribadi aktif (rata-rata 30 hari terakhir).`;
-  return b.active
-    ? `${label}: ambang pribadi aktif sejak ${day(b.since!)} (rata-rata 30 hari).`
-    : `${label}: masih memakai ambang umum (${b.days} dari ${BASELINE_DAYS} hari data).`;
+export function baselineStatus(label: string, b: Baseline, locale: Locale = "id"): string {
+  const m = ZONES[locale].threshold;
+  if (b.active && !b.since) return m.activeWindow(label);
+  return b.active ? m.activeSince(label, day(b.since!, locale)) : m.general(label, b.days, BASELINE_DAYS);
 }
 
-export function hardRunStatus(t: HardRunThreshold): string {
-  return t.personal
-    ? `Lari berat: ≥ ${t.bpm} bpm (90% LTHR ${t.lthr} di intervals.icu).`
-    : `Lari berat: ≥ ${t.bpm} bpm (ambang umum; isi LTHR lari di intervals.icu untuk ambang pribadi).`;
+export function hardRunStatus(t: HardRunThreshold, locale: Locale = "id"): string {
+  const m = ZONES[locale].threshold;
+  return t.personal ? m.hardPersonal(t.bpm, t.lthr!) : m.hardGeneral(t.bpm);
 }
 
 /** Baris status ambang untuk sinyal yang dikirim jam (sinyal yang tidak dikirim disebut, aturannya tidak dipakai). */
-export function thresholdLines(o: { hard: HardRunThreshold; hrv: Baseline; restingHr: Baseline; hrvAvailable: boolean; rhrAvailable: boolean }): string[] {
+export function thresholdLines(
+  o: { hard: HardRunThreshold; hrv: Baseline; restingHr: Baseline; hrvAvailable: boolean; rhrAvailable: boolean },
+  locale: Locale = "id",
+): string[] {
+  const m = ZONES[locale].threshold;
   return [
-    hardRunStatus(o.hard),
-    o.hrvAvailable ? baselineStatus("HRV", o.hrv) : "HRV: tidak dikirim jam, aturan HRV tidak dipakai.",
-    o.rhrAvailable ? baselineStatus("Resting HR", o.restingHr) : "Resting HR: tidak dikirim jam, aturan resting HR tidak dipakai.",
+    hardRunStatus(o.hard, locale),
+    o.hrvAvailable ? baselineStatus("HRV", o.hrv, locale) : m.noHrv,
+    o.rhrAvailable ? baselineStatus("Resting HR", o.restingHr, locale) : m.noRhr,
   ];
 }

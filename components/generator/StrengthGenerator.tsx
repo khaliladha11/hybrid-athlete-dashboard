@@ -56,6 +56,7 @@ import { CoachCard } from "./CoachCard";
 import { LogForm } from "./LogForm";
 import { GeneratorActions, OutputShell, revealIfScrolledPast } from "./shared";
 import { useLocale, useT } from "@/lib/i18n/client";
+import { schemeName } from "@/lib/i18n/messages/run-gen";
 import { GENERATOR } from "@/lib/i18n/messages/generator";
 
 function movementMap(p: ResolvedProfile) {
@@ -96,8 +97,8 @@ export function StrengthGenerator({
   const sessions = useStSessions();
   const checkins = useCheckins();
   const advice = useMemo(
-    () => withCheckin(withStSessions(serverAdvice, { sessions, today: todayWib(), done: todayDone, current: "strength" }), filledCheckin(checkins, todayWib())),
-    [serverAdvice, sessions, todayDone, checkins],
+    () => withCheckin(withStSessions(serverAdvice, { sessions, today: todayWib(), done: todayDone, current: "strength", locale }), filledCheckin(checkins, todayWib()), locale),
+    [serverAdvice, sessions, todayDone, checkins, locale],
   );
   const [activeRaw, setActiveRaw] = useStoredString(PREF_KEYS.activeWorkout, "");
   const [stNote] = useStoredString(PREF_KEYS.stCalendarNote, "");
@@ -133,8 +134,8 @@ export function StrengthGenerator({
   const movements = useMemo(() => movementMap(p), [p]);
 
   const generated = useMemo(
-    () => tryGenerate(() => generateStrengthWorkout({ type, duration, difficulty, seed, block, free }, p)),
-    [type, duration, difficulty, seed, block, free, p],
+    () => tryGenerate(() => generateStrengthWorkout({ type, duration, difficulty, seed, block, free, locale }, p)),
+    [type, duration, difficulty, seed, block, free, p, locale],
   );
   // Beban gerakan ★ disesuaikan dengan riwayat sesi atau PR (tetap dalam batas library, atau sejak 0.14.0 batas alat & keamanan).
   const workout = useMemo(() => {
@@ -153,10 +154,10 @@ export function StrengthGenerator({
 
   const render = useCallback(
     (s: number) => {
-      const w = tryGenerate(() => generateStrengthWorkout({ type, duration, difficulty, seed: s, block, free }, p));
+      const w = tryGenerate(() => generateStrengthWorkout({ type, duration, difficulty, seed: s, block, free, locale }, p));
       return w ? strengthToText(w) : "";
     },
-    [type, duration, difficulty, block, free, p],
+    [type, duration, difficulty, block, free, p, locale],
   );
   const canRegenerate = useMemo(() => hasVariations(render), [render]);
   const regenerate = () => {
@@ -226,7 +227,7 @@ export function StrengthGenerator({
         </div>
       ) : (
       <>
-      <OutputShell ref={outputRef} swapKey={`${type}-${duration}-${difficulty}-${seed}-${free}`} tag={{ label: DIFFICULTY_LABEL[difficulty], tone: INTENSITY_TONE[difficulty] }} title={workout.title} subtitle={t.st.subtitle(est, workout.scheme, String(workout.items.find((i) => i.phase === "main")?.rpe ?? "-"), seed)}>
+      <OutputShell ref={outputRef} swapKey={`${type}-${duration}-${difficulty}-${seed}-${free}`} tag={{ label: DIFFICULTY_LABEL[difficulty], tone: INTENSITY_TONE[difficulty] }} title={workout.title} subtitle={t.st.subtitle(est, schemeName(workout.scheme, locale), String(workout.items.find((i) => i.phase === "main")?.rpe ?? "-"), seed)}>
         {(["warmup", "main", "cooldown"] as const).map((phase) => {
           const items = workout.items.filter((i) => i.phase === phase);
           if (!items.length) return null;

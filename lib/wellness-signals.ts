@@ -7,13 +7,16 @@
  */
 import { addDays } from "./date";
 import type { Wellness } from "./intervals/types";
+import type { Locale } from "./i18n/locale";
+import { COACH } from "./i18n/messages/coach";
 
 export const SIGNAL_WINDOW_DAYS = 14;
 
 export type WellnessSignal = "hrv" | "restingHr" | "sleep" | "load";
 export const WELLNESS_SIGNALS: readonly WellnessSignal[] = ["hrv", "restingHr", "sleep", "load"];
 
-export const SIGNAL_LABEL: Record<WellnessSignal, string> = { hrv: "HRV", restingHr: "resting HR", sleep: "tidur", load: "CTL/ATL" };
+export const SIGNAL_LABEL: Record<WellnessSignal, string> = COACH.id.signal;
+export const signalLabel = (s: WellnessSignal, locale: Locale = "id"): string => COACH[locale].signal[s];
 
 const has: Record<WellnessSignal, (w: Wellness) => boolean> = {
   hrv: (w) => w.hrv !== undefined,
@@ -29,9 +32,10 @@ export function availableSignals(wellness: Wellness[], today: string): Set<Welln
   return new Set(WELLNESS_SIGNALS.filter((s) => recent.some(has[s])));
 }
 
-/** "a", "a dan b", "a, b, dan c". */
-export function joinId(items: string[]): string {
+/** "a", "a dan b", "a, b, dan c" (EN: "a and b", "a, b, and c"). */
+export function joinId(items: string[], locale: Locale = "id"): string {
+  const and = COACH[locale].and;
   if (items.length <= 1) return items.join("");
-  if (items.length === 2) return `${items[0]} dan ${items[1]}`;
-  return `${items.slice(0, -1).join(", ")}, dan ${items.at(-1)}`;
+  if (items.length === 2) return `${items[0]} ${and} ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, ${and} ${items.at(-1)}`;
 }

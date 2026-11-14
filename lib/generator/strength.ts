@@ -2,6 +2,8 @@ import { strengthRpeFor, type StrengthRpe } from "@/lib/hr-zones";
 import { parseWeight, profile, type Movement, type MovementCategory, type ResolvedProfile } from "@/lib/profile";
 import type { ActiveRules } from "@/lib/conditions";
 import { blockLabel, DEFAULT_BLOCK, type BlockContext } from "./block";
+import type { Locale } from "@/lib/i18n/locale";
+import { ST_GEN, schemeName } from "@/lib/i18n/messages/run-gen";
 import { createRng, type Rng } from "./rng";
 import {
   DIFFICULTY_LABEL,
@@ -173,6 +175,8 @@ export interface StrengthInput {
    * per sesi — bukan dikunci per blok. ★ tetap dicatat untuk progresi beban.
    */
   free?: boolean;
+  /** 1.2.0: bahasa catatan sesi. Bawaan Indonesia. */
+  locale?: Locale;
 }
 
 /** Seed deterministik per blok × tipe → gerakan utama sama selama satu blok. */
@@ -302,19 +306,19 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
     restSec: 0,
   });
 
+  const locale = input.locale ?? "id";
+  const N = ST_GEN[locale];
   const notes = [
-    `Intensitas RPE ${rpe}: sisakan ${10 - rpe} repetisi di "tangki". Jangan sampai gagal (failure).`,
-    `Skema ${scheme.label} (${scheme.reps} rep). Skema berputar antar sesi supaya stimulus bervariasi.`,
-    free
-      ? "Mode bebas: tanpa blok mingguan & deload. Gerakan ★ = gerakan utama sesi ini (tetap dicatat untuk progresi)."
-      : `${blockLabel(block)}: gerakan bertanda ★ tetap sama sampai blok berganti; sisanya berganti tiap generate.`,
+    N.rpe(rpe, 10 - rpe),
+    N.scheme_(schemeName(scheme.label, locale), scheme.reps),
+    free ? N.free : N.block(blockLabel(block, locale)),
     ...rules.strengthNotes,
-    ...p.customConditions.map((c) => `Catatan kondisimu: ${c}`),
+    ...p.customConditions.map((c) => N.custom(c)),
   ];
-  if (deload) notes.splice(1, 0, "Minggu deload: set dan beban diturunkan satu tingkat. Pulihkan, jangan kejar angka.");
-  if (type === "upperPull") notes.unshift("Progresi pull-up dikerjakan paling awal selagi grip masih segar.");
+  if (deload) notes.splice(1, 0, N.deload);
+  if (type === "upperPull") notes.unshift(N.pullFirst);
   if (type === "upperPull" && !main.some((i) => i.movement === "Negative Pull-Up")) {
-    notes.push("Negative Pull-Up belum aktif. Fokus Dead Hang dulu. Aktifkan di Setting › Movement library saat siap.");
+    notes.push(N.noNegative);
   }
 
   const workout: StrengthWorkout = {
@@ -339,7 +343,7 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
   if (est < duration - DURATION_TOLERANCE_MIN) {
     workout.limited = true;
     workout.notes.unshift(
-      `Gerakan aktif terbatas: sesi ini ±${Math.round(est)} menit. Aktifkan lebih banyak gerakan/alat di Setting untuk sesi ${duration}' penuh.`,
+      N.limited(Math.round(est), duration),
     );
   }
 

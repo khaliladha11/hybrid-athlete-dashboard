@@ -70,6 +70,7 @@ export function InsightView({
 }) {
   const [weeks, setWeeks] = useState<RangeWeeks>(6);
   const t = useT(INSIGHT);
+  const locale = useLocale();
   const acts = useMemo(() => (activities.ok ? activities.data : []), [activities]);
   const plan = useProgramPlan({ activities: acts, oldest: addDays(today, -181), today });
   const [athlete] = useAthleteSettings();
@@ -112,8 +113,8 @@ export function InsightView({
   const thresholds = useMemo(() => {
     const w = wellness.ok ? wellness.data : [];
     const signals = availableSignals(w, today);
-    return thresholdLines({ hard: runThreshold, hrv: hrvBaseline(w, today), restingHr: rhrBaseline(w, today), hrvAvailable: signals.has("hrv"), rhrAvailable: signals.has("restingHr") });
-  }, [wellness, today, runThreshold]);
+    return thresholdLines({ hard: runThreshold, hrv: hrvBaseline(w, today), restingHr: rhrBaseline(w, today), hrvAvailable: signals.has("hrv"), rhrAvailable: signals.has("restingHr") }, locale);
+  }, [wellness, today, runThreshold, locale]);
   const monthly = useMemo(
     () => monthlySummary({ today, activities: acts, stSessions, log, prs, raceResults: athlete.raceResults, available }),
     [today, acts, stSessions, log, prs, athlete.raceResults, available],

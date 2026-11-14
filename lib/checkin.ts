@@ -13,6 +13,8 @@
  *   - mood: catatan saja.
  */
 import type { Advice } from "./coach";
+import type { Locale } from "./i18n/locale";
+import { COACH } from "./i18n/messages/coach";
 
 export interface Checkin {
   /** YYYY-MM-DD (WIB). */
@@ -33,7 +35,8 @@ export interface Checkin {
 
 export type CheckinField = "shin" | "soreness" | "sleep" | "mood";
 export const CHECKIN_RANGE: Record<CheckinField, [number, number]> = { shin: [0, 10], soreness: [0, 10], sleep: [1, 5], mood: [1, 5] };
-export const CHECKIN_LABEL: Record<CheckinField, string> = { shin: "Nyeri shin", soreness: "Pegal", sleep: "Kualitas tidur", mood: "Mood" };
+export const CHECKIN_LABEL: Record<CheckinField, string> = COACH.id.checkin.label;
+export const checkinLabel = (f: CheckinField, locale: Locale = "id"): string => COACH[locale].checkin.label[f];
 
 export const SHIN_EASY = 4;
 export const SHIN_REST = 6;
@@ -97,51 +100,50 @@ export function compactCheckinTombstones(list: Checkin[], nowMs: number): Checki
 /** Check-in hidup untuk tanggal itu. */
 export const checkinOn = (list: Checkin[], date: string) => list.find((c) => c.date === date && isLiveCheckin(c));
 
-const PREHAB = "Prehab shin hari ini: Tibialis Wall Raise dan Eccentric Calf Raise.";
-
 /** Saran dari check-in hari ini (hanya menurunkan; lihat kepala file). */
-export function checkinAdvice(c: Checkin | undefined): Advice[] {
+export function checkinAdvice(c: Checkin | undefined, locale: Locale = "id"): Advice[] {
   if (!c || c.deletedAt) return [];
+  const t = COACH[locale].checkin;
   const out: Advice[] = [];
   if (c.shin !== undefined && c.shin >= SHIN_REST) {
     out.push({
       id: "checkin-shin",
       targets: ["run"],
-      title: `Nyeri shin ${c.shin}/10`,
-      message: `Nyeri shin ${c.shin}/10. Pertimbangkan istirahat atau jalan; bila tetap lari, maksimal Easy ${SHIN_REST_MINUTES} menit. Bila nyeri menetap atau memburuk beberapa hari, periksakan ke tenaga profesional. ${PREHAB}`,
+      title: t.shinTitle(c.shin),
+      message: t.shinRest(c.shin, SHIN_REST_MINUTES, t.prehab),
       maxDifficulty: "easy",
       maxDuration: SHIN_REST_MINUTES,
     });
     out.push({
       id: "checkin-shin",
       targets: ["strength"],
-      title: `Nyeri shin ${c.shin}/10`,
-      message: `Nyeri shin ${c.shin}/10: ST Upper didahulukan, beban kaki ditunda dulu.`,
+      title: t.shinTitle(c.shin),
+      message: t.shinRestSt(c.shin),
       preferTypes: ["upperPush", "upperPull"],
     });
   } else if (c.shin !== undefined && c.shin >= SHIN_EASY) {
     out.push({
       id: "checkin-shin",
       targets: ["run"],
-      title: `Nyeri shin ${c.shin}/10`,
-      message: `Nyeri shin ${c.shin}/10: lari hari ini maksimal Easy, tanpa quality. ${PREHAB}`,
+      title: t.shinTitle(c.shin),
+      message: t.shinEasy(c.shin, t.prehab),
       maxDifficulty: "easy",
     });
   }
   if (c.soreness !== undefined && c.soreness >= SORENESS_LOWER) {
-    out.push({ id: "checkin-soreness", targets: ["run", "strength"], title: `Pegal ${c.soreness}/10`, message: `Pegal ${c.soreness}/10: turun satu level hari ini.`, lowerBy: 1 });
+    out.push({ id: "checkin-soreness", targets: ["run", "strength"], title: t.soreTitle(c.soreness), message: t.sore(c.soreness), lowerBy: 1 });
   }
   if (c.sleep !== undefined && c.sleep <= SLEEP_LOWER) {
-    out.push({ id: "checkin-sleep", targets: ["run", "strength"], title: `Tidur ${c.sleep}/5`, message: `Kualitas tidur ${c.sleep}/5: turun satu level hari ini.`, lowerBy: 1 });
+    out.push({ id: "checkin-sleep", targets: ["run", "strength"], title: t.sleepTitle(c.sleep), message: t.sleep(c.sleep), lowerBy: 1 });
   }
   return out;
 }
 
 /** Saran server + check-in hari ini (check-in yang sama tidak ditambah dua kali). */
-export function withCheckin(advice: Advice[], c: Checkin | undefined): Advice[] {
+export function withCheckin(advice: Advice[], c: Checkin | undefined, locale: Locale = "id"): Advice[] {
   if (advice.some((a) => a.id.startsWith("checkin-"))) return advice;
-  return [...advice, ...checkinAdvice(c)];
+  return [...advice, ...checkinAdvice(c, locale)];
 }
 
 /** Catatan mood (tanpa aturan). */
-export const moodNote = (c: Checkin | undefined) => (c?.mood !== undefined && c.mood <= 2 ? `Mood ${c.mood}/5 dicatat. Tidak mengubah saran.` : null);
+export const moodNote = (c: Checkin | undefined, locale: Locale = "id") => (c?.mood !== undefined && c.mood <= 2 ? COACH[locale].checkin.mood(c.mood) : null);

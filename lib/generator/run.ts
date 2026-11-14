@@ -4,14 +4,16 @@ import { DEFAULT_BLOCK, type BlockContext } from "./block";
 import { createRng } from "./rng";
 import { DIFFICULTY_LABEL, type Difficulty, type Duration, type RunBlock, type RunStep, type RunWorkout } from "./types";
 import { assertValidRun } from "./validate";
+import type { Locale } from "@/lib/i18n/locale";
+import { RUN_GEN } from "@/lib/i18n/messages/run-gen";
 
 /**
  * Preskripsi zona untuk generator. Pace diambil dari profil (dengan fallback). HR dari zona efektif Setting › Zona
  * (0.17, `lib/hr-zones.ts`); bawaannya angka konservatif lama: Easy < 140, Tempo 160–170, pemulihan < 130.
  */
-export function runTargets(p: AthleteProfile = profile) {
+export function runTargets(p: AthleteProfile = profile, locale: Locale = "id") {
   const z = p.runZones ?? {};
-  const hr = hrTargets(p.hrTops ?? DEFAULT_TOPS);
+  const hr = hrTargets(p.hrTops ?? DEFAULT_TOPS, locale);
   const str = (v: unknown, fallback: string) =>
     typeof v === "string" && v.trim() ? v.replace(/\/km$/, "") + "/km" : fallback;
   return {
@@ -26,8 +28,8 @@ export function runTargets(p: AthleteProfile = profile) {
   };
 }
 
-export const CADENCE_NOTE = "Cadence 175–180 SPM: langkah pendek & cepat, jangan overstride.";
-export const CROSSOVER_NOTE = 'Cue "rel kereta": kaki mendarat di dua rel sejajar selebar pinggul, jangan menyilang (crossover).';
+export const CADENCE_NOTE = RUN_GEN.id.note.cadence;
+export const CROSSOVER_NOTE = RUN_GEN.id.note.crossover;
 /** Kedua cue gait untuk profil default (overpronation/crossover gait). */
 export const CADENCE_NOTES = [CADENCE_NOTE, CROSSOVER_NOTE];
 
@@ -35,16 +37,17 @@ export const CADENCE_NOTES = [CADENCE_NOTE, CROSSOVER_NOTE];
  * Target cadence personal dari data asli (Heiderscheit dkk. 2011: naik 5–10%
  * mengurangi beban lutut/pinggul). Bertahap +5%, maksimal 180 SPM.
  */
-export function cadenceTarget(avgSpm?: number): { target: number; note?: string } {
+export function cadenceTarget(avgSpm?: number, locale: Locale = "id"): { target: number; note?: string } {
+  const m = RUN_GEN[locale].note;
   if (!avgSpm || !Number.isFinite(avgSpm)) return { target: 180 };
   const avg = Math.round(avgSpm);
   if (avg >= 175) {
-    return { target: avg, note: `Cadence rata-rata 14 hari: ${avg} SPM: sudah di zona target, pertahankan.` };
+    return { target: avg, note: m.cadenceHold(avg) };
   }
   const target = Math.min(180, Math.round(avg * 1.05));
   return {
     target,
-    note: `Cadence rata-rata 14 hari: ${avg} SPM → target sesi ini ${target} SPM (naik ±5% bertahap).`,
+    note: m.cadenceUp(avg, target),
   };
 }
 
@@ -58,6 +61,8 @@ export interface RunInput {
   free?: boolean;
   /** Cadence rata-rata lari terakhir (SPM total) untuk target personal. */
   cadenceSpm?: number;
+  /** 1.2.0: bahasa teks sesi (judul blok, label, catatan). Bawaan Indonesia. */
+  locale?: Locale;
   /**
    * Pola yang diminta (mis. dari sesi program, 0.13.1). Hanya dipakai bila cocok dengan level/durasi;
    * tanpa parameter ini keluaran identik dengan sebelumnya (rng dipanggil sama persis).
@@ -123,8 +128,10 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
   const { duration, difficulty, seed } = input;
   const blockCtx = input.free ? DEFAULT_BLOCK : (input.block ?? DEFAULT_BLOCK);
   const rng = createRng(seed);
-  const t = runTargets(p);
-  const cadence = cadenceTarget(input.cadenceSpm);
+  const locale = input.locale ?? "id";
+  const { block: B, step: S, note: N } = RUN_GEN[locale];
+  const t = runTargets(p, locale);
+  const cadence = cadenceTarget(input.cadenceSpm, locale);
 
   const easyRun = (min: number, label = "Easy run Z2"): RunStep => ({
     kind: "run",
@@ -139,7 +146,7 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
     pace: "santai",
     ...t.recovery,
   });
-  const walk = (min: number, label = "Jalan"): RunStep => ({
+  const walk = (min: number, label: string = S.walk): RunStep => ({
     kind: "walk",
     label,
     durationMin: min,
@@ -161,15 +168,15 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
     const main = duration - 10;
     const picked = rng.pick(EASY_VARIANTS);
     const variant = isEasyVariant(input.pattern) ? input.pattern : picked;
-    const warmup = block("warmup", "Pemanasan", [walk(5, "Jalan cepat + dynamic drill ringan")]);
-    const cooldown = block("cooldown", "Pendinginan", [walk(5, "Jalan santai + calf stretch")]);
+    const warmup = block("warmup", B.warmup, [walk(5, S.briskWalk)]);
+    const cooldown = block("cooldown", B.cooldown, [walk(5, S.easyWalk)]);
     if (variant === "continuous") {
       title = `Easy Z2 Continuous ${main}'`;
       blocks = [warmup, block("main", "Continuous Zone 2", [easyRun(main)]), cooldown];
     } else if (variant === "runWalk") {
       const reps = Math.floor(main / 5);
       title = `Easy Run-Walk ${reps}×(4'/1')`;
-      blocks = [warmup, block("main", "Run-Walk", [easyRun(4, "Lari Z2"), walk(1, "Jalan")], reps), cooldown];
+      blocks = [warmup, block("main", "Run-Walk", [easyRun(4, S.runZ2), walk(1, S.walk)], reps), cooldown];
     } else {
       // Z2 dengan sisipan fokus cadence — tetap HR < 140, melatih pola langkah.
       const reps = Math.min(6, Math.floor(main / 3));
@@ -181,28 +188,28 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
         block(
           "main",
           "Cadence Drill",
-          [easyRun(1, `Fokus cadence ${cadence.target} SPM (langkah pendek)`), easyRun(2, "Z2 normal")],
+          [easyRun(1, S.cadenceFocus(cadence.target)), easyRun(2, S.z2Normal)],
           reps,
         ),
         cooldown,
       ];
-      notes.push("Cadence drill: pace tetap Z2. Yang berubah hanya frekuensi langkah, bukan kecepatan.");
+      notes.push(N.cadenceDrill);
     }
-    notes.push(`Jaga HR < ${t.easyBelow}. Kalau HR naik, perlambat atau jalan sampai turun.`);
+    notes.push(N.easyHr(t.easyBelow));
   } else if (difficulty === "moderate") {
     const fits = MODERATE_OPTIONS[duration].filter((x) => moderateFits(x, input.pattern));
     const o = rng.pick(fits.length ? fits : MODERATE_OPTIONS[duration]);
-    const warmup = block("warmup", "Pemanasan Z2", [easyRun(o.wu, "Easy jog Z2 (2 menit terakhir naik bertahap)")]);
+    const warmup = block("warmup", B.warmupZ2, [easyRun(o.wu, S.wuBuild)]);
     if (o.kind === "progression") {
       const cd = duration - o.wu - o.z2 - o.tempo;
       title = `Progression Run ${o.z2}' Z2 → ${o.tempo}' Tempo`;
       blocks = [
         warmup,
         block("main", "Z2 Steady", [easyRun(o.z2)]),
-        block("main", "Naik ke Tempo", [{ kind: "run", label: "Tempo (tanpa jeda)", durationMin: o.tempo, ...t.tempo }]),
-        block("cooldown", "Pendinginan", [jog(cd, "Jog/jalan santai")]),
+        block("main", B.toTempo, [{ kind: "run", label: S.tempoNoBreak, durationMin: o.tempo, ...t.tempo }]),
+        block("cooldown", B.cooldown, [jog(cd, S.cdJog)]),
       ];
-      notes.push("Progression run: transisi langsung dari Z2 ke tempo tanpa berhenti.");
+      notes.push(N.progression);
     } else {
       const cd = duration - o.wu - o.reps * (o.work + o.rest);
       const cruise = o.reps > 1 && o.rest <= 1;
@@ -210,12 +217,12 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
       title = o.reps === 1 ? `Tempo Continuous ${o.work}'` : cruise ? `Cruise Interval ${o.reps}×${o.work}'` : `Tempo ${o.reps}×${o.work}'`;
       blocks = [
         warmup,
-        block("main", cruise ? "Cruise Interval" : "Blok Tempo", o.rest > 0 ? [tempoStep, jog(o.rest)] : [tempoStep], o.reps),
-        block("cooldown", "Pendinginan", [jog(cd, "Jog/jalan santai")]),
+        block("main", cruise ? "Cruise Interval" : B.tempoBlock, o.rest > 0 ? [tempoStep, jog(o.rest)] : [tempoStep], o.reps),
+        block("cooldown", B.cooldown, [jog(cd, S.cdJog)]),
       ];
-      if (cruise) notes.push("Cruise interval: jeda pendek 1' supaya tetap di ambang. Jangan dipercepat.");
+      if (cruise) notes.push(N.cruise);
     }
-    notes.push("Tempo = 'comfortably hard': masih bisa bicara 3–4 kata.");
+    notes.push(N.tempo);
   } else if (duration === 30) {
     // Mini interval: repetisi dihitung supaya muat dalam durasi target.
     const wu = 10;
@@ -225,19 +232,19 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
     const cd = duration - wu - reps * (pattern.work + pattern.rest);
     title = `Mini Interval ${reps}×${fmtWork(pattern.work)}`;
     blocks = [
-      block("warmup", "Pemanasan Z2", [easyRun(wu, "Easy jog Z2 + 3 strides ringan")]),
+      block("warmup", B.warmupZ2, [easyRun(wu, S.wuStrides)]),
       block(
         "main",
         "Mini Interval",
         [
           { kind: "run", label: "Interval", durationMin: pattern.work, ...t.mini },
-          walk(pattern.rest, "Jalan/jog pemulihan"),
+          walk(pattern.rest, S.recoveryWalk),
         ],
         reps,
       ),
-      block("cooldown", "Pendinginan", [jog(cd, "Jog/jalan santai")]),
+      block("cooldown", B.cooldown, [jog(cd, S.cdJog)]),
     ];
-    notes.push("Kalau form mulai rusak (cadence turun, kaki menyilang), hentikan repetisi.");
+    notes.push(N.formBreak);
   } else if (pickHigh(rng.pick(["4x4", "15/15"] as const), input.pattern) === "4x4" || p.rules.avoidSprints) {
     // Kondisi tendon (Achilles) → tanpa sprint 15/15; 4×4 tetap dipakai.
     // Norwegian 4x4 (Helgerud dkk. 2007): 4×(4' kerja + 3' recovery jog) = 28 menit.
@@ -246,12 +253,12 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
     const cd = duration - wu - 28 - flush;
     title = "Norwegian 4×4";
     blocks = [
-      block("warmup", "Pemanasan Z2", [easyRun(wu, "Easy jog Z2 + 3 strides ringan")]),
+      block("warmup", B.warmupZ2, [easyRun(wu, S.wuStrides)]),
       block("main", "Norwegian 4×4", [{ kind: "run", label: "Interval 4'", durationMin: 4, ...t.norwegian }, jog(3)], 4),
       ...(flush > 0 ? [block("main", "Aerobic Flush", [easyRun(flush, "Easy Z2 flush")])] : []),
-      block("cooldown", "Pendinginan", [jog(cd, "Jog/jalan santai")]),
+      block("cooldown", B.cooldown, [jog(cd, S.cdJog)]),
     ];
-    notes.push("Recovery jog tetap bergerak, jangan berhenti total.");
+    notes.push(N.recoveryJog);
   } else {
     // 15/15 (Helgerud dkk. 2007): set 20×(15" cepat / 15" jog lambat), 3' jog antar set.
     const sets = duration === 45 ? 2 : 3;
@@ -263,30 +270,30 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
           "main",
           `15/15 Set ${i}`,
           [
-            { kind: "run", label: 'Cepat 15"', durationMin: 0.25, ...t.mini },
-            { kind: "jog", label: 'Jog lambat 15"', durationMin: 0.25, pace: "santai", hr: t.jogDownHr, rpe: "3–4" },
+            { kind: "run", label: S.fast15, durationMin: 0.25, ...t.mini },
+            { kind: "jog", label: S.slow15, durationMin: 0.25, pace: "santai", hr: t.jogDownHr, rpe: "3–4" },
           ],
           20,
         ),
       );
-      if (i < sets) main.push(block("main", "Jog antar set", [jog(3)]));
+      if (i < sets) main.push(block("main", B.jogBetween, [jog(3)]));
     }
     const cd = duration - wu - sets * 10 - (sets - 1) * 3;
     title = `15/15 Interval ${sets}×20`;
     blocks = [
-      block("warmup", "Pemanasan Z2", [easyRun(wu, "Easy jog Z2 + 3 strides ringan")]),
+      block("warmup", B.warmupZ2, [easyRun(wu, S.wuStrides)]),
       ...main,
-      block("cooldown", "Pendinginan", [jog(cd, "Jog/jalan santai")]),
+      block("cooldown", B.cooldown, [jog(cd, S.cdJog)]),
     ];
-    notes.push('15/15: 15" cepat terkontrol, 15" jog lambat, jangan berhenti. Akhiri set kalau form mulai rusak.');
+    notes.push(N.f1515);
   }
 
   if (cadence.note) notes.push(cadence.note);
   if (blockCtx.deload) {
     notes.push(
       difficulty === "high"
-        ? "Minggu deload: sesi berat sebaiknya diganti Moderate/Easy kecuali badan benar-benar segar."
-        : "Minggu deload: jaga sesi tetap ringan, fokus pemulihan.",
+        ? N.deloadHigh
+        : N.deload,
     );
   }
 
@@ -298,11 +305,11 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
     seed,
     blocks,
     notes: [
-      ...(p.rules.cadenceCue ? [CADENCE_NOTE] : []),
-      ...(p.rules.crossoverCue ? [CROSSOVER_NOTE] : []),
+      ...(p.rules.cadenceCue ? [N.cadence] : []),
+      ...(p.rules.crossoverCue ? [N.crossover] : []),
       ...notes,
       ...p.rules.runNotes,
-      ...p.customConditions.map((c) => `Catatan kondisimu: ${c}`),
+      ...p.customConditions.map((c) => N.custom(c)),
     ],
   };
   assertValidRun(workout, p.rules);

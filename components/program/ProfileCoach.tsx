@@ -31,8 +31,8 @@ export function ProfileCoach({ advice: serverAdvice, activities, oldest, today }
   const advice = useMemo(() => {
     const plannedToday = { run: !!session && isRunKind(session.kind), strength: !!session && !isRunKind(session.kind) };
     // Check-in hari ini (0.15.2): hanya menurunkan, tidak berantai dengan readiness.
-    return withCheckin(withStSessions(serverAdvice, { sessions: stSessions, today, done: todayDone(activities, today), plannedToday }), filledCheckin(checkins, today));
-  }, [serverAdvice, stSessions, today, activities, session, checkins]);
+    return withCheckin(withStSessions(serverAdvice, { sessions: stSessions, today, done: todayDone(activities, today), plannedToday, locale }), filledCheckin(checkins, today), locale);
+  }, [serverAdvice, stSessions, today, activities, session, checkins, locale]);
   const pt = session ? planToday(session, plan.sessions) : null;
   let line: { text: string; href?: string } | undefined;
   if (session && pt) {

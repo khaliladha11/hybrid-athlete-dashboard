@@ -6,7 +6,7 @@ import { formatDateId } from "@/lib/date";
 import { getLocale } from "@/lib/i18n/server";
 import { PROFILE } from "@/lib/i18n/messages/profile";
 import type { FetchResult, Wellness } from "@/lib/intervals/types";
-import { availableSignals, joinId, SIGNAL_LABEL, WELLNESS_SIGNALS, type WellnessSignal } from "@/lib/wellness-signals";
+import { availableSignals, joinId, signalLabel, WELLNESS_SIGNALS, type WellnessSignal } from "@/lib/wellness-signals";
 
 function fmt(v: number | undefined, digits = 0) {
   return v === undefined ? undefined : v.toFixed(digits);
@@ -78,7 +78,7 @@ export async function WellnessCard({ result, today, basis, used, thresholds }: {
                   content: (
                     <>
                       {used ? <ReadinessBasis used={used} today={today} /> : basis}
-                      {absent.length > 0 && t.absent(joinId(absent.map((s) => SIGNAL_LABEL[s])))}
+                      {absent.length > 0 && t.absent(joinId(absent.map((s) => signalLabel(s, locale)), locale))}
                     </>
                   ),
                 },

@@ -2,7 +2,9 @@ import { addDays } from "@/lib/date";
 import type { Activity, Wellness } from "@/lib/intervals/types";
 import { hrvBaseline, hrvPersonalDrop, rhrBaseline, rhrPersonalLimit, type Baseline } from "@/lib/thresholds";
 import type { Difficulty } from "@/lib/generator/types";
-import { availableSignals, joinId, SIGNAL_LABEL } from "@/lib/wellness-signals";
+import { availableSignals, joinId, signalLabel } from "@/lib/wellness-signals";
+import type { Locale } from "@/lib/i18n/locale";
+import { COACH } from "@/lib/i18n/messages/coach";
 
 export const HRV_DROP_RATIO = 0.85;
 export const RHR_RISE_BPM = 5;
@@ -11,10 +13,14 @@ export const LONG_RUN_SEC = 75 * 60;
 export const HEAVY_LOAD_FACTOR = 1.5;
 export const HEAVY_LOAD_MIN = 60;
 
+export type ReadinessReason = "hrv" | "rhr" | "longRun" | "heavy";
+
 export interface Readiness {
   /** true = ada sinyal kelelahan → sarankan turun satu level. */
   caution: boolean;
   reasons: string[];
+  /** 1.2.0: jenis tiap alasan (sejajar dengan `reasons`), untuk judul saran tanpa mencocokkan teks. */
+  reasonIds?: ReadinessReason[];
   /** false jika data wellness/aktivitas tidak cukup untuk menilai. */
   hasData: boolean;
   /** 0.14.3: sinyal yang dipakai, mis. "Kesiapan dihitung dari resting HR dan sesi kemarin." */
@@ -26,17 +32,22 @@ export interface Readiness {
 }
 
 /** Kalimat dasar kesiapan dari sinyal yang dipakai (+ check-in hari ini bila ada). */
-export function readinessBasis(used: string[], checkin = false): string {
-  const parts = [...used, ...(checkin ? ["check-in"] : [])];
-  return parts.length
-    ? `Kesiapan dihitung dari ${joinId([...parts, "sesi kemarin"])}.`
-    : "Data HRV dan resting HR dari jam belum ada, jadi kesiapan hanya dihitung dari sesi kemarin.";
+export function readinessBasis(used: string[], checkin = false, locale: Locale = "id"): string {
+  const t = COACH[locale].readiness;
+  const parts = [...used, ...(checkin ? [t.checkin] : [])];
+  return parts.length ? t.basis(joinId([...parts, t.yesterday], locale)) : t.noBasis;
 }
 
 const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : undefined);
 
-export function assessReadiness(wellness: Wellness[], activities: Activity[], today: string): Readiness {
+export function assessReadiness(wellness: Wellness[], activities: Activity[], today: string, locale: Locale = "id"): Readiness {
+  const t = COACH[locale].readiness;
   const reasons: string[] = [];
+  const reasonIds: ReadinessReason[] = [];
+  const add = (id: ReadinessReason, text: string) => {
+    reasons.push(text);
+    reasonIds.push(id);
+  };
   // Sinyal yang tidak dikirim jam dalam 14 hari terakhir tidak dipakai (0.14.3).
   const signals = availableSignals(wellness, today);
   const todayW = wellness.find((w) => w.date === today);
@@ -49,19 +60,19 @@ export function assessReadiness(wellness: Wellness[], activities: Activity[], to
   const hrvAvg = avg(baseline.map((w) => w.hrv).filter((x): x is number => x !== undefined));
   if (signals.has("hrv") && hrvB.active) {
     const drop = hrvPersonalDrop(wellness, today, hrvB);
-    if (drop) reasons.push(`HRV rata-rata 7 hari ${drop.rollingMs} ms, di bawah batas normal pribadi ${drop.floorMs} ms (rata-rata 30 hari − 0,5 SD).`);
+    if (drop) add("hrv", t.hrvPersonal(drop.rollingMs, drop.floorMs));
   } else if (signals.has("hrv") && todayW?.hrv && hrvAvg && todayW.hrv < hrvAvg * HRV_DROP_RATIO) {
-    reasons.push(`HRV ${Math.round(todayW.hrv)} ms, ${Math.round((1 - todayW.hrv / hrvAvg) * 100)}% di bawah rata-rata 7 hari (${Math.round(hrvAvg)} ms).`);
+    add("hrv", t.hrvDrop(Math.round(todayW.hrv), Math.round((1 - todayW.hrv / hrvAvg) * 100), Math.round(hrvAvg)));
   }
 
   const rhrAvg = avg(baseline.map((w) => w.restingHr).filter((x): x is number => x !== undefined));
   const rhrLimit = rhrPersonalLimit(rhrB);
   if (signals.has("restingHr") && rhrLimit !== undefined) {
     if (todayW?.restingHr && todayW.restingHr >= rhrLimit) {
-      reasons.push(`Resting HR ${Math.round(todayW.restingHr)} bpm, di atas batas pribadi ${Math.round(rhrLimit)} bpm (rata-rata 30 hari ${Math.round(rhrB.mean!)} bpm).`);
+      add("rhr", t.rhrPersonal(Math.round(todayW.restingHr), Math.round(rhrLimit), Math.round(rhrB.mean!)));
     }
   } else if (signals.has("restingHr") && todayW?.restingHr && rhrAvg && todayW.restingHr >= rhrAvg + RHR_RISE_BPM) {
-    reasons.push(`Resting HR ${Math.round(todayW.restingHr)} bpm, naik ${Math.round(todayW.restingHr - rhrAvg)} bpm dari rata-rata (${Math.round(rhrAvg)}).`);
+    add("rhr", t.rhrRise(Math.round(todayW.restingHr), Math.round(todayW.restingHr - rhrAvg), Math.round(rhrAvg)));
   }
 
   const yesterday = addDays(today, -1);
@@ -73,17 +84,18 @@ export function assessReadiness(wellness: Wellness[], activities: Activity[], to
   for (const a of activities.filter((x) => x.date === yesterday)) {
     const longRun = a.category === "run" && ((a.distanceKm ?? 0) >= LONG_RUN_KM || (a.movingTimeSec ?? 0) >= LONG_RUN_SEC);
     const heavy = !!a.trainingLoad && a.trainingLoad >= HEAVY_LOAD_MIN && (!loadAvg || a.trainingLoad >= loadAvg * HEAVY_LOAD_FACTOR);
-    if (longRun) reasons.push(`Kemarin long run${a.distanceKm ? ` ${a.distanceKm.toFixed(1)} km` : ""} (${a.name}).`);
-    else if (heavy) reasons.push(`Kemarin sesi berat: ${a.name} (load ${Math.round(a.trainingLoad!)}).`);
+    if (longRun) add("longRun", t.longRun(a.distanceKm ? a.distanceKm.toFixed(1) : null, a.name));
+    else if (heavy) add("heavy", t.heavy(a.name, Math.round(a.trainingLoad!)));
   }
 
   const hasData = !!todayW && (todayW.hrv !== undefined || todayW.restingHr !== undefined);
-  const used = (["hrv", "restingHr"] as const).filter((s) => signals.has(s)).map((s) => SIGNAL_LABEL[s]);
+  const used = (["hrv", "restingHr"] as const).filter((s) => signals.has(s)).map((s) => signalLabel(s, locale));
   return {
     caution: reasons.length > 0,
     reasons,
+    reasonIds,
     hasData: hasData || activities.length > 0,
-    basis: readinessBasis(used),
+    basis: readinessBasis(used, false, locale),
     used,
     baselines: { hrv: hrvB, restingHr: rhrB },
   };

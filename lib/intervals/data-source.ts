@@ -7,6 +7,7 @@ import { normalizeActivity, normalizeActivityDetail, normalizeList, normalizeWel
 import { hardRunThreshold, type HardRunThreshold } from "@/lib/thresholds";
 import { readinessAdvice, todayDone, weeklyAdvice, type Advice, type TodayDone } from "@/lib/coach";
 import { assessReadiness, type Readiness } from "@/lib/readiness";
+import type { Locale } from "@/lib/i18n/locale";
 import { averageRunCadence } from "./summary";
 import type { Activity, ActivityDetail, FetchResult, Wellness } from "./types";
 
@@ -136,14 +137,14 @@ export interface TrainingContext {
 }
 
 /** Konteks untuk halaman generator: readiness & cadence personal. Posisi blok dihitung di client dari profil perangkat. */
-export async function getTrainingContext(today = todayWib()): Promise<TrainingContext> {
+export async function getTrainingContext(today = todayWib(), locale: Locale = "id"): Promise<TrainingContext> {
   const [acts, well] = await Promise.all([getActivities(15, today), getWellness(READINESS_WELLNESS_DAYS, today)]);
   if (!acts.ok && !well.ok) return { readiness: null, advice: [] };
   const activities = acts.ok ? acts.data : [];
-  const readiness = assessReadiness(well.ok ? well.data : [], activities, today);
+  const readiness = assessReadiness(well.ok ? well.data : [], activities, today, locale);
   return {
     readiness,
-    advice: [...readinessAdvice(readiness), ...weeklyAdvice(activities, today)],
+    advice: [...readinessAdvice(readiness, locale), ...weeklyAdvice(activities, today, [], locale)],
     cadenceSpm: averageRunCadence(activities, today, 14),
     todayDone: todayDone(activities, today),
   };
