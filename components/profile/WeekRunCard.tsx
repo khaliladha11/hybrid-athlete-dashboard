@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ShareWeekButton } from "@/components/share/ShareWeekSheet";
 import { CARD_BLOCK, cardAriaLabel, cardElements, type CardElement, type CardFont, type CardRole, type WeekRunModel } from "@/lib/week-run-card";
 
 /** Peran warna kartu → token tema (layar). Ekspor PNG memakai warna tetap (`lib/share-card.ts`). */
@@ -57,7 +58,7 @@ export function WeekCardSvg({ elements, ariaLabel }: { elements: CardElement[]; 
 
 /**
  * Kartu "Minggu ini · lari" di Profil (1.1.0), pengganti kartu "7 hari terakhir". Ketuk kartu untuk detail di Tren
- * (pace, HR, long run, load, 80/20, Week Ledger).
+ * (pace, HR, long run, load, 80/20, Week Ledger). Tombol Bagikan di luar tautan.
  */
 export function WeekRunCard({ model }: { model: WeekRunModel }) {
   return (
@@ -67,6 +68,7 @@ export function WeekRunCard({ model }: { model: WeekRunModel }) {
       </Link>
       <div className="flex items-center justify-between gap-2 px-5 pt-1 pb-4">
         <span className="text-[13px] text-muted">Ketuk kartu untuk detail di Tren</span>
+        <ShareWeekButton model={model} />
       </div>
     </section>
   );
