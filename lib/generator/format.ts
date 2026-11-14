@@ -1,5 +1,7 @@
+import type { Locale } from "@/lib/i18n/locale";
+import { SAFETY } from "@/lib/i18n/messages/safety";
 import { META } from "./meta";
-import { PHASE_LABEL, type LoadPrescription, type RunStep, type RunWorkout, type StrengthItem, type StrengthWorkout } from "./types";
+import { type LoadPrescription, type RunStep, type RunWorkout, type StrengthItem, type StrengthWorkout } from "./types";
 
 export function formatMinutes(min: number): string {
   const totalSec = Math.round(min * 60);
@@ -8,21 +10,22 @@ export function formatMinutes(min: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-export function formatLoad(load: LoadPrescription): string {
+export function formatLoad(load: LoadPrescription, locale: Locale = "id"): string {
   if (load.kind === "bodyweight") return "Bodyweight";
   if (load.kind === "band") return `${load.band} Band`;
   const range = load.min === load.max ? `${load.min}` : `${load.min}–${load.max}`;
-  return `${range} kg${load.perHand ? "/tangan" : ""}`;
+  return `${range} kg${load.perHand ? SAFETY[locale].units.perHand : ""}`;
 }
 
-export function formatVolume(it: StrengthItem): string {
-  if (it.durationSec && it.phase !== "main") return `${formatSec(it.durationSec)}`;
-  const per = it.durationSec ? `${formatSec(it.durationSec)}${META[it.movement]?.unilateral ? "/sisi" : ""}` : `${it.reps}`;
+export function formatVolume(it: StrengthItem, locale: Locale = "id"): string {
+  if (it.durationSec && it.phase !== "main") return `${formatSec(it.durationSec, locale)}`;
+  const per = it.durationSec ? `${formatSec(it.durationSec, locale)}${META[it.movement]?.unilateral ? SAFETY[locale].units.perSide : ""}` : `${it.reps}`;
   return `${it.sets}×${per}`;
 }
 
-function formatSec(sec: number): string {
-  return sec >= 60 && sec % 60 === 0 ? `${sec / 60} mnt` : sec >= 60 ? formatMinutes(sec / 60) : `${sec} dtk`;
+function formatSec(sec: number, locale: Locale = "id"): string {
+  const u = SAFETY[locale].units;
+  return sec >= 60 && sec % 60 === 0 ? `${sec / 60} ${u.min}` : sec >= 60 ? formatMinutes(sec / 60) : `${sec} ${u.sec}`;
 }
 
 function stepText(s: RunStep): string {
@@ -33,18 +36,19 @@ function stepText(s: RunStep): string {
 }
 
 /** Teks list ringkas (tanpa tabel) — siap tempel ke Strava/catatan HP. */
-export function runToText(w: RunWorkout): string {
+export function runToText(w: RunWorkout, locale: Locale = "id"): string {
+  const u = SAFETY[locale].units;
   const lines = [w.title];
   for (const phase of ["warmup", "main", "cooldown"] as const) {
     const blocks = w.blocks.filter((b) => b.phase === phase);
     if (!blocks.length) continue;
-    lines.push("", PHASE_LABEL[phase]);
+    lines.push("", u.phase[phase]);
     for (const b of blocks) {
       if (b.repeat > 1) lines.push(`- ${b.repeat}× [${b.steps.map(stepText).join(" + ")}]`);
       else for (const s of b.steps) lines.push(`- ${stepText(s)}`);
     }
   }
-  lines.push("", "Catatan", ...w.notes.map((n) => `- ${n}`));
+  lines.push("", u.notes, ...w.notes.map((n) => `- ${n}`));
   return lines.join("\n");
 }
 
@@ -72,21 +76,22 @@ export function runToHuaweiSets(w: RunWorkout): string {
   return lines.join("\n");
 }
 
-export function strengthToText(w: StrengthWorkout): string {
+export function strengthToText(w: StrengthWorkout, locale: Locale = "id"): string {
+  const u = SAFETY[locale].units;
   const lines = [w.title];
   for (const phase of ["warmup", "main", "cooldown"] as const) {
     const items = w.items.filter((i) => i.phase === phase);
     if (!items.length) continue;
-    lines.push("", PHASE_LABEL[phase]);
+    lines.push("", u.phase[phase]);
     for (const it of items) {
       if (phase === "main") {
-        const rest = it.sets > 1 ? `, rest ${formatSec(it.restSec)}` : "";
-        lines.push(`- ${it.anchor ? "★ " : ""}${it.movement}: ${formatVolume(it)} @ ${formatLoad(it.load)}, RPE ${it.rpe}${rest}`);
+        const rest = it.sets > 1 ? `, rest ${formatSec(it.restSec, locale)}` : "";
+        lines.push(`- ${it.anchor ? "★ " : ""}${it.movement}: ${formatVolume(it, locale)} @ ${formatLoad(it.load, locale)}, RPE ${it.rpe}${rest}`);
       } else {
-        lines.push(`- ${it.movement} ${formatVolume(it)}`);
+        lines.push(`- ${it.movement} ${formatVolume(it, locale)}`);
       }
     }
   }
-  lines.push("", "Catatan", ...w.notes.map((n) => `- ${n}`));
+  lines.push("", u.notes, ...w.notes.map((n) => `- ${n}`));
   return lines.join("\n");
 }

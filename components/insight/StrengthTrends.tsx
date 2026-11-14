@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { muscleName } from "@/lib/i18n/safety-text";
 import { BarChart } from "@/components/charts/BarChart";
 import { ChartCard, Swatch } from "@/components/charts/ChartCard";
 import { LineChart } from "@/components/charts/LineChart";
@@ -121,7 +122,7 @@ export function MuscleHeatmap({ work, today, available }: { work: WorkSet[]; tod
           <Segmented label={mt.measure} value={mode} options={[{ value: "frequency", label: mt.frequency }, { value: "volume", label: mt.volume }]} onChange={setMode} />
         </div>
       }
-      table={{ columns: [mt.muscle, mode === "frequency" ? mt.weightedSessions : mt.weightedSets], rows: heat.muscles.map((m) => [m.muscle, fmt(m.score, locale)]) }}
+      table={{ columns: [mt.muscle, mode === "frequency" ? mt.weightedSessions : mt.weightedSets], rows: heat.muscles.map((m) => [muscleName(m.muscle, locale), fmt(m.score, locale)]) }}
     >
       <MuscleMap levels={heat.levels} dashed={dashed} onSelect={onRegion} label={mt.aria(days, s.text)} />
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-muted">
@@ -161,6 +162,7 @@ function MuscleButtons({
   onPick: (m: string) => void;
   dashed?: boolean;
 }) {
+  const locale = useLocale();
   if (!muscles.length) return null;
   return (
     <div>
@@ -174,7 +176,7 @@ function MuscleButtons({
               onClick={() => onPick(m.name)}
               className={`pressable inline-flex min-h-11 items-center gap-1.5 rounded-control border px-3 text-[13px] ${dashed ? "border-dashed border-ink" : "border-line-strong"} ${picked === m.name ? "bg-brand-soft text-brand-ink" : "bg-surface text-ink"}`}
             >
-              {m.name}
+              {muscleName(m.name, locale)}
               {m.note && <span className="font-mono text-[11px] tabular-nums text-muted">{m.note}</span>}
             </button>
           </li>
@@ -187,9 +189,10 @@ function MuscleButtons({
 function MovementsForMuscle({ muscle, available }: { muscle: string; available: string[] }) {
   const r = movementsFor(muscle, available);
   const mt = useT(INSIGHT).muscle;
+  const locale = useLocale();
   return (
     <div className="rounded-inner border border-line p-3" aria-live="polite">
-      <h3 className="text-[15px] font-semibold">{muscle}</h3>
+      <h3 className="text-[15px] font-semibold">{muscleName(muscle, locale)}</h3>
       {!r.primary.length && !r.secondary.length ? (
         <p className="mt-1 text-[13px] text-muted">{mt.noMovement}</p>
       ) : (

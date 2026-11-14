@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { conditionEffect, conditionLabel, sourceLabel } from "@/lib/i18n/safety-text";
 import { BUTTON, Card } from "@/components/ui/Card";
 import { Switch } from "@/components/ui/Switch";
 import { CONDITION_IDS, CONDITIONS, type ConditionId } from "@/lib/conditions";
 import type { AthleteSettings } from "@/lib/athlete-settings";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
 import { SETTINGS } from "@/lib/i18n/messages/settings";
 
 /** Kondisi dari katalog berbasis riset (memengaruhi generator) + catatan bebas (tampil saja). */
@@ -20,6 +21,7 @@ export function ConditionsSettings({
 }) {
   const [draft, setDraft] = useState("");
   const t = useT(SETTINGS).conditions;
+  const locale = useLocale();
   const active = new Set(settings.conditions);
   const toggle = (id: ConditionId, on: boolean) =>
     onChange({ ...settings, conditions: CONDITION_IDS.filter((c) => (c === id ? on : active.has(c))) });
@@ -52,9 +54,10 @@ export function ConditionsSettings({
       <ul className="mt-2 divide-y divide-line">
         {CONDITION_IDS.map((id) => {
           const c = CONDITIONS[id];
+          const label = conditionLabel(id, locale);
           return (
             <li key={id} className="py-3">
-              <Switch checked={active.has(id)} onChange={(on) => toggle(id, on)} label={c.label} description={c.effect} />
+              <Switch checked={active.has(id)} onChange={(on) => toggle(id, on)} label={label} description={conditionEffect(id, locale)} />
               <details className="group mt-1">
                 <summary className="inline-flex min-h-8 cursor-pointer list-none items-center gap-1 text-[12px] font-semibold text-muted hover:text-ink">
                   {t.sources(c.sources.length)}
@@ -67,10 +70,10 @@ export function ConditionsSettings({
                     <li key={s.label}>
                       {s.url ? (
                         <a href={s.url} target="_blank" rel="noreferrer" className="underline decoration-line-strong underline-offset-2 hover:text-ink">
-                          {s.label}
+                          {sourceLabel(s.label, locale)}
                         </a>
                       ) : (
-                        s.label
+                        sourceLabel(s.label, locale)
                       )}
                     </li>
                   ))}

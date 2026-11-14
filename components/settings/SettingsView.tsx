@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { resolveProfile } from "@/lib/athlete-settings";
+import { conditionWarnings, resolveProfile } from "@/lib/athlete-settings";
 import { baseProfile } from "@/lib/profile";
 import { useAthleteSettings } from "@/lib/settings-store";
 import { AboutCard } from "./AboutCard";
@@ -16,7 +16,7 @@ import { HrZonesSettings, type HrRefs } from "./HrZonesSettings";
 import { RunZonesSettings } from "./RunZonesSettings";
 import type { Availability } from "@/lib/sync/server";
 import { SyncSecurityCard } from "./SyncSecurityCard";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
 import { SETTINGS } from "@/lib/i18n/messages/settings";
 
 const SECTIONS = [["profil"], ["kondisi"], ["zona"], ["alat"], ["gerakan"], ["tampilan"], ["data"], ["tentang"]] as const;
@@ -74,6 +74,7 @@ export function SettingsView({ status = OFF, hrRefs, version = "" }: { status?: 
   const navRef = useRef<HTMLElement>(null);
   const jumping = useRef(false);
   const t = useT(SETTINGS).nav;
+  const locale = useLocale();
 
   // Scroll spy: section aktif = yang terakhir melewati bawah nav sticky; di dasar halaman = section terakhir.
   useEffect(() => {
@@ -179,7 +180,7 @@ export function SettingsView({ status = OFF, hrRefs, version = "" }: { status?: 
         </ul>
       </nav>
       {section("profil", <ProfileSettings settings={settings} onChange={save} />)}
-      {section("kondisi", <ConditionsSettings settings={settings} onChange={save} warnings={resolved.warnings} />)}
+      {section("kondisi", <ConditionsSettings settings={settings} onChange={save} warnings={conditionWarnings(resolved, locale)} />)}
       {section(
         "zona",
         <div className="space-y-4">

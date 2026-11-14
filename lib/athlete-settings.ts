@@ -6,6 +6,9 @@
  * menjadi profil efektif yang dipakai semua generator & validator.
  */
 import { combineRules, CONDITION_IDS, CONDITIONS, isConditionId, type ActiveRules, type ConditionId } from "./conditions";
+import type { Locale } from "./i18n/locale";
+import { SAFETY } from "./i18n/messages/safety";
+import { conditionLabel } from "./i18n/safety-text";
 import {
   BAND_OPTIONAL,
   missingNeeds,
@@ -99,6 +102,46 @@ export function mergeRaceResults(...lists: RaceResult[][]): RaceResult[] {
 }
 
 /** Status gerakan setelah pilihan, alat, dan kondisi diterapkan. */
+/** Alasan gerakan tidak tersedia (1.2.0), diterjemahkan lewat `statusReason`. */
+export type StatusWhy =
+  | { kind: "notSelected" }
+  | { kind: "avoided"; ids: ConditionId[] }
+  | { kind: "needs"; items: string[] }
+  | { kind: "needsBand"; band: string }
+  | { kind: "noLoads"; weight: string };
+
+export type ConditionWarning = { kind: "required"; movement: string; why?: StatusWhy } | { kind: "hip" };
+
+function whyText(w: StatusWhy, locale: Locale): string {
+  const t = SAFETY[locale].status;
+  switch (w.kind) {
+    case "notSelected":
+      return t.notSelected;
+    case "avoided":
+      return t.avoided(w.ids.map((id) => conditionLabel(id, locale)).join(", "));
+    case "needs":
+      return t.needs(w.items.join(" + "));
+    case "needsBand":
+      return t.needsBand(w.band);
+    case "noLoads":
+      return t.noLoads(w.weight);
+  }
+}
+
+function warningText(w: ConditionWarning, locale: Locale): string {
+  const t = SAFETY[locale];
+  if (w.kind === "hip") return t.warning.hip(STABILITY_HIP.join(", "));
+  return t.warning.required(w.movement, w.why ? whyText(w.why, locale) : t.status.notInLibrary);
+}
+
+/** Alasan status gerakan per bahasa (Indonesia = teks asli). */
+export const statusReason = (s: MovementStatus | undefined, locale: Locale = "id"): string | undefined =>
+  !s?.reason ? undefined : locale === "id" || !s.why ? s.reason : whyText(s.why, locale);
+
+/** Peringatan kondisi per bahasa. */
+export const conditionWarnings = (r: Pick<ResolvedProfile, "warnings" | "warningItems">, locale: Locale = "id"): string[] =>
+  locale === "id" ? r.warnings : r.warningItems.map((w) => warningText(w, locale));
+
 export interface MovementStatus {
   available: boolean;
   /** Terpilih (pilihan pengguna, default library, atau cadangan yang aktif otomatis). */
@@ -106,8 +149,10 @@ export interface MovementStatus {
   /** Gerakan cadangan; `autoSelected` = aktif otomatis karena kategorinya kosong. */
   fallback?: boolean;
   autoSelected?: boolean;
-  /** Alasan tidak tersedia (untuk Setting). */
+  /** Alasan tidak tersedia (untuk Setting), teks Indonesia. Tampilan per bahasa lewat `statusReason`. */
   reason?: string;
+  /** Alasan terstruktur (1.2.0) untuk diterjemahkan saat render. */
+  why?: StatusWhy;
   loads?: number[];
 }
 
@@ -119,6 +164,8 @@ export interface ResolvedProfile extends AthleteProfile {
   movementStatus: Record<string, MovementStatus>;
   /** Aturan kondisi yang tidak bisa dipenuhi karena gerakannya tidak tersedia. */
   warnings: string[];
+  /** Sama dengan `warnings`, terstruktur (1.2.0) untuk `conditionWarnings`. */
+  warningItems: ConditionWarning[];
 }
 
 const FALLBACK_EQUIPMENT: Equipment = {
@@ -258,29 +305,32 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
     const excl = excludedBy(m.name);
     let weight = m.weight;
     let reason: string | undefined;
+    let why: StatusWhy | undefined;
     let loads: number[] | undefined;
     let cap: Movement["cap"];
 
-    if (!selected) reason = "Tidak dipilih";
-    else if (excl.length) reason = `Dihindari: ${excl.map((id) => CONDITIONS[id].label).join(", ")}`;
-    else if (missing.length) reason = `Butuh ${missing.map((n) => NEED_LABEL[n]).join(" + ")}`;
+    if (!selected) why = { kind: "notSelected" };
+    else if (excl.length) why = { kind: "avoided", ids: excl };
+    else if (missing.length) why = { kind: "needs", items: missing.map((n) => NEED_LABEL[n]) };
     else {
       const bands = ownedBands(m.weight, eq);
       if (bands && !bands.length) {
         if (BAND_OPTIONAL.has(m.name)) weight = "Bodyweight";
-        else reason = `Butuh band ${m.weight.replace(/band/i, "").trim()}`;
+        else why = { kind: "needsBand", band: m.weight.replace(/band/i, "").trim() };
       } else if (bands) {
         weight = `${bands.join("/")} Band`;
       }
       const bounds = loadBounds(m.name, m.weight, eq, s.conditions, s.loadRule);
       loads = bounds?.loads;
       if (bounds && newRule) cap = bounds.cap;
-      if (loads && !loads.length) reason = `Beban ${m.weight} tidak bisa dirakit dari alat`;
+      if (loads && !loads.length) why = { kind: "noLoads", weight: m.weight };
     }
+    if (why) reason = whyText(why, "id");
     movementStatus[m.name] = {
       available: !reason,
       selected,
       reason,
+      ...(why ? { why } : {}),
       loads: reason ? undefined : loads,
       ...(m.fallback ? { fallback: true, autoSelected: chosen === undefined && fallbackOn } : {}),
     };
@@ -304,13 +354,12 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
   }
 
   const usable = (name: string) => movementStatus[name]?.available === true;
-  const warnings: string[] = [];
+  const warningItems: ConditionWarning[] = [];
   for (const req of rules.requiredLower) {
-    if (!usable(req)) warnings.push(`${req} wajib untuk kondisi aktif, tetapi tidak tersedia (${movementStatus[req]?.reason ?? "tidak ada di library"}).`);
+    if (!usable(req)) warningItems.push({ kind: "required", movement: req, ...(movementStatus[req]?.why ? { why: movementStatus[req].why } : {}) });
   }
-  if (rules.hipStability && !STABILITY_HIP.some(usable)) {
-    warnings.push(`Kondisi aktif butuh stabilitas panggul, tetapi ${STABILITY_HIP.join(", ")} tidak tersedia.`);
-  }
+  if (rules.hipStability && !STABILITY_HIP.some(usable)) warningItems.push({ kind: "hip" });
+  const warnings = warningItems.map((w) => warningText(w, "id"));
 
   const pr = s.profile ?? {};
   return {
@@ -332,6 +381,7 @@ export function resolveProfile(base: AthleteProfile, s: AthleteSettings): Resolv
     equipmentModel: eq,
     movementStatus,
     warnings,
+    warningItems,
   };
 }
 

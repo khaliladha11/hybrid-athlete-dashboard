@@ -1,6 +1,8 @@
 "use client";
 
 import { CONDITIONS } from "@/lib/conditions";
+import { conditionShort } from "@/lib/i18n/safety-text";
+import { statusReason } from "@/lib/athlete-settings";
 import { defaultSelected, MOVEMENT_CATEGORIES, type AthleteSettings, type ResolvedProfile } from "@/lib/athlete-settings";
 import { STABILITY_HIP } from "@/lib/generator/meta";
 import { baseProfile, type MovementCategory } from "@/lib/profile";
@@ -29,7 +31,7 @@ export function MovementSettings({
   // Gerakan yang dikunci karena diwajibkan kondisi aktif.
   const lockReason = (name: string): string | undefined => {
     const req = resolved.activeConditions.filter((id) => CONDITIONS[id].rules.requiredLower?.includes(name));
-    if (req.length) return t.required(req.map((id) => CONDITIONS[id].label.split(" (")[0].split(" /")[0]).join(", "));
+    if (req.length) return t.required(req.map((id) => conditionShort(id, locale).split(" /")[0]).join(", "));
     if (resolved.rules.hipStability && STABILITY_HIP.includes(name)) {
       const others = STABILITY_HIP.filter((n) => n !== name && selected(n));
       if (!others.length && selected(name)) return t.hipMin;
@@ -63,7 +65,7 @@ export function MovementSettings({
                 const isOn = selected(m.name);
                 const lock = lockReason(m.name);
                 const resolvedWeight = resolved.movementLibrary[cat].find((x) => x.name === m.name)?.weight ?? m.weight;
-                const note = lock ?? (isOn && !status?.available ? status?.reason : undefined);
+                const note = lock ?? (isOn && !status?.available ? statusReason(status, locale) : undefined);
                 return (
                   <li key={m.name}>
                     <label className={`flex min-h-12 items-center gap-3 rounded-inner px-2 py-1.5 ${lock ? "" : "cursor-pointer hover:bg-subtle"}`}>

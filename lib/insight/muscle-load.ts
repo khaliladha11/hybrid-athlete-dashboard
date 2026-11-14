@@ -13,6 +13,7 @@ import { addDays } from "@/lib/date";
 import { MOVEMENT_MEDIA } from "@/lib/movements/media";
 import { MUSCLE_REGIONS, regionsOf, type MuscleRegion } from "@/lib/movements/muscle-regions";
 import { num1 } from "./format";
+import { muscleName } from "@/lib/i18n/safety-text";
 import type { Locale } from "@/lib/i18n/locale";
 import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
 
@@ -107,6 +108,6 @@ export const regionsOfMuscles = (muscles: readonly string[]) => [...new Set(musc
 export function heatSummary(h: MuscleHeat, days: number, mode: MuscleMode, locale: Locale = "id"): { drawable: boolean; text: string } {
   const L = INSIGHT_LIB[locale].heat;
   if (!h.muscles.length) return { drawable: false, text: L.none(days) };
-  const top = h.muscles.slice(0, 3).map((m) => `${m.muscle} ${num1(m.score, locale).replace(locale === "id" ? ",0" : ".0", "")}`);
+  const top = h.muscles.slice(0, 3).map((m) => `${muscleName(m.muscle, locale)} ${num1(m.score, locale).replace(locale === "id" ? ",0" : ".0", "")}`);
   return { drawable: true, text: L.top(days, L.mode[mode], top.join(", ")) };
 }

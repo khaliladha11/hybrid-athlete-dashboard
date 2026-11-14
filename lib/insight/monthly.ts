@@ -14,6 +14,7 @@ import type { LogEntry } from "@/lib/progression";
 import { isLivePr, type PrEntry } from "@/lib/prs";
 import type { StSession } from "@/lib/st-session";
 import { kgText, num1 } from "./format";
+import { muscleName } from "@/lib/i18n/safety-text";
 import type { Locale } from "@/lib/i18n/locale";
 import { INSIGHT_LIB } from "@/lib/i18n/messages/insight-lib";
 
@@ -99,6 +100,6 @@ export function monthlyLines(s: MonthlySummary, locale: Locale = "id"): string[]
     const change = d === undefined ? "" : Math.abs(d) < 0.3 ? L.stable : L.change(d > 0, num1(Math.abs(d), locale));
     lines.push(L.vdot(num1(s.vdot.to, locale), change, s.vdot.confidence));
   } else lines.push(L.noVdot);
-  if (s.rarely?.length) lines.push(L.rarely(s.rarely.join(", ")));
+  if (s.rarely?.length) lines.push(L.rarely(s.rarely.map((m) => muscleName(m, locale)).join(", ")));
   return lines;
 }

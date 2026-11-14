@@ -1,4 +1,4 @@
-import { CONDITIONS } from "@/lib/conditions";
+import { conditionLabel } from "@/lib/i18n/safety-text";
 import type { StrengthItem } from "@/lib/generator/types";
 import { aboveLibrary } from "@/lib/load-bounds";
 import type { Movement } from "@/lib/profile";
@@ -23,7 +23,7 @@ export function loadNote(m: Movement | undefined, it: StrengthItem, log: LogEntr
     ? m.cap.source === "equipment"
       ? t.capEquipment(kg(m.cap.kg))
       : m.cap.source === "safety"
-        ? t.capSafety(kg(m.cap.kg), m.cap.condition ? CONDITIONS[m.cap.condition].label : t.activeCondition)
+        ? t.capSafety(kg(m.cap.kg), m.cap.condition ? conditionLabel(m.cap.condition, locale) : t.activeCondition)
         : t.capLibrary(kg(m.cap.kg))
     : t.libraryRange;
   return t.note(kg(it.load.max), m.weight, from, cap);

@@ -70,6 +70,7 @@ export const RUN_GEN = dict(
     },
     note: {
       cadence: "Cadence 175–180 SPM: short, quick steps, do not overstride.",
+      // REVIEW: cue "rel kereta" diterjemahkan "train tracks" (validator menerima keduanya).
       crossover: 'Cue "train tracks": land on two parallel rails hip-width apart, do not cross over.',
       cadenceHold: (avg) => `14-day average cadence: ${avg} SPM: already in the target zone, keep it there.`,
       cadenceUp: (avg, target) => `14-day average cadence: ${avg} SPM → target for this session ${target} SPM (up ±5% gradually).`,

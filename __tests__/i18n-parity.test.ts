@@ -38,6 +38,7 @@ function strings(v: unknown): string[] {
   return [];
 }
 
+const ID_WORDS = /(yang|dan|untuk|belum|sudah|tidak|jangan|minggu|hari|sesi|latihan|lari|kemarin|dengan|sampai)/i;
 const badEnDash = (s: string) => /–/.test(s.replace(/[\d:'"]+\s?–\s?[\d:'"]+/g, ""));
 
 function expectParity(run: (l: Locale) => unknown, label: string) {
@@ -48,6 +49,7 @@ function expectParity(run: (l: Locale) => unknown, label: string) {
     expect(t.includes("—"), `${label}: ${t}`).toBe(false);
     expect(badEnDash(t), `${label}: ${t}`).toBe(false);
     expect(t.includes("!"), `${label}: ${t}`).toBe(false);
+    expect(ID_WORDS.test(t), `${label}: ${t}`).toBe(false);
   }
   return { id, en };
 }

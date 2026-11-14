@@ -1,4 +1,5 @@
 import { DEFAULT_TOPS, hrTargets } from "@/lib/hr-zones";
+import { conditionNote } from "@/lib/i18n/safety-text";
 import { profile, type AthleteProfile, type ResolvedProfile } from "@/lib/profile";
 import { DEFAULT_BLOCK, type BlockContext } from "./block";
 import { createRng } from "./rng";
@@ -308,7 +309,7 @@ export function generateRunWorkout(input: RunInput, p: ResolvedProfile = profile
       ...(p.rules.cadenceCue ? [N.cadence] : []),
       ...(p.rules.crossoverCue ? [N.crossover] : []),
       ...notes,
-      ...p.rules.runNotes,
+      ...p.rules.runNotes.map((n) => conditionNote(n, locale)),
       ...p.customConditions.map((c) => N.custom(c)),
     ],
   };

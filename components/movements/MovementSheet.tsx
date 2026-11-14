@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { CONDITIONS, type ConditionId } from "@/lib/conditions";
+import { conditionShort as shortLabelOf, mediaText, muscleName, textOnlyMovement, textOnlyMuscle } from "@/lib/i18n/safety-text";
+import type { ConditionId } from "@/lib/conditions";
 import { formatLoad, formatVolume } from "@/lib/generator/format";
 import type { StrengthItem } from "@/lib/generator/types";
 import { MEDIA_ATTRIBUTION, mediaFor } from "@/lib/movements/media";
-import { muscleAriaLabel, muscleSummary, TEXT_ONLY_MOVEMENTS, TEXT_ONLY_MUSCLES } from "@/lib/movements/muscle-regions";
+import { muscleAriaLabel, muscleSummary } from "@/lib/movements/muscle-regions";
 import { MuscleMap } from "@/components/charts/MuscleMap";
 import { MovementPlaceholderIcon } from "./MovementThumb";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
 import { MISC } from "@/lib/i18n/messages/misc";
 
 const FRAME_MS = 1200;
@@ -26,8 +27,6 @@ function useReducedMotion(): boolean {
   );
 }
 
-/** Label singkat kondisi: "Riwayat Shin Splints (MTSS)" → "Riwayat Shin Splints". */
-const shortLabel = (id: ConditionId) => CONDITIONS[id].label.split(" (")[0];
 
 /**
  * Bottom sheet detail gerakan: gambar awal/akhir (crossfade, bisa dijeda), cue teknik,
@@ -52,12 +51,15 @@ export function MovementSheet({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const t = useT(MISC).sheet;
+  const locale = useLocale();
   const media = mediaFor(name);
+  const text = mediaText(name, locale);
+  const mn = (m: string) => muscleName(m, locale);
   // Peta otot per gerakan (0.14.2): komponen yang sama dengan ringkasan sesi 0.14.1.
   const muscles = muscleSummary([name]);
-  const textOnly = TEXT_ONLY_MOVEMENTS[name];
+  const textOnly = textOnlyMovement(name, locale);
   const notes = activeConditions.flatMap((id) => {
-    const n = media?.conditionNotes?.[id];
+    const n = text?.conditionNotes[id];
     return n ? [{ id, text: n }] : [];
   });
 
@@ -122,14 +124,14 @@ export function MovementSheet({
 
         <div className="mt-3">
           {media?.images ? <MovementFrames name={name} images={media.images} /> : <NoImage />}
-          {media?.imageNote && <p className="mt-1.5 text-[12px] text-faint">{t.imageNote(media.imageNote)}</p>}
+          {text?.imageNote && <p className="mt-1.5 text-[12px] text-faint">{t.imageNote(text.imageNote)}</p>}
         </div>
 
-        {media && media.cues.length > 0 && (
+        {text && text.cues.length > 0 && (
           <section className="mt-4">
             <h3 className="t-label mb-2">{t.cues}</h3>
             <ul className="space-y-1.5 text-[14px] leading-snug">
-              {media.cues.map((c) => (
+              {text.cues.map((c) => (
                 <li key={c} className="flex gap-2">
                   <span aria-hidden className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
                   {c}
@@ -143,17 +145,17 @@ export function MovementSheet({
           <section className="mt-4">
             <h3 className="t-label mb-2">{t.muscles}</h3>
             {(muscles.primaryRegions.length > 0 || muscles.secondaryRegions.length > 0) && (
-              <MuscleMap primary={muscles.primaryRegions} secondary={muscles.secondaryRegions} label={muscleAriaLabel(muscles)} className="mb-3" />
+              <MuscleMap primary={muscles.primaryRegions} secondary={muscles.secondaryRegions} label={muscleAriaLabel(muscles, locale, mn)} className="mb-3" />
             )}
             <ul className="flex flex-wrap gap-1.5" aria-label={t.musclesList}>
               {media.primaryMuscles.map((m) => (
                 <li key={m} className="rounded-full bg-brand px-2.5 py-0.5 text-[12px] font-semibold text-on-brand">
-                  {m}
+                  {mn(m)}
                 </li>
               ))}
               {media.secondaryMuscles.map((m) => (
                 <li key={m} className="rounded-full border border-brand bg-brand-soft px-2.5 py-0.5 text-[12px] text-ink">
-                  {m}
+                  {mn(m)}
                 </li>
               ))}
             </ul>
@@ -161,10 +163,10 @@ export function MovementSheet({
             {textOnly && <p className="mt-1 text-[12px] text-muted">{textOnly}</p>}
             {!textOnly &&
               [...media.primaryMuscles, ...media.secondaryMuscles]
-                .filter((m) => TEXT_ONLY_MUSCLES[m])
+                .filter((m) => textOnlyMuscle(m, locale))
                 .map((m) => (
                   <p key={m} className="mt-1 text-[12px] text-muted">
-                    {m}: {TEXT_ONLY_MUSCLES[m]}.
+                    {mn(m)}: {textOnlyMuscle(m, locale)}.
                   </p>
                 ))}
           </section>
@@ -176,7 +178,7 @@ export function MovementSheet({
             <ul className="space-y-1.5">
               {notes.map((n) => (
                 <li key={n.id} className="rounded-inner bg-brand-soft px-3 py-2 text-[13px] text-ink">
-                  <span className="font-semibold">{shortLabel(n.id)}:</span> {n.text}
+                  <span className="font-semibold">{shortLabelOf(n.id, locale)}:</span> {n.text}
                 </li>
               ))}
             </ul>

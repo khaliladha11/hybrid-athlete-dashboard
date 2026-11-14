@@ -1,4 +1,5 @@
 import { strengthRpeFor, type StrengthRpe } from "@/lib/hr-zones";
+import { conditionNote, metaCue, repsText } from "@/lib/i18n/safety-text";
 import { parseWeight, profile, type Movement, type MovementCategory, type ResolvedProfile } from "@/lib/profile";
 import type { ActiveRules } from "@/lib/conditions";
 import { blockLabel, DEFAULT_BLOCK, type BlockContext } from "./block";
@@ -231,9 +232,7 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
     const meta = META[m.name] ?? {};
     const reps = meta.holdSec
       ? undefined
-      : typeof meta.reps === "string"
-        ? meta.reps
-        : (meta.reps?.[difficulty] ?? scheme.reps);
+      : repsText(typeof meta.reps === "string" ? meta.reps : (meta.reps?.[difficulty] ?? scheme.reps), input.locale);
     const item: StrengthItem = {
       phase: "main",
       movement: m.name,
@@ -243,7 +242,7 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
       load: prescribeLoad(m.weight, loadLevel, m.loads, m.cap?.kg),
       restSec: role === "accessory" ? ACCESSORY_REST_SEC : cfg.mainRest,
       rpe,
-      cue: meta.cue,
+      cue: metaCue(m.name, input.locale),
       ...(anchor ? { anchor: true } : {}),
       ...(role === "accessory" ? { accessory: true } : {}),
     };
@@ -312,7 +311,7 @@ export function generateStrengthWorkout(input: StrengthInput, p: ResolvedProfile
     N.rpe(rpe, 10 - rpe),
     N.scheme_(schemeName(scheme.label, locale), scheme.reps),
     free ? N.free : N.block(blockLabel(block, locale)),
-    ...rules.strengthNotes,
+    ...rules.strengthNotes.map((n) => conditionNote(n, locale)),
     ...p.customConditions.map((c) => N.custom(c)),
   ];
   if (deload) notes.splice(1, 0, N.deload);

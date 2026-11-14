@@ -9,6 +9,8 @@
  *   gerakan library punya ≥ 1 otot utama terpetakan atau tercatat di sana.
  */
 import { MOVEMENT_MEDIA } from "./media";
+import type { Locale } from "../i18n/locale";
+import { SAFETY } from "../i18n/messages/safety";
 
 export type MuscleRegion = `${"front" | "back"}:${string}`;
 
@@ -80,5 +82,7 @@ export function muscleSummary(movements: readonly string[]): MuscleSummary {
 }
 
 /** Label aksesibilitas peta otot. */
-export const muscleAriaLabel = (s: Pick<MuscleSummary, "primary" | "secondary">) =>
-  `Otot utama: ${s.primary.join(", ") || "tidak ada"}; sekunder: ${s.secondary.join(", ") || "tidak ada"}`;
+export const muscleAriaLabel = (s: Pick<MuscleSummary, "primary" | "secondary">, locale: Locale = "id", name: (m: string) => string = (m) => m) => {
+  const t = SAFETY[locale].muscles;
+  return t.aria(s.primary.map(name).join(", ") || t.none, s.secondary.map(name).join(", ") || t.none);
+};

@@ -149,13 +149,13 @@ export function StrengthGenerator({
     setActiveRaw(JSON.stringify(startWorkout({ id: newEntryId(), nowIso: new Date().toISOString(), workout, blockIndex: block.index, planSessionId: fromPlan ? prefill?.sessionId : undefined })));
     router.push("/strength/sesi");
   };
-  const text = useMemo(() => (workout ? strengthToText(workout) : ""), [workout]);
+  const text = useMemo(() => (workout ? strengthToText(workout, locale) : ""), [workout, locale]);
   const outputRef = useRef<HTMLElement>(null);
 
   const render = useCallback(
     (s: number) => {
       const w = tryGenerate(() => generateStrengthWorkout({ type, duration, difficulty, seed: s, block, free, locale }, p));
-      return w ? strengthToText(w) : "";
+      return w ? strengthToText(w, locale) : "";
     },
     [type, duration, difficulty, block, free, p, locale],
   );
@@ -262,10 +262,10 @@ export function StrengthGenerator({
                               )}
                               {it.movement}
                             </p>
-                            <span className="tabular shrink-0 text-base font-semibold">{formatVolume(it)}</span>
+                            <span className="tabular shrink-0 text-base font-semibold">{formatVolume(it, locale)}</span>
                           </div>
                           <p className="tabular text-[13px] text-muted">
-                            {formatLoad(it.load)} · RPE {it.rpe}
+                            {formatLoad(it.load, locale)} · RPE {it.rpe}
                             {it.sets > 1 && t.st.rest(restLabel(it.restSec, t.st.seconds))}
                           </p>
                           {isAboveLibrary(movements.get(it.movement), it) && (
@@ -298,7 +298,7 @@ export function StrengthGenerator({
                         aria-haspopup="dialog"
                         className="pressable relative min-h-8 rounded-full bg-subtle-strong px-3 py-1 text-[13px] after:absolute after:-inset-1.5 after:content-[''] hover:bg-line-strong/40"
                       >
-                        {it.movement} <span className="tabular text-muted">{formatVolume(it)}</span>
+                        {it.movement} <span className="tabular text-muted">{formatVolume(it, locale)}</span>
                       </button>
                     </li>
                   ))}

@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { conditionWarnings } from "@/lib/athlete-settings";
+import { conditionShort } from "@/lib/i18n/safety-text";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ConditionsSettings } from "@/components/settings/ConditionsSettings";
 import { EquipmentSettings } from "@/components/settings/EquipmentSettings";
@@ -8,7 +10,7 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { RunZonesSettings } from "@/components/settings/RunZonesSettings";
 import { BUTTON, Chip } from "@/components/ui/Card";
 import { importBackupFile } from "@/lib/backup-store";
-import { CONDITIONS, type ConditionId } from "@/lib/conditions";
+import type { ConditionId } from "@/lib/conditions";
 import { generateStrengthWorkout, STRENGTH_TYPE_LABEL, STRENGTH_TYPES } from "@/lib/generator";
 import {
   advance,
@@ -185,7 +187,7 @@ export function OnboardingWizard() {
           </button>
           <ConditionsSettings
             settings={settings}
-            warnings={resolved.warnings}
+            warnings={conditionWarnings(resolved, locale)}
             onChange={(n) => {
               const added = n.conditions.find((c) => !settings.conditions.includes(c));
               const removed = settings.conditions.find((c) => !n.conditions.includes(c));
@@ -374,6 +376,7 @@ function LimitedNote() {
 function Summary({ state, choice, zonePath, standalone }: { state: OnboardingState; choice?: ConditionsChoice; zonePath?: ZonePath; standalone: boolean }) {
   const p = useResolvedProfile();
   const m = useT(ONBOARDING);
+  const locale = useLocale();
   const t = m.summary;
   const eq = p.equipmentModel;
   const owned = [
@@ -393,7 +396,7 @@ function Summary({ state, choice, zonePath, standalone }: { state: OnboardingSta
     { label: t.profile, value: p.name || "·" },
     {
       label: t.conditions,
-      value: choice === "none" ? t.none : p.activeConditions.map((c) => CONDITIONS[c].label.split(" (")[0]).join(", ") || "·",
+      value: choice === "none" ? t.none : p.activeConditions.map((c) => conditionShort(c, locale)).join(", ") || "·",
     },
     { label: t.zones, value: zonePath ? m.zonePath[zonePath].label : "·" },
     { label: t.equipment, value: owned.length ? owned.join(", ") : t.bodyweight, later: state.skipped.includes("equipment") },

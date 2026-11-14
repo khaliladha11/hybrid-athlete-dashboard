@@ -125,7 +125,7 @@ export function RunGenerator({
   const sendId = prefill?.sessionId ? externalId.session(prefill.sessionId) : externalId.generator(sendDate);
 
   const render = useCallback(
-    (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm, free, pattern, locale }, p)),
+    (s: number) => runToText(generateRunWorkout({ duration, difficulty, seed: s, block, cadenceSpm, free, pattern, locale }, p), locale),
     [duration, difficulty, block, cadenceSpm, free, pattern, p, locale],
   );
   const canRegenerate = useMemo(() => hasVariations(render), [render]);

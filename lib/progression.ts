@@ -18,6 +18,7 @@
  * - Setiap saran (Gita) menyebut alasannya dengan angka. Tidak pernah memblokir.
  */
 import { parseWeight, type Movement, type WeightSpec } from "@/lib/profile";
+import { metaCue, repsText } from "@/lib/i18n/safety-text";
 import { META } from "@/lib/generator/meta";
 import type { Difficulty, StrengthItem, StrengthWorkout } from "@/lib/generator/types";
 import { latestPr, type PrEntry } from "@/lib/prs";
@@ -364,9 +365,9 @@ export function applyProgression(
             ...it,
             movement: v.name,
             variantOf: m.name,
-            reps: typeof vMeta?.reps === "string" ? vMeta.reps : (vMeta?.reps?.[w.difficulty] ?? rec.reps ?? it.reps),
+            reps: typeof vMeta?.reps === "string" ? repsText(vMeta.reps, locale) : (repsText(vMeta?.reps?.[w.difficulty], locale) ?? rec.reps ?? it.reps),
             load: start !== undefined && vs.kind === "load" ? { kind: "load", min: start, max: start, unit: "kg", perHand: vs.perHand } : it.load,
-            cue: vMeta?.cue ?? it.cue,
+            cue: metaCue(v.name, locale) ?? it.cue,
             progression: `↑ ${rec.reason}`,
           };
         }
