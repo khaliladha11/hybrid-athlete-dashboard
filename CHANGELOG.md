@@ -4,8 +4,38 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [1.1.0] · 2026-11-14 · Profil ringkas
+
+Rilis minor pertama setelah 1.0, atas permintaan pemilik: Profil jadi ringkas dan detailnya pindah ke Tren. Backlog "Bagikan kartu story" dikerjakan sebagai ekspor kartu mingguan.
+
 ### Ditambahkan
+- **Kartu "Minggu ini · lari"** di Profil ([GUIDE](docs/GUIDE.md#kartu-minggu-ini--bagikan)):
+  - total km minggu kalender Senin sampai Minggu (WIB, jumlah mentah, 2 desimal);
+  - 7 bar per hari dengan angka 1 desimal, titik kecil untuk hari tanpa lari;
+  - footer `3 LARI · 9 SAMPAI 15 NOV`.
+  - Ketuk kartu untuk detail di Tren.
+- **Bagikan kartu minggu ini** sebagai PNG transparan:
+  - format Story 1080×1920 atau Feed 1080×1350;
+  - Teks terang (bawaan, dengan bayangan lembut) atau Teks gelap;
+  - bahasa kartu EN (bawaan) atau ID;
+  - watermark "HYBRID ATHLETE" opsional.
+  - Font Archivo dan Geist Mono disematkan, digambar ke canvas tanpa library.
+  - Menu berbagi HP (Web Share API) bila didukung, Unduh PNG selalu ada.
+  - Tanpa nama dan tanpa alamat aplikasi.
+- **Saran Gita bisa dilipat** di Profil: bila ada lebih dari satu saran atau alasan panjang, yang tampil hanya saran terberat, chip level, dan "Lihat detail". Pilihan diingat sampai besok, dan saran baru yang lebih berat membuka kartu sendiri.
+- **Carousel info Wellness:** teks di bawah angka (metrik kosong, dasar kesiapan, ambang pribadi) jadi kartu kecil yang bisa digeser. Ada titik indikator, tombol ‹ ›, dan label "1 dari 4" untuk pembaca layar.
 - **Social preview GitHub** (`npm run media:og`, [marketing/README.md](marketing/README.md)): kartu tautan 1280×640 dari template HTML ber-token "Tag", dua varian (HP dengan peta otot Demo Mode, motif Segment Skyline), ekspor PNG/JPG dan render cek 640×320. Kontras teks dan safe area 64 px diperiksa saat render.
+
+### Diubah
+- **Ringkasan 7 hari pindah ke Tren**, ke bagian baru "Minggu ini" di atas pilihan rentang (`/insight#minggu-ini`). Isinya: km, pace, HR, long run, load, sesi, pembagian 80/20, perubahan km vs 7 hari sebelumnya, beban ST 7 hari, dan Week Ledger.
+- Video pratinjau README: adegan Profil sekarang memperlihatkan kartu mingguan. Screenshot panduan `01-profile` dan `02-weekly-summary` diperbarui, ditambah `29-share-week`.
+
+### Dihapus
+- Tombol **Generate lari** dan **Generate ST** di Profil. Navigasi bawah tetap membuka Lari dan Strength, dan aksi dari program (Sesi minggu ini, Terapkan) tetap ada.
+
+### Langkah manual
+- Salinan atau fork dengan workflow pembaruan: merge pull request "Pembaruan dari upstream: v1.1.0" setelah CI hijau.
+- Tidak ada variabel lingkungan baru dan tidak ada migrasi data. Pilihan kartu bagikan dan status lipat Gita hanya disimpan di perangkat (tidak disinkron).
 
 ## [1.0.0] · 2026-11-02 · Rilis stabil
 

@@ -202,7 +202,7 @@ Nomor mengikuti cakupan pemilik (#1 sampai #12).
 
 - Mode offline dan banner offline: **1.0**.
 - Kirim workout ke kalender intervals.icu / jam: **1.0**.
-- Bagikan kartu story dari `/activity/[id]`: tetap backlog P2.
+- Bagikan kartu story dari `/activity/[id]`: tetap backlog P2. (Dikerjakan di 1.1.0 sebagai kartu mingguan Profil, lihat PRD §4.1.)
 - ACWR atau "zona aman" beban sebagai alarm cedera (I4).
 - Perubahan saran dari grafik di 0.15.0 dan 0.15.1 (I3).
 

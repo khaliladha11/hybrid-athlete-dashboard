@@ -56,13 +56,17 @@ const SCENES = [
   {
     id: "profil",
     path: "/",
-    dur: 4.6,
-    captions: [{ at: 0, label: "01 · Profil", text: "Saran harian dari *Gita*" }],
+    dur: 5.2,
+    captions: [
+      { at: 0, label: "01 · Profil", text: "Saran harian dari *Gita*" },
+      { at: 2.8, label: "01 · Profil", text: "Minggu ini, siap *dibagikan*" },
+    ],
     async play(page) {
       await sleep(500);
       await scrollTo(page, page.getByText(/Saran Gita/i), { ms: 1100 });
-      await sleep(1800);
-      await scrollTo(page, page.getByText(/^Generate lari/), { offset: 420, ms: 700 });
+      await sleep(1100);
+      // 1.1.0: kartu "Minggu ini · lari" menggantikan tombol Generate di Profil.
+      await scrollTo(page, page.getByRole("region", { name: "Minggu ini · lari" }), { offset: 120, ms: 800 });
     },
   },
   {

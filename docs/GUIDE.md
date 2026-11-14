@@ -12,12 +12,25 @@ Panduan lengkap Hybrid Athlete Dashboard: memakai aplikasi, memasang dan memperb
 
 Kartu **Saran hari ini** di Profil (dan strip saran di Generator Lari) menyebut jenis latihan, level, dan alasannya. Gita adalah nama coach di aplikasi; semua sarannya dihitung dari aturan di [TRAINING-LOGIC.md](TRAINING-LOGIC.md), bukan AI.
 
+- **Ringkas dulu** (1.1.0): bila ada lebih dari satu saran atau alasannya panjang, kartu di Profil hanya menampilkan saran terberat dan chip levelnya. Ketuk **Lihat detail** untuk semua alasan. Pilihanmu diingat sampai besok; saran baru yang lebih berat membuka kartu sendiri.
 - **Level:** Easy (hijau), Moderate (kuning), High (merah). Warna yang sama dipakai di generator dan rencana.
 - **Alasan** tampil di bawah saran, misalnya resting HR di atas rentang pribadimu, sesi kemarin berat, km minggu ini naik lebih dari 30%, atau ST kaki kemarin. Ketuk untuk melihat dasar kesiapan.
 - **Saran hanya menurunkan, tidak memblokir.** Kamu tetap bisa memilih level lain atau tombol **Terapkan** untuk memakai saran dengan satu ketukan. Beberapa pemicu sekaligus tetap hanya turun satu level.
 - **Check-in harian** (opsional, di bawah 10 detik): nyeri shin 4/10 ke atas membatasi lari ke Easy (6/10 ke atas: Easy 30 menit), pegal 7/10 ke atas atau tidur 2/5 ke bawah menurunkan satu level, mood hanya dicatat.
 - **Ambang pribadi:** HR lari berat dari 90% LTHR (diisi di intervals.icu), HRV dan resting HR dari rata-rata 30 harimu. Sebelum datanya cukup, aplikasi memakai ambang umum dan menyebutnya.
 - Data yang tidak dikirim jammu (misalnya HRV dari Huawei) disebut dan aturannya tidak dipakai, bukan dianggap nol.
+
+### Kartu minggu ini & bagikan
+
+Profil menampilkan kartu **Minggu ini · lari** (1.1.0): total km minggu kalender Senin sampai Minggu, bar per hari, dan jumlah lari. Total adalah jumlah jarak mentah, sedangkan angka per hari dibulatkan satu desimal, jadi jumlahnya bisa beda 0.01. Ketuk kartu untuk detail di **Tren › Minggu ini**: pace, HR, long run, load, pembagian 80/20, perubahan km, beban ST, dan Week Ledger.
+
+Tombol **Bagikan** membuat PNG transparan untuk ditempel di atas foto:
+
+- **Format:** Story 1080×1920 atau Feed 1080×1350.
+- **Warna teks:** Teks terang (untuk foto gelap, dengan bayangan lembut) atau Teks gelap. Oranye selalu sama.
+- **Bahasa kartu:** EN (bawaan) atau ID. **Watermark** "HYBRID ATHLETE" bisa dimatikan.
+- Di HP yang mendukung, **Bagikan** langsung membuka menu berbagi (mis. Instagram Story). **Unduh PNG** selalu tersedia.
+- Gambar hanya berisi km, jumlah lari, dan tanggal minggu itu. Tanpa nama dan tanpa alamat aplikasimu.
 
 ### Program mingguan
 
@@ -232,8 +245,8 @@ Setiap rilis di repo ini punya tag (`v1.0.0`, …) dan catatan rilis. Repo salin
 
 | Area | Yang bisa dilakukan |
 | --- | --- |
-| **Profil** | Data diri, target lomba, saran hari ini, wellness, ringkasan 7 hari, dan kalender aktivitas. Sejak 0.15.2 **check-in harian** (nyeri shin, pegal, tidur, mood; di bawah 10 detik) yang hanya bisa menurunkan saran, ambang pribadi dari LTHR/HRV/resting HR, dan ringkasan bulanan di awal bulan. |
-| **Tren** | Sejak 0.15.0, "Lihat tren" membuka grafik 6 atau 12 minggu: CTL/ATL/Form, km mingguan dengan pembagian 80/20 (kenaikan > 30%, cutback, dan deload ditandai), pace/HR/cadence easy run, dan VDOT per minggu dengan selisih ke target. Sejak 0.15.1 juga kekuatan: volume ST per pola dan beban session-RPE, heatmap otot (dengan otot yang jarang dilatih dan gerakan untuk melatihnya), tren PR dengan tahap rep/tempo/varian saat beban mentok, kepatuhan program lari & ST, dan kalender aktivitas 12/26 minggu. Setiap grafik punya kalimat ringkasan dan "Lihat tabel"; data yang tidak dikirim jam ditulis apa adanya. |
+| **Profil** | Data diri, target lomba, saran hari ini (bisa dilipat sejak 1.1.0), wellness dengan info dalam carousel kecil, kartu **Minggu ini · lari** yang bisa dibagikan sebagai PNG, dan kalender aktivitas. Sejak 0.15.2 **check-in harian** (nyeri shin, pegal, tidur, mood; di bawah 10 detik) yang hanya bisa menurunkan saran, ambang pribadi dari LTHR/HRV/resting HR, dan ringkasan bulanan di awal bulan. |
+| **Tren** | Sejak 1.1.0 dibuka dengan ringkasan 7 hari terakhir dan Week Ledger (pindah dari Profil). Sejak 0.15.0, "Lihat tren" membuka grafik 6 atau 12 minggu: CTL/ATL/Form, km mingguan dengan pembagian 80/20 (kenaikan > 30%, cutback, dan deload ditandai), pace/HR/cadence easy run, dan VDOT per minggu dengan selisih ke target. Sejak 0.15.1 juga kekuatan: volume ST per pola dan beban session-RPE, heatmap otot (dengan otot yang jarang dilatih dan gerakan untuk melatihnya), tren PR dengan tahap rep/tempo/varian saat beban mentok, kepatuhan program lari & ST, dan kalender aktivitas 12/26 minggu. Setiap grafik punya kalimat ringkasan dan "Lihat tabel"; data yang tidak dikirim jam ditulis apa adanya. |
 | **Setting** | Kondisi & batasan dari **katalog berbasis riset** (10 kondisi, masing-masing dengan sumber) yang langsung mengubah generator; zona pace per jenis latihan (manual atau dihitung **VDOT Daniels** dari hasil lomba); alat (dumbbell, plat, barbell, band, pull-up bar); pilihan gerakan movement library; tema; dan cadangan data. |
 | **Data intervals.icu** | Ringkasan 7 hari (km, pace, HR, long run, load), kalender aktivitas bulanan (ketuk tanggal untuk detail), detail aktivitas dengan **split per km** (dari data per detik jam atau GPS, divalidasi terhadap ringkasan) dan interval, serta wellness (HRV, resting HR, tidur, CTL/ATL/Form). Aktivitas yang tercatat dobel dari dua sumber (mis. jam + Strava) dihitung sekali. |
 | **Generator lari** | 30/45/60 menit × Easy/Moderate/High dengan 13 pola: Z2, run-walk, cadence drill, tempo, cruise interval, progression run, mini interval, Norwegian 4×4, dan 15/15. Target pace dari zona di Setting, cue & catatan dari kondisi aktif, dan durasinya selalu tepat. |
@@ -256,7 +269,7 @@ Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](TRAINING-LOG
 
 <table>
   <tr>
-    <td><img src="screenshots/01-profile.jpg" width="220" alt="Profil dengan saran hari ini"></td>
+    <td><img src="screenshots/01-profile.jpg" width="220" alt="Profil: saran Gita dilipat, Wellness dengan carousel info, kartu Minggu ini · lari"></td>
     <td><img src="screenshots/03-run-generator.jpg" width="220" alt="Generator lari dengan strip saran dan kesulitan berwarna"></td>
     <td><img src="screenshots/04-run-workout.jpg" width="220" alt="Kartu tag Norwegian 4x4 dengan Segment Skyline rencana"></td>
   </tr>
@@ -266,12 +279,12 @@ Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](TRAINING-LOG
     <td align="center"><sub>Workout + Segment Skyline</sub></td>
   </tr>
   <tr>
-    <td><img src="screenshots/02-weekly-summary.jpg" width="220" alt="Ringkasan 7 hari dengan StatRow, 80/20, dan Week Ledger"></td>
+    <td><img src="screenshots/02-weekly-summary.jpg" width="220" alt="Tren bagian Minggu ini: ringkasan 7 hari dengan StatRow dan 80/20"></td>
     <td><img src="screenshots/06-activity.jpg" width="220" alt="Detail aktivitas Norwegian 4x4 dengan kartu tag dan split per km"></td>
     <td><img src="screenshots/08-program.jpg" width="220" alt="Program Half Marathon dengan perkiraan waktu lomba dan detail sumbernya"></td>
   </tr>
   <tr>
-    <td align="center"><sub>7 hari terakhir + Week Ledger</sub></td>
+    <td align="center"><sub>Tren · Minggu ini (7 hari)</sub></td>
     <td align="center"><sub>Detail aktivitas + split per km</sub></td>
     <td align="center"><sub>Program target (5K–FM)</sub></td>
   </tr>
@@ -347,17 +360,17 @@ Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](TRAINING-LOG
   </tr>
   <tr>
     <td><img src="screenshots/28-insight-body.jpg" width="220" alt="Mode terang: tren check-in dan status ambang pribadi di Insight"></td>
-    <td></td>
+    <td><img src="screenshots/29-share-week.jpg" width="220" alt="Sheet Bagikan kartu minggu ini: pratinjau PNG transparan, format, warna teks, bahasa kartu, watermark"></td>
     <td></td>
   </tr>
   <tr>
     <td align="center"><sub>Tubuh & ambang</sub></td>
-    <td></td>
+    <td align="center"><sub>Bagikan kartu minggu ini</sub></td>
     <td></td>
   </tr>
 </table>
 
-<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1, onboarding & tur di 0.11.2, sinkron di 0.12.2, Program & Hari H di 0.13.2–0.13.3, mode latihan, peta otot & Week Ledger ST di 0.14.1, peta otot per gerakan di 0.14.2, Tren di 0.15.0–0.15.1, check-in di 0.15.2), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
+<sub>Screenshot 0.10.0-ui (Profil & detail aktivitas diperbarui di 0.10.1, onboarding & tur di 0.11.2, sinkron di 0.12.2, Program & Hari H di 0.13.2–0.13.3, mode latihan, peta otot & Week Ledger ST di 0.14.1, peta otot per gerakan di 0.14.2, Tren di 0.15.0–0.15.1, check-in di 0.15.2, Profil ringkas & bagikan kartu di 1.1.0), diambil dalam Demo Mode (data dummy) di lebar 375px.</sub>
 
 Semua screenshot diambil di Demo Mode (data fiktif).
 

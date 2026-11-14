@@ -15,7 +15,7 @@
 
 <!-- Pratinjau dibuat ulang dengan `npm run media:video` (marketing/README.md). -->
 <p align="center">
-  <img src="docs/media/preview-readme.webp" width="300" alt="Pratinjau animasi: saran harian Gita di Profil, generator lari lalu Kirim ke jam, mode latihan strength dengan peta otot, program menuju Hari H, dan heatmap otot di Insight">
+  <img src="docs/media/preview-readme.webp" width="300" alt="Pratinjau animasi: saran harian Gita dan kartu minggu ini di Profil, generator lari lalu Kirim ke jam, mode latihan strength dengan peta otot, program menuju Hari H, dan heatmap otot di Insight">
 </p>
 
 <p align="center"><sub>Direkam dari Demo Mode (data fiktif). Galeri lengkap di <a href="docs/GUIDE.md#galeri-screenshot">Panduan</a>.</sub></p>
@@ -120,7 +120,7 @@ Aplikasi ini alat bantu perencanaan latihan pribadi, **bukan pengganti saran dok
 | [CHANGELOG](CHANGELOG.md) | Riwayat perubahan per versi |
 | [INSTALL-WITH-AI](INSTALL-WITH-AI.md) · [AGENTS](AGENTS.md) | Panduan untuk asisten AI dan alat pemrograman AI |
 
-**Roadmap:** versi sekarang 1.0.0 (stabil, feature freeze). Rencana setelah 1.0 ada di [PRD §7](docs/PRD.md#setelah-10).
+**Roadmap:** versi sekarang 1.1.0 (Profil ringkas, bagikan kartu minggu ini). Rencana setelah 1.0 ada di [PRD §7](docs/PRD.md#setelah-10).
 
 ## Untuk developer
 

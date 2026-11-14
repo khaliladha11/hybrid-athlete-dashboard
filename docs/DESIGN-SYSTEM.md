@@ -129,10 +129,25 @@ Grafik bar SVG tanpa library. **Lebar bar ∝ durasi, tinggi bar ∝ kecepatan.*
 - Skala: tinggi minimum 10% supaya bar tetap terlihat; untuk lari steady (selisih pace < 60 detik) pakai kecepatan relatif dari 0, bukan min-max, supaya tidak melebih-lebihkan selisih kecil.
 - Aksesibilitas: `<svg role="img" aria-label="…">` + daftar interval tetap ada di bawahnya sebagai sumber data teks.
 
-### Week Ledger (baru, di `WeeklySummary`)
+### Week Ledger (baru, di `WeeklySummary`; sejak 1.1.0 di Tren `/insight#minggu-ini`)
 - Tabel "MINGGU INI · KM · MENIT": baris per hari lari (`SELASA 3.3`) dan sejak 0.14.1 baris ST per sesi (`SENIN · ST LOWER` dengan `45'`), garis rambut antar baris, baris TOTAL LARI lebih besar (`.t-ledger-num` 28px). Komponen klien `components/profile/WeekLedger.tsx` karena sesi ST ada di perangkat.
 - Data dari aktivitas minggu kalender (sudah dihitung di `summarizeLast7Days().calendarWeek`; tambah rincian per hari di komponen).
 - Total adalah jumlah jarak mentah. Angka per hari dibulatkan 1 desimal, jadi jumlahnya bisa beda 0.01 dari total. Itu wajar; jangan "dibetulkan".
+
+### Kartu Minggu ini · lari (1.1.0, `components/profile/WeekRunCard.tsx`)
+- Gaya kartu story: label mono `MINGGU INI · LARI` (`·` redup), total km Display italic condensed 2 desimal + satuan `KM` mono oranye sejajar baseline, 7 bar oranye Senin sampai Minggu (lebar 74, radius 16, tinggi ∝ km sampai 300, minimum 32) dengan angka 1 desimal di atasnya, hari kosong = titik kecil faint di baseline, huruf hari mono, garis rambut, footer mono `3 LARI · 9 SAMPAI 15 NOV`.
+- Satu layout di `lib/week-run-card.ts` (koordinat 1080×1920, blok y 560 sampai 1480, margin kiri 120, tepi kanan grafik 960) dipakai kartu Profil (peran warna → token tema) dan ekspor PNG (warna tetap). Angka total adalah satu-satunya Display di Profil.
+- Aturan angka sama dengan Week Ledger. Selesai = oranye, jadi bar memakai `--brand`.
+- Seluruh kartu adalah tautan ke Tren; tombol Bagikan di luar tautan.
+
+### Ekspor bagikan (1.1.0, `components/share/ShareWeekSheet.tsx`)
+- Bottom sheet `<dialog>` (gaya `.movement-sheet`): pratinjau di atas papan catur (`.checkerboard`) supaya transparansi terlihat, Segmented Format (Story 9:16 / Feed 4:5), Warna teks (Teks terang / Teks gelap), Bahasa kartu (EN / ID), Switch watermark, tombol **Bagikan** (hanya bila Web Share API menerima file) dan **Unduh PNG**.
+- PNG tanpa latar. Teks terang `#F5F4F1` dengan bayangan lembut `0 4px 16px rgba(0,0,0,.35)` pada teks dan bar; teks gelap `#141414` dengan bayangan terang. Oranye selalu `#FC4C02`. Feed memakai blok yang sama di tengah 1080×1350.
+- Font Archivo & Geist Mono disematkan ke SVG sebagai data URL supaya PNG sama dengan layar. Tanpa nama orang dan tanpa alamat deploy.
+
+### InfoCarousel (1.1.0, `components/ui/InfoCarousel.tsx`)
+- Untuk teks info pendek di bawah StatRow (Wellness). CSS scroll-snap tanpa library, kartu `bg-subtle` 85% lebar sehingga kartu berikutnya mengintip, titik indikator (aktif oranye), tombol ‹ › 44px yang nonaktif di ujung.
+- `aria-roledescription="carousel"` pada section, tiap slide `role="group"` + `aria-roledescription="slide"` + label "1 dari 4". Track bisa difokus (panah keyboard). Reduced motion: tombol melompat tanpa scroll halus. Satu item = satu kartu biasa tanpa kontrol.
 
 ### Mode latihan (0.14.1, `components/workout/`)
 - Layar penuh di atas AppBar & BottomNav (lapisan `fixed`, mulai di bawah strip status bar), satu gerakan per layar. Kembali ke Strength tidak menghentikan sesi; halaman Strength menampilkan kartu "Sesi berjalan" dengan garis oranye.
@@ -179,6 +194,7 @@ Grafik bar SVG tanpa library. **Lebar bar ∝ durasi, tinggi bar ∝ kecepatan.*
 ### Coach (`CoachStrip`, `CoachCard`)
 - Hapus garis aksen kiri. Struktur: label mono `SARAN HARI INI` + chip severity (`EASY` / `ISTIRAHAT`), satu kalimat utama, lalu dropdown alasan.
 - Tombol terapkan saran tetap primary kecil (min-h 32 dengan area sentuh diperluas, seperti sekarang).
+- **Dilipat di Profil** (1.1.0): bila ada lebih dari satu saran atau alasan > 140 karakter, kartu menampilkan label + chip severity (pill tone), saran terberat sebagai kalimat utama, dan tombol "Lihat detail · n" / "Tutup detail" (`aria-expanded`, 44px). Rencana hari ini tetap terlihat. Tanpa animasi tinggi: detail muncul dengan fade opacity 150ms (`.gita-detail`). Status per hari di perangkat; saran baru yang lebih berat membukanya otomatis.
 
 ### AppBar & BottomNav
 - AppBar: `LogoMark` 22px (`text-ink`, palang oranye) + wordmark `HYBRID ATHLETE` (Display, 15px), jarak `gap-2`. Tombol tema tetap.
@@ -209,4 +225,3 @@ Grafik bar SVG tanpa library. **Lebar bar ∝ durasi, tinggi bar ∝ kecepatan.*
 ## 9. Kemungkinan lanjutan (bukan bagian rilis ini)
 
 - **MuscleMap** (0.14.2, [STRENGTH-HIDUP.md](STRENGTH-HIDUP.md) §3 & §6): diagram tubuh depan/belakang sebagai komponen SVG sendiri (`components/charts/MuscleMap.tsx`), warna dari token tema sehingga ikut mode gelap/terang. Keputusan terbuka: warna otot utama/sekunder (usulan `--brand` / `--brand-soft`, otot lain `--subtle-strong`) perlu dicatat di sini karena oranye selama ini berarti "selesai".
-- **Bagikan kartu story** dari `/activity/[id]`: render RunTag (komponen yang sama dengan kartu story) ke PNG transparan 1920×1280 lewat `<canvas>`. Ini fitur baru, jadi masukkan dulu ke backlog PRD §7 sebagai P2.

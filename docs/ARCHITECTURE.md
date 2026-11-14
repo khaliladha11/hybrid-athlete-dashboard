@@ -120,7 +120,10 @@ Pelanggaran akan melempar `WorkoutValidationError`. Hal yang sama berlaku untuk 
 | `components/insight/StrengthTrends.tsx`, `ProgramCalendarTrends.tsx` | Bagian Kekuatan dan Program & kalender di `/insight`; Demo Mode menambah data ST fiktif (`mockInsightStrength`) tanpa menulis ke perangkat | Client |
 | `components/charts/chart-scale.ts`, `LineChart.tsx`, `BarChart.tsx`, `ChartCard.tsx` | Skala & tata letak murni; grafik garis & batang bertumpuk SVG; kerangka ringkasan + "Lihat tabel" (0.15.0) | Murni / client |
 | `app/insight/page.tsx`, `components/insight/InsightView.tsx` | Rute `/insight` (tanpa tab baru): data intervals.icu dari server, hasil lomba/program/blok dari perangkat, rentang 6/12 minggu dipotong di client | Server + client |
-| `lib/week-ledger.ts` | Baris Week Ledger per hari: km lari + ST per sesi setelah dedupe | Murni |
+| `lib/week-ledger.ts` | Baris Week Ledger per hari: km lari + ST per sesi setelah dedupe. Sejak 1.1.0 tampil di Tren (`/insight#minggu-ini`) | Murni |
+| `lib/week-run-card.ts`, `components/profile/WeekRunCard.tsx` | Kartu "Minggu ini · lari" (1.1.0): model minggu kalender WIB, teks EN/ID, dan layout elemen 1080×1920 yang dipakai kartu Profil (token tema) dan ekspor PNG | Murni + server |
+| `lib/share-card.ts`, `lib/share-export.ts`, `components/share/ShareWeekSheet.tsx` | Ekspor kartu mingguan (1.1.0): ukuran story/feed, opsi, nama file, string SVG transparan (murni); font next/font disematkan sebagai data URL lalu SVG digambar ke canvas → PNG (browser); sheet dengan Web Share API / Unduh PNG | Murni + client |
+| `lib/coach-collapse.ts`, `lib/carousel.ts`, `components/ui/InfoCarousel.tsx` | Kartu Saran Gita yang bisa dilipat (aturan per hari & buka otomatis) dan carousel info scroll-snap untuk Wellness (1.1.0) | Murni + client |
 | `lib/movements/muscle-regions.ts` | Nama otot kurasi → region SVG depan/belakang, otot tanpa region & gerakan teks saja (dengan alasan), ringkasan otot sesi | Murni |
 | `lib/buy-reminder.ts` | Pengingat beli plat per area (lower, upper push, upper pull): syarat 80% mentok di batas alat selama 2 sesi, plat yang membuka progresi terbanyak, tanda tangan untuk tutup/muncul lagi | Server & client (murni) |
 | `lib/training-log.ts` | Penyimpanan log (localStorage) + ekspor/impor | Client |
@@ -284,6 +287,9 @@ Test aturan (generator, periodization, media, settings) memakai profil contoh an
 | `prs.test.ts` | Validasi & gabungan PR dengan tombstone, PR terbaik/terbaru/riwayat, deteksi dari log, PR sebagai titik awal (hanya aturan baru, dibulatkan ke bawah), sinkron bagian `prs`. |
 | `st-session.test.ts` | Session-RPE, kelengkapan set, validasi, tombstone & gabungan, dedupe dengan intervals.icu (tanggal sama, ≤ 2 jam, tanpa jam, satu-ke-satu, sesi terhapus). |
 | `workout-state.test.ts` | Isian set, istirahat & pindah gerakan, timer dari jam setelah dibuka lagi, +15 detik & lewati, hitung mundur tahan, batalkan set, selesai → sesi + log ★, data rusak. |
+| `week-run-card.test.ts` | Minggu kalender WIB mulai Senin, hari kosong, dua lari sehari, huruf hari & rentang tanggal EN/ID (lintas bulan), tunggal/jamak, pembulatan, tinggi bar (0 dan 1 lari, minimum), layout kolom & blok. |
+| `share-card.test.ts` | Ukuran story/feed, geser blok untuk feed, opsi bawaan & nilai rusak, nama file, SVG tanpa latar, tinta terang/gelap dengan oranye tetap, teks EN/ID, watermark, tanpa alamat. |
+| `coach-collapse.test.ts`, `carousel.test.ts` | Kapan Saran Gita dilipat, saran terberat, status per hari & buka otomatis saat lebih berat; mode carousel 0/1/n, label "1 dari n", indeks aktif. |
 | `week-ledger.test.ts` | Baris ST per hari dari sesi lokal, satu baris untuk sesi + aktivitas yang sama, aktivitas tanpa pasangan, di luar minggu. |
 | `st-phase.test.ts` | Kunci fase, aturan per fase, slot ST kaki ≥ 8 hari & Upper ≥ 3 hari, jadwal ST semua jarak, ST Lower ringan taper HM, Hari H Jumat, fase ke tautan generator, batas set Peak/Taper, beban ditahan vs turun beban. |
 | `copy-dashes.test.ts` | Tanpa em dash di saran coach, alasan progresi, catatan & cue generator ST/lari (semua kondisi), cue & catatan kondisi gerakan, dan teks program (DESIGN-SYSTEM §7). |

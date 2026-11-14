@@ -30,7 +30,7 @@ Ketiganya menjalankan `next build` bila `.next` belum ada, lalu `next start` Dem
 | `og/` | Social preview GitHub: `index.html#a` (HP dengan peta otot) dan `#b` (motif Segment Skyline), `og.js`, `og.css`. Rekomendasi di `OG_RECOMMENDED` |
 | `captions.md` | Caption Threads/IG (Indonesia + Inggris), hashtag, alt text |
 
-Storyboard video (±28 dtk, 30 fps, crossfade 0,3 dtk, tanpa musik): pembuka "Hari ini latihan apa?", Profil + saran Gita, generator lari lalu Kirim ke jam, mode latihan strength + peta otot, Program dengan Hari H, heatmap otot Insight, penutup "Gratis. Pasang sendiri."
+Storyboard video (±28 dtk, 30 fps, crossfade 0,3 dtk, tanpa musik): pembuka "Hari ini latihan apa?", Profil + saran Gita + kartu minggu ini, generator lari lalu Kirim ke jam, mode latihan strength + peta otot, Program dengan Hari H, heatmap otot Insight, penutup "Gratis. Pasang sendiri."
 
 Variasi workout lari diacak oleh server (seed acak), jadi pola lari bisa berbeda di tiap render. Data dan tata letaknya tetap sama.
 

@@ -5,11 +5,11 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 1.0.0 (2026-11-02) · feature freeze |
+| **Versi saat ini** | 1.1.0 (2026-11-14) · Profil ringkas, bagikan kartu minggu ini |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
-| **Kualitas** | 81 file test, 910 unit test lolos · 57 test e2e Playwright (34 mobile gelap, 21 desktop terang, 2 sandi) · build produksi lolos · CI GitHub Actions di setiap push & PR (actionlint, unit, audit, bundle, e2e, Lighthouse) |
+| **Kualitas** | 85 file test, 953 unit test lolos · 63 test e2e Playwright (37 mobile gelap, 24 desktop terang, 2 sandi) · build produksi lolos · CI GitHub Actions di setiap push & PR (actionlint, unit, audit, bundle, e2e, Lighthouse) |
 | **Dokumen terkait** | [README](../README.md) · [Panduan](GUIDE.md) · [Keterbatasan](LIMITATIONS.md) · [Dasar ilmiah](REFERENCES.md) · [Kredit](CREDITS.md) · [CHANGELOG](../CHANGELOG.md) · [TRAINING-LOGIC](TRAINING-LOGIC.md) · [ARCHITECTURE](ARCHITECTURE.md) · [DESIGN-SYSTEM](DESIGN-SYSTEM.md) · [Logo](brand/LOGO.md) · [ONBOARDING](ONBOARDING.md) · [SYNC](SYNC.md) · [Spesifikasi 0.13: PROGRAM-HIDUP](PROGRAM-HIDUP.md) · [STRENGTH-HIDUP](STRENGTH-HIDUP.md) · [Spesifikasi 0.15: INSIGHT](INSIGHT.md) · [Rencana 0.16 sampai 1.0: RELEASE-1.0](RELEASE-1.0.md) · [Audit media gerakan](movement-media-audit.md) · [Usulan gerakan 0.9](movement-library-proposal.md) · [NOTICE](../NOTICE.md) |
 
 **Legenda status:** ✅ Selesai · 🟡 Sebagian / ada keterbatasan · ⬜ Belum dibuat · 💡 Ide. Sejak 1.0.0 semua butir ⬜ adalah kandidat **Setelah 1.0** (§7) dan tidak masuk sebelum feature freeze dibuka.
@@ -134,14 +134,16 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | --- | --- | --- |
 | Header profil (nama, usia, gaya hidup, fokus) | ✅ | Dari profil di perangkat sejak 0.11.0 (dulu dari JSON). Tanpa avatar inisial sejak 0.10.1 |
 | Target lomba | ✅ | Kondisi, zona, alat & movement library pindah ke Setting (0.8) |
-| Wellness hari ini (HRV, resting HR, tidur, CTL/ATL/Form) | ✅ | Status ✓ data hari ini / ✕ data lama. Sejak 0.14.3 sinyal yang tidak dikirim jam dalam 14 hari tidak ditampilkan. **HRV:** jam pemilik (integrasi Huawei) tidak mengirim HRV ke intervals.icu, jadi HRV tidak tampil; mapping field `hrv`/`hrvSDNN` sudah benar (§6 #14) |
-| Ringkasan 7 hari (km, pace, HR, long run, load, sesi) | ✅ | Plus distribusi 80/20 & tren km |
+| Wellness hari ini (HRV, resting HR, tidur, CTL/ATL/Form) | ✅ | Status ✓ data hari ini / ✕ data lama. Sejak 0.14.3 sinyal yang tidak dikirim jam dalam 14 hari tidak ditampilkan. Sejak 1.1.0 teks info di bawah angka (metrik kosong, dasar kesiapan, ambang) jadi carousel kartu kecil (scroll-snap, tombol ‹ ›, "1 dari 4"). **HRV:** jam pemilik (integrasi Huawei) tidak mengirim HRV ke intervals.icu, jadi HRV tidak tampil; mapping field `hrv`/`hrvSDNN` sudah benar (§6 #14) |
+| Ringkasan 7 hari (km, pace, HR, long run, load, sesi) | ✅ | Plus distribusi 80/20 & tren km. Sejak 1.1.0 di Tren bagian "Minggu ini" (`/insight#minggu-ini`), bersama beban ST 7 hari dan Week Ledger |
+| Kartu "Minggu ini · lari" di Profil | ✅ | 1.1.0 · `lib/week-run-card.ts`: total km minggu kalender WIB (mentah, 2 desimal), 7 bar Senin sampai Minggu (angka 1 desimal, hari kosong titik), footer jumlah lari & tanggal. Ketuk → Tren. Tombol Generate di Profil dihapus (navigasi bawah tetap) |
+| Bagikan kartu minggu ini sebagai PNG transparan | ✅ | 1.1.0 · `lib/share-card.ts`: story 1080×1920 / feed 1080×1350, teks terang (bawaan) atau gelap, bahasa kartu EN (bawaan) / ID, watermark opsional. SVG dari layout yang sama dengan kartu Profil, font Archivo & Geist Mono disematkan, digambar ke canvas tanpa library. Web Share API dengan file bila didukung, selalu ada Unduh PNG. Tanpa nama dan alamat deploy |
 | Kalender aktivitas bulanan + detail per tanggal | ✅ | Tanpa program: bulan ini & bulan lalu. Dengan program tersimpan (0.13.0, [PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) #5–#6): dari awal program sampai bulan lomba, aktivitas selesai oranye, rencana bercincin warna intensitas, terlewat & dilewati ditandai |
 | Detail aktivitas: split per km + interval / lap | ✅ | `/activity/[id]`. Split dari stream intervals.icu: jarak jam, atau GPS bila jarak hanya dibagi rata / tidak konsisten. Data bertangga diratakan, lonjakan & reset dibuang, hasil divalidasi terhadap ringkasan (0.10.2). Interval hanya tampil bila > 1 |
 | Split cocok dengan Strava | 🟡 | Contoh lari 4,4 km: total moving time sama (44:00), HR per km ±1 bpm, pace per km −9 sampai +7 detik (Strava menghitung ulang jarak 4,42 km, jam 4,44 km) |
 | Aktivitas ganda dari dua sumber (Huawei + Strava) dihitung sekali | ✅ | 0.10.1 · `lib/intervals/dedupe.ts`. Berlaku di kalender, ringkasan 7 hari, saran, dan Program |
 | Edit profil dari dalam aplikasi | ✅ | 0.11.0: nama, usia, gaya hidup, fokus, target lomba, tujuan, blok mingguan/mode bebas di Setting › Profil; kondisi, zona, alat, gerakan sejak 0.8 |
-| Halaman Insight `/insight` ("Lihat tren" dari Profil & kartu terkait, tanpa tab baru) | ✅ | 0.15.0 ([INSIGHT.md](INSIGHT.md) I2): tautan di kartu 7 hari (Profil) dan kartu minggu ini (Program), rentang 6/12 minggu tanpa ambil data ulang. Grafik SVG sendiri (I1), tiap grafik punya ringkasan, `aria-label`, dan "Lihat tabel" (I6) |
+| Halaman Insight `/insight` ("Lihat tren" dari Profil & kartu terkait, tanpa tab baru) | ✅ | 0.15.0 ([INSIGHT.md](INSIGHT.md) I2): tautan di kartu minggu ini (Profil, sejak 1.1.0 seluruh kartu) dan kartu minggu ini (Program), rentang 6/12 minggu tanpa ambil data ulang. Grafik SVG sendiri (I1), tiap grafik punya ringkasan, `aria-label`, dan "Lihat tabel" (I6) |
 | Tren kebugaran CTL/ATL/Form, 6/12 minggu | ✅ | 0.15.0 ([INSIGHT.md](INSIGHT.md) #1): pita Form netral −10 sampai +5; CTL/ATL yang tidak dikirim 14 hari diganti kalimat |
 | Km mingguan dengan pembagian 80/20, minggu cutback/deload, kenaikan > 30% ditandai | ✅ | 0.15.0 ([INSIGHT.md](INSIGHT.md) #2): `isHardRun` & ambang coach yang sama, hanya penanda |
 | Easy run: median pace & HR mingguan, cadence vs target personal | ✅ | 0.15.0 ([INSIGHT.md](INSIGHT.md) #3): median hanya dari lari yang punya nilainya; HR/cadence yang tidak ada ditulis "tidak ada data" |
@@ -157,7 +159,7 @@ Aturan ini berlaku untuk setiap fitur baru. Semuanya sudah diuji otomatis.
 | Aturan 80/20 (≥ 2 lari berat dalam 7 hari → Easy) | ✅ | Lari berat = HR ≥ 155, nama sesi, atau pace cepat |
 | Peringatan kenaikan km > 30% + sisa km aman | ✅ | |
 | Concurrent training (setelah ST kaki / lari berat) | ✅ | |
-| Tampilan ringkas + dropdown rekomendasi | ✅ | 0.7 |
+| Tampilan ringkas + dropdown rekomendasi | ✅ | 0.7. Sejak 1.1.0 kartu di Profil dilipat bila ada lebih dari satu saran atau alasan panjang: saran terberat + chip level + "Lihat detail" (`aria-expanded`); diingat per hari, saran baru yang lebih berat membukanya otomatis (`lib/coach-collapse.ts`) |
 | Tombol terapkan saran satu tap (di generator) | ✅ | Anti turun berantai |
 | Saran ringkas satu baris di atas Generator Lari + link ke detail di Profil | ✅ | 0.8.1. Generator Strength masih kartu lengkap |
 | Saran terhadap sesi rencana hari ini ("Rencana: Tempo 45'. Saran: Easy 30'.") | ✅ | 0.13.1 ([PROGRAM-HIDUP.md](PROGRAM-HIDUP.md) §4.5): basisnya rencana, jadi hanya menurunkan, tidak berantai, tidak memblokir. Terapkan membuka generator versi turun atau kartu long run yang dipendekkan. Tanpa program: perilaku lama |
@@ -395,6 +397,8 @@ Ukuran: **S** ≈ < 1 hari · **M** ≈ 1–3 hari · **L** ≈ > 3 hari.
 | ~~**0.17 Terhubung & mudah dipasang**~~ ✅ ([RELEASE-1.0](RELEASE-1.0.md)) | Kirim workout lari (generator dan program) ke kalender intervals.icu sebagai workout terstruktur, diteruskan ke jam (ST tetap di aplikasi, Copy Set tetap); zona HR dan RPE di Setting; rapikan copy (em dash di `lib/`, istilah "Gita"); pemasangan mudah (Deploy to Vercel, INSTALL-WITH-AI.md, AGENTS.md, Vercel CLI) | Workout sampai ke jam tanpa menyalin, dan orang lain bisa memasang sendiri |
 | ~~**1.0 Rilis**~~ ✅ ([RELEASE-1.0](RELEASE-1.0.md)) | Jalur pembaruan untuk fork (GitHub Action membuka PR dari upstream, migrasi aman, langkah manual ditandai); panduan pengguna lengkap dan bantuan di aplikasi; feature freeze, semua dokumen diselaraskan, tag versi | Stabil dan mudah diperbarui tanpa edit kode |
 
+> 2026-11-14: **1.1.0 dirilis** atas permintaan pemilik (rilis minor pertama setelah feature freeze): Profil ringkas (saran Gita dilipat, carousel info Wellness, kartu "Minggu ini · lari", tanpa tombol Generate), ringkasan 7 hari & Week Ledger pindah ke Tren, dan backlog "Bagikan kartu story" dikerjakan sebagai ekspor PNG kartu mingguan.
+>
 > 2026-11-02 (2): **1.0.0 dirilis.** Feature freeze berlaku (RELEASE-1.0 R7): sesudahnya hanya perbaikan bug, keamanan, dan dokumentasi sampai rencana minor berikutnya disetujui. Audit akhir di [RELEASE-1.0 §12](RELEASE-1.0.md#12-audit-akhir-100-2026-11-02).
 >
 > 2026-11-02: **1.0.0-rc.2 dirilis**: README dipersingkat, [REFERENCES.md](REFERENCES.md) dengan label tingkat bukti, [CREDITS.md](CREDITS.md), [GUIDE.md](GUIDE.md) dan halaman Bantuan di aplikasi, [LIMITATIONS.md](LIMITATIONS.md), backlog ditata ulang menjadi "Setelah 1.0", pemeriksa tautan dokumen di CI. Sisa 1.0: feature freeze, dokumen diselaraskan, tag 1.0.0.
@@ -457,7 +461,6 @@ Setelah 1.0 berlaku feature freeze (RELEASE-1.0 R7): rilis hanya perbaikan sampa
 
 | Prioritas | Fitur | Ukuran | Nilai untuk atlet | Catatan |
 | --- | --- | --- | --- | --- |
-| P2 | **Bagikan kartu story** dari `/activity/[id]`: RunTag → PNG transparan 1920×1280 lewat `<canvas>` (DESIGN-SYSTEM §9) | M | Berbagi sesi ke Instagram/WA dengan gaya app | Tanpa data kesehatan di gambar kecuali yang dipilih atlet |
 | P2 | **Gerakan custom**: tambah gerakan sendiri + alat + rentang beban, tetap lewat validator | M | Library mengikuti alat baru tanpa menunggu developer | Butuh migrasi data (bagian `settings`) dan aturan kondisi tetap berlaku |
 | P3 | **Pengingat/notifikasi** (web push) | L | Konsisten latihan | Butuh service worker push dan izin; tanpa server pihak ketiga |
 | P3 | **Plyometric bersyarat**, progresi bertahap | M | Running economy membaik (Llanos-Lagos 2024, [REFERENCES](REFERENCES.md#kekuatan)) | Ditunda (D6, 2026-10-26): hanya bila shin splints nonaktif, dengan sumber dosis dan test |
@@ -491,6 +494,7 @@ Disimpan sebagai riwayat; rinciannya di §4 dan CHANGELOG.
 | Check-in harian, ambang personal (LTHR, HRV, resting HR) | 0.15.2 |
 | Mode offline, kontras non-teks | 0.16 |
 | Kirim workout lari ke kalender intervals.icu, zona HR & RPE, copy `lib/` tanpa em dash | 0.17 |
+| ✅ **Bagikan kartu story**: dikerjakan sebagai kartu mingguan Profil → PNG transparan story 1080×1920 / feed 1080×1350 (bukan RunTag `/activity/[id]` 1920×1280 seperti usulan lama) | 1.1.0 |
 
 ### Ide yang sengaja **tidak** dikerjakan
 
@@ -532,6 +536,7 @@ Disimpan sebagai riwayat; rinciannya di §4 dan CHANGELOG.
 | 1.0.0-rc.1 | 2026-11-01 | Kandidat rilis 1.0: pembaruan lewat PR untuk salinan & fork, migrasi data berversi, lisensi MIT & NOTICE lengkap, berkas kontribusi, Tentang & versi |
 | 1.0.0-rc.2 | 2026-11-02 | README baru, dasar ilmiah dengan label bukti, kredit, panduan pengguna & halaman Bantuan, keterbatasan, backlog setelah 1.0 |
 | **1.0.0** | 2026-11-02 | **Rilis stabil pertama.** Feature freeze. Dokumen diselaraskan dengan kode, audit akhir ([RELEASE-1.0 §12](RELEASE-1.0.md#12-audit-akhir-100-2026-11-02)), video pratinjau |
+| 1.1.0 | 2026-11-14 | Profil ringkas: saran Gita dilipat, carousel info Wellness, kartu "Minggu ini · lari", tombol Generate dihapus; ringkasan 7 hari & Week Ledger pindah ke Tren; bagikan kartu minggu ini sebagai PNG transparan (story/feed, teks terang/gelap, EN/ID) |
 | 0.15.2 | 2026-10-28 | Insight selesai, tubuh & saran: check-in harian (hanya menurunkan, tanpa berantai), ambang pribadi LTHR/HRV/resting HR, ringkasan bulanan, bagian Tubuh, sinkron `checkins` & cadangan v6 |
 | 0.15.1 | 2026-10-28 | Insight tahap 2, tren kekuatan: rincian set di mode latihan, volume ST per pola & session-RPE, heatmap otot (jarang dilatih, ketuk otot), tren PR dengan tahap, kepatuhan mingguan, kalender heatmap |
 | 0.15.0 | 2026-10-28 | Insight tahap 1, tren lari: rute `/insight` (tanpa tab baru), CTL/ATL/Form, km mingguan 80/20, easy run pace/HR/cadence, VDOT per minggu; grafik SVG sendiri dengan "Lihat tabel" |
