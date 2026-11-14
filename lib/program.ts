@@ -11,6 +11,10 @@ import { DEFAULT_TOPS, hrTargets } from "./hr-zones";
 import { addDays } from "@/lib/date";
 import type { Difficulty } from "@/lib/generator/types";
 import { profile, type AthleteProfile } from "@/lib/profile";
+import type { Locale } from "@/lib/i18n/locale";
+import { PROGRAM_LIB, programDay } from "@/lib/i18n/messages/program-lib";
+
+type ProgramText = (typeof PROGRAM_LIB)[Locale];
 
 export type RaceTarget = "5k" | "10k" | "hm" | "fm";
 /** `prebase` (0.13.3): minggu easy sebelum program inti bila Hari H lebih jauh dari panjang maksimal. */
@@ -92,6 +96,8 @@ export interface Program {
   weeks: ProgramWeek[];
   warnings: string[];
   strengthNote: string;
+  /** 1.2.0: peringatan "program lebih pendek dari standar" (juga ada di `warnings`), untuk pratinjau target. */
+  cappedWarning?: string;
 }
 
 // ---------- utilitas waktu & pace ----------
@@ -233,7 +239,8 @@ export const dayNameOf = (date: string) => DAY_NAMES[(new Date(`${date}T00:00:00
 
 // ---------- sesi ----------
 
-export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): Program {
+export function buildProgram(input: ProgramInput, p: AthleteProfile = profile, locale: Locale = "id"): Program {
+  const L = PROGRAM_LIB[locale];
   const spec = RACES[input.race];
   const racePaceSec = input.goalSec / spec.km;
   const easy = zone(p, "easy", "8:00–8:50/km");
@@ -267,7 +274,7 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
     const easySession: ProgramSession = {
       day: raceWeek ? "Rabu" : "Kamis",
       title: `Easy run ${easyMin}'`,
-      detail: `Z2 @ ${easy}, HR < ${easyBelow}. Fokus cadence 175–180.`,
+      detail: L.easyDetail(easy, easyBelow),
       kind: "easy",
       minutes: easyMin,
       intensity: "easy",
@@ -275,7 +282,7 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
     };
 
     // Sesi quality (Selasa) sesuai fase & jarak lomba.
-    const quality = qualitySession({ race: input.race, phase, cutback, raceWeek, w: m <= 0 ? w : m, tempo, interval, norwegian, rp, easy });
+    const quality = qualitySession({ race: input.race, phase, cutback, raceWeek, w: m <= 0 ? w : m, tempo, interval, norwegian, rp, easy, L });
 
     // Minggu lomba: hanya sesi yang jatuh sebelum Hari H.
     const beforeRace = (s: ProgramSession) => !raceWeek || DAY_NAMES.indexOf(s.day) < DAY_NAMES.indexOf(raceDay);
@@ -285,7 +292,7 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
       sessions.push({
         day: "Jumat",
         title: "Recovery run 25'",
-        detail: `Sangat ringan @ ${easy}, HR < 135. Boleh diganti jalan cepat bila kaki berat.`,
+        detail: L.recoveryDetail(easy),
         kind: "recovery",
         minutes: 25,
         intensity: "easy",
@@ -296,8 +303,8 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
     if (raceWeek) {
       sessions.push({
         day: raceDay,
-        title: `LOMBA ${spec.short} · target ${formatGoal(input.goalSec)}`,
-        detail: `Race pace ${rp}. Mulai sedikit lebih lambat 1–2 km pertama, cadence 175–180.`,
+        title: L.raceTitle(spec.short, formatGoal(input.goalSec)),
+        detail: L.raceDetail(rp),
         kind: "race",
         intensity: "high",
         km: spec.km,
@@ -309,8 +316,8 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
         day: "Minggu",
         title: `Long run ${longKm} km`,
         detail: progressive
-          ? `Z2 @ ${easy}; 3 km terakhir @ race pace ${rp}. Latih minum/gel tiap 30–40 menit.`
-          : `Z2 @ ${easy}, HR < ${easyBelow}. Boleh run-walk 4'/1' bila HR naik.`,
+          ? L.longProgressive(easy, rp)
+          : L.longEasy(easy, easyBelow),
         kind: "long",
         intensity: progressive ? "moderate" : "easy",
         km: longKm,
@@ -327,32 +334,34 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
       longRunKm: longKm,
       sessions,
       totalKm,
-      focus: focusText(phase, cutback, raceWeek),
+      focus: focusText(phase, cutback, raceWeek, L),
     });
   }
 
   const warnings: string[] = [];
   const current = input.currentLongRunKm ?? 0;
   if (input.race === "fm" && current < 12) {
-    warnings.push("Full marathon butuh basis kuat. Long run terjauhmu < 12 km. Pertimbangkan program Half Marathon dulu.");
+    warnings.push(L.warn.fm);
   }
   if (input.race === "hm" && current > 0 && current < 6) {
-    warnings.push("Long run terjauhmu < 6 km. Program dimulai dari 10 km. Naikkan dulu ke 8 km dengan lari easy sebelum mulai.");
+    warnings.push(L.warn.hm);
   }
   const peakWeek = weeks.reduce((a, b) => (b.longRunKm > a.longRunKm ? b : a), weeks[0]);
   if (input.runsPerWeek === 3 && peakWeek.longRunKm / peakWeek.totalKm > 0.55) {
-    warnings.push(
-      `Dengan 3 lari/minggu, long run puncak (${peakWeek.longRunKm} km) > 55% volume mingguan. Pilih 4 lari/minggu supaya beban lebih merata.`,
-    );
+    warnings.push(L.warn.peak3(peakWeek.longRunKm));
   }
+  let cappedWarning: string | undefined;
   if (main < spec.weeks) {
     const reached = Math.max(...longs);
     const standard = Math.max(...longRunPlan(spec, input.currentLongRunKm));
-    if (reached < standard) warnings.push(`Program lebih pendek dari standar, jadi long run puncak hanya ${reached} km (program standar ${standard} km).`);
+    if (reached < standard) {
+      cappedWarning = L.warn.capped(reached, standard);
+      warnings.push(cappedWarning);
+    }
   }
   const tempoFast = paceRangeFastSec(tempo);
   if (tempoFast && racePaceSec < tempoFast - 30 && input.race !== "5k") {
-    warnings.push(`Target race pace ${rp} jauh lebih cepat dari zona tempo-mu (${tempo}). Target mungkin terlalu ambisius.`);
+    warnings.push(L.warn.ambitious(rp, tempo));
   }
 
   return {
@@ -362,8 +371,8 @@ export function buildProgram(input: ProgramInput, p: AthleteProfile = profile): 
     racePaceSec,
     weeks,
     warnings,
-    strengthNote:
-      "ST 2×/minggu: Senin (Lower/Full Body) & Rabu (Upper), mengikuti fase: Build lebih berat, Peak dan taper volume dikurangi dengan beban ditahan, minggu lomba hanya Upper ringan. ST kaki terakhir paling lambat 8 hari sebelum Hari H. Jangan taruh ST kaki sehari sebelum sesi Selasa atau long run Minggu.",
+    strengthNote: L.strengthNote,
+    ...(cappedWarning ? { cappedWarning } : {}),
   };
 }
 
@@ -372,17 +381,11 @@ function paceRangeFastSec(range: string): number | undefined {
   return m ? Number(m[1]) * 60 + Number(m[2]) : undefined;
 }
 
-function focusText(phase: Phase, cutback: boolean, raceWeek: boolean): string {
-  if (raceWeek) return "Minggu lomba: segarkan kaki, tidur cukup, jangan coba hal baru.";
-  if (phase === "prebase") return "Pre-Base: lari easy rutin dan long run naik pelan sebelum program inti dimulai.";
-  if (cutback) return "Cutback: volume turun ±25% supaya tubuh beradaptasi (sejalan minggu deload blok).";
-  return {
-    prebase: "",
-    base: "Bangun basis aerobik: mayoritas Z2, kenalkan kecepatan ringan.",
-    build: "Naikkan ambang (tempo) sambil memperpanjang long run.",
-    peak: "Spesifik lomba: interval & race pace, long run terjauh.",
-    taper: "Taper: volume turun, intensitas dijaga singkat.",
-  }[phase];
+function focusText(phase: Phase, cutback: boolean, raceWeek: boolean, L: ProgramText): string {
+  if (raceWeek) return L.focus.raceWeek;
+  if (phase === "prebase") return L.focus.prebase;
+  if (cutback) return L.focus.cutback;
+  return L.focus[phase];
 }
 
 function qualitySession(o: {
@@ -396,22 +399,23 @@ function qualitySession(o: {
   norwegian: string;
   rp: string;
   easy: string;
+  L: ProgramText;
 }): ProgramSession {
-  const { race, phase, cutback, raceWeek, w, tempo, interval, norwegian, rp, easy } = o;
+  const { race, phase, cutback, raceWeek, w, tempo, interval, norwegian, rp, easy, L } = o;
   const day = "Selasa";
   if (raceWeek) {
-    return { day, kind: "quality", minutes: 25, title: "Sharpener 25'", detail: `15' easy + 4×1' @ race pace ${rp} (jeda 1' jalan).`, intensity: "moderate", km: 4 };
+    return { day, kind: "quality", minutes: 25, title: "Sharpener 25'", detail: L.sharpener(rp), intensity: "moderate", km: 4 };
   }
   if (cutback || phase === "taper" || phase === "prebase") {
-    return { day, kind: "quality", minutes: 30, title: "Easy + strides 30'", detail: `25' Z2 @ ${easy} + 4×20" strides santai-cepat.`, intensity: "easy", km: 3.5 };
+    return { day, kind: "quality", minutes: 30, title: "Easy + strides 30'", detail: L.strides(easy), intensity: "easy", km: 3.5 };
   }
   if (phase === "base") {
     return {
       day,
       kind: "quality",
       minutes: 35,
-      title: "Fartlek ringan 35'",
-      detail: `10' Z2, lalu ${w % 2 ? 6 : 8}×1' agak cepat / 1' jog, 5' pendinginan. RPE 5–6.`,
+      title: L.fartlekTitle,
+      detail: L.fartlek(w % 2 ? 6 : 8),
       intensity: "moderate",
       km: 5,
     };
@@ -422,16 +426,16 @@ function qualitySession(o: {
       day,
       kind: "quality",
       title: `Tempo ${reps}×${reps === 2 ? 10 : 8}'`,
-      detail: `10' pemanasan Z2, ${reps}× ${reps === 2 ? 10 : 8}' @ ${tempo} (HR 160–170), jog 2' antar set.`,
+      detail: L.tempo(reps, reps === 2 ? 10 : 8, tempo),
       intensity: "moderate",
       km: 6.5,
     };
   }
   // Peak — spesifik jarak lomba.
-  if (race === "5k") return { day, kind: "quality", title: "Interval 5×800 m", detail: `@ ${interval}, jog 2' antar repetisi. Pemanasan & pendinginan 10'.`, intensity: "high", km: 6.5 };
-  if (race === "10k") return { day, kind: "quality", title: "Interval 4×1 km", detail: `@ ${interval}, jog 2'30" antar repetisi. Pemanasan & pendinginan 10'.`, intensity: "high", km: 7.5 };
-  if (race === "hm") return { day, kind: "quality", title: "Race pace 3×2 km", detail: `@ race pace ${rp}, jog 3' antar set. Pemanasan & pendinginan 10'.`, intensity: "moderate", km: 9 };
-  return { day, kind: "quality", title: "Norwegian 4×4", detail: `4×4' @ ${norwegian} (Z4), recovery jog 3'. Menjaga VO₂max di tengah volume tinggi.`, intensity: "high", km: 7 };
+  if (race === "5k") return { day, kind: "quality", title: "Interval 5×800 m", detail: L.interval5k(interval), intensity: "high", km: 6.5 };
+  if (race === "10k") return { day, kind: "quality", title: "Interval 4×1 km", detail: L.interval10k(interval), intensity: "high", km: 7.5 };
+  if (race === "hm") return { day, kind: "quality", title: "Race pace 3×2 km", detail: L.racePaceHm(rp), intensity: "moderate", km: 9 };
+  return { day, kind: "quality", title: "Norwegian 4×4", detail: L.norwegian(norwegian), intensity: "high", km: 7 };
 }
 
 /** Minggu program yang berjalan pada tanggal tertentu (1-based), atau 0 bila belum mulai / sudah selesai. */
@@ -442,14 +446,15 @@ export function currentWeekIndex(program: Program, today: string): number {
   return 0;
 }
 
-export function weekToText(program: Program, week: ProgramWeek): string {
+export function weekToText(program: Program, week: ProgramWeek, locale: Locale = "id"): string {
+  const L = PROGRAM_LIB[locale];
   const lines = [
-    `${program.spec.label} · Minggu ${week.index}/${program.weeks.length} (${PHASE_LABEL[week.phase]}${week.cutback ? ", cutback" : ""})`,
+    L.weekHead(program.spec.label, week.index, program.weeks.length, PHASE_LABEL[week.phase], week.cutback),
     week.focus,
     "",
-    ...week.sessions.map((s) => `- ${s.day}: ${s.title} · ${s.detail}`),
+    ...week.sessions.map((s) => `- ${programDay(s.day, locale)}: ${s.title} · ${s.detail}`),
     "",
-    `Total ±${week.totalKm} km lari. ${program.strengthNote}`,
+    L.weekTotal(week.totalKm, program.strengthNote),
   ];
   return lines.join("\n");
 }
@@ -465,17 +470,16 @@ export function raceCountdown(program: Pick<Program, "raceDate">, today: string)
 }
 
 /** Checklist umum H-1 (bukan saran medis). Rencana pace dari perkiraan bila ada, selain itu race pace target. */
-export function raceWeekChecklist({ racePaceSec, predictedPaceSec }: { racePaceSec: number; predictedPaceSec?: number }): string[] {
+export function raceWeekChecklist(
+  { racePaceSec, predictedPaceSec }: { racePaceSec: number; predictedPaceSec?: number },
+  locale: Locale = "id",
+): string[] {
+  const c = PROGRAM_LIB[locale].checklist;
   const plan =
     predictedPaceSec !== undefined && Math.round(predictedPaceSec) !== Math.round(racePaceSec)
-      ? `Rencana pace dari perkiraan ${formatPaceSec(predictedPaceSec)} (target ${formatPaceSec(racePaceSec)}). Mulai sedikit lebih lambat di 1–2 km pertama.`
-      : `Rencana pace ${formatPaceSec(racePaceSec)}. Mulai sedikit lebih lambat di 1–2 km pertama.`;
-  return [
-    "Tidur cukup dua malam terakhir sebelum lomba.",
-    "Pakai sepatu yang sudah dipakai latihan, bukan sepatu baru.",
-    "Makan dan minum yang sudah biasa. Hindari menu baru di hari lomba.",
-    plan,
-  ];
+      ? c.predicted(formatPaceSec(predictedPaceSec), formatPaceSec(racePaceSec))
+      : c.plan(formatPaceSec(racePaceSec));
+  return [c.sleep, c.shoes, c.food, plan];
 }
 
 /** Hari ke-1 sampai ke-14 setelah lomba yang hasilnya belum dicatat untuk jarak ini. */

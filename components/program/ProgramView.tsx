@@ -21,6 +21,7 @@ import { PostRaceOffer, RaceWeekChecklist, countdownText } from "./RaceDay";
 import { TargetForm } from "./TargetForm";
 import { WeekSessions } from "./WeekSessions";
 import { useLocale, useT } from "@/lib/i18n/client";
+import { programDay } from "@/lib/i18n/messages/program-lib";
 import { PROGRAM } from "@/lib/i18n/messages/program";
 import { DAY_MONTH, formatDay, WEEKDAY_LONG } from "@/lib/i18n/format";
 
@@ -106,7 +107,7 @@ export function ProgramView({ today, activities, oldest, longAdjust }: { today: 
             <div id="minggu-ini" className="scroll-mt-4">
               <Card
                 title={t.thisWeek(PHASE_LABEL[currentWeek.phase])}
-                action={<CopyButton text={weekToText(program, currentWeek)} label={t.copy} className={`${BUTTON.secondary} min-h-9 px-3 text-[13px]`} />}
+                action={<CopyButton text={weekToText(program, currentWeek, locale)} label={t.copy} className={`${BUTTON.secondary} min-h-9 px-3 text-[13px]`} />}
               >
                 {showStatus && plan.active && (
                   <div id="sesi-minggu-ini" className="mb-4 scroll-mt-4 border-b border-line pb-4 empty:hidden">
@@ -264,7 +265,7 @@ function WeekDetail({ week, sessions, results }: { week: ProgramWeek; sessions: 
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-body font-semibold">
-                    <span className="text-muted">{s.day} {t.suggested} · </span>
+                    <span className="text-muted">{programDay(s.day, locale)} {t.suggested} · </span>
                     {s.title}
                   </p>
                   {st ? (

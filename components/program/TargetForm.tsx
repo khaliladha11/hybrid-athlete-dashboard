@@ -52,11 +52,11 @@ export function TargetForm({ plan, today }: { plan: ProgramPlan; today: string }
   const fromData = completedDistance(race, athlete.raceResults, acts);
   const completedBefore = completedPick ?? fromData;
   const longest = longestRunKm(acts, today);
-  const timeline = useMemo(() => makeTimeline({ race, startDate: effStart, rawLongestKm: longest, completedBefore }), [race, effStart, longest, completedBefore]);
-  const pickTimeline = useMemo(() => makeTimeline({ race, startDate: pickStart, rawLongestKm: longest, completedBefore }), [race, pickStart, longest, completedBefore]);
+  const timeline = useMemo(() => makeTimeline({ race, startDate: effStart, rawLongestKm: longest, completedBefore, locale }), [race, effStart, longest, completedBefore, locale]);
+  const pickTimeline = useMemo(() => makeTimeline({ race, startDate: pickStart, rawLongestKm: longest, completedBefore, locale }), [race, pickStart, longest, completedBefore, locale]);
   const band = timeline.bandOf(raceDate);
-  const ready = readiness(race, acts, athlete.raceResults, today);
-  const spacing = spacingWarnings(race, athlete.raceResults, effStart, raceDate);
+  const ready = readiness(race, acts, athlete.raceResults, today, locale);
+  const spacing = spacingWarnings(race, athlete.raceResults, effStart, raceDate, locale);
   const prediction = useMemo(() => predictRaces({ raceResults: athlete.raceResults, activities: acts, today }), [athlete.raceResults, acts, today]);
   const gap = vdotGap(race, goalSec, prediction?.vdot);
 
@@ -68,10 +68,11 @@ export function TargetForm({ plan, today }: { plan: ProgramPlan; today: string }
     return buildProgram(
       { race, goalSec, startDate: effStart, runsPerWeek, currentLongRunKm: base, weeks: shape.mainWeeks, preBaseWeeks: shape.preBaseWeeks, rawLongestKm: base, raceDate },
       p,
+      locale,
     );
-  }, [race, effStart, raceDate, goalSec, runsPerWeek, acts, today, p]);
+  }, [race, effStart, raceDate, goalSec, runsPerWeek, acts, today, p, locale]);
   const peak = preview ? Math.max(...preview.weeks.map((w) => w.longRunKm)) : 0;
-  const capped = preview?.warnings.find((w) => w.startsWith("Program lebih pendek"));
+  const capped = preview?.cappedWarning;
 
   const pickRace = (r: RaceTarget) => {
     setRace(r);
@@ -158,7 +159,7 @@ export function TargetForm({ plan, today }: { plan: ProgramPlan; today: string }
 
         {band.band !== "blocked" && (
           <div className="space-y-3 rounded-inner border border-line p-3">
-            <p className="t-label text-ink">{phaseSummary(race, band.mainWeeks, band.preBaseWeeks)}</p>
+            <p className="t-label text-ink">{phaseSummary(race, band.mainWeeks, band.preBaseWeeks, locale)}</p>
             <p className="text-[14px]">
               <span className="text-muted">{t.peak}</span>
               <span className="tabular font-semibold">{km(peak)} km</span>

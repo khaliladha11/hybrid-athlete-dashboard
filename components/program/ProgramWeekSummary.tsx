@@ -9,6 +9,7 @@ import { useAthleteSettings } from "@/lib/settings-store";
 import { PostRaceOffer, countdownText } from "./RaceDay";
 import { WeekSessions } from "./WeekSessions";
 import { useLocale } from "@/lib/i18n/client";
+import { PROGRAM_LIB } from "@/lib/i18n/messages/program-lib";
 
 /**
  * Ringkasan minggu program di Profil (docs/PROGRAM-HIDUP.md §4.3):
@@ -33,7 +34,7 @@ export function ProgramWeekSummary({ activities, oldest, today }: { activities: 
   const longText = long
     ? `${week.raceWeek ? "Lomba" : "Long run"} ${long.km ?? "·"} km${long.status === "terpenuhi" ? " ✓" : long.status === "sebagian" ? " · sebagian" : long.status === "dilewati" ? " · dilewati" : ""}`
     : null;
-  const parts = [`Minggu ${index}/${program.weeks.length}`, PHASE_LABEL[week.phase], `${sum.done}/${sum.total} sesi`, longText].filter(Boolean);
+  const parts = [PROGRAM_LIB[locale].summary.week(index, program.weeks.length), PHASE_LABEL[week.phase], PROGRAM_LIB[locale].summary.sessions(sum.done, sum.total), longText].filter(Boolean);
   const countdown = countdownText(program, today, locale);
   return (
     <div className="space-y-2 rounded-card border border-line bg-surface p-2 shadow-card">

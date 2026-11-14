@@ -12,6 +12,8 @@ import type { Difficulty } from "@/lib/generator/types";
 import type { Program, SessionKind } from "@/lib/program";
 import type { ProgramOverride } from "./settings";
 import { stPhaseKey, stSlots, type StPhaseKey } from "./st-phase";
+import type { Locale } from "@/lib/i18n/locale";
+import { WEEK_TEXT } from "@/lib/i18n/messages/program-lib";
 
 export type PlanKind = SessionKind | "st-lower" | "st-upper";
 
@@ -46,7 +48,8 @@ export const sessionId = (programId: string, week: number, day: string, kind: Pl
  * `activeFrom` (0.13.3): sesi sebelum tanggal itu tidak dibuat (program baru yang dimulai di tengah minggu).
  * Sesi setelah Hari H di minggu lomba juga tidak dibuat.
  */
-export function planSessions(program: Program, programId: string, overrides: ProgramOverride[] = [], activeFrom?: string): PlannedSession[] {
+export function planSessions(program: Program, programId: string, overrides: ProgramOverride[] = [], activeFrom?: string, locale: Locale = "id"): PlannedSession[] {
+  const T = WEEK_TEXT[locale];
   const byId = new Map(overrides.map((o) => [o.sessionId, o]));
   const out: PlannedSession[] = [];
   const push = (s: Omit<PlannedSession, "id" | "date" | "override">) => {
@@ -60,11 +63,11 @@ export function planSessions(program: Program, programId: string, overrides: Pro
     const light = stPhase === "taper" || stPhase === "race";
     const slots = stSlots(stPhase, { monday: w.start, wednesday: addDays(w.start, 2), raceDate: program.raceDate });
     const stIntensity = stPhase === "build" ? "high" : "moderate";
-    if (slots.lower) push({ week: w.index, day: "Senin", plannedDate: w.start, kind: "st-lower", title: light ? "ST Lower ringan" : "ST Lower / Full Body", intensity: stIntensity, stPhase });
+    if (slots.lower) push({ week: w.index, day: "Senin", plannedDate: w.start, kind: "st-lower", title: light ? T.stLowerLight : T.stLower, intensity: stIntensity, stPhase });
     for (const s of w.sessions) {
       push({ week: w.index, day: s.day, plannedDate: addDays(w.start, DAY_OFFSET[s.day] ?? 0), kind: s.kind, title: s.title, detail: s.detail, intensity: s.intensity, km: s.km, minutes: s.minutes });
     }
-    if (slots.upper) push({ week: w.index, day: "Rabu", plannedDate: addDays(w.start, 2), kind: "st-upper", title: light ? "ST Upper ringan" : "ST Upper", intensity: stIntensity, stPhase });
+    if (slots.upper) push({ week: w.index, day: "Rabu", plannedDate: addDays(w.start, 2), kind: "st-upper", title: light ? T.stUpperLight : T.stUpper, intensity: stIntensity, stPhase });
   }
   return out.sort((a, b) => a.plannedDate.localeCompare(b.plannedDate) || a.id.localeCompare(b.id));
 }

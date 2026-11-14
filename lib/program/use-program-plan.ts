@@ -11,6 +11,7 @@ import { addDays } from "@/lib/date";
 import type { Activity, IntervalsError } from "@/lib/intervals/types";
 import { PREF_KEYS } from "@/lib/preference-keys";
 import { useStoredString } from "@/lib/preferences";
+import { useLocale } from "@/lib/i18n/client";
 import { buildProgram, parseGoal, type Program } from "@/lib/program";
 import { useResolvedProfile } from "@/lib/settings-store";
 import { useStSessions } from "@/lib/st-session-store";
@@ -76,6 +77,7 @@ export function useProgramPlan({ activities, oldest, today }: { activities: Acti
   const [raw, setRaw] = useStoredString(PREF_KEYS.program, "");
   const settings = useMemo(() => parseProgramSettings(raw, today), [raw, today]);
   const p = useResolvedProfile();
+  const locale = useLocale();
   const log = useTrainingLog();
   const stSessions = useStSessions();
   const saved = !!raw;
@@ -122,9 +124,10 @@ export function useProgramPlan({ activities, oldest, today }: { activities: Acti
         raceDate: settings.raceDate,
       },
       p,
+      locale,
     );
-  }, [goalSec, settings.race, settings.startDate, settings.raceDate, settings.runsPerWeek, base, p]);
-  const sessions = useMemo(() => (program ? planSessions(program, programIdOf(settings), settings.overrides, settings.activeFrom) : []), [program, settings]);
+  }, [goalSec, settings.race, settings.startDate, settings.raceDate, settings.runsPerWeek, base, p, locale]);
+  const sessions = useMemo(() => (program ? planSessions(program, programIdOf(settings), settings.overrides, settings.activeFrom, locale) : []), [program, settings, locale]);
   const logDates = useMemo(() => log.map((e) => e.date), [log]);
 
   // Arsip: dibangun ulang dari pengaturan beku, hanya sesi sebelum program berikutnya berlaku.
@@ -147,8 +150,9 @@ export function useProgramPlan({ activities, oldest, today }: { activities: Acti
             raceDate: a.raceDate,
           },
           p,
+          locale,
         );
-        return [{ archive: a, program: prog, sessions: planSessions(prog, a.id, a.overrides, a.activeFrom).filter((s) => s.plannedDate < a.endedAt) }];
+        return [{ archive: a, program: prog, sessions: planSessions(prog, a.id, a.overrides, a.activeFrom, locale).filter((s) => s.plannedDate < a.endedAt) }];
       }),
     [settings.archived, p],
   );

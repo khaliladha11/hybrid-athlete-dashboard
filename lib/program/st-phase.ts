@@ -14,6 +14,8 @@
  */
 import type { Difficulty, Duration, StrengthWorkout } from "@/lib/generator/types";
 import type { Phase } from "@/lib/program";
+import type { Locale } from "@/lib/i18n/locale";
+import { WEEK_TEXT } from "@/lib/i18n/messages/program-lib";
 
 export type StPhaseKey = "base" | "build" | "build-cutback" | "peak" | "taper" | "race";
 export const ST_PHASE_KEYS: readonly StPhaseKey[] = ["base", "build", "build-cutback", "peak", "taper", "race"];
@@ -67,13 +69,18 @@ export function stSlots(key: StPhaseKey, o: { monday: string; wednesday: string;
  * Terapkan batas set fase ke workout hasil generator. Beban yang ditahan diatur lewat `applyProgression`
  * (opsi `holdLoad`), supaya alasan Gita tetap satu sumber.
  */
-export function applyPhaseRule(w: StrengthWorkout, rule: StPhaseRule): StrengthWorkout {
+export function applyPhaseRule(w: StrengthWorkout, rule: StPhaseRule, locale: Locale = "id"): StrengthWorkout {
   if (!rule.maxSets) return w;
   const items = w.items.map((it) => {
     if (it.phase !== "main") return it;
     const max = (it.accessory ? rule.maxAccessorySets : undefined) ?? rule.maxSets!;
     return it.sets > max ? { ...it, sets: max } : it;
   });
-  const acc = rule.maxAccessorySets ? `, aksesori ${rule.maxAccessorySets}` : "";
-  return { ...w, items, notes: [...w.notes, `${rule.label}. Set gerakan inti maks ${rule.maxSets}${acc}${rule.holdLoad ? ", beban tidak dinaikkan" : ""}.`] };
+  const note = WEEK_TEXT[locale].stPhaseNote(stPhaseLabel(rule.key, locale), rule.maxSets, rule.maxAccessorySets ?? null, rule.holdLoad);
+  return { ...w, items, notes: [...w.notes, note] };
+}
+
+/** Label fase ST untuk tampilan dan alasan progresi. */
+export function stPhaseLabel(key: StPhaseKey, locale: Locale = "id"): string {
+  return WEEK_TEXT[locale].stPhase[key] ?? ST_PHASE_RULES[key].label;
 }

@@ -31,7 +31,7 @@ import {
   type StrengthWorkout,
 } from "@/lib/generator";
 import type { StrengthPrefill } from "@/lib/program/to-generator";
-import { applyPhaseRule, ST_PHASE_RULES } from "@/lib/program/st-phase";
+import { applyPhaseRule, stPhaseLabel, ST_PHASE_RULES } from "@/lib/program/st-phase";
 import { withStSessions, type Advice, type TodayDone } from "@/lib/coach";
 import { todayWib } from "@/lib/date";
 import { PREF_KEYS } from "@/lib/preference-keys";
@@ -140,10 +140,10 @@ export function StrengthGenerator({
   // Beban gerakan ★ disesuaikan dengan riwayat sesi atau PR (tetap dalam batas library, atau sejak 0.14.0 batas alat & keamanan).
   const workout = useMemo(() => {
     if (!generated) return null;
-    const holdLoad = phaseRule?.holdLoad ? phaseRule.label.split(":")[0] : undefined;
+    const holdLoad = phaseRule?.holdLoad ? stPhaseLabel(phaseRule.key, locale).split(":")[0] : undefined;
     const w = applyProgression(generated, movements, log, prs, { blockStart: block.start, free, holdLoad });
-    return phaseRule ? applyPhaseRule(w, phaseRule) : w;
-  }, [generated, movements, log, prs, block.start, free, phaseRule]);
+    return phaseRule ? applyPhaseRule(w, phaseRule, locale) : w;
+  }, [generated, movements, log, prs, block.start, free, phaseRule, locale]);
   const startSession = () => {
     if (!workout) return;
     setActiveRaw(JSON.stringify(startWorkout({ id: newEntryId(), nowIso: new Date().toISOString(), workout, blockIndex: block.index, planSessionId: fromPlan ? prefill?.sessionId : undefined })));

@@ -20,6 +20,7 @@ import type { Activity } from "@/lib/intervals/types";
 import { isLegSession, type StSession } from "@/lib/st-session";
 import { isDone, weekBounds, type SessionResult } from "./compliance";
 import { isRunKind, type PlannedSession } from "./sessions";
+import { WEEK_TEXT } from "@/lib/i18n/messages/program-lib";
 
 export const dayName = (d: string, locale: Locale = "id") => formatDay(locale, d, WEEKDAY_LONG);
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
@@ -46,9 +47,11 @@ export interface Recommendation {
 
 export function recommendToday(
   remaining: PlannedSession[],
-  ctx: { today: string; weekEnd: string; activities: Activity[]; stSessions?: StSession[] },
+  ctx: { today: string; weekEnd: string; activities: Activity[]; stSessions?: StSession[]; locale?: Locale },
 ): Recommendation {
   const { today } = ctx;
+  const locale = ctx.locale ?? "id";
+  const T = WEEK_TEXT[locale];
   const yesterday = addDays(today, -1);
   const recent = ctx.activities.filter((a) => a.date === today || a.date === yesterday);
   const hardYesterday = ctx.activities.find((a) => a.date === yesterday && (isHardRun(a) || isLongRun(a)));
@@ -61,13 +64,13 @@ export function recommendToday(
   const blocked = new Map<string, string>();
   for (const s of remaining) {
     if ((s.kind === "quality" || s.kind === "long") && hardYesterday) {
-      blocked.set(s.id, `${s.title} tidak disarankan hari ini karena kemarin ${isLongRun(hardYesterday) ? "long run" : "lari berat"}.`);
+      blocked.set(s.id, T.afterHard(s.title, isLongRun(hardYesterday)));
     } else if (s.kind === "quality" && longOpen && daysLeft <= 2) {
-      blocked.set(s.id, `${s.title} tidak disarankan hari ini supaya tidak sehari sebelum long run.`);
+      blocked.set(s.id, T.beforeLong(s.title));
     } else if (s.kind === "quality" && s.intensity === "high" && legSt) {
-      blocked.set(s.id, `${s.title} tidak disarankan hari ini karena ada ST kaki kemarin atau hari ini (lari maks Moderate).`);
+      blocked.set(s.id, T.afterLegSt(s.title));
     } else if (s.kind === "st-lower" && hardRecent && remaining.some((x) => x.kind === "st-upper")) {
-      blocked.set(s.id, `${s.title} sebaiknya tidak hari ini; setelah lari berat atau long run, ST Upper didahulukan.`);
+      blocked.set(s.id, T.upperFirst(s.title));
     }
   }
   const allowed = remaining.filter((s) => !blocked.has(s.id) && s.kind !== "race");
@@ -85,25 +88,20 @@ export function recommendToday(
   const session = race ?? pick ?? null;
   const reasons: string[] = [];
   if (session) {
-    if (session.kind === "race") reasons.push("Hari H.");
-    else if (session.plannedDate === today) reasons.push(`Disarankan hari ${dayName(today)} di rencana.`);
-    else if (session.kind === "long" && daysLeft <= 2) reasons.push(`Long run belum dikerjakan dan minggu ini tinggal ${daysLeft} hari.`);
-    else if (session.plannedDate < today) reasons.push(`Disarankan ${dayName(session.plannedDate)}, belum dikerjakan.`);
-    else reasons.push(`Disarankan ${dayName(session.plannedDate)}; boleh dikerjakan lebih awal.`);
+    if (session.kind === "race") reasons.push(T.race);
+    else if (session.plannedDate === today) reasons.push(T.today(dayName(today, locale)));
+    else if (session.kind === "long" && daysLeft <= 2) reasons.push(T.longLeft(daysLeft));
+    else if (session.plannedDate < today) reasons.push(T.overdue(dayName(session.plannedDate, locale)));
+    else reasons.push(T.early(dayName(session.plannedDate, locale)));
   } else if (remaining.length) {
-    reasons.push("Sesi tersisa sebaiknya tidak hari ini. Istirahat atau pilih sendiri bila tubuh terasa segar.");
+    reasons.push(T.rest);
   }
   const notToday = remaining.filter((s) => blocked.has(s.id)).map((s) => blocked.get(s.id)!);
   return { session, reasons, notToday };
 }
 
 /** Kenapa sesi yang tersisa di akhir minggu tetap penting (lembut, tanpa rasa bersalah). */
-const WHY: Record<"quality" | "long" | "easy" | "st", string> = {
-  quality: "Minggu ini tanpa sesi quality. Wajar sesekali, kalau sering progres pace bisa melambat.",
-  long: "Minggu ini tanpa long run. Wajar sesekali, kalau sering daya tahan untuk jarak lomba bisa tertinggal.",
-  easy: "Ada easy run yang tidak dikerjakan. Wajar sesekali, kalau sering volume dasar mingguan bisa turun.",
-  st: "Minggu ini tanpa sesi ST. Wajar sesekali, kalau sering kekuatan yang sudah dibangun bisa menurun.",
-};
+type WhyKey = "quality" | "long" | "easy" | "st";
 
 export interface WeekEndNote {
   /** `{programId}:{minggu}`, untuk tanda sudah ditutup. */
@@ -119,7 +117,13 @@ const programIdOfSession = (id: string) => id.split(":").slice(0, -3).join(":");
  * Catatan untuk minggu yang baru selesai (minggu sebelum minggu `today`), bila ada sesi yang belum dikerjakan dan
  * tidak dilewati. Null bila minggu lengkap, sudah ditutup (`seen`), atau tidak ada minggu program sebelumnya.
  */
-export function weekEndNote(sessions: PlannedSession[], results: Map<string, SessionResult>, today: string, seen: readonly string[] = []): WeekEndNote | null {
+export function weekEndNote(
+  sessions: PlannedSession[],
+  results: Map<string, SessionResult>,
+  today: string,
+  seen: readonly string[] = [],
+  locale: Locale = "id",
+): WeekEndNote | null {
   const lastWeek = weekBounds(addDays(weekBounds(today).start, -1));
   const list = sessions.filter((s) => s.plannedDate >= lastWeek.start && s.plannedDate <= lastWeek.end);
   if (!list.length) return null;
@@ -127,7 +131,7 @@ export function weekEndNote(sessions: PlannedSession[], results: Map<string, Ses
   if (seen.includes(id)) return null;
   const missing = list.filter((s) => results.get(s.id)?.status === "belum" && s.kind !== "race");
   if (!missing.length) return null;
-  const kinds = new Set(missing.map((s) => (s.kind === "quality" ? "quality" : s.kind === "long" ? "long" : isRunKind(s.kind) ? "easy" : "st") as keyof typeof WHY));
-  const lines = (["quality", "long", "easy", "st"] as const).filter((k) => kinds.has(k)).map((k) => WHY[k]);
+  const kinds = new Set(missing.map((s) => (s.kind === "quality" ? "quality" : s.kind === "long" ? "long" : isRunKind(s.kind) ? "easy" : "st") as WhyKey));
+  const lines = (["quality", "long", "easy", "st"] as const).filter((k) => kinds.has(k)).map((k) => WEEK_TEXT[locale].why[k]);
   return { id, week: list[0].week, lines };
 }

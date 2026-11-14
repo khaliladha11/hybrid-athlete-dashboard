@@ -54,7 +54,8 @@ export function toGenerator(s: PlannedSession): GeneratorTarget {
       // 4×4 butuh minimal 45' (pemanasan + 28' kerja).
       if (/^Norwegian 4×4/i.test(t)) return { to: "run", difficulty: "high", duration: duration < 45 ? 45 : duration, pattern: "4x4" };
       if (/^Interval/i.test(t)) return { to: "run", difficulty: "high", duration };
-      if (/^Fartlek/i.test(t)) return { to: "run", difficulty: "moderate", duration };
+      // 1.2.0: "Fartlek ringan" (ID) dan "Easy fartlek" (EN).
+      if (/fartlek/i.test(t)) return { to: "run", difficulty: "moderate", duration };
       return { to: "card" };
     }
   }

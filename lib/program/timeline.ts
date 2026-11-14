@@ -14,6 +14,9 @@ import type { Activity } from "@/lib/intervals/types";
 import { MIN_RAMP_KM, RACES, longRunPlan, nextLongRun, phaseCounts, type RaceTarget } from "@/lib/program";
 import { vdot } from "@/lib/run-zones";
 import { longestRunKm } from "./prediction";
+import { formatNumber } from "@/lib/i18n/format";
+import type { Locale } from "@/lib/i18n/locale";
+import { TIMELINE_TEXT } from "@/lib/i18n/messages/program-lib";
 
 export interface TimelineRule {
   /** Minimum rekomendasi umum (minggu). FM: 12 bila sudah pernah menyelesaikan FM. */
@@ -36,7 +39,7 @@ export type Band = "blocked" | "red" | "yellow" | "green" | "grey";
 const DAY_MS = 86_400_000;
 const dayDiff = (a: string, b: string) => Math.round((Date.parse(`${a}T00:00:00Z`) - Date.parse(`${b}T00:00:00Z`)) / DAY_MS);
 const floorHalf = (km: number) => Math.floor(km * 2) / 2;
-const km = (v: number) => v.toLocaleString("id-ID");
+const km = (v: number, locale: Locale = "id") => formatNumber(locale, v);
 
 /** Batas teknis: taper + 2 minggu latihan. Di bawahnya program tidak bisa disusun. */
 export const hardFloor = (race: RaceTarget) => RACES[race].taperWeeks + 2;
@@ -76,6 +79,8 @@ export interface TimelineContext {
   rawLongestKm?: number;
   /** Pernah menyelesaikan jarak ini (dari data atau pilihan atlet). */
   completedBefore: boolean;
+  /** 1.2.0: bahasa alasan band. Bawaan Indonesia. */
+  locale?: Locale;
 }
 
 export interface BandResult {
@@ -105,6 +110,8 @@ export function makeTimeline(ctx: TimelineContext) {
   const effectiveMin = Math.max(tableMin, dataMin.weeks);
   const earliestDate = addDays(startOfWeekMonday(ctx.startDate), (floor - 1) * 7);
   const range = `${rule.rec[0]}–${rule.rec[1]}`;
+  const locale = ctx.locale ?? "id";
+  const T = TIMELINE_TEXT[locale];
 
   const bandOf = (raceDate: string): BandResult => {
     const weeks = weeksBetween(ctx.startDate, raceDate);
@@ -115,26 +122,26 @@ export function makeTimeline(ctx: TimelineContext) {
         band: "blocked",
         preBaseWeeks: 0,
         mainWeeks: weeks,
-        reasons: [`Program ${spec.label} butuh paling sedikit ${floor} minggu (taper ${spec.taperWeeks} minggu dan 2 minggu latihan). Tanggal paling awal ${formatDateId(earliestDate)}.`],
+        reasons: [T.blocked(spec.label, floor, spec.taperWeeks, formatDateId(earliestDate, locale))],
       };
     }
     const reasons: string[] = [];
     let band: Band;
     if (weeks > rule.max) {
       band = "grey";
-      reasons.push(`Lebih dari ${rule.max} minggu: ${weeks - rule.max} minggu pre-Base (lari easy dan long run naik pelan) sebelum program ${rule.max} minggu.`);
+      reasons.push(T.grey(rule.max, weeks - rule.max));
     } else if (weeks < effectiveMin) {
       band = "red";
-      if (dataMin.weeks > tableMin) reasons.push(dataReason(ctx.race, dataMin));
-      else reasons.push(`Rekomendasi umum ${spec.label} paling sedikit ${tableMin} minggu${rule.minCompleted && !ctx.completedBefore ? ` (${rule.minCompleted} bila sudah pernah menyelesaikan jarak ini)` : ""}. Tanggal ini memberi ${weeks} minggu.`);
+      if (dataMin.weeks > tableMin) reasons.push(dataReason(ctx.race, dataMin, locale));
+      else reasons.push(T.red(spec.label, tableMin, rule.minCompleted && !ctx.completedBefore ? rule.minCompleted : null, weeks));
     } else if (weeks < rule.rec[0]) {
       band = "yellow";
-      reasons.push(`Di atas minimum, tapi di bawah rekomendasi umum ${range} minggu. Fase Base dipersingkat.`);
+      reasons.push(T.yellow(range));
     } else {
       band = "green";
-      reasons.push(weeks > rule.rec[1] ? `Lebih panjang dari rekomendasi umum ${range} minggu, masih dalam batas program.` : `Sesuai rekomendasi umum ${range} minggu.`);
+      reasons.push(weeks > rule.rec[1] ? T.longer(range) : T.matches(range));
     }
-    if (dataMin.noData) reasons.push(`Belum ada long run 30 hari terakhir, jadi minimum dari data dihitung dari long run awal program (${km(dataMin.fromKm)} km).`);
+    if (dataMin.noData) reasons.push(T.noData(km(dataMin.fromKm, locale)));
     const preBaseWeeks = band === "grey" ? weeks - rule.max : 0;
     return { ...base, band, preBaseWeeks, mainWeeks: weeks - preBaseWeeks, reasons };
   };
@@ -142,14 +149,15 @@ export function makeTimeline(ctx: TimelineContext) {
   return { tableMin, dataMin, effectiveMin, earliestDate, rule, bandOf };
 }
 
-function dataReason(race: RaceTarget, d: DataMin): string {
+function dataReason(race: RaceTarget, d: DataMin, locale: Locale): string {
   const spec = RACES[race];
-  const from = d.noData ? `Long run awal program ${km(d.fromKm)} km` : `Long run terjauhmu ${km(d.fromKm)} km`;
-  return `${from}. Untuk mencapai long run puncak ${km(d.targetKm)} km dengan kenaikan aman ditambah taper ${spec.taperWeeks} minggu, butuh minimal ${d.weeks} minggu.`;
+  const T = TIMELINE_TEXT[locale];
+  const from = d.noData ? T.fromStart(km(d.fromKm, locale)) : T.fromLongest(km(d.fromKm, locale));
+  return T.data(from, km(d.targetKm, locale), spec.taperWeeks, d.weeks);
 }
 
 /** "PRE-BASE 2 · BASE 4 · BUILD 5 · PEAK 4 · TAPER 3 MINGGU" (fase kosong tidak ditulis). */
-export function phaseSummary(race: RaceTarget, mainWeeks: number, preBaseWeeks = 0): string {
+export function phaseSummary(race: RaceTarget, mainWeeks: number, preBaseWeeks = 0, locale: Locale = "id"): string {
   const c = phaseCounts(RACES[race], mainWeeks);
   const parts: [string, number][] = [
     ["Pre-Base", preBaseWeeks],
@@ -158,7 +166,7 @@ export function phaseSummary(race: RaceTarget, mainWeeks: number, preBaseWeeks =
     ["Peak", c.peak],
     ["Taper", c.taper],
   ];
-  return `${parts.filter(([, n]) => n > 0).map(([l, n]) => `${l} ${n}`).join(" · ")} minggu`;
+  return `${parts.filter(([, n]) => n > 0).map(([l, n]) => `${l} ${n}`).join(" · ")} ${TIMELINE_TEXT[locale].weeks}`;
 }
 
 /** Rata-rata km lari per minggu dalam 4 minggu terakhir. */
@@ -186,33 +194,35 @@ export interface Readiness {
 }
 
 /** Syarat umum sebelum HM/FM (peringatan lunak). 5K/10K tanpa syarat. */
-export function readiness(race: RaceTarget, activities: Activity[], raceResults: RaceResult[], today: string): Readiness {
+export function readiness(race: RaceTarget, activities: Activity[], raceResults: RaceResult[], today: string, locale: Locale = "id"): Readiness {
+  const T = TIMELINE_TEXT[locale];
   if (race === "5k" || race === "10k") return { checks: [], notes: [] };
   const avg = weeklyAvgKm(activities, today);
   const longest = longestRunKm(activities, today) ?? 0;
   const minAvg = race === "hm" ? 25 : 24;
   const checks: ReadinessCheck[] = [
-    { label: race === "hm" ? "Rata-rata ≥ 25 km per minggu (4 minggu terakhir)" : "Rata-rata ≥ 24 km per minggu, idealnya 32–48 km (4 minggu terakhir)", met: avg >= minAvg, value: `${km(avg)} km` },
-    { label: "Long run terjauh 30 hari ≥ 10 km", met: longest >= 10, value: `${km(longest)} km` },
+    { label: race === "hm" ? T.avgHm : T.avgFm, met: avg >= minAvg, value: `${km(avg, locale)} km` },
+    { label: T.longest, met: longest >= 10, value: `${km(longest, locale)} km` },
   ];
   const notes: string[] = [];
-  if (checks.some((c) => !c.met)) notes.push("Pertimbangkan Hari H lebih jauh, atau mulai dengan pre-Base.");
+  if (checks.some((c) => !c.met)) notes.push(T.further);
   if (race === "fm" && !completedDistance("hm", raceResults, activities) && !completedDistance("fm", raceResults, activities)) {
-    notes.push("Sebelum maraton pertama, umumnya disarankan sekitar satu tahun lari rutin.");
+    notes.push(T.firstFm);
   }
   return { checks, notes };
 }
 
 /** Jarak antar lomba (hanya aturan FM yang punya sumber jelas). */
-export function spacingWarnings(race: RaceTarget, raceResults: RaceResult[], startDate: string, raceDate: string): string[] {
+export function spacingWarnings(race: RaceTarget, raceResults: RaceResult[], startDate: string, raceDate: string, locale: Locale = "id"): string[] {
+  const T = TIMELINE_TEXT[locale];
   const prev = raceResults.filter((r) => r.distance === "fm" && r.date < raceDate).sort((a, b) => b.date.localeCompare(a.date))[0];
   if (!prev) return [];
   const out: string[] = [];
   if (dayDiff(startDate, prev.date) < 14) {
-    out.push(`Maraton terakhirmu ${formatDateId(prev.date)}, kurang dari 2 minggu sebelum program mulai. Sisihkan 1–2 minggu khusus pemulihan dulu.`);
+    out.push(T.recover(formatDateId(prev.date, locale)));
   }
   if (race === "fm" && dayDiff(raceDate, prev.date) < 84) {
-    out.push(`Hari H kurang dari 12 minggu setelah maraton terakhirmu (${formatDateId(prev.date)}). Untuk target waktu umumnya disarankan 8–12 minggu, dan ≥ 12 minggu bagi pelari yang belum berpengalaman.`);
+    out.push(T.spacing(formatDateId(prev.date, locale)));
   }
   return out;
 }

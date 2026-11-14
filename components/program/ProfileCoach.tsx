@@ -26,7 +26,7 @@ export function ProfileCoach({ advice: serverAdvice, activities, oldest, today }
   const checkins = useCheckins();
   // 0.14.3: rencana hari ini = sesi minggu ini yang direkomendasikan untuk hari ini (bukan yang jatuh di tanggal ini).
   const week = plan.active && !plan.loading ? weekSessions(plan.sessions, plan.results, today) : null;
-  const session = week ? recommendToday(week.remaining, { today, weekEnd: week.end, activities: plan.activities, stSessions }).session : null;
+  const session = week ? recommendToday(week.remaining, { today, weekEnd: week.end, activities: plan.activities, stSessions, locale }).session : null;
   // Sesi mode latihan di perangkat & aturan hari yang sama (0.14.1).
   const advice = useMemo(() => {
     const plannedToday = { run: !!session && isRunKind(session.kind), strength: !!session && !isRunKind(session.kind) };

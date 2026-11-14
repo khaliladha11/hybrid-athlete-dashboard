@@ -34,11 +34,12 @@ export function WeekSessions({
 }) {
   const stSessions = useStSessions();
   const t = useT(PROGRAM).week;
+  const locale = useLocale();
   const program = plan.program;
   if (!program || !plan.active || plan.loading) return null;
   const week = weekSessions(plan.sessions, plan.results, today);
-  const rec = recommendToday(week.remaining, { today, weekEnd: week.end, activities: plan.activities, stSessions });
-  const note = weekEndNote(plan.sessions, plan.results, today, plan.settings.weekNotesSeen);
+  const rec = recommendToday(week.remaining, { today, weekEnd: week.end, activities: plan.activities, stSessions, locale });
+  const note = weekEndNote(plan.sessions, plan.results, today, plan.settings.weekNotesSeen, locale);
   const others = week.remaining.filter((s) => s.id !== rec.session?.id);
   const done = week.all.length - week.remaining.length;
 

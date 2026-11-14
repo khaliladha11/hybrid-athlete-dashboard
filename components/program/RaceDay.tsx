@@ -17,7 +17,7 @@ export function countdownText(program: Program, today: string, locale: Locale = 
 
 /** Minggu lomba (PROGRAM-HIDUP §4.9): checklist umum H-1 dengan rencana pace. Bukan saran medis. */
 export function RaceWeekChecklist({ program, predictedPaceSec }: { program: Program; predictedPaceSec?: number }) {
-  const items = raceWeekChecklist({ racePaceSec: program.racePaceSec, predictedPaceSec });
+  const items = raceWeekChecklist({ racePaceSec: program.racePaceSec, predictedPaceSec }, useLocale());
   const t = useT(PROGRAM).race;
   return (
     <div className="mt-4 rounded-inner border border-line-strong p-3">
