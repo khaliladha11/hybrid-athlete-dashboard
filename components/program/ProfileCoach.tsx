@@ -45,5 +45,5 @@ export function ProfileCoach({ advice: serverAdvice, activities, oldest, today }
     else if (s.difficulty || s.duration) href = generatorHref(session, target, { difficulty: s.difficulty, duration: s.duration }) ?? undefined;
     line = { text, href };
   }
-  return <CoachCard id="saran" tour="saran" advice={advice} planLine={line} />;
+  return <CoachCard id="saran" tour="saran" advice={advice} planLine={line} collapseDay={today} />;
 }

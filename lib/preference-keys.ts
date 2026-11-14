@@ -30,6 +30,10 @@ export const PREF_KEYS = {
   sendQueue: "hybrid-athlete.send-queue.v1",
   /** Catatan ST di kalender intervals.icu (0.17, bawaan mati; per perangkat). */
   stCalendarNote: "hybrid-athlete.st-calendar-note",
+  /** Kartu Saran Gita Profil dibuka/ditutup hari ini (1.1.0, per perangkat, tidak disinkron). */
+  coachCollapse: "hybrid-athlete.coach-collapse",
+  /** Pilihan ekspor kartu mingguan: format, tinta, bahasa, watermark (1.1.0, per perangkat). */
+  shareCard: "hybrid-athlete.share-card",
 } as const;
 
 /**

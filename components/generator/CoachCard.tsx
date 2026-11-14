@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
+import { coachOpen, isCollapsible, mainAdvice, nextCollapseState, parseCollapseState } from "@/lib/coach-collapse";
+import { PREF_KEYS } from "@/lib/preference-keys";
+import { pillClasses } from "@/components/ui/tones";
 import { suggestFor, type Advice, type AdviceTarget, type Suggestion } from "@/lib/coach";
 import { DIFFICULTY_LABEL, STRENGTH_TYPE_LABEL, type Difficulty, type Duration, type StrengthType } from "@/lib/generator/types";
 import { adviceSeverity, suggestionSeverity } from "./coach-severity";
@@ -18,6 +21,7 @@ export function CoachCard({
   id,
   tour,
   planLine,
+  collapseDay,
 }: {
   advice: Advice[];
   /** Anchor (mis. "saran") supaya bisa ditautkan dari halaman generator. */
@@ -29,12 +33,44 @@ export function CoachCard({
   onApply?: (s: Suggestion) => void;
   /** "Rencana: … Saran: …" dari sesi program hari ini (0.13.1); `href` = Terapkan ke generator/kartu. */
   planLine?: { text: string; href?: string };
+  /**
+   * Profil (1.1.0): tanggal WIB hari ini. Bila diisi dan isinya banyak, kartu bisa dilipat: kalimat utama + chip
+   * severity + "Lihat detail". Pilihan diingat per hari; saran baru yang lebih berat membukanya otomatis.
+   */
+  collapseDay?: string;
 }) {
   // Level hasil menerapkan saran; selama user tetap di level ini, "turun satu level"
   // tidak ditawarkan lagi (supaya tidak turun berantai High → Moderate → Easy).
   const [appliedLevel, setAppliedLevel] = useState<Difficulty | null>(null);
   const relevant = target ? advice.filter((a) => a.targets.includes(target)) : advice;
+  const severity0 = adviceSeverity(relevant);
+  const collapsible = !!collapseDay && relevant.length > 0 && isCollapsible(relevant);
+  const rank = severity0.rank ?? 0;
+  // Server dan render pertama: tertutup. Setelah itu status hari ini dibaca dari perangkat.
+  const [open, setOpen] = useState(false);
+  const bodyId = useId();
+  useEffect(() => {
+    if (!collapsible || !collapseDay) return;
+    let stored = null;
+    try {
+      stored = parseCollapseState(localStorage.getItem(PREF_KEYS.coachCollapse));
+    } catch {}
+    const next = coachOpen(stored, collapseDay, rank);
+    setOpen(next);
+    try {
+      localStorage.setItem(PREF_KEYS.coachCollapse, JSON.stringify(nextCollapseState(collapseDay, next, rank)));
+    } catch {}
+  }, [collapsible, collapseDay, rank]);
   if (!relevant.length) return null;
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    try {
+      localStorage.setItem(PREF_KEYS.coachCollapse, JSON.stringify(nextCollapseState(collapseDay!, next, rank)));
+    } catch {}
+  };
+  const showList = !collapsible || open;
+  const main = collapsible ? mainAdvice(relevant) : undefined;
 
   const s =
     target && current
@@ -46,7 +82,7 @@ export function CoachCard({
     ...(s.type ? [{ label: STRENGTH_TYPE_LABEL[s.type], apply: { type: s.type } }] : []),
   ];
 
-  const severity = target && current ? suggestionSeverity(s) : adviceSeverity(relevant);
+  const severity = target && current ? suggestionSeverity(s) : severity0;
 
   return (
     <aside id={id} data-tour={tour} role="note" className="scroll-mt-4 rounded-card border border-line bg-surface p-5 shadow-card">
@@ -54,9 +90,18 @@ export function CoachCard({
         <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-brand-ink" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M12 9v4m0 4h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
         </svg>
-        <h2 className="t-label flex-1 shrink-0 whitespace-nowrap">
-          Saran Gita · hari ini · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
-        </h2>
+        {collapsible ? (
+          <h2 className="t-label flex flex-1 shrink-0 items-center gap-2 whitespace-nowrap">
+            Saran Gita · hari ini
+            <span className={severity.tone ? pillClasses(severity.tone) : "inline-flex h-[22px] items-center rounded-full bg-subtle-strong px-[9px] font-mono text-[11px] font-medium tracking-[0.08em] text-ink uppercase"}>
+              {severity.word}
+            </span>
+          </h2>
+        ) : (
+          <h2 className="t-label flex-1 shrink-0 whitespace-nowrap">
+            Saran Gita · hari ini · <span className={`font-semibold ${severity.className}`}>{severity.word}</span>
+          </h2>
+        )}
         {onApply &&
           actions.map((a) => (
             <button
@@ -85,6 +130,25 @@ export function CoachCard({
           )}
         </div>
       )}
+      {main && (
+        <div className="mt-3 flex items-start gap-3">
+          <p className="min-w-0 flex-1 text-[15px] leading-snug font-semibold text-ink">{main.title}</p>
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={bodyId}
+            onClick={toggle}
+            className="pressable -my-2 inline-flex min-h-11 shrink-0 items-center gap-1 rounded-control px-2 text-[13px] font-semibold text-muted hover:bg-subtle hover:text-ink"
+          >
+            {open ? "Tutup detail" : `Lihat detail${relevant.length > 1 ? ` · ${relevant.length}` : ""}`}
+            <span aria-hidden className={`inline-block transition-transform duration-150 ease-out motion-reduce:transition-none ${open ? "rotate-90" : ""}`}>
+              ›
+            </span>
+          </button>
+        </div>
+      )}
+      {showList && (
+      <div id={collapsible ? bodyId : undefined} className={collapsible ? "gita-detail" : undefined}>
       <ul className="mt-2 -mx-1 divide-y divide-line">
         {relevant.map((a) => {
           const recs = recommendations(a);
@@ -118,6 +182,8 @@ export function CoachCard({
         })}
       </ul>
       <p className="mt-1 text-[12px] text-faint">Ketuk untuk detail · hanya saran, kamu tetap bebas memilih.</p>
+      </div>
+      )}
     </aside>
   );
 }

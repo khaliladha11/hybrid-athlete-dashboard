@@ -284,6 +284,11 @@ body {
     }
   }
 
+  /* Detail Saran Gita (1.1.0): hanya opacity, tanpa animasi tinggi; tetap jalan saat reduced motion. */
+  .gita-detail {
+    animation: gita-detail-in 150ms var(--ease-out);
+  }
+
   /* Isi <details> muncul halus saat dibuka. */
   details[open] > .details-body {
     animation: details-in 150ms var(--ease-out);
@@ -446,6 +451,11 @@ body {
   }
 }
 
+@keyframes gita-detail-in {
+  from {
+    opacity: 0;
+  }
+}
 @keyframes details-in {
   from {
     opacity: 0;

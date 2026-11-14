@@ -3,20 +3,31 @@
  * Warna = tone intensitas/status, bukan warna chrome.
  */
 import type { Advice, Suggestion } from "@/lib/coach";
+import { adviceLevel, SEVERITY_RANK, type CoachLevel } from "@/lib/coach-collapse";
 import { DIFFICULTY_LABEL } from "@/lib/generator/types";
-import { INTENSITY_TONE, TONES } from "@/components/ui/tones";
+import { INTENSITY_TONE, TONES, type Tone } from "@/components/ui/tones";
 
 export interface Severity {
   word: string;
   className: string;
+  /** Tone pill (tanpa tone = netral). */
+  tone?: Tone;
+  /** Urutan berat (Profil): dipakai untuk membuka kartu otomatis bila naik. */
+  rank?: number;
 }
+
+const LEVEL: Record<CoachLevel, { word: string; tone?: Tone }> = {
+  easy: { word: "Easy", tone: "success" },
+  lower: { word: "Turunkan", tone: "warning" },
+  limit: { word: "Batasi", tone: "warning" },
+  info: { word: "Info" },
+};
 
 /** Dari daftar saran (Profil, tanpa pilihan aktif). */
 export function adviceSeverity(advice: Advice[]): Severity {
-  if (advice.some((a) => a.maxDifficulty === "easy")) return { word: "Easy", className: TONES.success.ink };
-  if (advice.some((a) => a.lowerBy)) return { word: "Turunkan", className: TONES.warning.ink };
-  if (advice.some((a) => a.maxDuration)) return { word: "Batasi", className: TONES.warning.ink };
-  return { word: "Info", className: "text-muted" };
+  const level = adviceLevel(advice);
+  const { word, tone } = LEVEL[level];
+  return { word, tone, className: tone ? TONES[tone].ink : "text-muted", rank: SEVERITY_RANK[level] };
 }
 
 /** Dari saran terhadap pilihan saat ini (generator). */
