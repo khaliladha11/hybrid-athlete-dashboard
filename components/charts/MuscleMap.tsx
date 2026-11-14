@@ -1,3 +1,5 @@
+import { useT } from "@/lib/i18n/client";
+import { SAFETY } from "@/lib/i18n/messages/safety";
 import type { MuscleRegion } from "@/lib/movements/muscle-regions";
 import { BODY_BACK, BODY_FRONT, OVERLAY_REGIONS, type BodyView } from "./muscle-paths";
 
@@ -60,6 +62,7 @@ export function MuscleMap({
       />
     ));
   };
+  const t = useT(SAFETY).muscles;
   return (
     <div className={className}>
       <svg viewBox={`0 95 ${727 * 2 + GAP} 1280`} role="img" aria-label={label} className="mx-auto block h-auto w-full max-w-[320px]">
@@ -69,8 +72,8 @@ export function MuscleMap({
         </g>
       </svg>
       <div aria-hidden className="mx-auto mt-1 grid max-w-[320px] grid-cols-2 text-center text-[12px] text-muted">
-        <span>Depan</span>
-        <span>Belakang</span>
+        <span>{t.front}</span>
+        <span>{t.back}</span>
       </div>
     </div>
   );

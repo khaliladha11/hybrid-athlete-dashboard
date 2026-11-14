@@ -43,6 +43,8 @@ export const SAFETY = dict(
     muscles: {
       aria: (primary: string, secondary: string) => `Otot utama: ${primary}; sekunder: ${secondary}`,
       none: "tidak ada",
+      front: "Depan",
+      back: "Belakang",
     },
     units: {
       perHand: "/tangan",
@@ -90,6 +92,8 @@ export const SAFETY = dict(
     muscles: {
       aria: (primary, secondary) => `Main muscles: ${primary}; secondary: ${secondary}`,
       none: "none",
+      front: "Front",
+      back: "Back",
     },
     units: {
       perHand: "/hand",
