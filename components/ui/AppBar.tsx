@@ -28,7 +28,7 @@ export function AppBar() {
 
 /**
  * Sakelar bahasa (1.2.0): satu tap langsung ganti, tanpa animasi (bisa sering dipakai). Teks tombol = bahasa yang
- * sedang aktif; label aksesibel menyebut hasilnya.
+ * sedang aktif; label aksesibel memuat teks itu lalu menyebut hasilnya.
  */
 export function LanguageToggle() {
   const locale = useLocale();
@@ -39,7 +39,8 @@ export function LanguageToggle() {
     <button
       type="button"
       onClick={() => setLocale(next)}
-      aria-label={next === "en" ? t.toEnglish : t.toIndonesian}
+      // Nama aksesibel diawali teks yang terlihat (WCAG 2.5.3 label in name), lalu hasil tombol.
+      aria-label={`ID/EN · ${next === "en" ? t.toEnglish : t.toIndonesian}`}
       title={next === "en" ? t.toEnglish : t.toIndonesian}
       data-testid="language-toggle"
       className="pressable inline-flex h-11 min-w-11 items-center gap-1 rounded-full border border-line-strong bg-surface px-3 font-mono text-[12px] tracking-[0.08em] hover:bg-subtle"

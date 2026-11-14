@@ -55,7 +55,8 @@ test.describe("profil 1.1 @smoke", () => {
     await expect(sheet.getByRole("img", { name: /Pratinjau kartu 1080×1920/ })).toBeVisible();
     await sheet.getByRole("radio", { name: "Feed 4:5" }).check({ force: true });
     await sheet.getByRole("radio", { name: "Teks gelap" }).check({ force: true });
-    await sheet.getByRole("radio", { name: "ID" }).check({ force: true });
+    // 1.2.0: bahasa kartu mengikuti bahasa app (ID di sini) dan baru disimpan bila diganti sendiri.
+    await expect(sheet.getByRole("radio", { name: "ID" })).toBeChecked();
     await expect(sheet.getByRole("img", { name: /Pratinjau kartu 1080×1350/ })).toBeVisible();
     await expectNoA11yViolations(page);
 
@@ -78,6 +79,7 @@ test.describe("profil 1.1 @smoke", () => {
       return { corner: ctx.getImageData(10, 10, 1, 1).data[3], center: ctx.getImageData(540, 675, 1, 1).data[3] };
     }, png.toString("base64"));
     expect(alpha.corner).toBe(0);
-    expect(JSON.parse((await ls(page, "hybrid-athlete.share-card")) ?? "{}")).toMatchObject({ format: "feed", ink: "dark", lang: "id" });
+    expect(JSON.parse((await ls(page, "hybrid-athlete.share-card")) ?? "{}")).toEqual(expect.not.objectContaining({ lang: expect.anything() }));
+    expect(JSON.parse((await ls(page, "hybrid-athlete.share-card")) ?? "{}")).toMatchObject({ format: "feed", ink: "dark" });
   });
 });
