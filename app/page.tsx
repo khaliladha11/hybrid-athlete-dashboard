@@ -5,7 +5,7 @@ import { ActivityCalendar } from "@/components/profile/ActivityCalendar";
 import { Card } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { ProfileHeader, TargetsCard } from "@/components/profile/ProfileDetails";
-import { WeeklySummary } from "@/components/profile/WeeklySummary";
+import { WeekRunCard } from "@/components/profile/WeekRunCard";
 import { WellnessCard } from "@/components/profile/WellnessCard";
 import { CheckinCard } from "@/components/profile/CheckinCard";
 import { ProfileCoach } from "@/components/program/ProfileCoach";
@@ -14,6 +14,7 @@ import { ZoneOffer } from "@/components/settings/ZoneOffer";
 import { todayWib } from "@/lib/date";
 import { READINESS_WELLNESS_DAYS, getActivities, getRunThreshold, getWellness } from "@/lib/intervals/data-source";
 import { thresholdLines } from "@/lib/thresholds";
+import { weekRunModel } from "@/lib/week-run-card";
 import { MonthlyProfileCard } from "@/components/profile/MonthlyProfileCard";
 import { readinessAdvice, weeklyAdvice } from "@/lib/coach";
 import { assessReadiness } from "@/lib/readiness";
@@ -89,7 +90,13 @@ export default async function ProfilePage() {
             : undefined
         }
       />
-      <WeeklySummary result={activities} today={today} />
+      {activities.ok ? (
+        <WeekRunCard model={weekRunModel(activities.data, today)} />
+      ) : (
+        <Card title="Minggu ini · lari">
+          <ErrorState error={activities.error} compact />
+        </Card>
+      )}
       {activities.ok ? (
         <ActivityCalendar activities={activities.data} today={today} oldest={oldest} />
       ) : (

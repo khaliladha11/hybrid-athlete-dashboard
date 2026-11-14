@@ -2,6 +2,7 @@ import { SnapshotTime } from "@/components/offline/SnapshotTime";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { InsightView } from "@/components/insight/InsightView";
+import { WeeklySummary } from "@/components/profile/WeeklySummary";
 import { todayWib } from "@/lib/date";
 import { getInsightData, getRunThreshold } from "@/lib/intervals/data-source";
 
@@ -19,7 +20,20 @@ export default async function InsightPage() {
         ← Profil
       </Link>
       <SnapshotTime at={new Date().toISOString()} />
-      <InsightView activities={activities} wellness={wellness} today={today} runThreshold={runThreshold} />
+      <InsightView
+        activities={activities}
+        wellness={wellness}
+        today={today}
+        runThreshold={runThreshold}
+        week={
+          <section id="minggu-ini" aria-labelledby="minggu-ini-title" className="scroll-mt-4 space-y-3">
+            <h2 id="minggu-ini-title" className="t-label pt-2 text-ink">
+              Minggu ini
+            </h2>
+            <WeeklySummary result={activities} today={today} />
+          </section>
+        }
+      />
     </div>
   );
 }

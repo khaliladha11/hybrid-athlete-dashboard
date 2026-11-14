@@ -56,7 +56,10 @@ export function InsightView({
   wellness,
   today,
   runThreshold,
+  week,
 }: {
+  /** Ringkasan 7 hari + Week Ledger (1.1.0, pindah dari Profil); dirender server di atas pilihan rentang. */
+  week?: React.ReactNode;
   activities: FetchResult<Activity[]>;
   wellness: FetchResult<Wellness[]>;
   today: string;
@@ -123,6 +126,7 @@ export function InsightView({
         <h1 className="t-display text-brand-ink">Tren</h1>
         <p className="mt-1 text-body text-muted">Mingguan, Senin sampai Minggu. Grafik hanya menampilkan data, saran harian tetap dari Gita.</p>
       </div>
+      {week}
       <Segmented
         label="Rentang"
         value={weeks}
