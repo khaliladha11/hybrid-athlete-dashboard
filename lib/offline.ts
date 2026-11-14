@@ -6,22 +6,25 @@
  * - Masukan generator terakhir dipulihkan hanya saat halaman dibuka offline, supaya workout yang sama muncul lagi.
  */
 import { DIFFICULTIES, STRENGTH_TYPES, type Difficulty, type Duration, type StrengthType } from "./generator/types";
+import { DAY_MONTH, formatDay } from "@/lib/i18n/format";
+import type { Locale } from "@/lib/i18n/locale";
+import { LIB_MISC } from "@/lib/i18n/messages/lib-misc";
 import { WIB_OFFSET_MS } from "./date";
 
-const DAY = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /** "Data terakhir hari ini 07.12" / "kemarin 21.03" / "28 Okt 07.12" (WIB). */
-export function snapshotText(iso: string, nowMs: number): string | null {
+export function snapshotText(iso: string, nowMs: number, locale: Locale = "id"): string | null {
+  const L = LIB_MISC[locale].snapshot;
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return null;
   const w = new Date(t + WIB_OFFSET_MS);
   const n = new Date(nowMs + WIB_OFFSET_MS);
   const day = (d: Date) => d.toISOString().slice(0, 10);
-  const time = `${pad(w.getUTCHours())}.${pad(w.getUTCMinutes())}`;
+  const time = `${pad(w.getUTCHours())}${locale === "id" ? "." : ":"}${pad(w.getUTCMinutes())}`;
   const yesterday = day(new Date(n.getTime() - 86_400_000));
-  const when = day(w) === day(n) ? "hari ini" : day(w) === yesterday ? "kemarin" : DAY.format(w).replace(".", "");
-  return `Data terakhir ${when} ${time}. Saran dan angka dari intervals.icu belum diperbarui.`;
+  const when = day(w) === day(n) ? L.today : day(w) === yesterday ? L.yesterday : formatDay(locale, day(w), DAY_MONTH).replace(".", "");
+  return L.text(when, time);
 }
 
 /** Prompt "Versi baru tersedia" boleh tampil? Tidak selama latihan berjalan (tidak ada reload di tengah sesi). */

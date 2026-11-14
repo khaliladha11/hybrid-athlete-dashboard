@@ -53,7 +53,7 @@ export function validateRun(w: RunWorkout, rules: RunRules = profile.rules): str
     }
   }
   if (rules.cadenceCue && !w.notes.some((n) => /175–180 SPM/.test(n))) issues.push("Pengingat cadence 175–180 SPM hilang");
-  if (rules.crossoverCue && !w.notes.some((n) => /rel kereta/i.test(n))) issues.push('Cue "rel kereta" hilang');
+  if (rules.crossoverCue && !w.notes.some((n) => /rel kereta|train tracks/i.test(n))) issues.push('Cue "rel kereta" hilang');
   return issues;
 }
 

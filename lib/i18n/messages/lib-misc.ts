@@ -48,6 +48,11 @@ export const LIB_MISC = dict(
       stDescription: "Sesi strength dicatat di aplikasi Hybrid Athlete.",
     },
     programSession: "Sesi program",
+    snapshot: {
+      today: "hari ini",
+      yesterday: "kemarin",
+      text: (when: string, time: string) => `Data terakhir ${when} ${time}. Saran dan angka dari intervals.icu belum diperbarui.`,
+    },
     backup: {
       log: (a: number, s: number) => `${a} entri log baru, ${s} dilewati`,
       prs: (a: number, s: number) => `${a} PR baru, ${s} dilewati`,
@@ -103,6 +108,11 @@ export const LIB_MISC = dict(
       stDescription: "Strength session logged in the Hybrid Athlete app.",
     },
     programSession: "Program session",
+    snapshot: {
+      today: "today",
+      yesterday: "yesterday",
+      text: (when, time) => `Data last updated ${when} ${time}. Advice and numbers from intervals.icu are not updated yet.`,
+    },
     backup: {
       log: (a, s) => `${a} new log ${a === 1 ? "entry" : "entries"}, ${s} skipped`,
       prs: (a, s) => `${a} new ${a === 1 ? "PR" : "PRs"}, ${s} skipped`,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale } from "@/lib/i18n/client";
 import { snapshotText } from "@/lib/offline";
 import { useOnline } from "./useOnline";
 
@@ -10,9 +11,10 @@ import { useOnline } from "./useOnline";
  */
 export function SnapshotTime({ at }: { at: string }) {
   const online = useOnline();
+  const locale = useLocale();
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => setNow(Date.now()), [online]);
   if (online || now === null) return null;
-  const text = snapshotText(at, now);
+  const text = snapshotText(at, now, locale);
   return text ? <p className="rounded-inner bg-subtle px-3 py-2 text-[13px] text-muted">{text}</p> : null;
 }
