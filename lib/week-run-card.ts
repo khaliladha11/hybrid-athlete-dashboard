@@ -162,7 +162,7 @@ export function cardElements(m: WeekRunModel, lang: CardLang, opts: { watermark?
       key: "total",
       x: MARGIN_X,
       y: 800,
-      size: 190,
+      size: 220,
       font: "display",
       weight: 800,
       role: "ink",
