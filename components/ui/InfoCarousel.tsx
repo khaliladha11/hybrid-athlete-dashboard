@@ -30,8 +30,10 @@ export function InfoCarousel({ label, items }: { label: string; items: { key: st
     <section aria-roledescription="carousel" aria-label={label} className="mt-4">
       <div
         ref={track}
+        // Area geser bisa difokus supaya panah kiri/kanan keyboard ikut menggulir (axe scrollable-region-focusable).
+        tabIndex={0}
         onScroll={(e) => setIndex(activeIndex(e.currentTarget.scrollLeft, offsets()))}
-        className="no-scrollbar -mx-5 flex snap-x snap-mandatory scroll-px-5 gap-2 overflow-x-auto overscroll-x-contain px-5"
+        className="no-scrollbar -mx-5 flex snap-x snap-mandatory scroll-px-5 gap-2 overflow-x-auto overscroll-x-contain rounded-inner px-5 outline-offset-2 focus-visible:outline-2 focus-visible:outline-brand"
       >
         {items.map((it, i) => (
           <div key={it.key} role="group" aria-roledescription="slide" aria-label={labels[i]} className={`${SLIDE} w-[85%] shrink-0 snap-start`}>

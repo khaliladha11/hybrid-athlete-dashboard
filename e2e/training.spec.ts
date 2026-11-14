@@ -19,7 +19,7 @@ test.describe("latihan", () => {
     expect(text).not.toMatch(/[—]/);
   });
 
-  test("generate ST → mode latihan → set → simpan sesi dengan RPE → beban session-RPE di Profil", async ({ page }) => {
+  test("generate ST → mode latihan → set → simpan sesi dengan RPE → beban session-RPE di Tren", async ({ page }) => {
     await page.goto("/strength");
     await page.getByRole("button", { name: "Mulai sesi", exact: true }).click();
     await expect(page).toHaveURL(/\/strength\/sesi/);
@@ -40,9 +40,9 @@ test.describe("latihan", () => {
     const [session] = JSON.parse((await ls(page, "hybrid-athlete.st-sessions.v1")) ?? "[]");
     expect(session.rpe).toBe(6);
     expect(session.sets.length).toBeGreaterThan(0);
-    await page.goto("/");
-    // Beban session-RPE (RPE × menit) dari sesi mode latihan ikut di ringkasan 7 hari.
-    await expect(page.locator("main")).toContainText(/beban \d+/);
+    // 1.1.0: ringkasan 7 hari pindah dari Profil ke Tren. Beban session-RPE (RPE × menit) dari sesi mode latihan ikut di sana.
+    await page.goto("/insight#minggu-ini");
+    await expect(page.locator("#minggu-ini")).toContainText(/beban \d+/);
   });
 
   test("program: buat program dengan Hari H, lalu Sesi minggu ini", async ({ page }) => {
