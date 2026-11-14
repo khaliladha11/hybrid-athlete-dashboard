@@ -1,4 +1,5 @@
 import { ReadinessBasis } from "./ReadinessBasis";
+import { InfoCarousel } from "@/components/ui/InfoCarousel";
 import { Card, StatRow } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { formatDateId } from "@/lib/date";
@@ -64,24 +65,26 @@ export function WellnessCard({ result, today, basis, used, thresholds }: { resul
       }
     >
       <StatRow items={items} />
-      {missing > 0 && (
-        <p className="mt-4 rounded-inner bg-subtle px-3 py-2 text-[13px] text-muted">
-          {missing} metrik kosong (·). Biasanya karena jam belum sinkron atau tidak dipakai saat tidur.
-        </p>
-      )}
-      {(basis || used || absent.length > 0) && (
-        <p className="mt-3 text-[13px] text-muted">
-          {used ? <ReadinessBasis used={used} today={today} /> : basis}
-          {absent.length > 0 && ` Jammu tidak mengirim ${joinId(absent.map((s) => SIGNAL_LABEL[s]))} dalam 14 hari terakhir, jadi tidak ditampilkan.`}
-        </p>
-      )}
-      {thresholds && (
-        <ul className="mt-2 space-y-1 text-[13px] text-muted">
-          {thresholds.map((t) => (
-            <li key={t}>{t}</li>
-          ))}
-        </ul>
-      )}
+      <InfoCarousel
+        label="Info wellness"
+        items={[
+          ...(missing > 0 ? [{ key: "missing", content: `${missing} metrik kosong (·). Biasanya karena jam belum sinkron atau tidak dipakai saat tidur.` }] : []),
+          ...(basis || used || absent.length > 0
+            ? [
+                {
+                  key: "basis",
+                  content: (
+                    <>
+                      {used ? <ReadinessBasis used={used} today={today} /> : basis}
+                      {absent.length > 0 && ` Jammu tidak mengirim ${joinId(absent.map((s) => SIGNAL_LABEL[s]))} dalam 14 hari terakhir, jadi tidak ditampilkan.`}
+                    </>
+                  ),
+                },
+              ]
+            : []),
+          ...(thresholds ?? []).map((t) => ({ key: `t-${t}`, content: t })),
+        ]}
+      />
     </Card>
   );
 }
