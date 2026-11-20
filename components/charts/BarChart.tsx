@@ -5,14 +5,14 @@ import { useLocale } from "@/lib/i18n/client";
 import { axisNumber, bandLayout, linearScale, niceTicks, placeLabels, thinLabels } from "./chart-scale";
 import { useWidth } from "./useWidth";
 
-export type BarTone = "success" | "danger" | "brand" | "brandSoft" | "track";
+export type BarTone = "success" | "danger" | "brand" | "brandSoft" | "track" | "info" | "ink";
 
 export interface BarStack {
   values: number[];
   tone: BarTone;
 }
 
-const FILL: Record<BarTone, string> = { success: "fill-success", danger: "fill-danger", brand: "fill-brand", brandSoft: "fill-brand-soft stroke-brand", track: "fill-track" };
+const FILL: Record<BarTone, string> = { success: "fill-success", danger: "fill-danger", brand: "fill-brand", brandSoft: "fill-brand-soft stroke-brand", track: "fill-track", info: "fill-info", ink: "fill-ink" };
 
 const HEIGHT = 168;
 const LEFT = 36;

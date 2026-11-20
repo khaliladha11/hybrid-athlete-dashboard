@@ -38,6 +38,9 @@ import { availableSignals } from "@/lib/wellness-signals";
 import { MuscleHeatmap, PrTrend, StrengthVolume, availableMovements } from "./StrengthTrends";
 import { useLocale, useT } from "@/lib/i18n/client";
 import { INSIGHT } from "@/lib/i18n/messages/insight";
+import { TRAINING_CARD } from "@/lib/i18n/messages/training-card";
+import { sportTimeSummary } from "@/lib/weekly/training-card";
+import { hmm, trainingWeeks, type TrainingWeek } from "@/lib/weekly/training-week";
 import { DAY_MONTH, formatDay } from "@/lib/i18n/format";
 import type { Locale } from "@/lib/i18n/locale";
 
@@ -97,6 +100,7 @@ export function InsightView({
   const log = useMemo(() => (demoSt ? [...deviceLog, ...demoSt.log] : deviceLog), [deviceLog, demoSt]);
   const prs = useMemo(() => (demoSt ? mergePrs(devicePrs, demoSt.prs) : devicePrs), [devicePrs, demoSt]);
   const work = useMemo(() => stWork(stSessions, log), [stSessions, log]);
+  const sportWeeks = useMemo(() => trainingWeeks(acts, stSessions, today, weeks), [acts, stSessions, today, weeks]);
   const stRows = useMemo(() => strengthWeeks(work, stSessions, PATTERNS, today, weeks), [work, stSessions, today, weeks]);
   const available = useMemo(() => availableMovements(profile), [profile]);
   // Batas alat: batas beban 0.14.0 bila aktif, selain itu beban terberat yang bisa dirakit.
@@ -138,6 +142,7 @@ export function InsightView({
         options={RANGE_OPTIONS.map((w) => ({ value: w, label: t.weeksOption(w) }))}
         onChange={(v) => setWeeks(v)}
       />
+      {activities.ok && <SportTime weeks={sportWeeks} />}
 
       <h2 className="t-label pt-2 text-ink">{t.sections.run}</h2>
       {wellness.ok ? <Fitness wellness={wellness.data} today={today} weeks={weeks} /> : <SourceError title={t.fitness.title} result={wellness} />}
@@ -167,6 +172,54 @@ export function InsightView({
       {!plan.loading && <ComplianceTrend rows={compliance} />}
       <ActivityHeatmap activities={acts} stSessions={stSessions} logDates={logDates} today={today} />
     </div>
+  );
+}
+
+/** Waktu latihan per olahraga per minggu (1.3.0), dari modul yang sama dengan kartu "Minggu ini · latihan". */
+function SportTime({ weeks }: { weeks: TrainingWeek[] }) {
+  const locale = useLocale();
+  const t = useT(TRAINING_CARD);
+  const s = sportTimeSummary(weeks, locale);
+  const sp = t.table.sports;
+  const h = (w: TrainingWeek, k: "run" | "ride" | "strength" | "other") => w.sports[k].minutes / 60;
+  const cell = (m: number) => (m > 0 ? hmm(m) : undefined);
+  return (
+    <ChartCard
+      title={t.trend.title}
+      summary={s.text}
+      drawable={s.drawable}
+      legend={
+        <>
+          <Swatch className="bg-brand" label={sp.run} />
+          <Swatch className="bg-info" label={sp.ride} />
+          <Swatch className="bg-track" label={sp.other} />
+          <Swatch className="bg-ink" label={sp.strength} />
+        </>
+      }
+      table={{
+        columns: [t.trend.week, sp.run, sp.ride, sp.strength, sp.other, t.trend.total],
+        rows: [...weeks].reverse().map((w) => [
+          weekLabel(w.from, locale),
+          cell(w.sports.run.minutes),
+          cell(w.sports.ride.minutes),
+          cell(w.sports.strength.minutes),
+          cell(w.sports.other.minutes),
+          cell(w.minutes),
+        ]),
+      }}
+    >
+      <BarChart
+        ariaLabel={t.trend.aria(weeks.length, s.text)}
+        labels={weeks.map((w) => weekLabel(w.from, locale))}
+        stacks={[
+          { values: weeks.map((w) => h(w, "run")), tone: "brand" },
+          { values: weeks.map((w) => h(w, "ride")), tone: "info" },
+          { values: weeks.map((w) => h(w, "other")), tone: "track" },
+          { values: weeks.map((w) => h(w, "strength")), tone: "ink" },
+        ]}
+        partial={weeks.length - 1}
+      />
+    </ChartCard>
   );
 }
 

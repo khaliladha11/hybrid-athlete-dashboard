@@ -36,6 +36,15 @@ export const TRAINING_CARD = dict(
       sports: { run: "Lari", ride: "Sepeda", strength: "Strength", other: "Lainnya" } as Record<string, string>,
       days: ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"],
     },
+    trend: {
+      title: "Waktu per olahraga",
+      summary: (current: string, avg: string, weeks: number) => `Minggu ini ${current} jam. Rata-rata ${avg} jam per minggu dalam ${weeks} minggu sebelumnya.`,
+      currentOnly: (current: string) => `Minggu ini ${current} jam.`,
+      empty: "Belum ada latihan di rentang ini.",
+      aria: (weeks: number, summary: string) => `Grafik batang waktu latihan per olahraga, ${weeks} minggu. ${summary}`,
+      week: "Minggu",
+      total: "Total",
+    },
   },
   {
     label: ["THIS WEEK", "TRAINING"],
@@ -67,6 +76,15 @@ export const TRAINING_CARD = dict(
       none: "No training",
       sports: { run: "Run", ride: "Ride", strength: "Strength", other: "Other" },
       days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    },
+    trend: {
+      title: "Time by sport",
+      summary: (current, avg, weeks) => `This week ${current} h. Average ${avg} h per week over the previous ${weeks} ${weeks === 1 ? "week" : "weeks"}.`,
+      currentOnly: (current) => `This week ${current} h.`,
+      empty: "No training in this range yet.",
+      aria: (weeks, summary) => `Bar chart of training time by sport, ${weeks} weeks. ${summary}`,
+      week: "Week",
+      total: "Total",
     },
   },
 );

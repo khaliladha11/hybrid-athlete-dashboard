@@ -18,8 +18,9 @@ import {
   trainingCardText,
   trainingFooter,
   trainingTableRows,
+  sportTimeSummary,
 } from "@/lib/weekly/training-card";
-import { summaryColumns, trainingWeek } from "@/lib/weekly/training-week";
+import { summaryColumns, trainingWeek, trainingWeeks } from "@/lib/weekly/training-week";
 
 // Data fiktif. Minggu Senin 2 Maret sampai Minggu 8 Maret 2026.
 const TODAY = "2026-03-05";
@@ -140,6 +141,16 @@ describe("tabel per hari", () => {
     expect(rows.find((r) => r[0] === "Rabu")).toEqual(["Rabu", "Sepeda", "45", "Indoor"]);
     expect(rows.find((r) => r[0] === "Jumat")).toEqual(["Jumat", "Tidak ada latihan", "·", "·"]);
     expect(trainingTableRows(reference(), "en")[0]).toEqual(["Monday", "Strength", "45", "Indoor"]);
+  });
+});
+
+describe("grafik waktu per olahraga (Tren)", () => {
+  it("minggu ini dan rata-rata minggu sebelumnya; kosong tidak digambar", () => {
+    const acts = [act("Run", "2026-02-24", 60, { distanceKm: 10 }), act("Ride", "2026-02-17", 120, { distanceKm: 40 }), act("Run", "2026-03-03", 45, { distanceKm: 8 })];
+    const ws = trainingWeeks(acts, [], TODAY, 3);
+    expect(sportTimeSummary(ws, "id")).toEqual({ text: "Minggu ini 0:45 jam. Rata-rata 1:30 jam per minggu dalam 2 minggu sebelumnya.", drawable: true });
+    expect(sportTimeSummary(ws, "en").text).toBe("This week 0:45 h. Average 1:30 h per week over the previous 2 weeks.");
+    expect(sportTimeSummary(trainingWeeks([], [], TODAY, 6), "en")).toEqual({ text: "No training in this range yet.", drawable: false });
   });
 });
 

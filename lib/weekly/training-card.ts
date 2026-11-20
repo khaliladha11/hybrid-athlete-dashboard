@@ -102,6 +102,17 @@ export function trainingTableRows(w: TrainingWeek, lang: Locale): string[][] {
   );
 }
 
+/** Ringkasan grafik waktu per olahraga di Tren: minggu ini dan rata-rata minggu-minggu sebelumnya dalam rentang. */
+export function sportTimeSummary(weeks: TrainingWeek[], lang: Locale): { text: string; drawable: boolean } {
+  const t = TRAINING_CARD[lang].trend;
+  if (!weeks.some((w) => w.minutes > 0)) return { text: t.empty, drawable: false };
+  const current = weeks[weeks.length - 1];
+  const prev = weeks.slice(0, -1);
+  if (!prev.length) return { text: t.currentOnly(hmm(current.minutes)), drawable: true };
+  const avg = prev.reduce((n, w) => n + w.minutes, 0) / prev.length;
+  return { text: t.summary(hmm(current.minutes), hmm(avg), prev.length), drawable: true };
+}
+
 // ---- Layout ----
 
 export const T_BAR_BASE = 1370;
