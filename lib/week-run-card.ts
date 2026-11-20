@@ -117,7 +117,10 @@ export function barHeights(days: WeekRunDay[], max = BAR_MAX, min = BAR_MIN): (n
 }
 
 /** Peran warna: diterjemahkan ke token tema (layar) atau warna tetap (ekspor). */
-export type CardRole = "ink" | "dim" | "faint" | "rule" | "brand";
+/** `ride` (1.3.0): biru data sepeda di kartu latihan. */
+export type CardRole = "ink" | "dim" | "faint" | "rule" | "brand" | "ride";
+/** Arsir indoor (1.3.0): garis terang di atas warna olahraga, atau garis tinta (strength). */
+export type CardHatch = "light" | "ink";
 export type CardFont = "display" | "sans" | "mono";
 
 export interface CardSpan {
@@ -132,7 +135,7 @@ export interface CardSpan {
 
 export type CardElement =
   | { kind: "text"; key: string; x: number; y: number; size: number; font: CardFont; weight: number; role: CardRole; anchor?: "start" | "middle"; spacing?: number; spans: CardSpan[] }
-  | { kind: "rect"; key: string; x: number; y: number; w: number; h: number; rx: number; role: CardRole }
+  | { kind: "rect"; key: string; x: number; y: number; w: number; h: number; rx: number; role: CardRole; hatch?: CardHatch; outline?: boolean }
   | { kind: "circle"; key: string; cx: number; cy: number; r: number; role: CardRole }
   | { kind: "line"; key: string; x1: number; x2: number; y: number; width: number; role: CardRole };
 

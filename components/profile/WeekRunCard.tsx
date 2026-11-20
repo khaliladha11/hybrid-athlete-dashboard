@@ -11,6 +11,7 @@ const ROLE: Record<CardRole, string> = {
   faint: "fill-ink opacity-30",
   rule: "fill-ink opacity-25",
   brand: "fill-brand",
+  ride: "fill-info",
 };
 
 const FONT: Record<CardFont, React.CSSProperties> = {

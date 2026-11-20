@@ -22,10 +22,10 @@ describe("ukuran & opsi ekspor", () => {
     expect(offsetY("feed")).toBe(-285);
   });
   it("bawaan: story, teks terang, EN, watermark; nilai tidak dikenal kembali ke bawaan", () => {
-    expect(DEFAULT_SHARE).toEqual({ format: "story", ink: "light", lang: "en", watermark: true });
+    expect(DEFAULT_SHARE).toEqual({ kind: "training", format: "story", ink: "light", lang: "en", watermark: true });
     expect(parseShareOptions(null)).toEqual(DEFAULT_SHARE);
     expect(parseShareOptions("{rusak")).toEqual(DEFAULT_SHARE);
-    expect(parseShareOptions(JSON.stringify({ format: "feed", ink: "dark", lang: "id", watermark: false }))).toEqual({ format: "feed", ink: "dark", lang: "id", watermark: false });
+    expect(parseShareOptions(JSON.stringify({ format: "feed", ink: "dark", lang: "id", watermark: false }))).toEqual({ kind: "training", format: "feed", ink: "dark", lang: "id", watermark: false });
     expect(parseShareOptions(JSON.stringify({ format: "square", ink: "neon", lang: "fr" }))).toEqual(DEFAULT_SHARE);
   });
   it("nama file dari tanggal Minggu", () => {
