@@ -23,11 +23,16 @@ export function normalizeCadence(v: unknown): number | undefined {
 
 export function categorize(type: string | undefined): ActivityCategory {
   const t = (type ?? "").toLowerCase();
-  if (/run/.test(t)) return "run";
+  if (/run|treadmill/.test(t)) return "run";
   if (/walk|hike/.test(t)) return "walk";
   if (/weight|strength|workout|crossfit|training/.test(t)) return "strength";
   if (/ride|cycl|bike/.test(t)) return "ride";
   return "other";
+}
+
+/** Indoor (1.3.0): trainer/treadmill di jam ditandai `trainer: true`; Zwift dkk. bertipe VirtualRide/VirtualRun. */
+export function isIndoor(type: string | undefined, trainer: unknown): boolean {
+  return trainer === true || /^virtual/i.test(type ?? "") || /treadmill|indoor/i.test(type ?? "");
 }
 
 function pace(speedMs: unknown, distanceM: unknown, timeSec: unknown): number | undefined {
@@ -66,6 +71,7 @@ export function normalizeActivity(raw: unknown): Activity | null {
     cadenceSpm: normalizeCadence(r.average_cadence),
     trainingLoad: num(r.icu_training_load) ?? num(r.training_load),
     source,
+    ...(isIndoor(type, r.trainer) ? { indoor: true } : {}),
   };
 }
 

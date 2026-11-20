@@ -20,6 +20,8 @@ export interface Activity {
   source?: string;
   /** Ambang HR lari berat pribadi (0.15.2, 90% LTHR) yang ditandai server; tidak ada = ambang umum. */
   hardHrBpm?: number;
+  /** Indoor (1.3.0): flag `trainer` intervals.icu, tipe Virtual*, atau treadmill/indoor. Kosong = outdoor/tidak diketahui. */
+  indoor?: boolean;
 }
 
 export interface ActivityInterval {

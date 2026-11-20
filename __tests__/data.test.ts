@@ -34,6 +34,17 @@ describe("normalizer (field Huawei bisa null)", () => {
     expect(normalizeActivity(null)).toBeNull();
     expect(normalizeActivity({ name: "tanpa id" })).toBeNull();
   });
+  it("indoor (1.3.0): trainer, Virtual*, treadmill; outdoor tanpa field", () => {
+    const n = (r: object) => normalizeActivity({ id: 1, ...r });
+    expect(n({ type: "VirtualRide" })).toMatchObject({ category: "ride", indoor: true });
+    expect(n({ type: "VirtualRun" })).toMatchObject({ category: "run", indoor: true });
+    expect(n({ type: "Run", trainer: true })).toMatchObject({ category: "run", indoor: true });
+    expect(n({ type: "Treadmill" })).toMatchObject({ category: "run", indoor: true });
+    expect(n({ type: "Ride", trainer: false })?.indoor).toBeUndefined();
+    expect(n({ type: "Ride" })).not.toHaveProperty("indoor");
+    expect(n({ type: "Swim" })).toMatchObject({ category: "other" });
+    expect(n({ type: "Hike" })).toMatchObject({ category: "walk" });
+  });
   it("wellness tanpa HRV", () => {
     expect(normalizeWellness({ id: TODAY, hrv: null, restingHR: 55 })).toEqual({ date: TODAY, restingHr: 55 });
   });
