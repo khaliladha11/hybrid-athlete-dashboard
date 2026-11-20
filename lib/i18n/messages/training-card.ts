@@ -24,7 +24,7 @@ export const TRAINING_CARD = dict(
     },
     table: {
       show: "Lihat tabel",
-      hide: "Tutup tabel",
+      hide: "Sembunyikan tabel",
       caption: "Latihan per hari minggu ini",
       day: "Hari",
       sport: "Olahraga",
@@ -33,6 +33,7 @@ export const TRAINING_CARD = dict(
       indoor: "Indoor",
       outdoor: "Outdoor",
       none: "Tidak ada latihan",
+      sports: { run: "Lari", ride: "Sepeda", strength: "Strength", other: "Lainnya" } as Record<string, string>,
       days: ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"],
     },
   },
@@ -55,7 +56,7 @@ export const TRAINING_CARD = dict(
     },
     table: {
       show: "View table",
-      hide: "Close table",
+      hide: "Hide table",
       caption: "Training per day this week",
       day: "Day",
       sport: "Sport",
@@ -64,6 +65,7 @@ export const TRAINING_CARD = dict(
       indoor: "Indoor",
       outdoor: "Outdoor",
       none: "No training",
+      sports: { run: "Run", ride: "Ride", strength: "Strength", other: "Other" },
       days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
     },
   },

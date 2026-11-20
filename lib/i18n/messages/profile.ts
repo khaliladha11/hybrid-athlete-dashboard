@@ -12,6 +12,10 @@ export const PROFILE = dict(
       region: "Minggu ini · lari",
       openDetail: "Buka detail di Tren.",
       hint: "Ketuk kartu untuk detail di Tren",
+      regionTraining: "Minggu ini · latihan",
+      kind: "Jenis kartu",
+      kindTraining: "Semua latihan",
+      kindRun: "Lari",
     },
     wellness: {
       title: "Wellness",
@@ -93,6 +97,10 @@ export const PROFILE = dict(
       region: "This week · running",
       openDetail: "Open details in Trends.",
       hint: "Tap the card for details in Trends",
+      regionTraining: "This week · training",
+      kind: "Card type",
+      kindTraining: "All training",
+      kindRun: "Running",
     },
     wellness: {
       title: "Wellness",

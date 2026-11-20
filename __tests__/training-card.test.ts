@@ -17,6 +17,7 @@ import {
   trainingCardElements,
   trainingCardText,
   trainingFooter,
+  trainingTableRows,
 } from "@/lib/weekly/training-card";
 import { summaryColumns, trainingWeek } from "@/lib/weekly/training-week";
 
@@ -125,6 +126,20 @@ describe("kalimat aksesibel", () => {
       "This week 5 hours 52 minutes, 8 sessions: run 14.6 km, ride 18.4 km (45 minutes indoor), strength 2 hours 4 minutes (indoor). mar 2 to 8.",
     );
     expect(trainingAriaLabel(trainingWeek([], [], TODAY), "en")).toBe("No training yet this week. mar 2 to 8.");
+  });
+});
+
+describe("tabel per hari", () => {
+  it("satu baris per segmen, indoor tertulis, hari kosong satu baris", () => {
+    const rows = trainingTableRows(reference(), "id");
+    expect(rows.filter((r) => r[0] === "Sabtu")).toEqual([
+      ["Sabtu", "Lari", "64", "Outdoor"],
+      ["Sabtu", "Sepeda", "41", "Outdoor"],
+      ["Sabtu", "Strength", "45", "Indoor"],
+    ]);
+    expect(rows.find((r) => r[0] === "Rabu")).toEqual(["Rabu", "Sepeda", "45", "Indoor"]);
+    expect(rows.find((r) => r[0] === "Jumat")).toEqual(["Jumat", "Tidak ada latihan", "·", "·"]);
+    expect(trainingTableRows(reference(), "en")[0]).toEqual(["Monday", "Strength", "45", "Indoor"]);
   });
 });
 

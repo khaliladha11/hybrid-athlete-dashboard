@@ -5,15 +5,25 @@ import { BUTTON } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
 import { Switch } from "@/components/ui/Switch";
 import { PREF_KEYS } from "@/lib/preference-keys";
-import { EXPORT_SIZES, cardSvg, parseShareOptions, shareFileName, type ShareOptions } from "@/lib/share-card";
+import { EXPORT_SIZES, cardSvg, parseShareOptions, shareFileName, trainingCardSvg, type CardKind, type ShareOptions } from "@/lib/share-card";
 import { embeddedFontCss, renderPng } from "@/lib/share-export";
 import type { WeekRunModel } from "@/lib/week-run-card";
+import type { TrainingWeek } from "@/lib/weekly/training-week";
 import { useLocale, useT } from "@/lib/i18n/client";
 import type { Locale } from "@/lib/i18n/locale";
+import { PROFILE } from "@/lib/i18n/messages/profile";
 import { SHARE } from "@/lib/i18n/messages/share";
 
+interface CardData {
+  training: TrainingWeek;
+  run: WeekRunModel;
+  /** Jenis kartu yang sedang tampil di Profil; sheet mulai dari sini. */
+  kind: CardKind;
+  onKindChange: (k: CardKind) => void;
+}
+
 /** Tombol "Bagikan" di kartu mingguan: membuka sheet ekspor PNG. */
-export function ShareWeekButton({ model }: { model: WeekRunModel }) {
+export function ShareWeekButton(props: CardData) {
   const [open, setOpen] = useState(false);
   const t = useT(SHARE);
   return (
@@ -22,16 +32,16 @@ export function ShareWeekButton({ model }: { model: WeekRunModel }) {
         <ShareIcon />
         {t.share}
       </button>
-      {open && <ShareWeekSheet model={model} onClose={() => setOpen(false)} />}
+      {open && <ShareWeekSheet {...props} onClose={() => setOpen(false)} />}
     </>
   );
 }
 
-function readOptions(lang: Locale): ShareOptions {
+function readOptions(lang: Locale, kind: CardKind): ShareOptions {
   try {
-    return parseShareOptions(localStorage.getItem(PREF_KEYS.shareCard), lang);
+    return { ...parseShareOptions(localStorage.getItem(PREF_KEYS.shareCard), lang), kind };
   } catch {
-    return parseShareOptions(null, lang);
+    return { ...parseShareOptions(null, lang), kind };
   }
 }
 
@@ -54,14 +64,15 @@ function canShareFiles(): boolean {
 }
 
 /**
- * Sheet ekspor kartu "Minggu ini · lari" (1.1.0): PNG transparan story 1080×1920 atau feed 1080×1350, tinta terang/gelap,
- * bahasa kartu EN/ID, watermark opsional. Pratinjau memakai SVG yang sama dengan PNG.
+ * Sheet ekspor kartu mingguan: jenis kartu (1.3.0: semua latihan atau lari), PNG transparan story 1080×1920 atau feed
+ * 1080×1350, tinta terang/gelap, bahasa kartu EN/ID, watermark opsional. Pratinjau memakai SVG yang sama dengan PNG.
  */
-export function ShareWeekSheet({ model, onClose }: { model: WeekRunModel; onClose: () => void }) {
+export function ShareWeekSheet({ training, run: runModel, kind, onKindChange, onClose }: CardData & { onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const locale = useLocale();
   const t = useT(SHARE);
-  const [opts, setOpts] = useState<ShareOptions>(() => readOptions(locale));
+  const tp = useT(PROFILE).week;
+  const [opts, setOpts] = useState<ShareOptions>(() => readOptions(locale, kind));
   const [fonts, setFonts] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,14 +101,17 @@ export function ShareWeekSheet({ model, onClose }: { model: WeekRunModel; onClos
     const next = { ...opts, ...patch };
     setOpts(next);
     storeOptions(next, patch);
+    if (patch.kind) onKindChange(patch.kind);
   };
 
-  const svg = fonts === null ? null : cardSvg(model, opts, fonts);
+  const svgOf = (fontCss: string) => (opts.kind === "training" ? trainingCardSvg(training, opts, fontCss) : cardSvg(runModel, opts, fontCss));
+
+  const svg = fonts === null ? null : svgOf(fonts);
   const size = EXPORT_SIZES[opts.format];
-  const name = shareFileName(model.to);
+  const name = shareFileName(training.to, opts.kind);
 
   const makeFile = async () => {
-    const blob = await renderPng(cardSvg(model, opts, fonts ?? ""), size.w, size.h);
+    const blob = await renderPng(svgOf(fonts ?? ""), size.w, size.h);
     return new File([blob], name, { type: "image/png" });
   };
 
@@ -170,6 +184,15 @@ export function ShareWeekSheet({ model, onClose }: { model: WeekRunModel; onClos
         </div>
 
         <div className="mt-4 space-y-4">
+          <Segmented
+            label={t.kind}
+            value={opts.kind}
+            options={[
+              { value: "training", label: tp.kindTraining },
+              { value: "run", label: tp.kindRun },
+            ]}
+            onChange={(kind) => update({ kind })}
+          />
           <Segmented
             label={t.format}
             value={opts.format}

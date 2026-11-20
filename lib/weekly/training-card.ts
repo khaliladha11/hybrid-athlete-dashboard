@@ -89,6 +89,19 @@ export function trainingAriaLabel(w: TrainingWeek, lang: Locale = "id"): string 
   return a.week(durationWords(w.minutes, lang), a.sessions(w.sessions), parts.join(", "), range);
 }
 
+/**
+ * Tabel "Lihat tabel" (bahasa UI): satu baris per segmen (hari, olahraga, menit, indoor/outdoor); hari tanpa latihan
+ * satu baris "Tidak ada latihan". Indoor selalu tertulis, jadi arsir di grafik bukan satu-satunya penanda.
+ */
+export function trainingTableRows(w: TrainingWeek, lang: Locale): string[][] {
+  const t = TRAINING_CARD[lang].table;
+  return w.days.flatMap((d, i) =>
+    d.segments.length
+      ? d.segments.map((s) => [t.days[i], t.sports[s.sport], String(Math.round(s.minutes)), s.indoor ? t.indoor : t.outdoor])
+      : [[t.days[i], t.none, "·", "·"]],
+  );
+}
+
 // ---- Layout ----
 
 export const T_BAR_BASE = 1370;
