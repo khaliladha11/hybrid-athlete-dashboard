@@ -80,7 +80,9 @@ test.describe("bahasa", () => {
 
   test("kartu story mengikuti bahasa app", async ({ page }) => {
     await toEnglish(page);
-    await page.getByRole("region", { name: "This week · running" }).getByRole("button", { name: "Share" }).click();
+    const week = page.getByRole("region", { name: "This week · training" });
+    await expect(week.getByRole("img", { name: /^(This week .*sessions?: |No training yet this week)/ })).toBeVisible();
+    await week.getByRole("button", { name: "Share" }).click();
     const sheet = page.getByRole("dialog", { name: "Share this week's card" });
     await expect(sheet.getByRole("img", { name: /Card preview 1080×1920/ })).toBeVisible();
     await expect(sheet.getByRole("radio", { name: "EN" })).toBeChecked();

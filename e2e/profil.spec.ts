@@ -22,6 +22,10 @@ test.describe("profil 1.1 @smoke", () => {
   });
 
   test("carousel Wellness, kartu minggu ini, tanpa tombol Generate, a11y", async ({ page }) => {
+    // Isi minggu demo bergantung pada hari; satu sesi ST lokal hari ini (fiktif) menjamin minggu ini tidak kosong.
+    const today = new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
+    const st = { id: "e2e-st", date: today, startedAt: `${today}T12:00:00.000Z`, type: "lower", title: "Lower", difficulty: "moderate", durationMin: 40, rpe: 6, setsDone: 12, setsPlanned: 12, movements: [], updatedAt: `${today}T13:00:00.000Z` };
+    await page.addInitScript((v) => localStorage.setItem("hybrid-athlete.st-sessions.v1", v), JSON.stringify([st]));
     await page.goto("/");
     const carousel = page.getByRole("region", { name: "Info wellness" });
     await expect(carousel).toHaveAttribute("aria-roledescription", "carousel");
@@ -34,9 +38,24 @@ test.describe("profil 1.1 @smoke", () => {
     await expect(carousel.getByRole("button", { name: "Info sebelumnya" })).toBeEnabled();
 
     await expect(page.getByRole("link", { name: /Generate lari|Generate ST/ })).toHaveCount(0);
+    // 1.3.0: kartu "Minggu ini · latihan" bawaan, tabel per hari, lalu ganti ke kartu lari (tersimpan).
+    const training = page.getByRole("region", { name: "Minggu ini · latihan" });
+    await expect(training.getByRole("radio", { name: "Semua latihan" })).toBeChecked();
+    await expect(training.getByRole("img", { name: /^Minggu ini (\d+ jam )?\d+ menit, \d+ sesi: .*strength .*\(indoor\)/ })).toBeVisible();
+    await expect(training).toContainText(/\d+ SESI·\d+ (\w+ )?SAMPAI \d+ \w+/);
+    await training.getByRole("button", { name: "Lihat tabel" }).click();
+    const table = training.getByRole("table", { name: "Latihan per hari minggu ini" });
+    await expect(table.getByRole("columnheader")).toHaveText(["Hari", "Olahraga", "Menit", "Tempat"]);
+    await expect(table).toContainText("Indoor");
+    await expectNoA11yViolations(page);
+
+    await training.getByRole("radio", { name: "Lari" }).check({ force: true });
     const week = page.getByRole("region", { name: "Minggu ini · lari" });
     await expect(week.getByRole("img", { name: /Minggu ini, lari \d+\.\d{2} km/ })).toBeVisible();
     await expect(week).toContainText(/\d+ LARI·\d+ (\w+ )?SAMPAI \d+ \w+/);
+    expect(JSON.parse((await ls(page, "hybrid-athlete.share-card")) ?? "{}")).toMatchObject({ kind: "run" });
+    await page.reload();
+    await expect(page.getByRole("region", { name: "Minggu ini · lari" })).toBeVisible();
     await expectNoA11yViolations(page);
 
     await week.getByRole("link").click();
@@ -50,8 +69,13 @@ test.describe("profil 1.1 @smoke", () => {
 
   test("bagikan: Feed + Teks gelap → PNG transparan 1080×1350", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("region", { name: "Minggu ini · lari" }).getByRole("button", { name: "Bagikan" }).click();
+    await page.getByRole("region", { name: "Minggu ini · latihan" }).getByRole("button", { name: "Bagikan" }).click();
     const sheet = page.getByRole("dialog", { name: "Bagikan kartu minggu ini" });
+    await expect(sheet.getByRole("radio", { name: "Semua latihan" })).toBeChecked();
+    await sheet.getByRole("radio", { name: "Lari" }).check({ force: true });
+    await expect(sheet).toContainText(/hybrid-athlete-minggu-/);
+    await sheet.getByRole("radio", { name: "Semua latihan" }).check({ force: true });
+    await expect(sheet).toContainText(/hybrid-athlete-latihan-/);
     await expect(sheet.getByRole("img", { name: /Pratinjau kartu 1080×1920/ })).toBeVisible();
     await sheet.getByRole("radio", { name: "Feed 4:5" }).check({ force: true });
     await sheet.getByRole("radio", { name: "Teks gelap" }).check({ force: true });
@@ -61,7 +85,7 @@ test.describe("profil 1.1 @smoke", () => {
     await expectNoA11yViolations(page);
 
     const [download] = await Promise.all([page.waitForEvent("download"), sheet.getByRole("button", { name: "Unduh PNG" }).click()]);
-    expect(download.suggestedFilename()).toMatch(/^hybrid-athlete-minggu-\d{4}-\d{2}-\d{2}\.png$/);
+    expect(download.suggestedFilename()).toMatch(/^hybrid-athlete-latihan-\d{4}-\d{2}-\d{2}\.png$/);
     const png = readFileSync((await download.path())!);
     // IHDR: lebar, tinggi, color type 6 = RGBA.
     expect(png.subarray(1, 4).toString()).toBe("PNG");
@@ -80,6 +104,6 @@ test.describe("profil 1.1 @smoke", () => {
     }, png.toString("base64"));
     expect(alpha.corner).toBe(0);
     expect(JSON.parse((await ls(page, "hybrid-athlete.share-card")) ?? "{}")).toEqual(expect.not.objectContaining({ lang: expect.anything() }));
-    expect(JSON.parse((await ls(page, "hybrid-athlete.share-card")) ?? "{}")).toMatchObject({ format: "feed", ink: "dark" });
+    expect(JSON.parse((await ls(page, "hybrid-athlete.share-card")) ?? "{}")).toMatchObject({ kind: "training", format: "feed", ink: "dark" });
   });
 });
