@@ -5,7 +5,7 @@
 
 | | |
 | --- | --- |
-| **Versi saat ini** | 1.3.0 (2026-11-20) · Kartu "Minggu ini · latihan" |
+| **Versi saat ini** | 1.3.1 (2026-11-20) · Patch keamanan Next.js di atas 1.3.0 |
 | **Status** | Dipakai harian oleh pemilik (single user), live di Vercel |
 | **Deploy** | Vercel milik pemilik, dilindungi Deployment Protection (alamat sengaja tidak dicantumkan karena berisi data kesehatan) |
 | **Repo** | https://github.com/khaliladha11/hybrid-athlete-dashboard |
@@ -542,6 +542,7 @@ Disimpan sebagai riwayat; rinciannya di §4 dan CHANGELOG.
 | 1.0.0-rc.2 | 2026-11-02 | README baru, dasar ilmiah dengan label bukti, kredit, panduan pengguna & halaman Bantuan, keterbatasan, backlog setelah 1.0 |
 | **1.0.0** | 2026-11-02 | **Rilis stabil pertama.** Feature freeze. Dokumen diselaraskan dengan kode, audit akhir ([RELEASE-1.0 §12](RELEASE-1.0.md#12-audit-akhir-100-2026-11-02)), video pratinjau |
 | 1.1.0 | 2026-11-14 | Profil ringkas: saran Gita dilipat, carousel info Wellness, kartu "Minggu ini · lari", tombol Generate dihapus; ringkasan 7 hari & Week Ledger pindah ke Tren; bagikan kartu minggu ini sebagai PNG transparan (story/feed, teks terang/gelap, EN/ID) |
+| 1.3.1 | 2026-11-20 | Patch keamanan: Next.js 16.4.6 (advisory moderat 16.0.0 sampai 16.4.4), tanpa perubahan fitur |
 | 1.3.0 | 2026-11-20 | Kartu "Minggu ini · latihan": total jam semua latihan, kolom lari/sepeda/strength, bar bertumpuk per olahraga dengan arsir indoor, pilihan kartu lari, ekspor PNG story/feed; penanda indoor dari intervals.icu; waktu per olahraga di Tren |
 | 1.2.0 | 2026-11-14 | Bahasa Indonesia / English: tombol ganti bahasa di AppBar, semua teks app (UI, Gita, generator, program, insight, konten keselamatan) dalam dua bahasa, kamus bertipe tanpa dependensi, test paritas logika dan kecocokan angka konten keselamatan, e2e & axe di kedua bahasa |
 | 0.15.2 | 2026-10-28 | Insight selesai, tubuh & saran: check-in harian (hanya menurunkan, tanpa berantai), ambang pribadi LTHR/HRV/resting HR, ringkasan bulanan, bagian Tubuh, sinkron `checkins` & cadangan v6 |

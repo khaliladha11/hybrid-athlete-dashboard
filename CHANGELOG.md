@@ -4,8 +4,10 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [1.3.1] · 2026-11-20 · Patch keamanan
+
 ### Keamanan
-- Next.js 16.4.2 → 16.4.6: menutup advisory moderat Next.js 16.0.0 sampai 16.4.4 (cache `use cache`, optimasi gambar SVG, cookie HttpOnly di Edge). `npm audit` kini 0 kerentanan. Tanpa perubahan kode atau langkah manual.
+- Next.js 16.4.2 → 16.4.6: menutup advisory moderat Next.js 16.0.0 sampai 16.4.4 (cache `use cache`, optimasi gambar SVG, cookie HttpOnly di Edge). `npm audit` kini 0 kerentanan. Tanpa perubahan kode. Langkah manual: salinan atau fork dengan workflow pembaruan cukup merge pull request "Pembaruan dari upstream: v1.3.1" setelah CI hijau.
 
 ## [1.3.0] · 2026-11-20 · Minggu ini · latihan
 
