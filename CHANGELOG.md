@@ -4,6 +4,9 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Keamanan
+- Next.js 16.4.2 → 16.4.6: menutup advisory moderat Next.js 16.0.0 sampai 16.4.4 (cache `use cache`, optimasi gambar SVG, cookie HttpOnly di Edge). `npm audit` kini 0 kerentanan. Tanpa perubahan kode atau langkah manual.
+
 ## [1.3.0] · 2026-11-20 · Minggu ini · latihan
 
 Atas permintaan pemilik: kartu mingguan di Profil kini merangkum semua latihan, bukan hanya lari.
