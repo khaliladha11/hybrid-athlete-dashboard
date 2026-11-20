@@ -4,6 +4,30 @@ Semua perubahan penting di project ini. Format mengikuti [Keep a Changelog](http
 
 ## [Unreleased]
 
+## [1.3.0] · 2026-11-20 · Minggu ini · latihan
+
+Atas permintaan pemilik: kartu mingguan di Profil kini merangkum semua latihan, bukan hanya lari.
+
+### Ditambahkan
+- **Kartu "Minggu ini · latihan"** di Profil (bawaan), juga sebagai PNG transparan ([GUIDE](docs/GUIDE.md#kartu-minggu-ini--bagikan)):
+  - total jam semua latihan minggu kalender Senin sampai Minggu (WIB);
+  - maksimal tiga kolom: lari dan sepeda dengan km (sub-baris `3x · 2:22` atau `+ 45' INDOOR`), strength dengan jam (`3x · INDOOR`); bila lari, sepeda, strength, dan lainnya semuanya ada, kolom ketiga menjadi **Lainnya** gabungan;
+  - bar per hari yang ditumpuk per olahraga: lari oranye, sepeda biru, lainnya netral, strength garis tepi; **arsir = indoor**; menit per hari di atas bar;
+  - footer `8 SESI · 16 SAMPAI 22 NOV`;
+  - "Lihat tabel" per hari dan kalimat aksesibel yang menyebut indoor dengan kata.
+- **Pilihan jenis kartu** "Semua latihan / Lari" di Profil dan di sheet bagikan. Kartu lari 1.1.0 tetap ada. Nama file `hybrid-athlete-latihan-…png` untuk kartu latihan.
+- **Waktu per olahraga** di Tren: bar bertumpuk per minggu (6/12 minggu), ringkasan minggu ini vs rata-rata, "Lihat tabel".
+- **Penanda indoor** dari intervals.icu: flag `trainer`, tipe VirtualRide/VirtualRun, dan treadmill. Tipe Treadmill kini dihitung sebagai lari.
+- Demo Mode: satu sesi sepeda outdoor dan satu sesi trainer.
+
+### Diubah
+- Strength di kartu memakai aturan dedupe yang sudah ada: sesi mode latihan dan WeightTraining intervals.icu yang cocok dihitung sekali dengan durasi sesi lokal.
+- Screenshot panduan `01-profile`, `02-weekly-summary`, `29-share-week` diperbarui, ditambah `30-training-week` dan `31-insight-sport-time`; video pratinjau README direkam ulang.
+
+### Langkah manual
+- Salinan atau fork dengan workflow pembaruan: merge pull request "Pembaruan dari upstream: v1.3.0" setelah CI hijau.
+- Tidak ada variabel lingkungan baru dan tidak ada migrasi data. Jenis kartu disimpan bersama opsi bagikan di perangkat (tidak disinkron); opsi lama tanpa jenis kartu dibaca sebagai "Semua latihan".
+
 ## [1.2.0] · 2026-11-14 · Bahasa Indonesia / English
 
 Atas permintaan pemilik: seluruh app tersedia dalam bahasa Inggris, tanpa mengubah logika latihan.

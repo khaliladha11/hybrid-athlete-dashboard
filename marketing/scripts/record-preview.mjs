@@ -65,8 +65,8 @@ const SCENES = [
       await sleep(500);
       await scrollTo(page, page.getByText(/Saran Gita/i), { ms: 1100 });
       await sleep(1100);
-      // 1.1.0: kartu "Minggu ini · lari" menggantikan tombol Generate di Profil.
-      await scrollTo(page, page.getByRole("region", { name: "Minggu ini · lari" }), { offset: 120, ms: 800 });
+      // 1.1.0: kartu mingguan menggantikan tombol Generate di Profil; 1.3.0: bawaannya "Minggu ini · latihan".
+      await scrollTo(page, page.getByRole("region", { name: "Minggu ini · latihan" }), { offset: 120, ms: 800 });
     },
   },
   {

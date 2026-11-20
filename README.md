@@ -17,7 +17,7 @@
 
 <!-- Pratinjau dibuat ulang dengan `npm run media:video` (marketing/README.md). -->
 <p align="center">
-  <img src="docs/media/preview-readme.webp" width="300" alt="Pratinjau animasi: saran harian Gita dan kartu minggu ini di Profil, generator lari lalu Kirim ke jam, mode latihan strength dengan peta otot, program menuju Hari H, dan heatmap otot di Insight">
+  <img src="docs/media/preview-readme.webp" width="300" alt="Pratinjau animasi: saran harian Gita dan kartu Minggu ini · latihan di Profil, generator lari lalu Kirim ke jam, mode latihan strength dengan peta otot, program menuju Hari H, dan heatmap otot di Insight">
 </p>
 
 <p align="center"><sub>Direkam dari Demo Mode (data fiktif). Galeri lengkap di <a href="docs/GUIDE.md#galeri-screenshot">Panduan</a>.</sub></p>

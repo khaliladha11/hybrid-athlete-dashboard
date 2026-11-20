@@ -22,15 +22,23 @@ Kartu **Saran hari ini** di Profil (dan strip saran di Generator Lari) menyebut 
 
 ### Kartu minggu ini & bagikan
 
-Profil menampilkan kartu **Minggu ini · lari** (1.1.0): total km minggu kalender Senin sampai Minggu, bar per hari, dan jumlah lari. Total adalah jumlah jarak mentah, sedangkan angka per hari dibulatkan satu desimal, jadi jumlahnya bisa beda 0.01. Ketuk kartu untuk detail di **Tren › Minggu ini**: pace, HR, long run, load, pembagian 80/20, perubahan km, beban ST, dan Week Ledger.
+Profil menampilkan kartu **Minggu ini · latihan** (1.3.0): total jam semua latihan minggu kalender Senin sampai Minggu, ringkasan lari, sepeda, dan strength, serta bar per hari yang ditumpuk per olahraga.
+
+- **Warna:** lari oranye, sepeda biru, strength garis tepi, lainnya (jalan, hike, renang, yoga) abu-abu. Bila keempatnya ada, kolom ketiga menjadi **Lainnya** gabungan.
+- **Arsir = indoor:** trainer, treadmill, dan Zwift dkk. diarsir; strength selalu indoor. "+ 45' INDOOR" berarti ada sesi indoor tanpa jarak.
+- **Lihat tabel** menampilkan rincian per hari (olahraga, menit, indoor/outdoor).
+- Sesi strength dari mode latihan dan aktivitas WeightTraining di intervals.icu yang sama dihitung sekali.
+
+Pilih **Lari** di atas kartu untuk kartu **Minggu ini · lari** (1.1.0): total km, bar per hari, dan jumlah lari. Total adalah jumlah jarak mentah, sedangkan angka per hari dibulatkan satu desimal, jadi jumlahnya bisa beda 0.01. Ketuk kartu untuk detail di **Tren › Minggu ini**: pace, HR, long run, load, pembagian 80/20, perubahan km, beban ST, dan Week Ledger. Tren juga punya grafik **Waktu per olahraga** per minggu.
 
 Tombol **Bagikan** membuat PNG transparan untuk ditempel di atas foto:
 
+- **Jenis kartu:** Semua latihan atau Lari.
 - **Format:** Story 1080×1920 atau Feed 1080×1350.
 - **Warna teks:** Teks terang (untuk foto gelap, dengan bayangan lembut) atau Teks gelap. Oranye selalu sama.
 - **Bahasa kartu:** mengikuti bahasa app (1.2.0), bisa diganti EN atau ID. **Watermark** "HYBRID ATHLETE" bisa dimatikan.
 - Di HP yang mendukung, **Bagikan** langsung membuka menu berbagi (mis. Instagram Story). **Unduh PNG** selalu tersedia.
-- Gambar hanya berisi km, jumlah lari, dan tanggal minggu itu. Tanpa nama dan tanpa alamat aplikasimu.
+- Gambar hanya berisi waktu, km, jumlah sesi, dan tanggal minggu itu. Tanpa nama dan tanpa alamat aplikasimu.
 
 ### Program mingguan
 
@@ -269,7 +277,7 @@ Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](TRAINING-LOG
 
 <table>
   <tr>
-    <td><img src="screenshots/01-profile.jpg" width="220" alt="Profil: saran Gita dilipat, Wellness dengan carousel info, kartu Minggu ini · lari"></td>
+    <td><img src="screenshots/01-profile.jpg" width="220" alt="Profil: saran Gita dilipat, Wellness dengan carousel info"></td>
     <td><img src="screenshots/03-run-generator.jpg" width="220" alt="Generator lari dengan strip saran dan kesulitan berwarna"></td>
     <td><img src="screenshots/04-run-workout.jpg" width="220" alt="Kartu tag Norwegian 4x4 dengan Segment Skyline rencana"></td>
   </tr>
@@ -360,12 +368,22 @@ Detail aturan dan dasar ilmiahnya ada di **[docs/TRAINING-LOGIC.md](TRAINING-LOG
   </tr>
   <tr>
     <td><img src="screenshots/28-insight-body.jpg" width="220" alt="Mode terang: tren check-in dan status ambang pribadi di Insight"></td>
-    <td><img src="screenshots/29-share-week.jpg" width="220" alt="Sheet Bagikan kartu minggu ini: pratinjau PNG transparan, format, warna teks, bahasa kartu, watermark"></td>
-    <td></td>
+    <td><img src="screenshots/29-share-week.jpg" width="220" alt="Sheet Bagikan kartu minggu ini: jenis kartu, pratinjau PNG transparan, format, warna teks, bahasa kartu, watermark"></td>
+    <td><img src="screenshots/30-training-week.jpg" width="220" alt="Kartu Minggu ini · latihan: total jam, kolom lari, sepeda, strength, bar bertumpuk per hari dengan arsir indoor"></td>
   </tr>
   <tr>
     <td align="center"><sub>Tubuh & ambang</sub></td>
     <td align="center"><sub>Bagikan kartu minggu ini</sub></td>
+    <td align="center"><sub>Minggu ini · latihan</sub></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/31-insight-sport-time.jpg" width="220" alt="Tren: waktu per olahraga per minggu, bar bertumpuk lari, sepeda, lainnya, strength"></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Waktu per olahraga</sub></td>
+    <td></td>
     <td></td>
   </tr>
 </table>

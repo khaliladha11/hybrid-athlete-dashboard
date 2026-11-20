@@ -12,7 +12,7 @@ import { LIB_MISC } from "@/lib/i18n/messages/lib-misc";
 import { UPSTREAM_REPO } from "./env-schema";
 
 /** Tanggal rilis versi terpasang (YYYY-MM-DD). Naik bersama `version` di package.json; dijaga test terhadap CHANGELOG. */
-export const RELEASE_DATE = "2026-11-14";
+export const RELEASE_DATE = "2026-11-20";
 
 const SEMVER_RE = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;
 

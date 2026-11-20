@@ -10,6 +10,7 @@ Rasanya seperti **tag lari yang ditempel di layar**: permukaan charcoal, satu or
 
 - **Dark-first.** Mode gelap adalah wajah utama (sama dengan kartu story). Mode terang tetap ada dengan token yang setara (PRD 4.7: tema Sistem/Terang/Gelap).
 - **Satu aksen:** oranye `#FC4C02`. Hijau/kuning/merah tetap ada, tapi hanya sebagai **warna data** (intensitas & status, PRD 4.7). Warna data tidak pernah dipakai untuk chrome (tombol, nav, judul).
+- **Warna olahraga (1.3.0, data):** lari = oranye `--brand`, sepeda = biru `--info`, strength = tinta (garis tepi berarsir), lainnya (jalan, hike, renang, yoga, …) = tinta redup 50% (`--track` di grafik Tren). Hanya untuk data latihan, tidak untuk chrome.
 - **Bentuk data adalah tanda tangan.** Elemen yang paling diingat adalah *Segment Skyline* (bar segmen) dan *Week Ledger* (tabel minggu ini).
 
 Dial taste-skill untuk app ini: `DESIGN_VARIANCE 4 · MOTION_INTENSITY 3 · VISUAL_DENSITY 6`. Dashboard sebenarnya di luar cakupan taste-skill. Karena itu yang dipakai terutama protokol `redesign-existing-projects` (Scan, Diagnose, Fix) plus aturan warna, tipografi, dan copy dari `design-taste-frontend`.
@@ -39,7 +40,7 @@ Nama token **tetap sama dengan 0.9** supaya semua kelas Tailwind yang ada (`bg-s
 | `--success` / `-ink` / `-soft` | `#4ADE80` / `#6EE7A0` / `#10291A` | `#16A34A` / `#15803D` / `#E8F7EE` | intensitas Easy, status OK |
 | `--warning` / `-ink` / `-soft` | `#FACC15` / `#FCD34D` / `#2E2608` | `#B98D06` / `#A16207` / `#FDF6D8` | Moderate |
 | `--danger` / `-ink` / `-soft` | `#F87171` / `#FCA5A5` / `#331414` | `#DC2626` / `#B91C1C` / `#FDECEC` | High, status gagal |
-| `--info` / `-soft` | `#5AA2FF` / `#0F2440` | `#0060D0` / `#EAF2FD` | catatan/cue |
+| `--info` / `-soft` | `#5AA2FF` / `#0F2440` | `#0060D0` / `#EAF2FD` | catatan/cue; sejak 1.3.0 juga warna data **sepeda** |
 
 **Kontras (sudah dihitung, WCAG):** ink di surface gelap 16.5:1 · muted 7.5:1 · faint 5.3:1 · brand-ink gelap 6.3:1 · brand-ink terang di putih 5.2:1 · faint terang di putih 5.4:1.
 
@@ -134,15 +135,22 @@ Grafik bar SVG tanpa library. **Lebar bar ∝ durasi, tinggi bar ∝ kecepatan.*
 - Data dari aktivitas minggu kalender (sudah dihitung di `summarizeLast7Days().calendarWeek`; tambah rincian per hari di komponen).
 - Total adalah jumlah jarak mentah. Angka per hari dibulatkan 1 desimal, jadi jumlahnya bisa beda 0.01 dari total. Itu wajar; jangan "dibetulkan".
 
-### Kartu Minggu ini · lari (1.1.0, `components/profile/WeekRunCard.tsx`)
+### Kartu Minggu ini · latihan (1.3.0, `components/profile/WeekCard.tsx`)
+- Bawaan di Profil; Segmented **Semua latihan / Lari** di atas kartu dan di sheet bagikan (pilihan disimpan bersama opsi bagikan). Kartu lari 1.1.0 tetap sama.
+- Label mono `MINGGU INI · LATIHAN`, total jam Display italic condensed `5:52` + `JAM`/`HRS` mono oranye. Tiga kolom ringkasan dipisah hairline vertikal: kotak warna kecil + label mono, nilai sans besar (`14.6` + `KM` mono kecil, atau `1:55` + `J`/`H`), sub-baris mono redup (`3x · 2:22`, `+ 45' INDOOR`, `3x · INDOOR`).
+- Bar per hari: segmen bertumpuk (dari bawah lari, sepeda, lainnya, strength; outdoor di bawah indoor), radius 14, celah 8, tinggi minimum 22, skala ke hari terpanjang (maksimal 330) sehingga label menit (`45'`, `150'`) tidak menabrak kolom. Hari kosong = titik faint.
+- **Arsir = indoor:** garis diagonal 45° terang di atas warna olahraga (trainer, Virtual*, treadmill); strength selalu garis tepi tinta berarsir. Arsir tidak pernah satu-satunya penanda: kata "indoor" ada di `aria-label` dan di "Lihat tabel" (Hari, Olahraga, Menit, Tempat).
+- Layout di `lib/weekly/training-card.ts` (koordinat 1080×1920, blok y 400 sampai 1580) dipakai kartu Profil (token tema, pola arsir per kartu) dan ekspor PNG. Feed memusatkan blok ini di 1080×1350.
+
+### Kartu Minggu ini · lari (1.1.0, pilihan "Lari" sejak 1.3.0)
 - Gaya kartu story: label mono `MINGGU INI · LARI` (`·` redup), total km Display italic condensed 2 desimal + satuan `KM` mono oranye sejajar baseline, 7 bar oranye Senin sampai Minggu (lebar 74, radius 16, tinggi ∝ km sampai 300, minimum 32) dengan angka 1 desimal di atasnya, hari kosong = titik kecil faint di baseline, huruf hari mono, garis rambut, footer mono `3 LARI · 9 SAMPAI 15 NOV`.
 - Satu layout di `lib/week-run-card.ts` (koordinat 1080×1920, blok y 560 sampai 1480, margin kiri 120, tepi kanan grafik 960) dipakai kartu Profil (peran warna → token tema) dan ekspor PNG (warna tetap). Angka total adalah satu-satunya Display di Profil.
 - Aturan angka sama dengan Week Ledger. Selesai = oranye, jadi bar memakai `--brand`.
 - Seluruh kartu adalah tautan ke Tren; tombol Bagikan di luar tautan.
 
 ### Ekspor bagikan (1.1.0, `components/share/ShareWeekSheet.tsx`)
-- Bottom sheet `<dialog>` (gaya `.movement-sheet`): pratinjau di atas papan catur (`.checkerboard`) supaya transparansi terlihat, Segmented Format (Story 9:16 / Feed 4:5), Warna teks (Teks terang / Teks gelap), Bahasa kartu (EN / ID), Switch watermark, tombol **Bagikan** (hanya bila Web Share API menerima file) dan **Unduh PNG**.
-- PNG tanpa latar. Teks terang `#F5F4F1` dengan bayangan lembut `0 4px 16px rgba(0,0,0,.35)` pada teks dan bar; teks gelap `#141414` dengan bayangan terang. Oranye selalu `#FC4C02`. Feed memakai blok yang sama di tengah 1080×1350.
+- Bottom sheet `<dialog>` (gaya `.movement-sheet`): pratinjau di atas papan catur (`.checkerboard`) supaya transparansi terlihat, Segmented Jenis kartu (Semua latihan / Lari, 1.3.0), Format (Story 9:16 / Feed 4:5), Warna teks (Teks terang / Teks gelap), Bahasa kartu (EN / ID), Switch watermark, tombol **Bagikan** (hanya bila Web Share API menerima file) dan **Unduh PNG**.
+- PNG tanpa latar. Teks terang `#F5F4F1` dengan bayangan lembut `0 4px 16px rgba(0,0,0,.35)` pada teks dan bar; teks gelap `#141414` dengan bayangan terang. Oranye selalu `#FC4C02`; biru sepeda `#5AA2FF` untuk teks terang dan `#0060D0` untuk teks gelap. Feed memakai blok yang sama di tengah 1080×1350.
 - Font Archivo & Geist Mono disematkan ke SVG sebagai data URL supaya PNG sama dengan layar. Tanpa nama orang dan tanpa alamat deploy.
 
 ### InfoCarousel (1.1.0, `components/ui/InfoCarousel.tsx`)
