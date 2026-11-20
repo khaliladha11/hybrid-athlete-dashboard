@@ -55,7 +55,7 @@ describe("ringkasan 7 hari", () => {
     const s = summarizeLast7Days(mockActivities(TODAY), TODAY);
     expect(s.from).toBe(addDays(TODAY, -6));
     expect(s.runKm).toBeCloseTo(14.2 + 7.6 + 6.1, 5);
-    expect(s.sessions).toEqual({ run: 3, strength: 2 });
+    expect(s.sessions).toEqual({ run: 3, strength: 2, ride: 2 });
     expect(s.longestRun?.km).toBeCloseTo(14.2);
     expect(s.avgPaceSecPerKm).toBeGreaterThan(0);
   });

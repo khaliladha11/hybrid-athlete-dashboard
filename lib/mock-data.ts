@@ -22,6 +22,8 @@ interface Template {
   max_heartrate?: number | null;
   average_cadence?: number | null;
   icu_training_load?: number | null;
+  /** Trainer/treadmill (1.3.0). */
+  trainer?: boolean;
 }
 
 const TEMPLATES: Template[] = [
@@ -37,6 +39,9 @@ const TEMPLATES: Template[] = [
   { daysAgo: 13, time: "05:30", name: "Norwegian 4×4", type: "Run", distance: 8000, moving_time: 2700, average_heartrate: 160, max_heartrate: 181, average_cadence: 89, icu_training_load: 82 },
   { daysAgo: 15, time: "05:20", name: "Long Run", type: "Run", distance: 12000, moving_time: 5820, average_heartrate: 145, average_cadence: 87, icu_training_load: 96 },
   { daysAgo: 17, time: "19:00", name: "Upper Pull ST", type: "WeightTraining", distance: null, moving_time: 2700, average_heartrate: 104, icu_training_load: 25 },
+  // Sepeda (1.3.0) untuk kartu "Minggu ini · latihan": satu outdoor, satu trainer tanpa jarak.
+  { daysAgo: 1, time: "16:30", name: "Sepeda Sore", type: "Ride", distance: 18400, moving_time: 2460, average_heartrate: 128, icu_training_load: 30 },
+  { daysAgo: 4, time: "18:00", name: "Trainer Z2", type: "VirtualRide", distance: null, moving_time: 2700, average_heartrate: 124, icu_training_load: 32, trainer: true },
 ];
 
 function rawActivities(today: string) {
@@ -52,6 +57,7 @@ function rawActivities(today: string) {
     max_heartrate: t.max_heartrate ?? null,
     average_cadence: t.average_cadence,
     icu_training_load: t.icu_training_load,
+    ...(t.trainer ? { trainer: true } : {}),
   }));
 }
 
